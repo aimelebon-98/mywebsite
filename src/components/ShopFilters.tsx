@@ -1,0 +1,268 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { SlidersHorizontal, X, ChevronDown, Search, Star, Tag } from "lucide-react";
+
+interface ShopFiltersProps {
+  category: string;
+  search: string;
+  sort: string;
+  minPrice: string;
+  maxPrice: string;
+  brand: string;
+  rating: string;
+  onSale: string;
+  brands: string[];
+  totalResults: number;
+}
+
+export default function ShopFilters({
+  category,
+  search,
+  sort,
+  minPrice,
+  maxPrice,
+  brand,
+  rating,
+  onSale,
+  brands,
+}: ShopFiltersProps) {
+  const router = useRouter();
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [localSearch, setLocalSearch] = useState(search);
+  const [localMinPrice, setLocalMinPrice] = useState(minPrice);
+  const [localMaxPrice, setLocalMaxPrice] = useState(maxPrice);
+
+  const buildUrl = (overrides: Record<string, string>) => {
+    const params = new URLSearchParams();
+    const merged = {
+      category, search, sort, minPrice, maxPrice, brand, rating, onSale,
+      ...overrides,
+    };
+    Object.entries(merged).forEach(([k, v]) => {
+      if (v && v !== "all" && v !== "") params.set(k, v);
+    });
+    return `/shop?${params.toString()}`;
+  };
+
+  const hasActiveFilters = minPrice || maxPrice || brand || rating || onSale === "true" || search;
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    router.push(buildUrl({ search: localSearch }));
+  };
+
+  const handleApplyPrice = () => {
+    router.push(buildUrl({ minPrice: localMinPrice, maxPrice: localMaxPrice }));
+  };
+
+  const clearAll = () => {
+    router.push(`/shop${category !== "all" ? `?category=${category}` : ""}`);
+  };
+
+  return (
+    <div className="mb-6 space-y-4">
+      {/* Top row: Search + Sort + Filter toggle */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        {/* Search */}
+        <form onSubmit={handleSearch} className="relative flex-1 max-w-md">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            value={localSearch}
+            onChange={(e) => setLocalSearch(e.target.value)}
+            placeholder="Search shoes..."
+            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
+          />
+          {localSearch && (
+            <button
+              type="button"
+              onClick={() => { setLocalSearch(""); router.push(buildUrl({ search: "" })); }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </form>
+
+        <div className="flex gap-2">
+          {/* Sort */}
+          <div className="relative">
+            <select
+              value={sort}
+              onChange={(e) => router.push(buildUrl({ sort: e.target.value }))}
+              className="appearance-none pl-4 pr-9 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition cursor-pointer"
+            >
+              <option value="newest">Newest First</option>
+              <option value="price-low">Price: Low → High</option>
+              <option value="price-high">Price: High → Low</option>
+              <option value="rating">Top Rated</option>
+              <option value="name-az">Name: A → Z</option>
+              <option value="name-za">Name: Z → A</option>
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          </div>
+
+          {/* Filter toggle */}
+          <button
+            onClick={() => setFiltersOpen(!filtersOpen)}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition border ${
+              filtersOpen || hasActiveFilters
+                ? "bg-gray-900 text-white border-gray-900"
+                : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
+            }`}
+          >
+            <SlidersHorizontal className="w-4 h-4" />
+            <span className="hidden sm:inline">Filters</span>
+            {hasActiveFilters && (
+              <span className="w-5 h-5 bg-brand-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                {[minPrice, maxPrice, brand, rating, onSale === "true" ? "1" : "", search].filter(Boolean).length}
+              </span>
+            )}
+          </button>
+
+          {/* Clear all */}
+          {hasActiveFilters && (
+            <button
+              onClick={clearAll}
+              className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-red-500 hover:bg-red-50 rounded-xl transition"
+            >
+              <X className="w-3.5 h-3.5" /> Clear
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Expandable filter panel */}
+      {filtersOpen && (
+        <div className="bg-gray-50 rounded-2xl p-5 border border-gray-200 animate-fade-in-up">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {/* Price Range */}
+            <div>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">Price Range</h4>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  value={localMinPrice}
+                  onChange={(e) => setLocalMinPrice(e.target.value)}
+                  placeholder="Min"
+                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
+                />
+                <span className="text-gray-400 text-sm">—</span>
+                <input
+                  type="number"
+                  value={localMaxPrice}
+                  onChange={(e) => setLocalMaxPrice(e.target.value)}
+                  placeholder="Max"
+                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
+                />
+                <button
+                  onClick={handleApplyPrice}
+                  className="px-3 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition flex-shrink-0"
+                >
+                  Go
+                </button>
+              </div>
+              {/* Quick price ranges */}
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {[
+                  { label: "Under $100", min: "", max: "100" },
+                  { label: "$100 - $200", min: "100", max: "200" },
+                  { label: "$200+", min: "200", max: "" },
+                ].map((range) => (
+                  <button
+                    key={range.label}
+                    onClick={() => router.push(buildUrl({ minPrice: range.min, maxPrice: range.max }))}
+                    className={`px-2.5 py-1 text-xs rounded-lg border transition ${
+                      minPrice === range.min && maxPrice === range.max
+                        ? "bg-gray-900 text-white border-gray-900"
+                        : "bg-white text-gray-600 border-gray-200 hover:bg-gray-100"
+                    }`}
+                  >
+                    {range.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Brand */}
+            <div>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">Brand</h4>
+              <div className="relative">
+                <select
+                  value={brand}
+                  onChange={(e) => router.push(buildUrl({ brand: e.target.value }))}
+                  className="w-full appearance-none px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition cursor-pointer"
+                >
+                  <option value="">All Brands</option>
+                  {brands.map((b) => (
+                    <option key={b} value={b}>{b}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Rating */}
+            <div>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">Min. Rating</h4>
+              <div className="space-y-1.5">
+                {[
+                  { label: "4.5+", value: "4.4" },
+                  { label: "4.0+", value: "3.9" },
+                  { label: "3.5+", value: "3.4" },
+                  { label: "Any Rating", value: "" },
+                ].map((r) => (
+                  <button
+                    key={r.label}
+                    onClick={() => router.push(buildUrl({ rating: r.value }))}
+                    className={`flex items-center gap-2 w-full px-3 py-1.5 rounded-lg text-sm transition ${
+                      rating === r.value
+                        ? "bg-gray-900 text-white"
+                        : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-100"
+                    }`}
+                  >
+                    {r.value ? (
+                      <>
+                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                        {r.label}
+                      </>
+                    ) : (
+                      r.label
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Special */}
+            <div>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">Special</h4>
+              <div className="space-y-1.5">
+                <button
+                  onClick={() => router.push(buildUrl({ onSale: onSale === "true" ? "" : "true" }))}
+                  className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm transition ${
+                    onSale === "true"
+                      ? "bg-orange-500 text-white"
+                      : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-100"
+                  }`}
+                >
+                  <Tag className="w-4 h-4" />
+                  On Sale Only
+                </button>
+                <button
+                  onClick={clearAll}
+                  className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm text-red-500 bg-white border border-gray-200 hover:bg-red-50 transition"
+                >
+                  <X className="w-4 h-4" />
+                  Reset All Filters
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

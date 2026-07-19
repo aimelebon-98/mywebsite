@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SoleVault — Premium Footwear | Sneakers, Boots, Formal Shoes</title>
+  <meta name="description" content="Discover premium shoes for every occasion at SoleVault. Shop sneakers, running shoes, boots, formal shoes, sandals and more. Free shipping on orders over $100." />
+  <meta name="keywords" content="shoes, sneakers, boots, running shoes, formal shoes, footwear, SoleVault, buy shoes online, premium shoes" />
+  <meta property="og:title" content="SoleVault — Premium Footwear" />
+  <meta property="og:description" content="Discover premium shoes for every occasion. 50+ styles to choose from." />
+  <meta property="og:image" content="/images/hero-shoe.jpg" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="SoleVault — Premium Footwear" />
+  <meta name="twitter:image" content="/images/hero-shoe.jpg" />
+  <link rel="canonical" href="/" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --brand: #ca3f2e;
+      --brand-light: #fdf4f3;
+      --dark: #111827;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-400: #9ca3af;
+      --gray-500: #6b7280;
+      --gray-600: #4b5563;
+      --gray-900: #111827;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; color: var(--dark); background: #fff; -webkit-font-smoothing: antialiased; }
+    a { text-decoration: none; color: inherit; }
+    img { display: block; max-width: 100%; }
+    .container { max-width: 1280px; margin: 0 auto; padding: 0 1rem; }
+    @media(min-width:640px) { .container { padding: 0 1.5rem; } }
+    @media(min-width:1024px) { .container { padding: 0 2rem; } }
+
+    /* ===== NAVBAR ===== */
+    .promo-bar { background: var(--gray-900); color: #fff; text-align: center; padding: 0.5rem; font-size: 0.75rem; font-weight: 500; letter-spacing: 0.025em; }
+    .promo-bar a { text-decoration: underline; text-underline-offset: 2px; }
+    .navbar { position: sticky; top: 0; z-index: 50; background: rgba(255,255,255,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--gray-100); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 56px; }
+    .nav-logo { display: flex; align-items: center; gap: 0.5rem; font-weight: 800; font-size: 1.125rem; }
+    .nav-logo-icon { width: 32px; height: 32px; background: var(--gray-900); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.7rem; font-weight: 800; }
+    .nav-links { display: none; gap: 1.5rem; }
+    @media(min-width:768px) { .nav-links { display: flex; } }
+    .nav-links a { font-size: 0.875rem; font-weight: 500; color: var(--gray-600); transition: color 0.2s; }
+    .nav-links a:hover { color: var(--gray-900); }
+    .nav-actions { display: flex; align-items: center; gap: 0.5rem; }
+    .nav-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 12px; background: none; border: none; cursor: pointer; transition: background 0.2s; font-size: 1.25rem; }
+    .nav-btn:hover { background: var(--gray-100); }
+    .cart-badge { position: relative; }
+    .cart-count { position: absolute; top: -2px; right: -2px; width: 18px; height: 18px; background: var(--brand); color: #fff; font-size: 0.6rem; font-weight: 700; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+
+    /* ===== HERO ===== */
+    .hero { background: linear-gradient(135deg, var(--gray-50), #fff, var(--gray-100)); padding: 4rem 0 5rem; }
+    .hero-grid { display: grid; grid-template-columns: 1fr; gap: 3rem; align-items: center; }
+    @media(min-width:1024px) { .hero-grid { grid-template-columns: 1fr 1fr; } }
+    .hero-badge { display: inline-block; padding: 0.5rem 1rem; background: var(--gray-900); color: #fff; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; border-radius: 9999px; margin-bottom: 1.5rem; }
+    .hero h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight: 900; line-height: 1.05; letter-spacing: -0.03em; margin-bottom: 1.5rem; }
+    .hero h1 span { background: linear-gradient(135deg, var(--brand), #aa3123); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero p { font-size: 1.125rem; color: var(--gray-600); max-width: 28rem; margin-bottom: 2rem; line-height: 1.7; }
+    .hero-buttons { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 1rem 2rem; border-radius: 1rem; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; border: none; font-family: inherit; }
+    .btn-dark { background: var(--gray-900); color: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+    .btn-dark:hover { background: #1f2937; }
+    .btn-outline { background: #fff; color: var(--gray-900); border: 2px solid var(--gray-200); }
+    .btn-outline:hover { border-color: var(--gray-900); }
+    .hero-image-wrap { position: relative; max-width: 480px; margin: 0 auto; }
+    .hero-image-bg1 { position: absolute; inset: 0; background: linear-gradient(135deg, #f9d4d0, #fce8e6, #fdf4f3); border-radius: 3rem; transform: rotate(6deg); }
+    .hero-image-bg2 { position: absolute; inset: 0; background: linear-gradient(225deg, #e5e7eb, #f3f4f6, #fff); border-radius: 3rem; transform: rotate(-3deg); }
+    .hero-image { position: relative; border-radius: 3rem; overflow: hidden; aspect-ratio: 1; box-shadow: 0 25px 60px rgba(0,0,0,0.12); }
+    .hero-image img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* ===== FEATURES BAR ===== */
+    .features-bar { background: var(--gray-900); color: #fff; padding: 1.5rem 0; }
+    .features-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+    @media(min-width:1024px) { .features-grid { grid-template-columns: repeat(4, 1fr); } }
+    .feature-item { display: flex; align-items: center; gap: 0.75rem; }
+    .feature-icon { width: 40px; height: 40px; background: rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+    .feature-item strong { font-size: 0.875rem; display: block; }
+    .feature-item small { font-size: 0.75rem; color: var(--gray-400); }
+
+    /* ===== SECTIONS ===== */
+    .section { padding: 4rem 0; }
+    .section-alt { background: var(--gray-50); }
+    .section-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 2rem; }
+    .section-header h2 { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 800; }
+    .section-header p { color: var(--gray-500); font-size: 0.875rem; margin-top: 0.25rem; }
+    .section-header a { font-size: 0.875rem; font-weight: 600; color: var(--brand); display: flex; align-items: center; gap: 0.25rem; }
+    .section-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+
+    /* ===== CATEGORIES ===== */
+    .cat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    @media(min-width:640px) { .cat-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media(min-width:1024px) { .cat-grid { grid-template-columns: repeat(6, 1fr); } }
+    .cat-card { position: relative; border-radius: 1rem; overflow: hidden; aspect-ratio: 1; transition: transform 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .cat-card:hover { transform: translateY(-4px); }
+    .cat-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+    .cat-card:hover img { transform: scale(1.1); }
+    .cat-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0.1), transparent); }
+    .cat-label { position: absolute; bottom: 0; left: 0; right: 0; padding: 1rem; }
+    .cat-label .emoji { font-size: 1.5rem; margin-bottom: 0.25rem; }
+    .cat-label h3 { font-size: 0.875rem; font-weight: 700; color: #fff; }
+
+    /* ===== PRODUCT GRID ===== */
+    .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    @media(min-width:768px) { .product-grid { grid-template-columns: repeat(3, 1fr); gap: 1.25rem; } }
+    @media(min-width:1024px) { .product-grid { grid-template-columns: repeat(4, 1fr); gap: 1.5rem; } }
+    .product-scroll { display: flex; gap: 1rem; overflow-x: auto; scroll-snap-type: x mandatory; -ms-overflow-style: none; scrollbar-width: none; padding-bottom: 0.5rem; }
+    .product-scroll::-webkit-scrollbar { display: none; }
+    .product-scroll .product-card { flex: 0 0 220px; scroll-snap-align: start; }
+    @media(min-width:1024px) { .product-scroll .product-card { flex: 0 0 260px; } }
+
+    /* ===== PRODUCT CARD ===== */
+    .product-card { position: relative; }
+    .product-card a { display: block; }
+    .product-thumb { position: relative; border-radius: 1rem; overflow: hidden; background: var(--gray-100); aspect-ratio: 1; margin-bottom: 0.75rem; }
+    .product-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+    .product-card:hover .product-thumb img { transform: scale(1.05); }
+    .product-badge { position: absolute; top: 0.75rem; left: 0.75rem; padding: 0.25rem 0.625rem; color: #fff; font-size: 0.625rem; font-weight: 700; border-radius: 9999px; }
+    .badge-hot { background: #ef4444; }
+    .badge-new { background: #10b981; }
+    .badge-sale { background: #f97316; }
+    .badge-featured { background: var(--gray-900); }
+    .product-actions { display: flex; gap: 0.5rem; padding: 0.5rem; position: absolute; bottom: 0; left: 0; right: 0; }
+    .product-buy { flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.375rem; padding: 0.5rem; background: var(--brand); color: #fff; border-radius: 0.75rem; font-size: 0.7rem; font-weight: 700; border: none; cursor: pointer; font-family: inherit; transition: background 0.2s; }
+    .product-buy:hover { background: #aa3123; }
+    .product-cart-btn { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: var(--gray-900); color: #fff; border-radius: 0.75rem; border: none; cursor: pointer; font-size: 0.9rem; transition: background 0.2s; }
+    .product-cart-btn:hover { background: #374151; }
+    .product-brand { font-size: 0.625rem; color: var(--gray-500); font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; }
+    .product-name { font-size: 0.875rem; font-weight: 600; margin: 0.125rem 0; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .product-stars { display: flex; align-items: center; gap: 0.125rem; margin: 0.25rem 0; }
+    .product-stars .star { color: #fbbf24; font-size: 0.7rem; }
+    .product-stars .star-empty { color: var(--gray-200); font-size: 0.7rem; }
+    .product-stars span { font-size: 0.625rem; color: var(--gray-400); margin-left: 0.25rem; }
+    .product-prices { display: flex; align-items: center; gap: 0.5rem; }
+    .product-price { font-size: 1rem; font-weight: 700; }
+    .product-old-price { font-size: 0.8rem; color: var(--gray-400); text-decoration: line-through; }
+
+    /* ===== CTA ===== */
+    .cta { border-radius: 1.5rem; background: linear-gradient(135deg, var(--gray-900), #1f2937); color: #fff; padding: 3rem 2rem; position: relative; overflow: hidden; }
+    @media(min-width:1024px) { .cta { padding: 5rem; } }
+    .cta-glow { position: absolute; width: 300px; height: 300px; border-radius: 50%; filter: blur(80px); opacity: 0.2; }
+    .cta-glow-1 { top: -50px; right: -50px; background: var(--brand); }
+    .cta-glow-2 { bottom: -50px; left: -50px; background: #3b82f6; }
+    .cta h2 { font-size: clamp(1.75rem, 4vw, 3rem); font-weight: 800; margin-bottom: 1rem; line-height: 1.15; position: relative; }
+    .cta p { color: var(--gray-300); font-size: 1.1rem; margin-bottom: 2rem; max-width: 28rem; position: relative; }
+    .btn-white { background: #fff; color: var(--gray-900); }
+    .btn-white:hover { background: var(--gray-100); }
+
+    /* ===== FOOTER ===== */
+    .footer { background: #030712; color: var(--gray-400); padding: 4rem 0 2rem; }
+    .footer-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2.5rem; margin-bottom: 3rem; }
+    @media(min-width:768px) { .footer-grid { grid-template-columns: repeat(4, 1fr); } }
+    .footer h4 { color: #fff; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 1rem; }
+    .footer ul { list-style: none; }
+    .footer li { margin-bottom: 0.75rem; }
+    .footer li a, .footer li span { font-size: 0.875rem; transition: color 0.2s; }
+    .footer li a:hover { color: #fff; }
+    .footer-bottom { border-top: 1px solid #1f2937; padding-top: 1.5rem; text-align: center; font-size: 0.8rem; }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    .fade-in { animation: fadeInUp 0.6s ease-out both; }
+    .fade-delay-1 { animation-delay: 0.1s; }
+    .fade-delay-2 { animation-delay: 0.2s; }
+    .float { animation: float 3s ease-in-out infinite; }
+
+    /* ===== LOADING ===== */
+    .skeleton { background: linear-gradient(90deg, var(--gray-100) 25%, var(--gray-200) 50%, var(--gray-100) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 1rem; }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    #loading-screen { position: fixed; inset: 0; z-index: 9999; background: #fff; display: flex; align-items: center; justify-content: center; transition: opacity 0.4s; }
+    #loading-screen.hidden { opacity: 0; pointer-events: none; }
+    .spinner { width: 24px; height: 24px; border: 3px solid var(--gray-200); border-top-color: var(--gray-900); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 1.5rem auto 0; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<!-- Loading Screen -->
+<div id="loading-screen">
+  <div style="text-align:center">
+    <div style="width:64px;height:64px;background:#111;border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px"><span style="color:#fff;font-weight:800;font-size:24px">SV</span></div>
+    <h1 style="font-size:24px;font-weight:800">SoleVault</h1>
+    <p style="color:#6b7280;font-size:14px;margin-top:4px">Loading premium footwear...</p>
+    <div class="spinner"></div>
+  </div>
+</div>
+
+<!-- Promo Bar -->
+<div class="promo-bar">🔥 FREE SHIPPING on orders over $100 — <a href="/shop">Shop Now</a></div>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="container nav-inner">
+    <a href="/" class="nav-logo">
+      <div class="nav-logo-icon">SV</div>
+      <span>SoleVault</span>
+    </a>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="/shop">Shop All</a>
+      <a href="/shop?category=sneakers">Sneakers</a>
+      <a href="/shop?category=running">Running</a>
+      <a href="/shop?category=formal">Formal</a>
+      <a href="/shop?category=boots">Boots</a>
+    </div>
+    <div class="nav-actions">
+      <a href="/shop" class="nav-btn" title="Search">🔍</a>
+      <a href="/cart" class="nav-btn cart-badge" title="Cart">🛍️<span class="cart-count" id="cart-count" style="display:none">0</span></a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div class="fade-in">
+        <span class="hero-badge">🔥 New Collection 2025</span>
+        <h1>Walk the<br/><span>Future</span></h1>
+        <p>Discover premium footwear crafted for comfort, style, and performance. Over 50 styles to choose from. Every step matters.</p>
+        <div class="hero-buttons">
+          <a href="/shop" class="btn btn-dark">Shop Now →</a>
+          <a href="/shop?category=sneakers" class="btn btn-outline">Explore Sneakers</a>
+        </div>
+      </div>
+      <div class="fade-in fade-delay-2">
+        <div class="hero-image-wrap">
+          <div class="hero-image-bg1"></div>
+          <div class="hero-image-bg2"></div>
+          <div class="hero-image">
+            <img src="/images/hero-shoe.jpg" alt="SoleVault Premium Sneaker" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features Bar -->
+<div class="features-bar">
+  <div class="container">
+    <div class="features-grid">
+      <div class="feature-item"><div class="feature-icon">🚚</div><div><strong>Free Shipping</strong><small>On orders over $100</small></div></div>
+      <div class="feature-item"><div class="feature-icon">🛡️</div><div><strong>Secure Payment</strong><small>100% protected</small></div></div>
+      <div class="feature-item"><div class="feature-icon">🔄</div><div><strong>Easy Returns</strong><small>30-day return policy</small></div></div>
+      <div class="feature-item"><div class="feature-icon">💬</div><div><strong>24/7 Support</strong><small>Via WhatsApp</small></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Hot Deals -->
+<section class="section" id="hot-deals-section" style="display:none">
+  <div class="container">
+    <div class="section-header">
+      <div style="display:flex;align-items:center;gap:0.75rem">
+        <div class="section-icon" style="background:#fef2f2;color:#ef4444">🔥</div>
+        <div><h2>Hot Deals</h2><p>Incredible prices, limited time only</p></div>
+      </div>
+      <a href="/shop">View All →</a>
+    </div>
+    <div class="product-scroll" id="hot-deals"></div>
+  </div>
+</section>
+
+<!-- Categories -->
+<section class="section section-alt">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:2.5rem">
+      <h2 style="font-size:clamp(1.5rem,3vw,2.25rem);font-weight:800;margin-bottom:0.5rem">Shop by Category</h2>
+      <p style="color:var(--gray-500)">Find the perfect pair for every occasion</p>
+    </div>
+    <div class="cat-grid">
+      <a href="/shop?category=sneakers" class="cat-card"><img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80" alt="Sneakers"/><div class="cat-overlay"></div><div class="cat-label"><div class="emoji">👟</div><h3>Sneakers</h3></div></a>
+      <a href="/shop?category=running" class="cat-card"><img src="https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400&q=80" alt="Running"/><div class="cat-overlay"></div><div class="cat-label"><div class="emoji">🏃</div><h3>Running</h3></div></a>
+      <a href="/shop?category=formal" class="cat-card"><img src="https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=400&q=80" alt="Formal"/><div class="cat-overlay"></div><div class="cat-label"><div class="emoji">👞</div><h3>Formal</h3></div></a>
+      <a href="/shop?category=boots" class="cat-card"><img src="https://images.unsplash.com/photo-1520639888713-7851133b1ed0?w=400&q=80" alt="Boots"/><div class="cat-overlay"></div><div class="cat-label"><div class="emoji">🥾</div><h3>Boots</h3></div></a>
+      <a href="/shop?category=sandals" class="cat-card"><img src="https://images.unsplash.com/photo-1603487742131-4160ec999306?w=400&q=80" alt="Sandals"/><div class="cat-overlay"></div><div class="cat-label"><div class="emoji">🩴</div><h3>Sandals</h3></div></a>
+      <a href="/shop?category=casual" class="cat-card"><img src="https://images.unsplash.com/photo-1604671368394-2240d0b1bb6c?w=400&q=80" alt="Casual"/><div class="cat-overlay"></div><div class="cat-label"><div class="emoji">👞</div><h3>Casual</h3></div></a>
+    </div>
+  </div>
+</section>
+
+<!-- Featured Products -->
+<section class="section" id="featured-section" style="display:none">
+  <div class="container">
+    <div class="section-header">
+      <div style="display:flex;align-items:center;gap:0.75rem">
+        <div class="section-icon" style="background:#fffbeb;color:#f59e0b">✨</div>
+        <div><h2>Featured Products</h2><p>Hand-picked styles we love</p></div>
+      </div>
+      <a href="/shop">View All →</a>
+    </div>
+    <div class="product-grid" id="featured-products"></div>
+  </div>
+</section>
+
+<!-- New Arrivals -->
+<section class="section section-alt" id="new-arrivals-section" style="display:none">
+  <div class="container">
+    <div class="section-header">
+      <div style="display:flex;align-items:center;gap:0.75rem">
+        <div class="section-icon" style="background:#ecfdf5;color:#10b981">⚡</div>
+        <div><h2>New Arrivals</h2><p>Fresh styles just dropped</p></div>
+      </div>
+      <a href="/shop">View All →</a>
+    </div>
+    <div class="product-scroll" id="new-arrivals"></div>
+  </div>
+</section>
+
+<!-- On Sale -->
+<section class="section" id="on-sale-section" style="display:none">
+  <div class="container">
+    <div class="section-header">
+      <div style="display:flex;align-items:center;gap:0.75rem">
+        <div class="section-icon" style="background:#fff7ed;color:#f97316">🏷️</div>
+        <div><h2>On Sale Now</h2><p>Great shoes, even better prices</p></div>
+      </div>
+      <a href="/shop">View All →</a>
+    </div>
+    <div class="product-scroll" id="on-sale"></div>
+  </div>
+</section>
+
+<!-- Top Rated -->
+<section class="section section-alt" id="top-rated-section" style="display:none">
+  <div class="container">
+    <div class="section-header">
+      <div style="display:flex;align-items:center;gap:0.75rem">
+        <div class="section-icon" style="background:#fefce8;color:#ca8a04">📈</div>
+        <div><h2>Top Rated</h2><p>Loved by our customers</p></div>
+      </div>
+      <a href="/shop">View All →</a>
+    </div>
+    <div class="product-grid" id="top-rated"></div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section">
+  <div class="container">
+    <div class="cta">
+      <div class="cta-glow cta-glow-1"></div>
+      <div class="cta-glow cta-glow-2"></div>
+      <h2>Get 20% Off Your<br/>First Order</h2>
+      <p>Join thousands of happy customers. Shop the latest styles with free shipping on orders over $100.</p>
+      <div class="hero-buttons">
+        <a href="/shop" class="btn btn-white">Shop Now →</a>
+        <a href="/cart" class="btn" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2)">View Cart</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem">
+          <div style="width:36px;height:36px;background:#fff;border-radius:12px;display:flex;align-items:center;justify-content:center"><span style="color:#111;font-weight:800;font-size:0.75rem">SV</span></div>
+          <span style="color:#fff;font-weight:700;font-size:1.125rem">SoleVault</span>
+        </div>
+        <p style="font-size:0.875rem;line-height:1.6">Premium footwear for every occasion. Quality craftsmanship, modern design.</p>
+      </div>
+      <div>
+        <h4>Shop</h4>
+        <ul>
+          <li><a href="/shop?category=sneakers">Sneakers</a></li>
+          <li><a href="/shop?category=running">Running</a></li>
+          <li><a href="/shop?category=formal">Formal</a></li>
+          <li><a href="/shop?category=boots">Boots</a></li>
+          <li><a href="/shop?category=sandals">Sandals</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Support</h4>
+        <ul>
+          <li><span>About Us</span></li>
+          <li><span>Contact</span></li>
+          <li><span>Shipping Policy</span></li>
+          <li><span>Returns</span></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Account</h4>
+        <ul>
+          <li><a href="/cart">My Cart</a></li>
+          <li><a href="/shop">Browse Shoes</a></li>
+          <li><a href="/admin">Admin</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">&copy; 2025 SoleVault. All rights reserved.</div>
+  </div>
+</footer>
+
+<script>
+function makeCard(p, badge) {
+  const price = parseFloat(p.price);
+  const compare = p.comparePrice ? parseFloat(p.comparePrice) : null;
+  const discount = compare ? Math.round(((compare - price) / compare) * 100) : 0;
+  const rating = parseFloat(p.rating || "0");
+  const slug = p.slug || p.id;
+  let badgeHtml = "";
+  if (badge) {
+    const cls = badge === "HOT" ? "badge-hot" : badge === "NEW" ? "badge-new" : badge === "SALE" ? "badge-sale" : "badge-featured";
+    badgeHtml = '<span class="product-badge ' + cls + '">' + badge + '</span>';
+  } else if (discount > 0) {
+    badgeHtml = '<span class="product-badge badge-hot">-' + discount + '%</span>';
+  } else if (p.featured) {
+    badgeHtml = '<span class="product-badge badge-featured">Featured</span>';
+  }
+  let stars = "";
+  if (rating > 0) {
+    for (let i = 1; i <= 5; i++) stars += '<span class="' + (i <= Math.round(rating) ? "star" : "star-empty") + '">★</span>';
+    stars = '<div class="product-stars">' + stars + '<span>(' + (p.reviewCount || 0) + ')</span></div>';
+  }
+  return '<div class="product-card"><a href="/product/' + slug + '">' +
+    '<div class="product-thumb">' +
+      (p.imageUrl ? '<img src="' + p.imageUrl + '" alt="' + p.name.replace(/"/g,"") + '" loading="lazy"/>' : '<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:3rem">👟</div>') +
+      badgeHtml +
+      '<div class="product-actions">' +
+        '<button class="product-buy" onclick="event.preventDefault();event.stopPropagation();addToCart(\'' + p.id + '\',\'' + p.name.replace(/'/g,"\\'") + '\',' + price + ',\'' + (p.imageUrl||"").replace(/'/g,"\\'") + '\');window.location.href=\'/cart\'">⚡ BUY NOW</button>' +
+        '<button class="product-cart-btn" onclick="event.preventDefault();event.stopPropagation();addToCart(\'' + p.id + '\',\'' + p.name.replace(/'/g,"\\'") + '\',' + price + ',\'' + (p.imageUrl||"").replace(/'/g,"\\'") + '\');this.textContent=\'✓\';setTimeout(()=>this.textContent=\'🛒\',1500)">🛒</button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="product-brand">' + (p.brand || p.category) + '</div>' +
+    '<div class="product-name">' + p.name + '</div>' +
+    stars +
+    '<div class="product-prices"><span class="product-price">$' + price.toFixed(2) + '</span>' +
+      (compare ? '<span class="product-old-price">$' + compare.toFixed(2) + '</span>' : '') +
+    '</div>' +
+  '</a></div>';
+}
+
+function addToCart(id, name, price, img) {
+  const cart = JSON.parse(localStorage.getItem("solevault-cart") || "[]");
+  const existing = cart.find(i => i.id === id);
+  if (existing) { existing.quantity++; }
+  else { cart.push({ id, name, price, imageUrl: img, size: "10", color: "Default", quantity: 1 }); }
+  localStorage.setItem("solevault-cart", JSON.stringify(cart));
+  updateCartCount();
+}
+
+function updateCartCount() {
+  const cart = JSON.parse(localStorage.getItem("solevault-cart") || "[]");
+  const count = cart.reduce((s, i) => s + i.quantity, 0);
+  const el = document.getElementById("cart-count");
+  if (count > 0) { el.textContent = count > 9 ? "9+" : count; el.style.display = "flex"; }
+  else { el.style.display = "none"; }
+}
+
+async function loadProducts() {
+  try {
+    const res = await fetch("/api/products");
+    const all = await res.json();
+    if (!Array.isArray(all) || all.length === 0) { document.getElementById("loading-screen").classList.add("hidden"); return; }
+
+    const hasTags = (p, tag) => (p.tags || "").includes(tag);
+
+    // Hot Deals
+    const hotDeals = all.filter(p => hasTags(p, "hot-deal")).slice(0, 8);
+    if (hotDeals.length) {
+      document.getElementById("hot-deals").innerHTML = hotDeals.map(p => makeCard(p, "HOT")).join("");
+      document.getElementById("hot-deals-section").style.display = "";
+    }
+
+    // Featured
+    const featured = all.filter(p => p.featured).slice(0, 8);
+    if (featured.length) {
+      document.getElementById("featured-products").innerHTML = featured.map(p => makeCard(p)).join("");
+      document.getElementById("featured-section").style.display = "";
+    }
+
+    // New Arrivals
+    const newArr = all.filter(p => hasTags(p, "new-arrival")).slice(0, 8);
+    if (newArr.length) {
+      document.getElementById("new-arrivals").innerHTML = newArr.map(p => makeCard(p, "NEW")).join("");
+      document.getElementById("new-arrivals-section").style.display = "";
+    }
+
+    // On Sale
+    const onSale = all.filter(p => p.comparePrice).slice(0, 8);
+    if (onSale.length) {
+      document.getElementById("on-sale").innerHTML = onSale.map(p => makeCard(p, "SALE")).join("");
+      document.getElementById("on-sale-section").style.display = "";
+    }
+
+    // Top Rated
+    const topRated = all.filter(p => parseFloat(p.rating||"0") > 4.5).sort((a,b) => parseFloat(b.rating||"0") - parseFloat(a.rating||"0")).slice(0, 8);
+    if (topRated.length) {
+      document.getElementById("top-rated").innerHTML = topRated.map(p => makeCard(p)).join("");
+      document.getElementById("top-rated-section").style.display = "";
+    }
+  } catch(e) { console.error(e); }
+  document.getElementById("loading-screen").classList.add("hidden");
+}
+
+updateCartCount();
+loadProducts();
+</script>
+</body>
+</html>
