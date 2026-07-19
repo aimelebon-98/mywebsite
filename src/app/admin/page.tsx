@@ -861,6 +861,8 @@ function ProductForm({
 }) {
   const [name, setName] = useState(product?.name || "");
   const [description, setDescription] = useState(product?.description || "");
+  const [shortDescription, setShortDescription] = useState((product as unknown as Record<string, string>)?.shortDescription || "");
+  const [longDescription, setLongDescription] = useState((product as unknown as Record<string, string>)?.longDescription || "");
   const [price, setPrice] = useState(product?.price || "");
   const [comparePrice, setComparePrice] = useState(product?.comparePrice || "");
   const [category, setCategory] = useState(product?.category || "sneakers");
@@ -882,7 +884,7 @@ function ProductForm({
     const tags = tagsStr.split(",").map((t) => t.trim()).filter(Boolean);
 
     onSave({
-      name, description,
+      name, description, shortDescription, longDescription,
       price: parseFloat(price) || 0,
       comparePrice: comparePrice ? parseFloat(comparePrice) : null,
       category, brand, sizes, colors,
@@ -904,8 +906,21 @@ function ProductForm({
             <input type="text" value={name} onChange={(e) => setName(e.target.value)} required placeholder="e.g., Air Max Velocity" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition" />
           </div>
           <div className="sm:col-span-2">
-            <label className="block text-sm font-medium mb-1.5">Description</label>
-            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} placeholder="Product description..." className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition resize-none" />
+            <label className="block text-sm font-medium mb-1.5">Short Description</label>
+            <p className="text-xs text-gray-400 mb-1.5">A brief summary shown on product cards and search results (1-2 sentences).</p>
+            <textarea value={shortDescription} onChange={(e) => setShortDescription(e.target.value)} rows={2} placeholder="e.g., Premium sneakers with responsive cushioning and breathable mesh upper." className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition resize-none" />
+            <p className="text-xs text-gray-400 mt-1 text-right">{shortDescription.length}/200</p>
+          </div>
+          <div className="sm:col-span-2">
+            <label className="block text-sm font-medium mb-1.5">Long Description</label>
+            <p className="text-xs text-gray-400 mb-1.5">Detailed product description shown on the product page. Include materials, features, use cases, etc.</p>
+            <textarea value={longDescription} onChange={(e) => setLongDescription(e.target.value)} rows={6} placeholder="Provide a detailed description of the product including materials, comfort features, design details, ideal use cases, care instructions, etc." className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition resize-none" />
+            <p className="text-xs text-gray-400 mt-1 text-right">{longDescription.length} characters</p>
+          </div>
+          <div className="sm:col-span-2">
+            <label className="block text-sm font-medium mb-1.5">Description (Legacy)</label>
+            <p className="text-xs text-gray-400 mb-1.5">Used as fallback if short/long descriptions are empty.</p>
+            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} placeholder="General product description..." className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition resize-none" />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1.5">Price *</label>

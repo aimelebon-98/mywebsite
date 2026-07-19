@@ -5,6 +5,8 @@ export const products = pgTable("products", {
   name: text("name").notNull(),
   slug: text("slug").notNull().default(""),
   description: text("description").notNull().default(""),
+  shortDescription: text("short_description").notNull().default(""),
+  longDescription: text("long_description").notNull().default(""),
   price: numeric("price", { precision: 10, scale: 2 }).notNull(),
   comparePrice: numeric("compare_price", { precision: 10, scale: 2 }),
   category: text("category").notNull().default("sneakers"),

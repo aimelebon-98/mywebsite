@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, description, price, comparePrice, category, brand, sizes, colors, imageUrl, images, stock, featured, active, material, sku, tags } = body;
+    const { name, description, shortDescription, longDescription, price, comparePrice, category, brand, sizes, colors, imageUrl, images, stock, featured, active, material, sku, tags } = body;
 
     const slug = generateSlug(name);
 
@@ -42,6 +42,8 @@ export async function POST(request: NextRequest) {
       name,
       slug,
       description: description || "",
+      shortDescription: shortDescription || "",
+      longDescription: longDescription || "",
       price: String(price),
       comparePrice: comparePrice ? String(comparePrice) : null,
       category: category || "sneakers",

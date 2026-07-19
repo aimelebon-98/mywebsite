@@ -52,8 +52,13 @@ export default function ProductDetails({ product, initialReviews = [] }: Product
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewSuccess, setReviewSuccess] = useState(false);
   const [wishlist, setWishlist] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+
+  // Derive descriptions
+  const shortDesc = product.shortDescription || product.description || "";
+  const longDesc = product.longDescription || product.description || "";
 
   useEffect(() => {
     try {
@@ -90,6 +95,8 @@ export default function ProductDetails({ product, initialReviews = [] }: Product
         const newReview = await res.json();
         setReviews(prev => [newReview, ...prev]);
         setReviewName(""); setReviewRating(5); setReviewComment(""); setShowReviewForm(false);
+        setReviewSuccess(true);
+        setTimeout(() => setReviewSuccess(false), 6000);
       }
     } catch { /* ignore */ }
     setSubmittingReview(false);
@@ -218,8 +225,8 @@ export default function ProductDetails({ product, initialReviews = [] }: Product
                 )}
               </div>
 
-              {/* Description */}
-              <p className="text-gray-500 leading-relaxed mb-8">{product.description}</p>
+              {/* Short Description */}
+              <p className="text-gray-500 leading-relaxed mb-8">{shortDesc}</p>
 
               {/* Divider */}
               <div className="border-t border-gray-100 mb-6" />
@@ -314,7 +321,12 @@ export default function ProductDetails({ product, initialReviews = [] }: Product
           <div className="p-6 lg:p-10">
             {activeTab === "description" && (
               <div className="max-w-3xl space-y-6">
-                <p className="text-gray-600 leading-relaxed text-lg">{product.description}</p>
+                {longDesc !== shortDesc && shortDesc && (
+                  <div className="p-4 bg-brand-50 rounded-xl border border-brand-200">
+                    <p className="text-gray-800 font-medium">{shortDesc}</p>
+                  </div>
+                )}
+                <p className="text-gray-600 leading-relaxed text-lg whitespace-pre-line">{longDesc}</p>
                 {product.brand && (
                   <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
                     <Award className="w-5 h-5 text-gray-400" />
@@ -404,11 +416,25 @@ export default function ProductDetails({ product, initialReviews = [] }: Product
               <h2 className="text-3xl lg:text-4xl font-black tracking-tight">Customer Reviews</h2>
               <p className="text-gray-500 mt-1">{reviews.length} review{reviews.length !== 1 ? "s" : ""} for {product.name}</p>
             </div>
-            <button onClick={() => setShowReviewForm(!showReviewForm)} className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition self-start shadow-lg shadow-gray-900/10">
+            <button onClick={() => { setShowReviewForm(!showReviewForm); setReviewSuccess(false); }} className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition self-start shadow-lg shadow-gray-900/10">
               <MessageSquare className="w-4 h-4" />
               Write a Review
             </button>
           </div>
+
+          {/* Review Success Message */}
+          {reviewSuccess && (
+            <div className="mb-8 p-5 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl animate-fade-in-up flex items-start gap-4">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <Check className="w-6 h-6 text-green-600" />
+              </div>
+              <div>
+                <h4 className="font-bold text-green-900 text-lg">Thank you for your review! 🎉</h4>
+                <p className="text-green-700 text-sm mt-1">Your review has been submitted successfully and is now visible on this page. We appreciate your feedback — it helps other customers make informed decisions.</p>
+              </div>
+              <button onClick={() => setReviewSuccess(false)} className="text-green-400 hover:text-green-600 transition flex-shrink-0 mt-1">✕</button>
+            </div>
+          )}
 
           {/* Rating Summary Card */}
           <div className="bg-gradient-to-br from-gray-50 via-white to-gray-50 rounded-3xl border border-gray-100 p-8 mb-10 shadow-sm">

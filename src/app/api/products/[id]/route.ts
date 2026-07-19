@@ -27,11 +27,16 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { name, description, price, comparePrice, category, brand, sizes, colors, imageUrl, images, stock, featured, active } = body;
+    const { name, description, shortDescription, longDescription, price, comparePrice, category, brand, sizes, colors, imageUrl, images, stock, featured, active, material, sku, tags } = body;
 
     const updateData: Record<string, unknown> = { updatedAt: new Date() };
     if (name !== undefined) updateData.name = name;
     if (description !== undefined) updateData.description = description;
+    if (shortDescription !== undefined) updateData.shortDescription = shortDescription;
+    if (longDescription !== undefined) updateData.longDescription = longDescription;
+    if (material !== undefined) updateData.material = material;
+    if (sku !== undefined) updateData.sku = sku;
+    if (tags !== undefined) updateData.tags = JSON.stringify(tags);
     if (price !== undefined) updateData.price = String(price);
     if (comparePrice !== undefined) updateData.comparePrice = comparePrice ? String(comparePrice) : null;
     if (category !== undefined) updateData.category = category;
