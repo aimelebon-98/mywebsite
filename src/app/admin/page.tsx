@@ -80,6 +80,11 @@ export default function AdminPage() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        // Ensure database tables exist first
+        try {
+          await fetch("/api/setup", { method: "POST" });
+        } catch { /* ignore setup errors */ }
+
         // First check if access code is required
         const configRes = await fetch("/api/admin/auth");
         const config = await configRes.json();

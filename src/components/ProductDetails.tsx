@@ -132,12 +132,25 @@ export default function ProductDetails({ product, initialReviews = [] }: Product
             {/* ===== IMAGE ===== */}
             <div className="space-y-4">
               <div className="relative group">
-                <div className={`relative aspect-square rounded-3xl overflow-hidden bg-gray-100 transition-opacity duration-500 ${imageLoaded ? "opacity-100" : "opacity-0"}`}>
+                <div className="relative aspect-square rounded-3xl overflow-hidden bg-gray-100">
                   {product.imageUrl ? (
-                    <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700" onLoad={() => setImageLoaded(true)} />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-300"><span className="text-9xl">👟</span></div>
-                  )}
+                    <img
+                      src={product.imageUrl}
+                      alt={product.name}
+                      loading="eager"
+                      decoding="async"
+                      className={`w-full h-full object-cover group-hover:scale-[1.03] transition-all duration-700 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
+                      onLoad={() => setImageLoaded(true)}
+                      onError={(e) => {
+                        setImageLoaded(true);
+                        (e.target as HTMLImageElement).style.display = "none";
+                        (e.target as HTMLImageElement).parentElement!.querySelector(".img-fallback")?.classList.remove("hidden");
+                      }}
+                    />
+                  ) : null}
+                  <div className={`img-fallback absolute inset-0 flex items-center justify-center text-gray-300 ${product.imageUrl && imageLoaded ? "hidden" : ""}`}>
+                    <span className="text-9xl">👟</span>
+                  </div>
                 </div>
                 {!imageLoaded && product.imageUrl && (
                   <div className="absolute inset-0 rounded-3xl bg-gray-100 animate-pulse" />

@@ -6,6 +6,7 @@ import { Heart, Star, ShoppingBag, Zap } from "lucide-react";
 import type { Product } from "@/db/schema";
 import { useCart } from "@/lib/cart-context";
 import { useState } from "react";
+import ProductImage from "./ProductImage";
 
 interface ProductCardProps {
   product: Product;
@@ -62,17 +63,11 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
   return (
     <Link href={`/product/${product.slug || product.id}`} className="group block">
       <div className="relative overflow-hidden rounded-2xl bg-gray-100 aspect-square mb-3">
-        {product.imageUrl ? (
-          <img
-            src={product.imageUrl}
-            alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-400">
-            <span className="text-6xl">👟</span>
-          </div>
-        )}
+        <ProductImage
+          src={product.imageUrl}
+          alt={product.name}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
 
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-1.5">
