@@ -73,7 +73,7 @@ export default function HomePage() {
                 <div className="absolute inset-0 bg-gradient-to-tr from-gray-200 via-gray-100 to-white rounded-[3rem] -rotate-3" />
                 <div className="relative rounded-[3rem] overflow-hidden aspect-square shadow-2xl bg-gradient-to-br from-brand-100 to-brand-50">
                   <img
-                    src="/images/hero-shoe.jpg"
+                    src="https://images.unsplash.com/photo-1588361861040-ac9b1018f6d5?w=800&q=80"
                     alt="Featured Shoe"
                     className="w-full h-full object-cover"
                     loading="eager"
