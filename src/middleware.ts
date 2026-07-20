@@ -1,39 +1,65 @@
 ﻿import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { verifyToken } from "@/lib/auth";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname.startsWith("/admin") && pathname !== "/admin/login") {
-    const token = request.cookies.get("admin-token")?.value;
-
-    if (!token) {
-      return NextResponse.redirect(new URL("/admin/login", request.url));
-    }
-
-    const payload = await verifyToken(token);
-    if (!payload || !payload.admin) {
-      return NextResponse.redirect(new URL("/admin/login", request.url));
-    }
+  // Skip Next.js internals, API routes, and static files
+  if (
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/api") ||
+    pathname.startsWith("/admin") ||
+    pathname === "/favicon.ico" ||
+    pathname.includes(".")
+  ) {
+    return NextResponse.next();
   }
 
-  if (pathname.startsWith("/api/admin") && !pathname.startsWith("/api/admin/login")) {
-    const token = request.cookies.get("admin-token")?.value;
+  // Extract the first path segment (e.g., "/jevwad" -> "jevwad")
+  const segments = pathname.split("/").filter(Boolean);
+  if (segments.length !== 1) {
+    return NextResponse.next();
+  }
 
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  const firstSegment = segments[0].toLowerCase();
 
-    const payload = await verifyToken(token);
-    if (!payload || !payload.admin) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // Skip known public routes
+  const publicRoutes = [
+    "shop", "cart", "checkout", "product", "products",
+    "about", "contact", "login", "signup", "register",
+    "search", "category", "wishlist", "account", "order", "orders"
+  ];
+  if (publicRoutes.includes(firstSegment)) {
+    return NextResponse.next();
+  }
+
+  // Check if this path matches the custom admin path from DB
+  try {
+    const settingsUrl = new URL("/api/settings", request.url);
+    const res = await fetch(settingsUrl.toString(), {
+      headers: { "x-internal": "middleware" },
+    });
+
+    if (res.ok) {
+      const settings = await res.json();
+      const customAdminPath = (settings.adminPath || "admin").toLowerCase();
+
+      // If the URL matches the custom admin path, rewrite to /admin
+      if (firstSegment === customAdminPath && customAdminPath !== "admin") {
+        const url = request.nextUrl.clone();
+        url.pathname = "/admin";
+        return NextResponse.rewrite(url);
+      }
     }
+  } catch (error) {
+    console.error("Middleware settings fetch error:", error);
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/admin/:path*"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico).*)",
+  ],
 };

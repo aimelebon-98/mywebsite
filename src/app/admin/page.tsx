@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback } from "react";
 import {
@@ -314,7 +314,7 @@ export default function AdminPage() {
             </button>
           </div>
           <div className="text-center mt-4">
-            <Link href="/" className="text-sm text-gray-500 hover:text-gray-900 transition">← Back to Store</Link>
+            <Link href="/" className="text-sm text-gray-500 hover:text-gray-900 transition">â† Back to Store</Link>
           </div>
         </div>
       </div>
@@ -354,7 +354,7 @@ export default function AdminPage() {
           <div className="text-center mt-4">
             {requiresAccessCode && (
               <button onClick={() => setAuthStep("access-code")} className="text-sm text-gray-500 hover:text-gray-900 transition mr-4">
-                ← Back
+                â† Back
               </button>
             )}
             <Link href="/" className="text-sm text-gray-500 hover:text-gray-900 transition">Back to Store</Link>
@@ -536,12 +536,12 @@ export default function AdminPage() {
                           {p.imageUrl ? (
                             <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-lg">👟</div>
+                            <div className="w-full h-full flex items-center justify-center text-lg">ðŸ‘Ÿ</div>
                           )}
                         </div>
                         <div>
                           <p className="font-medium text-sm">{p.name}</p>
-                          <p className="text-xs text-gray-400 capitalize">{p.category} · {p.stock} in stock</p>
+                          <p className="text-xs text-gray-400 capitalize">{p.category} Â· {p.stock} in stock</p>
                         </div>
                       </div>
                       <div className="text-right">
@@ -809,7 +809,7 @@ function ProductsTab({
                           {p.imageUrl ? (
                             <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center">👟</div>
+                            <div className="w-full h-full flex items-center justify-center">ðŸ‘Ÿ</div>
                           )}
                         </div>
                         <span className="font-medium truncate max-w-[150px]">{p.name}</span>
@@ -1152,7 +1152,7 @@ function SecurityForm({
               {showCopied ? <CheckCircle className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
             </button>
           </div>
-          <p className="text-xs text-gray-400 mt-1">Note: Currently only `/admin` is functional. Custom paths will be supported in future updates.</p>
+          <p className="text-xs text-gray-400 mt-1">Your admin panel is accessible at both `/admin` and your custom path above. Save changes to activate.</p>
         </div>
       </div>
 
@@ -1177,3 +1177,4 @@ function SecurityForm({
     </form>
   );
 }
+
