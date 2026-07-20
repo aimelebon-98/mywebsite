@@ -9,7 +9,7 @@ const categories = [
   { name: "Running", slug: "running", emoji: "🏃", img: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400&q=80" },
   { name: "Formal", slug: "formal", emoji: "👞", img: "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=400&q=80" },
   { name: "Boots", slug: "boots", emoji: "🥾", img: "https://images.unsplash.com/photo-1520639888713-7851133b1ed0?w=400&q=80" },
-  { name: "Sandals", slug: "sandals", emoji: "🩴", img: "https://images.unsplash.com/photo-1603487742131-4160ec999306?w=400&q=80" },
+  { name: "Sandals", slug: "sandals", emoji: "👡", img: "https://images.unsplash.com/photo-1603487742131-4160ec999306?w=400&q=80" },
   { name: "Casual", slug: "casual", emoji: "👞", img: "https://images.unsplash.com/photo-1604671368394-2240d0b1bb6c?w=400&q=80" },
 ];
 
