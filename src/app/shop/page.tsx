@@ -94,45 +94,8 @@ export default async function ShopPage({ searchParams }: Props) {
     <main className="min-h-screen bg-white">
       <Navbar />
 
-      <div className="pt-28 lg:pt-32">
-        <div
-          className="relative overflow-hidden border-b border-gray-200"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.35)), url('https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=2000&q=80')",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-        >
-          <div className="absolute -top-20 -left-20 w-72 h-72 bg-orange-500/20 rounded-full blur-3xl" />
-          <div className="absolute -bottom-20 -right-20 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl" />
-
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
-            <div className="max-w-3xl">
-              <span className="inline-block px-3 py-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-xs font-semibold text-white uppercase tracking-wider mb-4">
-                Premium Collection
-              </span>
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-3 drop-shadow-2xl tracking-tight">
-                {category !== "all"
-                  ? categories.find(c => c.slug === category)?.name || "Shop"
-                  : "All Products"}
-              </h1>
-              <p className="text-lg text-gray-200 mb-6 max-w-xl">
-                Discover our curated selection of premium footwear — crafted for style, comfort, and performance.
-              </p>
-              <div className="flex items-center gap-4">
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                  <span className="text-white text-sm font-medium">
-                    {productList.length} product{productList.length !== 1 ? "s" : ""} available
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="pt-24 lg:pt-28">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
             {categories.map((cat) => (
               <Link
