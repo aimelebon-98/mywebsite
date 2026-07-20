@@ -13,10 +13,10 @@ import ShopTopBar from "@/components/ShopTopBar";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Shop All Shoes",
+  title: "Shop All Products",
   description: "Browse our full collection of premium sneakers, running shoes, boots, formal shoes, sandals and casual shoes. Free shipping on orders over $100.",
   openGraph: {
-    title: "Shop All Shoes — SoleVault",
+    title: "Shop All Products — SoleVault",
     description: "Browse our full collection of premium footwear. 50+ styles available.",
   },
 };
@@ -99,7 +99,7 @@ export default async function ShopPage({ searchParams }: Props) {
         <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10">
             <h1 className="text-3xl lg:text-4xl font-bold mb-1">
-              {category !== "all" ? categories.find(c => c.slug === category)?.name || "Shop" : "All Shoes"}
+              {category !== "all" ? categories.find(c => c.slug === category)?.name || "Shop" : "All Products"}
             </h1>
             <p className="text-gray-500 text-sm">
               {productList.length} product{productList.length !== 1 ? "s" : ""} found
