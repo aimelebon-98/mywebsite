@@ -1152,7 +1152,7 @@ function SecurityForm({
               {showCopied ? <CheckCircle className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
             </button>
           </div>
-          <p className="text-xs text-gray-400 mt-1">Your admin panel is accessible at both `/admin` and your custom path above. Save changes to activate.</p>
+          <p className="text-xs text-gray-400 mt-1">⚠️ IMPORTANT: When you set a custom path, `/admin` will be BLOCKED (404). Use ONLY your custom path to access the panel. Save the path somewhere safe!</p>
         </div>
       </div>
 
@@ -1177,5 +1177,6 @@ function SecurityForm({
     </form>
   );
 }
+
 
 
