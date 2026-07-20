@@ -119,7 +119,6 @@ export default function Footer() {
             <ul className="space-y-3">
               <li><Link href="/cart" className="text-sm hover:text-white transition">My Cart</Link></li>
               <li><Link href="/shop" className="text-sm hover:text-white transition">Browse Shoes</Link></li>
-              <li><Link href="/admin" className="text-sm hover:text-white transition">Admin Dashboard</Link></li>
             </ul>
           </div>
         </div>
