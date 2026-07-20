@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { settings, loginAttempts, adminSessions } from "@/db/schema";
 import { eq, and, gte } from "drizzle-orm";
@@ -13,12 +13,25 @@ function generateToken(): string {
   return token;
 }
 
+// Get whitelisted IPs from env variable (comma-separated)
+function getWhitelistedIPs(): string[] {
+  return (process.env.ADMIN_WHITELIST_IPS || "")
+    .split(",")
+    .map(ip => ip.trim())
+    .filter(Boolean);
+}
+
+function isWhitelisted(ip: string): boolean {
+  return getWhitelistedIPs().includes(ip);
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { password, accessCode, action } = body;
-    const ip = request.headers.get("x-forwarded-for") || "unknown";
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() || "unknown";
     const userAgent = request.headers.get("user-agent") || "unknown";
+    const whitelisted = isWhitelisted(ip);
 
     // Get settings
     let result = await db.select().from(settings).where(eq(settings.id, 1));
@@ -40,24 +53,26 @@ export async function POST(request: NextRequest) {
 
     const config = result[0];
 
-    // Check for lockout
-    const lockoutTime = new Date(Date.now() - config.lockoutMinutes * 60 * 1000);
-    const recentAttempts = await db
-      .select()
-      .from(loginAttempts)
-      .where(
-        and(
-          eq(loginAttempts.ipAddress, ip),
-          gte(loginAttempts.createdAt, lockoutTime),
-          eq(loginAttempts.success, false)
-        )
-      );
+    // Check for lockout (skip for whitelisted IPs)
+    if (!whitelisted) {
+      const lockoutTime = new Date(Date.now() - config.lockoutMinutes * 60 * 1000);
+      const recentAttempts = await db
+        .select()
+        .from(loginAttempts)
+        .where(
+          and(
+            eq(loginAttempts.ipAddress, ip),
+            gte(loginAttempts.createdAt, lockoutTime),
+            eq(loginAttempts.success, false)
+          )
+        );
 
-    if (recentAttempts.length >= config.maxLoginAttempts) {
-      return NextResponse.json(
-        { error: `Too many failed attempts. Try again in ${config.lockoutMinutes} minutes.` },
-        { status: 429 }
-      );
+      if (recentAttempts.length >= config.maxLoginAttempts) {
+        return NextResponse.json(
+          { error: `Too many failed attempts. Try again in ${config.lockoutMinutes} minutes.` },
+          { status: 429 }
+        );
+      }
     }
 
     // Step 1: Verify access code (if set)
@@ -75,8 +90,9 @@ export async function POST(request: NextRequest) {
     if (action === "login" || !action) {
       // Check access code first if it's set and provided
       if (config.adminAccessCode && accessCode !== config.adminAccessCode) {
-        // Log failed attempt
-        await db.insert(loginAttempts).values({ ipAddress: ip, success: false });
+        if (!whitelisted) {
+          await db.insert(loginAttempts).values({ ipAddress: ip, success: false });
+        }
         return NextResponse.json({ error: "Invalid access code" }, { status: 401 });
       }
 
@@ -100,14 +116,16 @@ export async function POST(request: NextRequest) {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
           sameSite: "strict",
-          maxAge: 24 * 60 * 60, // 24 hours
+          maxAge: 24 * 60 * 60,
         });
 
         return response;
       }
 
-      // Log failed attempt
-      await db.insert(loginAttempts).values({ ipAddress: ip, success: false });
+      // Log failed attempt (skip for whitelisted IPs)
+      if (!whitelisted) {
+        await db.insert(loginAttempts).values({ ipAddress: ip, success: false });
+      }
       return NextResponse.json({ error: "Invalid password" }, { status: 401 });
     }
 
@@ -156,7 +174,7 @@ export async function POST(request: NextRequest) {
 // Check if access code is required
 export async function GET() {
   try {
-    let result = await db.select().from(settings).where(eq(settings.id, 1));
+    const result = await db.select().from(settings).where(eq(settings.id, 1));
     if (result.length === 0) {
       return NextResponse.json({ requiresAccessCode: false, adminPath: "admin" });
     }

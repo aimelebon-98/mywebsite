@@ -1,8 +1,9 @@
-"use client";
+﻿"use client";
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Search, Star, Tag, X, ChevronDown, ChevronUp } from "lucide-react";
+import SearchAutocomplete from "@/components/SearchAutocomplete";
 
 interface ShopSidebarProps {
   category: string;
@@ -44,11 +45,6 @@ export default function ShopSidebar(props: ShopSidebarProps) {
 
   const hasActiveFilters = minPrice || maxPrice || brand || rating || onSale === "true" || search;
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    router.push(buildUrl({ search: localSearch }));
-  };
-
   const handleApplyPrice = () => {
     router.push(buildUrl({ minPrice: localMinPrice, maxPrice: localMaxPrice }));
   };
@@ -60,7 +56,6 @@ export default function ShopSidebar(props: ShopSidebarProps) {
   return (
     <aside className="hidden lg:block w-64 flex-shrink-0">
       <div className="sticky top-36 space-y-1">
-        {/* Clear Filters */}
         {hasActiveFilters && (
           <button
             onClick={clearAll}
@@ -70,21 +65,16 @@ export default function ShopSidebar(props: ShopSidebarProps) {
           </button>
         )}
 
-        {/* Search */}
         <FilterGroup title="Search" icon={<Search className="w-4 h-4" />} open={openSection.search} onToggle={() => toggleSection("search")}>
-          <form onSubmit={handleSearch} className="space-y-2">
-            <input
-              type="text"
-              value={localSearch}
-              onChange={(e) => setLocalSearch(e.target.value)}
-              placeholder="Search shoes..."
-              className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
+          <div className="space-y-2">
+            <SearchAutocomplete
+              placeholder="Search here..."
+              initialValue={localSearch}
+              inputClassName="w-full pl-9 pr-8 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
+              iconClassName="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+              showClearButton
+              onSubmit={(val) => router.push(buildUrl({ search: val }))}
             />
-            {localSearch && localSearch !== search && (
-              <button type="submit" className="w-full py-2 bg-gray-900 text-white rounded-lg text-xs font-semibold hover:bg-gray-800 transition">
-                Search
-              </button>
-            )}
             {search && (
               <div className="flex items-center justify-between text-xs">
                 <span className="text-gray-500">Searching: &ldquo;{search}&rdquo;</span>
@@ -93,11 +83,10 @@ export default function ShopSidebar(props: ShopSidebarProps) {
                 </button>
               </div>
             )}
-          </form>
+          </div>
         </FilterGroup>
 
-        {/* Price Range */}
-        <FilterGroup title="Price Range" icon={<span className="text-sm">💰</span>} open={openSection.price} onToggle={() => toggleSection("price")}>
+        <FilterGroup title="Price Range" icon={<span className="text-sm">$</span>} open={openSection.price} onToggle={() => toggleSection("price")}>
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <input
@@ -145,8 +134,7 @@ export default function ShopSidebar(props: ShopSidebarProps) {
           </div>
         </FilterGroup>
 
-        {/* Brand */}
-        <FilterGroup title="Brand" icon={<span className="text-sm">🏷️</span>} open={openSection.brand} onToggle={() => toggleSection("brand")}>
+        <FilterGroup title="Brand" icon={<Tag className="w-4 h-4" />} open={openSection.brand} onToggle={() => toggleSection("brand")}>
           <div className="space-y-1 max-h-48 overflow-y-auto scrollbar-hide">
             <button
               onClick={() => router.push(buildUrl({ brand: "" }))}
@@ -170,7 +158,6 @@ export default function ShopSidebar(props: ShopSidebarProps) {
           </div>
         </FilterGroup>
 
-        {/* Rating */}
         <FilterGroup title="Rating" icon={<Star className="w-4 h-4 text-amber-400 fill-amber-400" />} open={openSection.rating} onToggle={() => toggleSection("rating")}>
           <div className="space-y-1.5">
             {[
@@ -201,7 +188,6 @@ export default function ShopSidebar(props: ShopSidebarProps) {
           </div>
         </FilterGroup>
 
-        {/* Special */}
         <FilterGroup title="Special" icon={<Tag className="w-4 h-4" />} open={openSection.special} onToggle={() => toggleSection("special")}>
           <button
             onClick={() => router.push(buildUrl({ onSale: onSale === "true" ? "" : "true" }))}
@@ -211,7 +197,7 @@ export default function ShopSidebar(props: ShopSidebarProps) {
                 : "bg-white text-gray-600 border border-gray-200 hover:bg-orange-50"
             }`}
           >
-            🏷️ On Sale Only
+            On Sale Only
           </button>
         </FilterGroup>
       </div>
@@ -219,7 +205,6 @@ export default function ShopSidebar(props: ShopSidebarProps) {
   );
 }
 
-// Collapsible filter group
 function FilterGroup({
   title,
   icon,

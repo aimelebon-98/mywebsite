@@ -1,45 +1,23 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ShoppingBag, Menu, X, Search } from "lucide-react";
+import { ShoppingBag, Menu, X } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
 import { useState } from "react";
+import SearchAutocomplete from "@/components/SearchAutocomplete";
 
 export default function Navbar() {
   const { totalItems } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [mobileSearchQuery, setMobileSearchQuery] = useState("");
-  const router = useRouter();
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
-      setSearchQuery("");
-    }
-  };
-
-  const handleMobileSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (mobileSearchQuery.trim()) {
-      router.push(`/shop?search=${encodeURIComponent(mobileSearchQuery.trim())}`);
-      setMobileSearchQuery("");
-      setMenuOpen(false);
-    }
-  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100">
-      {/* Promo bar */}
       <div className="bg-gray-900 text-white text-center py-2 text-xs font-medium tracking-wide">
-        🔥 FREE SHIPPING on orders over $100 — <Link href="/shop" className="underline underline-offset-2">Shop Now</Link>
+        FREE SHIPPING on orders over $100 — <Link href="/shop" className="underline underline-offset-2">Shop Now</Link>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14 lg:h-16 gap-4">
-          {/* Logo */}
           <Link href="/" className="flex items-center gap-2 flex-shrink-0">
             <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-xs">SV</span>
@@ -47,7 +25,6 @@ export default function Navbar() {
             <span className="text-lg font-bold tracking-tight hidden sm:block">SoleVault</span>
           </Link>
 
-          {/* Desktop Nav */}
           <div className="hidden lg:flex items-center gap-5">
             <Link href="/" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">Home</Link>
             <Link href="/shop" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">Shop All</Link>
@@ -58,19 +35,14 @@ export default function Navbar() {
             <Link href="/shop?category=casual" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">Casual</Link>
           </div>
 
-          {/* Desktop Search + Actions */}
           <div className="flex items-center gap-2 flex-shrink-0">
-            {/* Desktop Search Bar */}
-            <form onSubmit={handleSearch} className="hidden md:flex items-center relative">
-              <Search className="absolute left-3 w-4 h-4 text-gray-400 pointer-events-none" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search shoes..."
-                className="w-48 lg:w-56 pl-9 pr-3 py-2 bg-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:bg-white transition placeholder-gray-400"
+            <div className="hidden md:block">
+              <SearchAutocomplete
+                placeholder="Search here..."
+                className="w-48 lg:w-56"
+                inputClassName="w-full pl-9 pr-3 py-2 bg-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:bg-white transition placeholder-gray-400"
               />
-            </form>
+            </div>
 
             <Link href="/cart" className="relative p-2 rounded-xl hover:bg-gray-100 transition">
               <ShoppingBag className="w-5 h-5 text-gray-600" />
@@ -87,21 +59,16 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Menu */}
       {menuOpen && (
         <div className="lg:hidden bg-white border-t border-gray-100 animate-slide-in shadow-lg">
           <div className="px-4 py-3 space-y-1">
-            {/* Mobile Search */}
-            <form onSubmit={handleMobileSearch} className="relative mb-2">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                value={mobileSearchQuery}
-                onChange={(e) => setMobileSearchQuery(e.target.value)}
-                placeholder="Search shoes..."
-                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
+            <div className="mb-2">
+              <SearchAutocomplete
+                placeholder="Search here..."
+                inputClassName="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
+                iconClassName="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
               />
-            </form>
+            </div>
             {[
               { href: "/", label: "Home" },
               { href: "/shop", label: "Shop All" },

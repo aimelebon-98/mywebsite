@@ -1,4 +1,4 @@
-import { db } from "@/db";
+﻿import { db } from "@/db";
 import { products, type Product } from "@/db/schema";
 import { eq, desc, asc, and, ilike, gte, lte, gt } from "drizzle-orm";
 import type { Metadata } from "next";
@@ -95,20 +95,44 @@ export default async function ShopPage({ searchParams }: Props) {
       <Navbar />
 
       <div className="pt-28 lg:pt-32">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10">
-            <h1 className="text-3xl lg:text-4xl font-bold mb-1">
-              {category !== "all" ? categories.find(c => c.slug === category)?.name || "Shop" : "All Products"}
-            </h1>
-            <p className="text-gray-500 text-sm">
-              {productList.length} product{productList.length !== 1 ? "s" : ""} found
-            </p>
+        <div
+          className="relative overflow-hidden border-b border-gray-200"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.35)), url('https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=2000&q=80')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        >
+          <div className="absolute -top-20 -left-20 w-72 h-72 bg-orange-500/20 rounded-full blur-3xl" />
+          <div className="absolute -bottom-20 -right-20 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl" />
+
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
+            <div className="max-w-3xl">
+              <span className="inline-block px-3 py-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-xs font-semibold text-white uppercase tracking-wider mb-4">
+                Premium Collection
+              </span>
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-3 drop-shadow-2xl tracking-tight">
+                {category !== "all"
+                  ? categories.find(c => c.slug === category)?.name || "Shop"
+                  : "All Products"}
+              </h1>
+              <p className="text-lg text-gray-200 mb-6 max-w-xl">
+                Discover our curated selection of premium footwear — crafted for style, comfort, and performance.
+              </p>
+              <div className="flex items-center gap-4">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                  <span className="text-white text-sm font-medium">
+                    {productList.length} product{productList.length !== 1 ? "s" : ""} available
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          {/* Category Tabs */}
           <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
             {categories.map((cat) => (
               <Link
@@ -125,9 +149,7 @@ export default async function ShopPage({ searchParams }: Props) {
             ))}
           </div>
 
-          {/* Layout: Sidebar + Grid */}
           <div className="flex gap-6">
-            {/* Sidebar */}
             <ShopSidebar
               category={category}
               search={search}
@@ -140,9 +162,7 @@ export default async function ShopPage({ searchParams }: Props) {
               brands={allBrands}
             />
 
-            {/* Main content */}
             <div className="flex-1 min-w-0">
-              {/* Top sort bar (mobile filter toggle + sort) */}
               <ShopTopBar
                 category={category}
                 search={search}
@@ -156,7 +176,6 @@ export default async function ShopPage({ searchParams }: Props) {
                 totalResults={productList.length}
               />
 
-              {/* Product Grid */}
               {productList.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
                   {productList.map((product) => (

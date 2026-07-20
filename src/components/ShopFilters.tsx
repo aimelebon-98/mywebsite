@@ -1,8 +1,9 @@
-"use client";
+﻿"use client";
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { SlidersHorizontal, X, ChevronDown, Search, Star, Tag } from "lucide-react";
+import { SlidersHorizontal, X, ChevronDown, Star, Tag } from "lucide-react";
+import SearchAutocomplete from "@/components/SearchAutocomplete";
 
 interface ShopFiltersProps {
   category: string;
@@ -48,11 +49,6 @@ export default function ShopFilters({
 
   const hasActiveFilters = minPrice || maxPrice || brand || rating || onSale === "true" || search;
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    router.push(buildUrl({ search: localSearch }));
-  };
-
   const handleApplyPrice = () => {
     router.push(buildUrl({ minPrice: localMinPrice, maxPrice: localMaxPrice }));
   };
@@ -63,31 +59,19 @@ export default function ShopFilters({
 
   return (
     <div className="mb-6 space-y-4">
-      {/* Top row: Search + Sort + Filter toggle */}
       <div className="flex flex-col sm:flex-row gap-3">
-        {/* Search */}
-        <form onSubmit={handleSearch} className="relative flex-1 max-w-md">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            type="text"
-            value={localSearch}
-            onChange={(e) => setLocalSearch(e.target.value)}
-            placeholder="Search shoes..."
-            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
+        <div className="flex-1 max-w-md">
+          <SearchAutocomplete
+            placeholder="Search here..."
+            initialValue={localSearch}
+            inputClassName="w-full pl-10 pr-8 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
+            iconClassName="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+            showClearButton
+            onSubmit={(val) => { setLocalSearch(val); router.push(buildUrl({ search: val })); }}
           />
-          {localSearch && (
-            <button
-              type="button"
-              onClick={() => { setLocalSearch(""); router.push(buildUrl({ search: "" })); }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
-        </form>
+        </div>
 
         <div className="flex gap-2">
-          {/* Sort */}
           <div className="relative">
             <select
               value={sort}
@@ -104,7 +88,6 @@ export default function ShopFilters({
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
           </div>
 
-          {/* Filter toggle */}
           <button
             onClick={() => setFiltersOpen(!filtersOpen)}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition border ${
@@ -122,7 +105,6 @@ export default function ShopFilters({
             )}
           </button>
 
-          {/* Clear all */}
           {hasActiveFilters && (
             <button
               onClick={clearAll}
@@ -134,11 +116,9 @@ export default function ShopFilters({
         </div>
       </div>
 
-      {/* Expandable filter panel */}
       {filtersOpen && (
         <div className="bg-gray-50 rounded-2xl p-5 border border-gray-200 animate-fade-in-up">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {/* Price Range */}
             <div>
               <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">Price Range</h4>
               <div className="flex items-center gap-2">
@@ -164,7 +144,6 @@ export default function ShopFilters({
                   Go
                 </button>
               </div>
-              {/* Quick price ranges */}
               <div className="flex flex-wrap gap-1.5 mt-2">
                 {[
                   { label: "Under $100", min: "", max: "100" },
@@ -186,7 +165,6 @@ export default function ShopFilters({
               </div>
             </div>
 
-            {/* Brand */}
             <div>
               <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">Brand</h4>
               <div className="relative">
@@ -204,7 +182,6 @@ export default function ShopFilters({
               </div>
             </div>
 
-            {/* Rating */}
             <div>
               <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">Min. Rating</h4>
               <div className="space-y-1.5">
@@ -236,7 +213,6 @@ export default function ShopFilters({
               </div>
             </div>
 
-            {/* Special */}
             <div>
               <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">Special</h4>
               <div className="space-y-1.5">
