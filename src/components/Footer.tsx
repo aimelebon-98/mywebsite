@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useState } from "react";
@@ -42,7 +42,7 @@ export default function Footer() {
             </div>
 
             {subStatus === "done" ? (
-              <p className="text-green-400 text-sm font-semibold">✓ You&apos;re subscribed! Check your inbox.</p>
+              <p className="text-green-400 text-sm font-semibold">You&apos;re subscribed! Check your inbox.</p>
             ) : (
               <form onSubmit={handleSubscribe} className="flex w-full sm:w-auto gap-2">
                 <div className="relative flex-1 sm:flex-initial">
@@ -105,12 +105,12 @@ export default function Footer() {
           <div>
             <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Support</h4>
             <ul className="space-y-3">
+              <li><Link href="/faq" className="text-sm hover:text-white transition">FAQ</Link></li>
+              <li><Link href="/faq" className="text-sm hover:text-white transition">Shipping Policy</Link></li>
+              <li><Link href="/faq" className="text-sm hover:text-white transition">Returns &amp; Exchanges</Link></li>
+              <li><Link href="/faq" className="text-sm hover:text-white transition">Size Guide</Link></li>
               <li><span className="text-sm">About Us</span></li>
               <li><span className="text-sm">Contact</span></li>
-              <li><span className="text-sm">Shipping Policy</span></li>
-              <li><span className="text-sm">Returns & Exchanges</span></li>
-              <li><span className="text-sm">Size Guide</span></li>
-              <li><span className="text-sm">FAQ</span></li>
             </ul>
           </div>
 
@@ -118,7 +118,9 @@ export default function Footer() {
             <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Account</h4>
             <ul className="space-y-3">
               <li><Link href="/cart" className="text-sm hover:text-white transition">My Cart</Link></li>
+              <li><Link href="/wishlist" className="text-sm hover:text-white transition">My Wishlist</Link></li>
               <li><Link href="/shop" className="text-sm hover:text-white transition">Browse Shoes</Link></li>
+              <li><Link href="/faq" className="text-sm hover:text-white transition">Help Center</Link></li>
             </ul>
           </div>
         </div>
