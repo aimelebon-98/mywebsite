@@ -1,4 +1,4 @@
-﻿{
+{
   "common": {
     "loading": "Chargement...",
     "search": "Rechercher...",
@@ -57,7 +57,7 @@
     "nameRequired": "Le nom est requis",
     "phoneRequired": "Le numero de telephone est requis",
     "phoneInvalid": "Entrez un numero de telephone valide",
-    "addressRequired": "L'adresse de livraison est requise",
+    "addressRequired": "L adresse de livraison est requise",
     "checkoutWhatsapp": "Commander via WhatsApp",
     "checkoutNote": "Vous serez redirige vers WhatsApp pour finaliser votre commande",
     "viewCartCheckout": "Voir le panier et commander",
@@ -68,7 +68,7 @@
   "wishlist": {
     "title": "Mes favoris",
     "empty": "Votre liste de favoris est vide",
-    "emptyDesc": "Ajoutez des articles que vous aimez en tapant sur l'icone coeur.",
+    "emptyDesc": "Ajoutez des articles que vous aimez en tapant sur l icone coeur.",
     "backToShop": "Retour a la boutique",
     "browseProducts": "Parcourir les produits"
   },
@@ -83,7 +83,7 @@
     "newsletterTitle": "Rejoignez notre newsletter",
     "newsletterDesc": "Obtenez 15% de reduction + offres exclusives",
     "emailPlaceholder": "Entrez votre adresse email",
-    "subscribe": "S'inscrire",
+    "subscribe": "S inscrire",
     "subscribed": "Vous etes inscrit! Verifiez votre boite mail.",
     "tagline": "Chaussures haut de gamme pour toutes les occasions. Qualite artisanale, design moderne, confort inegale.",
     "shop": "Boutique",
@@ -97,7 +97,7 @@
     "contact": "Contact",
     "myCart": "Mon panier",
     "myWishlist": "Mes favoris",
-    "helpCenter": "Centre d'aide",
+    "helpCenter": "Centre d aide",
     "copyright": "Tous droits reserves."
   }
 }

@@ -1,4 +1,4 @@
-﻿{
+{
   "common": {
     "loading": "Loading...",
     "search": "Search here...",
@@ -59,7 +59,7 @@
     "phoneInvalid": "Enter a valid phone number",
     "addressRequired": "Delivery address is required",
     "checkoutWhatsapp": "Checkout via WhatsApp",
-    "checkoutNote": "You'll be redirected to WhatsApp to complete your order",
+    "checkoutNote": "You will be redirected to WhatsApp to complete your order",
     "viewCartCheckout": "View Cart & Checkout",
     "clearCart": "Clear Cart",
     "freeShippingProgress": "Add {amount} more for FREE shipping",
@@ -84,7 +84,7 @@
     "newsletterDesc": "Get 15% off + exclusive deals",
     "emailPlaceholder": "Enter your email address",
     "subscribe": "Subscribe",
-    "subscribed": "You're subscribed! Check your inbox.",
+    "subscribed": "You are subscribed! Check your inbox.",
     "tagline": "Premium footwear for every occasion. Quality craftsmanship, modern design, unbeatable comfort.",
     "shop": "Shop",
     "support": "Support",
