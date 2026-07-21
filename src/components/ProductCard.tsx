@@ -1,10 +1,11 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Heart, Star, ShoppingBag, Zap } from "lucide-react";
 import type { Product } from "@/db/schema";
 import { useCart } from "@/lib/cart-context";
+import { useWishlist } from "@/lib/wishlist-context";
 import { useState } from "react";
 import ProductImage from "./ProductImage";
 
@@ -19,8 +20,10 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
   const discount = comparePrice ? Math.round(((comparePrice - price) / comparePrice) * 100) : 0;
   const rating = parseFloat(product.rating ?? "0");
   const { addItem } = useCart();
+  const { isWished, toggle } = useWishlist();
   const router = useRouter();
   const [addedToCart, setAddedToCart] = useState(false);
+  const wished = isWished(product.id);
 
   const sizes: string[] = (() => {
     try { return JSON.parse(product.sizes || "[]"); } catch { return []; }
@@ -60,6 +63,12 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
     router.push("/cart");
   };
 
+  const handleWishlist = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggle(product.id);
+  };
+
   return (
     <Link href={`/product/${product.slug || product.id}`} className="group block">
       <div className="relative overflow-hidden rounded-2xl bg-gray-100 aspect-square mb-3">
@@ -94,12 +103,15 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
           )}
         </div>
 
-        {/* Wishlist */}
+        {/* Wishlist - always visible top-right */}
         <button
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-          className="absolute top-3 right-3 w-8 h-8 bg-white/90 backdrop-blur rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:scale-110"
+          onClick={handleWishlist}
+          aria-label={wished ? "Remove from wishlist" : "Add to wishlist"}
+          className={`absolute top-3 right-3 w-9 h-9 backdrop-blur rounded-full flex items-center justify-center shadow-md transition-all hover:scale-110 active:scale-95 ${
+            wished ? "bg-red-500 text-white" : "bg-white/95 text-gray-700 hover:text-red-500"
+          }`}
         >
-          <Heart className="w-3.5 h-3.5" />
+          <Heart className={`w-4 h-4 ${wished ? "fill-current" : ""}`} />
         </button>
       </div>
 

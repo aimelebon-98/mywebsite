@@ -1,4 +1,4 @@
-import { pgTable, text, numeric, integer, boolean, timestamp, uuid } from "drizzle-orm/pg-core";
+﻿import { pgTable, text, numeric, integer, boolean, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const products = pgTable("products", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -21,7 +21,6 @@ export const products = pgTable("products", {
   rating: numeric("rating", { precision: 2, scale: 1 }).notNull().default("0"),
   reviewCount: integer("review_count").notNull().default(0),
   tags: text("tags").notNull().default("[]"),
-  // Extended product details
   material: text("material").notNull().default(""),
   weight: text("weight").notNull().default(""),
   sku: text("sku").notNull().default(""),
@@ -51,7 +50,6 @@ export const settings = pgTable("settings", {
   storeName: text("store_name").notNull().default("SoleVault"),
   whatsappNumber: text("whatsapp_number").notNull().default(""),
   currency: text("currency").notNull().default("$"),
-  // Security settings
   adminPassword: text("admin_password").notNull().default("admin123"),
   adminAccessCode: text("admin_access_code").notNull().default(""),
   adminPath: text("admin_path").notNull().default("admin"),
@@ -60,7 +58,6 @@ export const settings = pgTable("settings", {
   lockoutMinutes: integer("lockout_minutes").notNull().default(15),
 });
 
-// Admin sessions for security
 export const adminSessions = pgTable("admin_sessions", {
   id: uuid("id").defaultRandom().primaryKey(),
   token: text("token").notNull().unique(),
@@ -70,11 +67,17 @@ export const adminSessions = pgTable("admin_sessions", {
   expiresAt: timestamp("expires_at").notNull(),
 });
 
-// Login attempts for rate limiting
 export const loginAttempts = pgTable("login_attempts", {
   id: uuid("id").defaultRandom().primaryKey(),
   ipAddress: text("ip_address").notNull(),
   success: boolean("success").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const wishlist = pgTable("wishlist", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  visitorId: text("visitor_id").notNull(),
+  productId: uuid("product_id").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -84,3 +87,4 @@ export type Review = typeof reviews.$inferSelect;
 export type Newsletter = typeof newsletter.$inferSelect;
 export type Settings = typeof settings.$inferSelect;
 export type AdminSession = typeof adminSessions.$inferSelect;
+export type Wishlist = typeof wishlist.$inferSelect;
