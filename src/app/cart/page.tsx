@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -12,6 +12,7 @@ export default function CartPage() {
   const [whatsappNumber, setWhatsappNumber] = useState("");
   const [currency, setCurrency] = useState("$");
   const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
   const [mounted, setMounted] = useState(false);
 
@@ -27,22 +28,23 @@ export default function CartPage() {
   }, []);
 
   const handleWhatsAppCheckout = () => {
-    let message = `🛍️ *New Order from SoleVault*\n\n`;
-    if (customerName) message += `👤 *Customer:* ${customerName}\n`;
-    if (customerAddress) message += `📍 *Address:* ${customerAddress}\n`;
-    message += `\n📦 *Order Details:*\n`;
-    message += `─────────────\n`;
+    let message = `*New Order from SoleVault*\n\n`;
+    if (customerName) message += `*Customer:* ${customerName}\n`;
+    if (customerPhone) message += `*Phone:* ${customerPhone}\n`;
+    if (customerAddress) message += `*Address:* ${customerAddress}\n`;
+    message += `\n*Order Details:*\n`;
+    message += `-----------------------------\n`;
 
     items.forEach((item, i) => {
       message += `${i + 1}. *${item.name}*\n`;
       message += `   Size: ${item.size} | Color: ${item.color}\n`;
-      message += `   Qty: ${item.quantity} × ${currency}${item.price.toFixed(2)}\n`;
+      message += `   Qty: ${item.quantity} x ${currency}${item.price.toFixed(2)}\n`;
       message += `   Subtotal: ${currency}${(item.price * item.quantity).toFixed(2)}\n\n`;
     });
 
-    message += `─────────────\n`;
-    message += `💰 *Total: ${currency}${totalPrice.toFixed(2)}*\n`;
-    message += `📱 *Items: ${totalItems}*\n`;
+    message += `-----------------------------\n`;
+    message += `*Total: ${currency}${totalPrice.toFixed(2)}*\n`;
+    message += `*Items: ${totalItems}*\n`;
 
     const phone = whatsappNumber.replace(/\D/g, "");
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
@@ -92,13 +94,15 @@ export default function CartPage() {
                         <img src={item.imageUrl} alt={item.name} loading="lazy" decoding="async" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                       ) : null}
                       {!item.imageUrl && (
-                        <div className="w-full h-full flex items-center justify-center text-3xl">👟</div>
+                        <div className="w-full h-full flex items-center justify-center text-gray-300">
+                          <ShoppingBag className="w-8 h-8" />
+                        </div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-lg truncate">{item.name}</h3>
                       <p className="text-sm text-gray-500 mt-1">
-                        Size: {item.size} · Color: {item.color}
+                        Size: {item.size} - Color: {item.color}
                       </p>
                       <p className="text-lg font-bold mt-2">{currency}{item.price.toFixed(2)}</p>
 
@@ -164,6 +168,13 @@ export default function CartPage() {
                       placeholder="Your Name"
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
+                      className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
+                    />
+                    <input
+                      type="tel"
+                      placeholder="Phone Number"
+                      value={customerPhone}
+                      onChange={(e) => setCustomerPhone(e.target.value)}
                       className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
                     />
                     <textarea
