@@ -4,6 +4,7 @@ import type { NextRequest } from "next/server";
 import { routing } from "./i18n/routing";
 
 const intlMiddleware = createMiddleware(routing);
+const LOCALES = ["en", "fr"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -35,29 +36,37 @@ export async function middleware(request: NextRequest) {
 
   const hasCustomPath = customAdminPath && customAdminPath !== "admin";
 
-  // Handle /admin - keep NON-localized (admin is not translated)
-  if (pathname === "/admin" || pathname.startsWith("/admin/")) {
-    if (hasCustomPath) {
-      const isRewrite = request.headers.get("x-admin-rewrite") === "true";
-      if (!isRewrite) {
-        return new NextResponse("Not Found", { status: 404 });
-      }
+  // Parse path segments, detect locale prefix
+  const segments = pathname.split("/").filter(Boolean);
+  const firstSegment = segments[0]?.toLowerCase() || "";
+  const isLocalePrefixed = LOCALES.includes(firstSegment);
+  const effectiveSegments = isLocalePrefixed ? segments.slice(1) : segments;
+  const effectiveFirstSegment = effectiveSegments[0]?.toLowerCase() || "";
+
+  // Block /admin, /en/admin, /fr/admin when custom path is set - return 404
+  if (effectiveFirstSegment === "admin") {
+    const isRewrite = request.headers.get("x-admin-rewrite") === "true";
+    if (hasCustomPath && !isRewrite) {
+      return new NextResponse("Not Found", { status: 404 });
+    }
+    // If no custom path OR this is our internal rewrite, allow through
+    if (isLocalePrefixed) {
+      // Strip locale prefix so /en/admin actually loads /admin
+      const url = request.nextUrl.clone();
+      url.pathname = "/" + effectiveSegments.join("/");
+      return NextResponse.rewrite(url);
     }
     return NextResponse.next();
   }
 
-  // Handle custom admin path (single-segment, non-localized)
-  const segments = pathname.split("/").filter(Boolean);
-  if (segments.length === 1) {
-    const firstSegment = segments[0].toLowerCase();
-    // If matches custom admin path, rewrite to /admin (bypass i18n)
-    if (hasCustomPath && firstSegment === customAdminPath) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/admin";
-      const response = NextResponse.rewrite(url);
-      response.headers.set("x-admin-rewrite", "true");
-      return response;
-    }
+  // Handle custom admin path - single segment (with or without locale prefix)
+  // e.g. /jevw, /en/jevw, /fr/jevw all rewrite to /admin
+  if (hasCustomPath && effectiveSegments.length === 1 && effectiveFirstSegment === customAdminPath) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/admin";
+    const response = NextResponse.rewrite(url);
+    response.headers.set("x-admin-rewrite", "true");
+    return response;
   }
 
   // Everything else -> next-intl middleware for locale routing
