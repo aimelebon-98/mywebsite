@@ -36,22 +36,25 @@ export async function middleware(request: NextRequest) {
 
   const hasCustomPath = customAdminPath && customAdminPath !== "admin";
 
-  // Parse path segments, detect locale prefix
+  // Parse segments and detect locale prefix
   const segments = pathname.split("/").filter(Boolean);
   const firstSegment = segments[0]?.toLowerCase() || "";
   const isLocalePrefixed = LOCALES.includes(firstSegment);
   const effectiveSegments = isLocalePrefixed ? segments.slice(1) : segments;
   const effectiveFirstSegment = effectiveSegments[0]?.toLowerCase() || "";
 
-  // Block /admin, /en/admin, /fr/admin when custom path is set - return 404
+  // Case 1: Someone tries /admin, /en/admin, or /fr/admin directly
   if (effectiveFirstSegment === "admin") {
     const isRewrite = request.headers.get("x-admin-rewrite") === "true";
+
+    // If custom path is set AND this isn't our internal rewrite -> 404
     if (hasCustomPath && !isRewrite) {
       return new NextResponse("Not Found", { status: 404 });
     }
-    // If no custom path OR this is our internal rewrite, allow through
+
+    // No custom path (default admin) OR internal rewrite - allow
+    // If locale-prefixed, rewrite to strip the locale
     if (isLocalePrefixed) {
-      // Strip locale prefix so /en/admin actually loads /admin
       const url = request.nextUrl.clone();
       url.pathname = "/" + effectiveSegments.join("/");
       return NextResponse.rewrite(url);
@@ -59,8 +62,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Handle custom admin path - single segment (with or without locale prefix)
-  // e.g. /jevw, /en/jevw, /fr/jevw all rewrite to /admin
+  // Case 2: User hits the custom admin path (with or without locale prefix)
+  // e.g. /jevw, /en/jevw, /fr/jevw -> rewrite to /admin
   if (hasCustomPath && effectiveSegments.length === 1 && effectiveFirstSegment === customAdminPath) {
     const url = request.nextUrl.clone();
     url.pathname = "/admin";
@@ -69,7 +72,7 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  // Everything else -> next-intl middleware for locale routing
+  // Case 3: Everything else -> next-intl handles locale routing
   return intlMiddleware(request);
 }
 

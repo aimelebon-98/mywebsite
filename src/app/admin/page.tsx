@@ -314,7 +314,7 @@ export default function AdminPage() {
             </button>
           </div>
           <div className="text-center mt-4">
-            <Link href="/" className="text-sm text-gray-500 hover:text-gray-900 transition">&larr; Back to Store</Link>
+            <Link href="/" className="text-sm text-gray-500 hover:text-gray-900 transition">&larr;  Back to Store</Link>
           </div>
         </div>
       </div>
@@ -354,7 +354,7 @@ export default function AdminPage() {
           <div className="text-center mt-4">
             {requiresAccessCode && (
               <button onClick={() => setAuthStep("access-code")} className="text-sm text-gray-500 hover:text-gray-900 transition mr-4">
-                &larr; Back
+                &larr;  Back
               </button>
             )}
             <Link href="/" className="text-sm text-gray-500 hover:text-gray-900 transition">Back to Store</Link>
