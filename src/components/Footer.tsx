@@ -1,10 +1,12 @@
 ﻿"use client";
 
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/routing";
 import { useState } from "react";
 import { ArrowRight, Mail } from "lucide-react";
 
 export default function Footer() {
+  const t = useTranslations("footer");
   const [email, setEmail] = useState("");
   const [subStatus, setSubStatus] = useState<"idle" | "loading" | "done">("idle");
 
@@ -27,7 +29,6 @@ export default function Footer() {
 
   return (
     <footer className="bg-gray-950 text-gray-400">
-      {/* Newsletter Bar */}
       <div className="border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -36,13 +37,13 @@ export default function Footer() {
                 <Mail className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h4 className="text-white font-bold text-sm">Join Our Newsletter</h4>
-                <p className="text-xs text-gray-500">Get 15% off + exclusive deals</p>
+                <h4 className="text-white font-bold text-sm">{t("newsletterTitle")}</h4>
+                <p className="text-xs text-gray-500">{t("newsletterDesc")}</p>
               </div>
             </div>
 
             {subStatus === "done" ? (
-              <p className="text-green-400 text-sm font-semibold">You&apos;re subscribed! Check your inbox.</p>
+              <p className="text-green-400 text-sm font-semibold">{t("subscribed")}</p>
             ) : (
               <form onSubmit={handleSubscribe} className="flex w-full sm:w-auto gap-2">
                 <div className="relative flex-1 sm:flex-initial">
@@ -50,7 +51,7 @@ export default function Footer() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your email address"
+                    placeholder={t("emailPlaceholder")}
                     required
                     className="w-full sm:w-72 pl-4 pr-4 py-3 bg-white/10 border border-white/10 rounded-xl text-sm text-white placeholder-gray-500 focus:outline-none focus:border-white/30 transition"
                   />
@@ -60,7 +61,7 @@ export default function Footer() {
                   disabled={subStatus === "loading"}
                   className="flex items-center gap-2 px-5 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-semibold transition disabled:opacity-50 whitespace-nowrap"
                 >
-                  {subStatus === "loading" ? "..." : <>Subscribe <ArrowRight className="w-4 h-4" /></>}
+                  {subStatus === "loading" ? "..." : <>{t("subscribe")} <ArrowRight className="w-4 h-4" /></>}
                 </button>
               </form>
             )}
@@ -68,7 +69,6 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Main Footer */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
           <div className="col-span-2 md:col-span-1">
@@ -78,9 +78,7 @@ export default function Footer() {
               </div>
               <span className="text-xl font-bold text-white tracking-tight">SoleVault</span>
             </div>
-            <p className="text-sm leading-relaxed mb-4">
-              Premium footwear for every occasion. Quality craftsmanship, modern design, unbeatable comfort.
-            </p>
+            <p className="text-sm leading-relaxed mb-4">{t("tagline")}</p>
             <div className="flex items-center gap-3">
               {["Instagram", "Twitter", "Facebook"].map((social) => (
                 <span key={social} className="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center text-xs hover:bg-white/20 transition cursor-pointer">
@@ -91,7 +89,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Shop</h4>
+            <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">{t("shop")}</h4>
             <ul className="space-y-3">
               <li><Link href="/shop?category=sneakers" className="text-sm hover:text-white transition">Sneakers</Link></li>
               <li><Link href="/shop?category=running" className="text-sm hover:text-white transition">Running</Link></li>
@@ -103,30 +101,30 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Support</h4>
+            <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">{t("support")}</h4>
             <ul className="space-y-3">
-              <li><Link href="/faq" className="text-sm hover:text-white transition">FAQ</Link></li>
-              <li><Link href="/faq" className="text-sm hover:text-white transition">Shipping Policy</Link></li>
-              <li><Link href="/faq" className="text-sm hover:text-white transition">Returns &amp; Exchanges</Link></li>
-              <li><Link href="/faq" className="text-sm hover:text-white transition">Size Guide</Link></li>
-              <li><span className="text-sm">About Us</span></li>
-              <li><span className="text-sm">Contact</span></li>
+              <li><Link href="/faq" className="text-sm hover:text-white transition">{t("faq")}</Link></li>
+              <li><Link href="/faq" className="text-sm hover:text-white transition">{t("shippingPolicy")}</Link></li>
+              <li><Link href="/faq" className="text-sm hover:text-white transition">{t("returns")}</Link></li>
+              <li><Link href="/faq" className="text-sm hover:text-white transition">{t("sizeGuide")}</Link></li>
+              <li><span className="text-sm">{t("aboutUs")}</span></li>
+              <li><span className="text-sm">{t("contact")}</span></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Account</h4>
+            <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">{t("account")}</h4>
             <ul className="space-y-3">
-              <li><Link href="/cart" className="text-sm hover:text-white transition">My Cart</Link></li>
-              <li><Link href="/wishlist" className="text-sm hover:text-white transition">My Wishlist</Link></li>
-              <li><Link href="/shop" className="text-sm hover:text-white transition">Browse Shoes</Link></li>
-              <li><Link href="/faq" className="text-sm hover:text-white transition">Help Center</Link></li>
+              <li><Link href="/cart" className="text-sm hover:text-white transition">{t("myCart")}</Link></li>
+              <li><Link href="/wishlist" className="text-sm hover:text-white transition">{t("myWishlist")}</Link></li>
+              <li><Link href="/shop" className="text-sm hover:text-white transition">Shop</Link></li>
+              <li><Link href="/faq" className="text-sm hover:text-white transition">{t("helpCenter")}</Link></li>
             </ul>
           </div>
         </div>
 
         <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm">&copy; {new Date().getFullYear()} SoleVault. All rights reserved.</p>
+          <p className="text-sm">&copy; {new Date().getFullYear()} SoleVault. {t("copyright")}</p>
           <div className="flex items-center gap-4 text-xs text-gray-500">
             <span>Privacy Policy</span>
             <span>Terms of Service</span>
