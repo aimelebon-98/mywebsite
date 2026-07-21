@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
 import { CartProvider } from "@/lib/cart-context";
+import { WishlistProvider } from "@/lib/wishlist-context";
 import WhatsAppButton from "@/components/WhatsAppButton";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://solevault.com";
@@ -9,7 +10,7 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://solevault.com";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "SoleVault — Premium Footwear | Sneakers, Boots, Formal Shoes",
+    default: "SoleVault - Premium Footwear | Sneakers, Boots, Formal Shoes",
     template: "%s | SoleVault",
   },
   description: "Discover premium shoes for every occasion at SoleVault. Shop sneakers, running shoes, boots, formal shoes, sandals and more. Free shipping on orders over $100.",
@@ -21,13 +22,13 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     siteName: "SoleVault",
-    title: "SoleVault — Premium Footwear",
+    title: "SoleVault - Premium Footwear",
     description: "Discover premium shoes for every occasion. 50+ styles to choose from.",
     images: [{ url: "/images/hero-shoe.jpg", width: 1200, height: 630, alt: "SoleVault Premium Footwear" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "SoleVault — Premium Footwear",
+    title: "SoleVault - Premium Footwear",
     description: "Discover premium shoes for every occasion. 50+ styles to choose from.",
     images: ["/images/hero-shoe.jpg"],
   },
@@ -42,7 +43,6 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
-  // JSON-LD for the store
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Store",
@@ -67,8 +67,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body className="bg-white text-gray-900 antialiased">
         <CartProvider>
-          {children}
-          <WhatsAppButton />
+          <WishlistProvider>
+            {children}
+            <WhatsAppButton />
+          </WishlistProvider>
         </CartProvider>
       </body>
     </html>
