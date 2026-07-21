@@ -3,7 +3,7 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useCart } from "@/lib/cart-context";
-import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, MessageCircle } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, MessageCircle, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
@@ -14,6 +14,7 @@ export default function CartPage() {
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
+  const [errors, setErrors] = useState<{ name?: string; phone?: string; address?: string }>({});
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -27,11 +28,32 @@ export default function CartPage() {
       .catch(() => {});
   }, []);
 
+  const validate = () => {
+    const newErrors: { name?: string; phone?: string; address?: string } = {};
+    if (!customerName.trim()) newErrors.name = "Name is required";
+    if (!customerPhone.trim()) {
+      newErrors.phone = "Phone number is required";
+    } else {
+      const digits = customerPhone.replace(/\D/g, "");
+      if (digits.length < 7) newErrors.phone = "Enter a valid phone number";
+    }
+    if (!customerAddress.trim()) newErrors.address = "Delivery address is required";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleWhatsAppCheckout = () => {
+    if (!validate()) {
+      // Scroll to first error field
+      const firstErrorField = document.querySelector("[data-error='true']") as HTMLElement | null;
+      if (firstErrorField) firstErrorField.focus();
+      return;
+    }
+
     let message = `*New Order from SoleVault*\n\n`;
-    if (customerName) message += `*Customer:* ${customerName}\n`;
-    if (customerPhone) message += `*Phone:* ${customerPhone}\n`;
-    if (customerAddress) message += `*Address:* ${customerAddress}\n`;
+    message += `*Customer:* ${customerName}\n`;
+    message += `*Phone:* ${customerPhone}\n`;
+    message += `*Address:* ${customerAddress}\n`;
     message += `\n*Order Details:*\n`;
     message += `-----------------------------\n`;
 
@@ -61,6 +83,10 @@ export default function CartPage() {
       </main>
     );
   }
+
+  const inputBase = "w-full px-4 py-3 bg-white border rounded-xl text-sm focus:outline-none focus:ring-2 transition";
+  const inputOk = "border-gray-200 focus:ring-gray-900";
+  const inputErr = "border-red-400 focus:ring-red-400";
 
   return (
     <main className="min-h-screen bg-white">
@@ -163,27 +189,71 @@ export default function CartPage() {
 
                   {/* Customer Info */}
                   <div className="space-y-3 mb-6">
-                    <input
-                      type="text"
-                      placeholder="Your Name"
-                      value={customerName}
-                      onChange={(e) => setCustomerName(e.target.value)}
-                      className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
-                    />
-                    <input
-                      type="tel"
-                      placeholder="Phone Number"
-                      value={customerPhone}
-                      onChange={(e) => setCustomerPhone(e.target.value)}
-                      className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
-                    />
-                    <textarea
-                      placeholder="Delivery Address"
-                      value={customerAddress}
-                      onChange={(e) => setCustomerAddress(e.target.value)}
-                      rows={2}
-                      className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition resize-none"
-                    />
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        Your Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="John Doe"
+                        value={customerName}
+                        data-error={!!errors.name}
+                        onChange={(e) => {
+                          setCustomerName(e.target.value);
+                          if (errors.name) setErrors(prev => ({ ...prev, name: undefined }));
+                        }}
+                        className={`${inputBase} ${errors.name ? inputErr : inputOk}`}
+                      />
+                      {errors.name && (
+                        <p className="mt-1 flex items-center gap-1 text-xs text-red-500">
+                          <AlertCircle className="w-3 h-3" /> {errors.name}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        Phone Number <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        placeholder="+1 234 567 8900"
+                        value={customerPhone}
+                        data-error={!!errors.phone}
+                        onChange={(e) => {
+                          setCustomerPhone(e.target.value);
+                          if (errors.phone) setErrors(prev => ({ ...prev, phone: undefined }));
+                        }}
+                        className={`${inputBase} ${errors.phone ? inputErr : inputOk}`}
+                      />
+                      {errors.phone && (
+                        <p className="mt-1 flex items-center gap-1 text-xs text-red-500">
+                          <AlertCircle className="w-3 h-3" /> {errors.phone}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        Delivery Address <span className="text-red-500">*</span>
+                      </label>
+                      <textarea
+                        placeholder="Street, City, Country"
+                        value={customerAddress}
+                        data-error={!!errors.address}
+                        onChange={(e) => {
+                          setCustomerAddress(e.target.value);
+                          if (errors.address) setErrors(prev => ({ ...prev, address: undefined }));
+                        }}
+                        rows={2}
+                        className={`${inputBase} resize-none ${errors.address ? inputErr : inputOk}`}
+                      />
+                      {errors.address && (
+                        <p className="mt-1 flex items-center gap-1 text-xs text-red-500">
+                          <AlertCircle className="w-3 h-3" /> {errors.address}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
                   {/* WhatsApp Checkout */}
