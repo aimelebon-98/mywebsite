@@ -1,12 +1,18 @@
-﻿import { NextResponse } from "next/server";
+﻿import createMiddleware from "next-intl/middleware";
+import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { routing } from "./i18n/routing";
+
+const intlMiddleware = createMiddleware(routing);
+const LOCALES = ["en", "fr"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Skip Next.js internals and static files
+  // Skip Next.js internals, static files, and API routes
   if (
     pathname.startsWith("/_next") ||
+    pathname.startsWith("/api") ||
     pathname === "/favicon.ico" ||
     pathname.includes(".")
   ) {
@@ -30,44 +36,44 @@ export async function middleware(request: NextRequest) {
 
   const hasCustomPath = customAdminPath && customAdminPath !== "admin";
 
-  // BLOCK direct access to /admin and /api/admin if a custom path is set
-  if (hasCustomPath) {
-    // Block /admin pages (but allow the rewrite from custom path to work internally)
-    if (pathname === "/admin" || pathname.startsWith("/admin/")) {
-      // Check if this is an internal rewrite (has custom rewrite header)
-      const isRewrite = request.headers.get("x-admin-rewrite") === "true";
-      if (!isRewrite) {
-        // Return 404 to hide that admin exists
-        return new NextResponse("Not Found", { status: 404 });
-      }
-    }
-  }
-
-  // Handle single-segment paths (potential custom admin path)
+  // Parse segments and detect locale prefix
   const segments = pathname.split("/").filter(Boolean);
-  if (segments.length === 1 && !pathname.startsWith("/api")) {
-    const firstSegment = segments[0].toLowerCase();
+  const firstSegment = segments[0]?.toLowerCase() || "";
+  const isLocalePrefixed = LOCALES.includes(firstSegment);
+  const effectiveSegments = isLocalePrefixed ? segments.slice(1) : segments;
+  const effectiveFirstSegment = effectiveSegments[0]?.toLowerCase() || "";
 
-    // Skip known public routes
-    const publicRoutes = [
-      "shop", "cart", "checkout", "product", "products",
-      "about", "contact", "login", "signup", "register",
-      "search", "category", "wishlist", "account", "order", "orders"
-    ];
+  // Case 1: Someone tries /admin, /en/admin, or /fr/admin directly
+  if (effectiveFirstSegment === "admin") {
+    const isRewrite = request.headers.get("x-admin-rewrite") === "true";
 
-    if (!publicRoutes.includes(firstSegment) && firstSegment !== "admin") {
-      // If matches the custom admin path, rewrite to /admin
-      if (hasCustomPath && firstSegment === customAdminPath) {
-        const url = request.nextUrl.clone();
-        url.pathname = "/admin";
-        const response = NextResponse.rewrite(url);
-        response.headers.set("x-admin-rewrite", "true");
-        return response;
-      }
+    // If custom path is set AND this isn't our internal rewrite -> 404
+    if (hasCustomPath && !isRewrite) {
+      return new NextResponse("Not Found", { status: 404 });
     }
+
+    // No custom path (default admin) OR internal rewrite - allow
+    // If locale-prefixed, rewrite to strip the locale
+    if (isLocalePrefixed) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/" + effectiveSegments.join("/");
+      return NextResponse.rewrite(url);
+    }
+    return NextResponse.next();
   }
 
-  return NextResponse.next();
+  // Case 2: User hits the custom admin path (with or without locale prefix)
+  // e.g. /jevw, /en/jevw, /fr/jevw -> rewrite to /admin
+  if (hasCustomPath && effectiveSegments.length === 1 && effectiveFirstSegment === customAdminPath) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/admin";
+    const response = NextResponse.rewrite(url);
+    response.headers.set("x-admin-rewrite", "true");
+    return response;
+  }
+
+  // Case 3: Everything else -> next-intl handles locale routing
+  return intlMiddleware(request);
 }
 
 export const config = {
