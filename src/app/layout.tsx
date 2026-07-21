@@ -4,6 +4,7 @@ import "./globals.css";
 import { CartProvider } from "@/lib/cart-context";
 import { WishlistProvider } from "@/lib/wishlist-context";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import MiniCartDrawer from "@/components/MiniCartDrawer";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://solevault.com";
 
@@ -69,6 +70,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <CartProvider>
           <WishlistProvider>
             {children}
+            <MiniCartDrawer />
             <WhatsAppButton />
           </WishlistProvider>
         </CartProvider>

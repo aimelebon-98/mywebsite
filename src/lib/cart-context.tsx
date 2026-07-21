@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 
@@ -21,6 +21,10 @@ interface CartContextType {
   totalItems: number;
   totalQuantity: number;
   totalPrice: number;
+  drawerOpen: boolean;
+  openDrawer: () => void;
+  closeDrawer: () => void;
+  lastAddedAt: number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -28,6 +32,8 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [lastAddedAt, setLastAddedAt] = useState(0);
 
   useEffect(() => {
     const saved = localStorage.getItem("solevault-cart");
@@ -57,6 +63,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       return [...prev, newItem];
     });
+    setLastAddedAt(Date.now());
+    setDrawerOpen(true);
   }, []);
 
   const removeItem = useCallback((id: string, size: string, color: string) => {
@@ -65,7 +73,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const updateQuantity = useCallback((id: string, size: string, color: string, quantity: number) => {
     if (quantity <= 0) {
-      removeItem(id, size, color);
+      setItems(prev => prev.filter(i => !(i.id === id && i.size === size && i.color === color)));
       return;
     }
     setItems(prev =>
@@ -75,18 +83,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
           : i
       )
     );
-  }, [removeItem]);
+  }, []);
 
   const clearCart = useCallback(() => setItems([]), []);
+  const openDrawer = useCallback(() => setDrawerOpen(true), []);
+  const closeDrawer = useCallback(() => setDrawerOpen(false), []);
 
-  // ✅ Unique products (for cart icon badge)
   const totalItems = items.length;
-  // ✅ Total units (useful for cart page summary)
   const totalQuantity = items.reduce((sum, i) => sum + i.quantity, 0);
   const totalPrice = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
   return (
-    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, totalItems, totalQuantity, totalPrice }}>
+    <CartContext.Provider value={{
+      items, addItem, removeItem, updateQuantity, clearCart,
+      totalItems, totalQuantity, totalPrice,
+      drawerOpen, openDrawer, closeDrawer, lastAddedAt
+    }}>
       {children}
     </CartContext.Provider>
   );

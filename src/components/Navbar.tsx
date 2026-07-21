@@ -8,7 +8,7 @@ import { useState } from "react";
 import SearchAutocomplete from "@/components/SearchAutocomplete";
 
 export default function Navbar() {
-  const { totalItems } = useCart();
+  const { totalItems, openDrawer } = useCart();
   const { count: wishlistCount } = useWishlist();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -55,14 +55,18 @@ export default function Navbar() {
               )}
             </Link>
 
-            <Link href="/cart" className="relative p-2 rounded-xl hover:bg-gray-100 transition">
+            <button
+              onClick={openDrawer}
+              aria-label="Open cart"
+              className="relative p-2 rounded-xl hover:bg-gray-100 transition"
+            >
               <ShoppingBag className="w-5 h-5 text-gray-600" />
               {totalItems > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-brand-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                   {totalItems > 9 ? "9+" : totalItems}
                 </span>
               )}
-            </Link>
+            </button>
             <button onClick={() => setMenuOpen(!menuOpen)} className="lg:hidden p-2 rounded-xl hover:bg-gray-100 transition">
               {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
