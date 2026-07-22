@@ -17,6 +17,23 @@ async function verifyAdmin(): Promise<boolean> {
   }
 }
 
+// Robust body parser - handles UTF-8 correctly regardless of client encoding
+async function parseBody(request: NextRequest): Promise<Record<string, unknown>> {
+  try {
+    // First try native json() - works for properly-encoded clients
+    return await request.json();
+  } catch {
+    // Fallback: read as UTF-8 bytes and force decode
+    try {
+      const buffer = await request.arrayBuffer();
+      const text = new TextDecoder("utf-8", { fatal: false }).decode(buffer);
+      return JSON.parse(text);
+    } catch {
+      return {};
+    }
+  }
+}
+
 async function recalculateProductStats(productId: string) {
   const productReviews = await db.select().from(reviews).where(eq(reviews.productId, productId));
   const count = productReviews.length;
@@ -60,8 +77,12 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { productId, customerName, rating, comment, commentFr } = body;
+    const body = await parseBody(request);
+    const productId = body.productId as string | undefined;
+    const customerName = body.customerName as string | undefined;
+    const rating = body.rating as number | string | undefined;
+    const comment = body.comment as string | undefined;
+    const commentFr = body.commentFr as string | undefined;
 
     if (!productId || !customerName || !rating) {
       return NextResponse.json({ error: "productId, customerName, and rating are required" }, { status: 400 });
@@ -92,7 +113,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PUT - admin only: update a review (typically for commentFr translations)
 export async function PUT(request: NextRequest) {
   try {
     const isAdmin = await verifyAdmin();
@@ -102,7 +122,7 @@ export async function PUT(request: NextRequest) {
     const id = searchParams.get("id");
     if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
 
-    const body = await request.json();
+    const body = await parseBody(request);
     const updates: Record<string, unknown> = {};
 
     if (body.customerName !== undefined) updates.customerName = String(body.customerName);
@@ -118,7 +138,6 @@ export async function PUT(request: NextRequest) {
     const result = await db.update(reviews).set(updates).where(eq(reviews.id, id)).returning();
     if (result.length === 0) return NextResponse.json({ error: "Review not found" }, { status: 404 });
 
-    // If rating changed, recalculate product stats
     if (body.rating !== undefined) {
       await recalculateProductStats(result[0].productId);
     }
