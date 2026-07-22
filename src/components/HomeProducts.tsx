@@ -11,25 +11,41 @@ import SeedButton from "./SeedButton";
 import Link from "next/link";
 import ProductImage from "./ProductImage";
 import { ArrowRight, Flame, Sparkles, Clock, Zap, TrendingUp, Tag } from "lucide-react";
-import { useTranslations } from "next-intl";
-import { useLocale } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
+
+// Localize a product based on locale
+function localize(p: Product, isFr: boolean): Product {
+  if (!isFr) return p;
+  return {
+    ...p,
+    name: p.nameFr || p.name,
+    description: p.descriptionFr || p.description,
+    shortDescription: p.shortDescriptionFr || p.shortDescription,
+    longDescription: p.longDescriptionFr || p.longDescription,
+    tags: p.tagsFr || p.tags,
+  };
+}
 
 export default function HomeProducts() {
   const t = useTranslations("home");
   const locale = useLocale();
+  const isFr = locale === "fr";
 
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/products")
+    const url = isFr ? "/api/products?locale=fr" : "/api/products";
+    fetch(url)
       .then(r => r.ok ? r.json() : [])
       .then(data => {
-        if (Array.isArray(data)) setAllProducts(data);
+        if (Array.isArray(data)) {
+          setAllProducts(data.map(p => localize(p, isFr)));
+        }
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [isFr]);
 
   const hasTags = (p: Product, tag: string) => (p.tags || "").includes(tag);
   const hotDeals    = allProducts.filter(p => hasTags(p, "hot-deal")).slice(0, 8);
@@ -40,7 +56,6 @@ export default function HomeProducts() {
   const limitedTime = allProducts.filter(p => hasTags(p, "limited")).slice(0, 6);
   const hasProducts = allProducts.length > 0;
 
-  // Loading skeleton
   if (loading) {
     return (
       <div className="py-20">
@@ -61,8 +76,8 @@ export default function HomeProducts() {
     );
   }
 
-  // Setup prompt when no products
-  if (!hasProducts) {
+  // Setup prompt (only shown when English has no products - means DB is empty)
+  if (!hasProducts && !isFr) {
     return (
       <section className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -79,6 +94,31 @@ export default function HomeProducts() {
                 {t("goToAdmin")}
               </Link>
             </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // French empty state - clean, informative
+  if (!hasProducts && isFr) {
+    return (
+      <section className="py-20">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl p-10 lg:p-14 text-center border border-blue-100">
+            <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <Sparkles className="w-8 h-8 text-blue-600" />
+            </div>
+            <h3 className="text-2xl font-bold mb-3">Bientot disponible en francais</h3>
+            <p className="text-gray-600 mb-8 max-w-md mx-auto">
+              Nos produits sont en cours de traduction. Consultez notre boutique en anglais en attendant.
+            </p>
+            <Link
+              href="/en"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-gray-900 text-white rounded-2xl font-semibold hover:bg-gray-800 transition"
+            >
+              Voir la boutique en anglais <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         </div>
       </section>

@@ -1,22 +1,53 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import HomeProducts from "@/components/HomeProducts";
 import { ArrowRight, Truck, Shield, RotateCcw, Headphones, Star } from "lucide-react";
 import { getTranslations, getLocale } from "next-intl/server";
+import { db } from "@/db";
+import { categories as categoriesTable } from "@/db/schema";
+import { eq, asc } from "drizzle-orm";
+
+// Category images fallback (matches by slug)
+const CATEGORY_IMAGES: Record<string, string> = {
+  sneakers: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80",
+  running:  "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400&q=80",
+  formal:   "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=400&q=80",
+  boots:    "https://images.unsplash.com/photo-1520639888713-7851133b1ed0?w=400&q=80",
+  sandals:  "https://images.unsplash.com/photo-1603487742131-4160ec999306?w=400&q=80",
+  casual:   "https://images.unsplash.com/photo-1604671368394-2240d0b1bb6c?w=400&q=80",
+};
+
+const DEFAULT_CATEGORY_IMAGE = "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=400&q=80";
 
 export default async function HomePage() {
   const t = await getTranslations("home");
   const locale = await getLocale();
+  const isFr = locale === "fr";
 
-  const categories = [
-    { name: t("catSneakers"), slug: "sneakers", img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80" },
-    { name: t("catRunning"),  slug: "running",  img: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400&q=80" },
-    { name: t("catFormal"),   slug: "formal",   img: "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=400&q=80" },
-    { name: t("catBoots"),    slug: "boots",    img: "https://images.unsplash.com/photo-1520639888713-7851133b1ed0?w=400&q=80" },
-    { name: t("catSandals"),  slug: "sandals",  img: "https://images.unsplash.com/photo-1603487742131-4160ec999306?w=400&q=80" },
-    { name: t("catCasual"),   slug: "casual",   img: "https://images.unsplash.com/photo-1604671368394-2240d0b1bb6c?w=400&q=80" },
-  ];
+  // Fetch categories from DB
+  let categories: { name: string; slug: string; img: string }[] = [];
+  try {
+    const cats = await db.select().from(categoriesTable)
+      .where(eq(categoriesTable.active, true))
+      .orderBy(asc(categoriesTable.sortOrder));
+
+    categories = cats.map(c => ({
+      name: isFr && c.nameFr ? c.nameFr : c.nameEn,
+      slug: c.slug,
+      img: CATEGORY_IMAGES[c.slug] || DEFAULT_CATEGORY_IMAGE,
+    }));
+  } catch {
+    // Fallback to hardcoded if DB unavailable
+    categories = [
+      { name: t("catSneakers"), slug: "sneakers", img: CATEGORY_IMAGES.sneakers },
+      { name: t("catRunning"),  slug: "running",  img: CATEGORY_IMAGES.running },
+      { name: t("catFormal"),   slug: "formal",   img: CATEGORY_IMAGES.formal },
+      { name: t("catBoots"),    slug: "boots",    img: CATEGORY_IMAGES.boots },
+      { name: t("catSandals"),  slug: "sandals",  img: CATEGORY_IMAGES.sandals },
+      { name: t("catCasual"),   slug: "casual",   img: CATEGORY_IMAGES.casual },
+    ];
+  }
 
   const features = [
     { icon: Truck,       title: t("featureShipping"), desc: t("featureShippingDesc") },
@@ -137,32 +168,34 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* CATEGORIES */}
-      <section className="py-14 lg:py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-3">{t("shopByCategory")}</h2>
-            <p className="text-gray-500 max-w-md mx-auto">{t("shopByCategoryDesc")}</p>
+      {/* CATEGORIES (dynamic from DB) */}
+      {categories.length > 0 && (
+        <section className="py-14 lg:py-20 bg-gray-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl lg:text-4xl font-bold mb-3">{t("shopByCategory")}</h2>
+              <p className="text-gray-500 max-w-md mx-auto">{t("shopByCategoryDesc")}</p>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+              {categories.map((cat) => (
+                <Link
+                  key={cat.slug}
+                  href={`/${locale}/shop?category=${cat.slug}`}
+                  className="group relative overflow-hidden rounded-2xl aspect-square hover:-translate-y-1 transition-all duration-300 shadow-sm"
+                >
+                  <img src={cat.img} alt={cat.name} loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <h3 className="font-bold text-white text-sm">{cat.name}</h3>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            {categories.map((cat) => (
-              <Link
-                key={cat.slug}
-                href={`/${locale}/shop?category=${cat.slug}`}
-                className="group relative overflow-hidden rounded-2xl aspect-square hover:-translate-y-1 transition-all duration-300 shadow-sm"
-              >
-                <img src={cat.img} alt={cat.name} loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <h3 className="font-bold text-white text-sm">{cat.name}</h3>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
-      {/* DYNAMIC PRODUCT SECTIONS */}
+      {/* DYNAMIC PRODUCT SECTIONS (client-side, filters by locale) */}
       <HomeProducts />
 
       <Footer />

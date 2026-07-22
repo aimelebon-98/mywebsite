@@ -1,6 +1,6 @@
 ﻿import { db } from "@/db";
-import { products, type Product } from "@/db/schema";
-import { eq, desc, asc, and, ilike, gte, lte, gt } from "drizzle-orm";
+import { products, categories as categoriesTable, type Product } from "@/db/schema";
+import { eq, desc, asc, and, ilike, gte, lte, gt, isNotNull, or } from "drizzle-orm";
 import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -9,7 +9,7 @@ import Link from "next/link";
 import { Package } from "lucide-react";
 import ShopSidebar from "@/components/ShopSidebar";
 import ShopTopBar from "@/components/ShopTopBar";
-import { getTranslations, getLocale } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +23,7 @@ export const metadata: Metadata = {
 };
 
 interface Props {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{
     category?: string;
     search?: string;
@@ -35,9 +36,10 @@ interface Props {
   }>;
 }
 
-export default async function ShopPage({ searchParams }: Props) {
+export default async function ShopPage({ params, searchParams }: Props) {
+  const { locale } = await params;
   const t = await getTranslations("shop");
-  const locale = await getLocale();
+  const isFr = locale === "fr";
 
   const sp = await searchParams;
   const category = sp.category || "all";
@@ -49,23 +51,40 @@ export default async function ShopPage({ searchParams }: Props) {
   const ratingFilter = sp.rating || "";
   const onSale = sp.onSale || "";
 
-  const categories = [
-    { name: t("catAll"),      slug: "all"      },
-    { name: t("catSneakers"), slug: "sneakers" },
-    { name: t("catRunning"),  slug: "running"  },
-    { name: t("catFormal"),   slug: "formal"   },
-    { name: t("catBoots"),    slug: "boots"    },
-    { name: t("catSandals"),  slug: "sandals"  },
-    { name: t("catCasual"),   slug: "casual"   },
-  ];
-
   let productList: Product[] = [];
   let allBrands: string[] = [];
+  let categoryOptions: { name: string; slug: string }[] = [{ name: t("catAll"), slug: "all" }];
 
   try {
+    // Fetch active categories with translations
+    const cats = await db.select().from(categoriesTable)
+      .where(eq(categoriesTable.active, true))
+      .orderBy(asc(categoriesTable.sortOrder));
+
+    categoryOptions = [
+      { name: t("catAll"), slug: "all" },
+      ...cats.map(c => ({
+        name: isFr && c.nameFr ? c.nameFr : c.nameEn,
+        slug: c.slug,
+      })),
+    ];
+
+    // Product query
     const conditions = [eq(products.active, true)];
+    if (isFr) conditions.push(isNotNull(products.nameFr));
     if (category && category !== "all") conditions.push(eq(products.category, category));
-    if (search) conditions.push(ilike(products.name, `%${search}%`));
+    if (search) {
+      if (isFr) {
+        conditions.push(
+          or(
+            ilike(products.nameFr, `%${search}%`),
+            ilike(products.descriptionFr, `%${search}%`)
+          )!
+        );
+      } else {
+        conditions.push(ilike(products.name, `%${search}%`));
+      }
+    }
     if (minPrice) conditions.push(gte(products.price, minPrice));
     if (maxPrice) conditions.push(lte(products.price, maxPrice));
     if (brand) conditions.push(eq(products.brand, brand));
@@ -77,16 +96,20 @@ export default async function ShopPage({ searchParams }: Props) {
       case "price-low":  orderBy = asc(products.price);       break;
       case "price-high": orderBy = desc(products.price);      break;
       case "rating":     orderBy = desc(products.rating);     break;
-      case "name-az":    orderBy = asc(products.name);        break;
-      case "name-za":    orderBy = desc(products.name);       break;
+      case "name-az":    orderBy = isFr ? asc(products.nameFr) : asc(products.name); break;
+      case "name-za":    orderBy = isFr ? desc(products.nameFr) : desc(products.name); break;
       default:           orderBy = desc(products.createdAt);
     }
 
     productList = await db.select().from(products)
       .where(and(...conditions)).orderBy(orderBy);
 
+    // Brands - only from products visible in current locale
+    const brandCond = isFr
+      ? and(eq(products.active, true), isNotNull(products.nameFr))
+      : eq(products.active, true);
     const allProducts = await db.select({ brand: products.brand })
-      .from(products).where(eq(products.active, true));
+      .from(products).where(brandCond);
     allBrands = [...new Set(allProducts.map(p => p.brand).filter(Boolean))].sort();
   } catch {
     // Tables might not exist yet
@@ -99,7 +122,7 @@ export default async function ShopPage({ searchParams }: Props) {
       <div className="pt-24 lg:pt-28">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
-            {categories.map((cat) => (
+            {categoryOptions.map((cat) => (
               <Link
                 key={cat.slug}
                 href={`/${locale}/shop?category=${cat.slug}`}
