@@ -73,7 +73,8 @@
     "freeShippingProgress": "Add {amount} more for FREE shipping",
     "freeShippingQualified": "You qualify for FREE shipping!",
     "subtotalNote": "Shipping and taxes calculated at checkout",
-    "closeCart": "Close cart"
+    "closeCart": "Close cart",
+    "continueShopping": "Continue Shopping"
   },
   "wishlist": {
     "title": "My Wishlist",
