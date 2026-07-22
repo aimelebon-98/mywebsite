@@ -6,8 +6,14 @@ import { useCart } from "@/lib/cart-context";
 import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, MessageCircle, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 
 export default function CartPage() {
+  const t = useTranslations("cart");
+  const tc = useTranslations("common");
+  const locale = useLocale();
+
   const { items, removeItem, updateQuantity, clearCart, totalPrice, totalItems } = useCart();
   const [whatsappNumber, setWhatsappNumber] = useState("");
   const [currency, setCurrency] = useState("$");
@@ -30,21 +36,20 @@ export default function CartPage() {
 
   const validate = () => {
     const newErrors: { name?: string; phone?: string; address?: string } = {};
-    if (!customerName.trim()) newErrors.name = "Name is required";
+    if (!customerName.trim()) newErrors.name = t("nameRequired");
     if (!customerPhone.trim()) {
-      newErrors.phone = "Phone number is required";
+      newErrors.phone = t("phoneRequired");
     } else {
       const digits = customerPhone.replace(/\D/g, "");
-      if (digits.length < 7) newErrors.phone = "Enter a valid phone number";
+      if (digits.length < 7) newErrors.phone = t("phoneInvalid");
     }
-    if (!customerAddress.trim()) newErrors.address = "Delivery address is required";
+    if (!customerAddress.trim()) newErrors.address = t("addressRequired");
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleWhatsAppCheckout = () => {
     if (!validate()) {
-      // Scroll to first error field
       const firstErrorField = document.querySelector("[data-error='true']") as HTMLElement | null;
       if (firstErrorField) firstErrorField.focus();
       return;
@@ -78,7 +83,7 @@ export default function CartPage() {
       <main className="min-h-screen bg-white">
         <Navbar />
         <div className="pt-32 text-center">
-          <div className="animate-pulse text-gray-400">Loading cart...</div>
+          <div className="animate-pulse text-gray-400">{t("loadingCart")}</div>
         </div>
       </main>
     );
@@ -94,19 +99,19 @@ export default function CartPage() {
 
       <div className="pt-20 lg:pt-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Link href="/shop" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-8 transition">
-            <ArrowLeft className="w-4 h-4" /> Continue Shopping
+          <Link href={`/${locale}/shop`} className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-8 transition">
+            <ArrowLeft className="w-4 h-4" /> {tc("continueShopping")}
           </Link>
 
-          <h1 className="text-3xl lg:text-4xl font-bold mb-8">Shopping Cart</h1>
+          <h1 className="text-3xl lg:text-4xl font-bold mb-8">{t("title")}</h1>
 
           {items.length === 0 ? (
             <div className="text-center py-20">
               <ShoppingBag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-bold mb-2">Your cart is empty</h3>
-              <p className="text-gray-500 mb-6">Add some shoes to get started!</p>
-              <Link href="/shop" className="px-8 py-4 bg-gray-900 text-white rounded-2xl font-semibold hover:bg-gray-800 transition inline-block">
-                Browse Shoes
+              <h3 className="text-xl font-bold mb-2">{t("empty")}</h3>
+              <p className="text-gray-500 mb-6">{t("emptyDesc")}</p>
+              <Link href={`/${locale}/shop`} className="px-8 py-4 bg-gray-900 text-white rounded-2xl font-semibold hover:bg-gray-800 transition inline-block">
+                {tc("browseShoes")}
               </Link>
             </div>
           ) : (
@@ -128,7 +133,7 @@ export default function CartPage() {
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-lg truncate">{item.name}</h3>
                       <p className="text-sm text-gray-500 mt-1">
-                        Size: {item.size} - Color: {item.color}
+                        {t("size")}: {item.size} - {t("color")}: {item.color}
                       </p>
                       <p className="text-lg font-bold mt-2">{currency}{item.price.toFixed(2)}</p>
 
@@ -163,26 +168,26 @@ export default function CartPage() {
                   onClick={clearCart}
                   className="text-sm text-red-500 hover:text-red-700 font-medium transition"
                 >
-                  Clear Cart
+                  {t("clearCart")}
                 </button>
               </div>
 
               {/* Order Summary */}
               <div className="lg:col-span-1">
                 <div className="bg-gray-50 rounded-2xl p-6 sticky top-28">
-                  <h3 className="text-lg font-bold mb-4">Order Summary</h3>
+                  <h3 className="text-lg font-bold mb-4">{t("orderSummary")}</h3>
 
                   <div className="space-y-3 mb-6">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">Subtotal ({totalItems} items)</span>
+                      <span className="text-gray-500">{t("subtotal")} ({totalItems} {totalItems === 1 ? t("item") : t("items")})</span>
                       <span className="font-semibold">{currency}{totalPrice.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">Shipping</span>
-                      <span className="text-green-600 font-semibold">Free</span>
+                      <span className="text-gray-500">{t("shipping")}</span>
+                      <span className="text-green-600 font-semibold">{t("free")}</span>
                     </div>
                     <div className="border-t border-gray-200 pt-3 flex justify-between">
-                      <span className="font-bold text-lg">Total</span>
+                      <span className="font-bold text-lg">{t("total")}</span>
                       <span className="font-bold text-lg">{currency}{totalPrice.toFixed(2)}</span>
                     </div>
                   </div>
@@ -191,11 +196,11 @@ export default function CartPage() {
                   <div className="space-y-3 mb-6">
                     <div>
                       <label className="block text-xs font-semibold text-gray-700 mb-1">
-                        Your Name <span className="text-red-500">*</span>
+                        {t("yourName")} <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
-                        placeholder="John Doe"
+                        placeholder={t("namePlaceholder")}
                         value={customerName}
                         data-error={!!errors.name}
                         onChange={(e) => {
@@ -213,11 +218,11 @@ export default function CartPage() {
 
                     <div>
                       <label className="block text-xs font-semibold text-gray-700 mb-1">
-                        Phone Number <span className="text-red-500">*</span>
+                        {t("phoneNumber")} <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="tel"
-                        placeholder="+1 234 567 8900"
+                        placeholder={t("phonePlaceholder")}
                         value={customerPhone}
                         data-error={!!errors.phone}
                         onChange={(e) => {
@@ -235,10 +240,10 @@ export default function CartPage() {
 
                     <div>
                       <label className="block text-xs font-semibold text-gray-700 mb-1">
-                        Delivery Address <span className="text-red-500">*</span>
+                        {t("deliveryAddress")} <span className="text-red-500">*</span>
                       </label>
                       <textarea
-                        placeholder="Street, City, Country"
+                        placeholder={t("addressPlaceholder")}
                         value={customerAddress}
                         data-error={!!errors.address}
                         onChange={(e) => {
@@ -262,11 +267,11 @@ export default function CartPage() {
                     className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-green-500 text-white rounded-2xl font-semibold text-lg hover:bg-green-600 transition"
                   >
                     <MessageCircle className="w-5 h-5" />
-                    Checkout via WhatsApp
+                    {t("checkoutWhatsapp")}
                   </button>
 
                   <p className="text-xs text-gray-400 text-center mt-3">
-                    You&apos;ll be redirected to WhatsApp to complete your order
+                    {t("checkoutNote")}
                   </p>
                 </div>
               </div>

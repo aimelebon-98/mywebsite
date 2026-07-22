@@ -38,6 +38,7 @@
   },
   "cart": {
     "title": "Panier",
+    "loadingCart": "Chargement du panier...",
     "empty": "Votre panier est vide",
     "emptyDesc": "Ajoutez des chaussures pour commencer!",
     "yourCart": "Votre panier",
@@ -48,6 +49,8 @@
     "shipping": "Livraison",
     "free": "Gratuite",
     "total": "Total",
+    "size": "Taille",
+    "color": "Couleur",
     "yourName": "Votre nom",
     "phoneNumber": "Numero de telephone",
     "deliveryAddress": "Adresse de livraison",
@@ -70,14 +73,26 @@
     "empty": "Votre liste de favoris est vide",
     "emptyDesc": "Ajoutez des articles que vous aimez en tapant sur l icone coeur.",
     "backToShop": "Retour a la boutique",
-    "browseProducts": "Parcourir les produits"
+    "browseProducts": "Parcourir les produits",
+    "itemsSaved": "{count} articles sauvegardes",
+    "itemSaved": "1 article sauvegarde"
   },
   "faq": {
     "title": "Comment pouvons-nous vous aider?",
     "subtitle": "Trouvez des reponses aux questions courantes sur les commandes, la livraison, les retours, et plus.",
     "searchPlaceholder": "Rechercher dans la FAQ...",
     "noResults": "Aucun resultat trouve",
-    "stillQuestions": "Vous avez encore des questions?"
+    "noResultsDesc": "Essayez un autre terme ou parcourez une autre categorie.",
+    "stillQuestions": "Vous avez encore des questions?",
+    "stillQuestionsDesc": "Notre equipe est prete a vous aider sur WhatsApp. Obtenez une reponse rapide et personnalisee.",
+    "browseShop": "Parcourir la boutique",
+    "catAll": "Tout",
+    "catOrders": "Commandes",
+    "catShipping": "Livraison",
+    "catReturns": "Retours",
+    "catPayment": "Paiement",
+    "catSizing": "Tailles",
+    "catSupport": "Support"
   },
   "footer": {
     "newsletterTitle": "Rejoignez notre newsletter",

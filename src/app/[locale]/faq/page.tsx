@@ -5,22 +5,14 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Search, ChevronDown, HelpCircle, MessageCircle, Package, Truck, RefreshCw, CreditCard, Ruler, Shield } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 
 type FAQ = {
   q: string;
   a: string;
   category: string;
 };
-
-const CATEGORIES = [
-  { id: "all", label: "All", icon: HelpCircle },
-  { id: "orders", label: "Orders", icon: Package },
-  { id: "shipping", label: "Shipping", icon: Truck },
-  { id: "returns", label: "Returns", icon: RefreshCw },
-  { id: "payment", label: "Payment", icon: CreditCard },
-  { id: "sizing", label: "Sizing", icon: Ruler },
-  { id: "account", label: "Support", icon: Shield },
-];
 
 const FAQS: FAQ[] = [
   {
@@ -85,7 +77,7 @@ const FAQS: FAQ[] = [
   },
   {
     category: "sizing",
-    q: "What if the size doesn't fit?",
+    q: "What if the size does not fit?",
     a: "No worries! You can exchange for a different size within 14 days as long as the shoes are unworn and in original condition. Just message us on WhatsApp to arrange the exchange.",
   },
   {
@@ -111,9 +103,23 @@ const FAQS: FAQ[] = [
 ];
 
 export default function FAQPage() {
+  const t = useTranslations("faq");
+  const tc = useTranslations("common");
+  const locale = useLocale();
+
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const [openIndex, setOpenIndex] = useState<number | null>(0);
+
+  const CATEGORIES = [
+    { id: "all", label: t("catAll"), icon: HelpCircle },
+    { id: "orders", label: t("catOrders"), icon: Package },
+    { id: "shipping", label: t("catShipping"), icon: Truck },
+    { id: "returns", label: t("catReturns"), icon: RefreshCw },
+    { id: "payment", label: t("catPayment"), icon: CreditCard },
+    { id: "sizing", label: t("catSizing"), icon: Ruler },
+    { id: "account", label: t("catSupport"), icon: Shield },
+  ];
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -132,14 +138,14 @@ export default function FAQPage() {
         {/* Hero */}
         <section className="bg-gradient-to-b from-gray-50 to-white border-b border-gray-100">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16 text-center">
-            <div className="inline-flex items-center justify-center w-14 h-14 bg-brand-600 rounded-2xl mb-4">
+            <div className="inline-flex items-center justify-center w-14 h-14 bg-gray-900 rounded-2xl mb-4">
               <HelpCircle className="w-7 h-7 text-white" />
             </div>
             <h1 className="text-3xl lg:text-5xl font-bold text-gray-900 mb-3">
-              How can we help?
+              {t("title")}
             </h1>
             <p className="text-gray-500 mb-8 max-w-2xl mx-auto">
-              Find answers to common questions about ordering, shipping, returns, and more.
+              {t("subtitle")}
             </p>
 
             {/* Search */}
@@ -149,7 +155,7 @@ export default function FAQPage() {
                 type="text"
                 value={query}
                 onChange={(e) => { setQuery(e.target.value); setOpenIndex(null); }}
-                placeholder="Search FAQs..."
+                placeholder={t("searchPlaceholder")}
                 className="w-full pl-12 pr-4 py-4 bg-white border border-gray-200 rounded-2xl text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
               />
             </div>
@@ -186,15 +192,15 @@ export default function FAQPage() {
               <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
                 <Search className="w-8 h-8 text-gray-400" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">No results found</h3>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">{t("noResults")}</h3>
               <p className="text-sm text-gray-500 mb-6">
-                Try a different search term or browse a different category.
+                {t("noResultsDesc")}
               </p>
               <button
                 onClick={() => { setQuery(""); setCategory("all"); }}
-                className="text-sm font-semibold text-brand-600 hover:text-brand-700 transition"
+                className="text-sm font-semibold text-gray-900 hover:text-gray-600 transition"
               >
-                Clear filters
+                {tc("clearFilters")}
               </button>
             </div>
           ) : (
@@ -244,16 +250,16 @@ export default function FAQPage() {
               <MessageCircle className="w-7 h-7 text-white" />
             </div>
             <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">
-              Still have questions?
+              {t("stillQuestions")}
             </h2>
             <p className="text-gray-300 mb-6 max-w-md mx-auto">
-              Our team is ready to help you on WhatsApp. Get a fast, personal response.
+              {t("stillQuestionsDesc")}
             </p>
             <Link
-              href="/shop"
+              href={`/${locale}/shop`}
               className="inline-flex items-center gap-2 px-6 py-3 bg-white text-gray-900 rounded-xl text-sm font-bold hover:bg-gray-100 transition"
             >
-              Browse Shop
+              {t("browseShop")}
             </Link>
           </div>
         </section>

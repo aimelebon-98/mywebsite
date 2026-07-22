@@ -38,6 +38,7 @@
   },
   "cart": {
     "title": "Shopping Cart",
+    "loadingCart": "Loading cart...",
     "empty": "Your cart is empty",
     "emptyDesc": "Add some shoes to get started!",
     "yourCart": "Your Cart",
@@ -48,6 +49,8 @@
     "shipping": "Shipping",
     "free": "Free",
     "total": "Total",
+    "size": "Size",
+    "color": "Color",
     "yourName": "Your Name",
     "phoneNumber": "Phone Number",
     "deliveryAddress": "Delivery Address",
@@ -70,14 +73,26 @@
     "empty": "Your wishlist is empty",
     "emptyDesc": "Start adding items you love by tapping the heart icon.",
     "backToShop": "Back to Shop",
-    "browseProducts": "Browse Products"
+    "browseProducts": "Browse Products",
+    "itemsSaved": "{count} items saved",
+    "itemSaved": "1 item saved"
   },
   "faq": {
     "title": "How can we help?",
     "subtitle": "Find answers to common questions about ordering, shipping, returns, and more.",
     "searchPlaceholder": "Search FAQs...",
     "noResults": "No results found",
-    "stillQuestions": "Still have questions?"
+    "noResultsDesc": "Try a different search term or browse a different category.",
+    "stillQuestions": "Still have questions?",
+    "stillQuestionsDesc": "Our team is ready to help you on WhatsApp. Get a fast, personal response.",
+    "browseShop": "Browse Shop",
+    "catAll": "All",
+    "catOrders": "Orders",
+    "catShipping": "Shipping",
+    "catReturns": "Returns",
+    "catPayment": "Payment",
+    "catSizing": "Sizing",
+    "catSupport": "Support"
   },
   "footer": {
     "newsletterTitle": "Join Our Newsletter",
