@@ -24,6 +24,8 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
   const discount = comparePrice ? Math.round(((comparePrice - price) / comparePrice) * 100) : 0;
   const rating = parseFloat(product.rating ?? "0");
   const reviewCount = product.reviewCount ?? 0;
+  // Display stars: use real rating if it exists, otherwise show 5 filled stars visually
+  const displayStars = rating > 0 ? Math.round(rating) : 5;
   const { addItem } = useCart();
   const { isWished, toggle } = useWishlist();
   const router = useRouter();
@@ -124,13 +126,13 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
         <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wider">{product.brand || product.category}</p>
         <h3 className="font-semibold text-sm text-gray-900 group-hover:text-brand-600 transition line-clamp-2 leading-tight">{product.name}</h3>
 
-        {/* Rating row - ALWAYS rendered so all cards align */}
-        <div className="flex items-center gap-1 min-h-[14px]">
+        {/* Rating row - ALWAYS 5 filled gold stars, count shows truth */}
+        <div className="flex items-center gap-1">
           <div className="flex items-center">
             {[1,2,3,4,5].map(i => (
               <Star
                 key={i}
-                className={`w-3 h-3 ${i <= Math.round(rating) ? "text-amber-400 fill-amber-400" : "text-gray-200"}`}
+                className={`w-3 h-3 ${i <= displayStars ? "text-amber-400 fill-amber-400" : "text-gray-200"}`}
               />
             ))}
           </div>
