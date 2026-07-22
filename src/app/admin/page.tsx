@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback } from "react";
 import {
   Package, Plus, Settings, BarChart3, LogOut, Edit, Trash2, Eye, EyeOff, Star, Search, Menu, X, Home,
   Shield, Users, Download, Upload, RefreshCw, Lock, MessageSquare, Key, AlertTriangle, TrendingUp,
-  DollarSign, ShoppingBag, CheckCircle, Clock, Copy
+  DollarSign, ShoppingBag, CheckCircle, Clock, Copy, Tag, Globe, ChevronDown, ChevronUp
 } from "lucide-react";
 import Link from "next/link";
 
@@ -12,6 +12,13 @@ interface Product {
   id: string;
   name: string;
   description: string;
+  shortDescription?: string;
+  longDescription?: string;
+  nameFr?: string | null;
+  descriptionFr?: string | null;
+  shortDescriptionFr?: string | null;
+  longDescriptionFr?: string | null;
+  tagsFr?: string | null;
   price: string;
   comparePrice: string | null;
   category: string;
@@ -31,6 +38,16 @@ interface Product {
   createdAt: string;
 }
 
+interface Category {
+  id: string;
+  slug: string;
+  nameEn: string;
+  nameFr: string | null;
+  active: boolean;
+  sortOrder: number;
+  createdAt: string;
+}
+
 interface StoreSettings {
   storeName: string;
   whatsappNumber: string;
@@ -42,7 +59,7 @@ interface StoreSettings {
   lockoutMinutes: number;
 }
 
-type Tab = "dashboard" | "products" | "add" | "edit" | "reviews" | "settings" | "security";
+type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security";
 
 export default function AdminPage() {
   const [authStep, setAuthStep] = useState<"loading" | "access-code" | "password" | "authenticated">("loading");
@@ -53,6 +70,7 @@ export default function AdminPage() {
 
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [storeSettings, setStoreSettings] = useState<StoreSettings>({
     storeName: "SoleVault",
     whatsappNumber: "",
@@ -76,35 +94,26 @@ export default function AdminPage() {
     setTimeout(() => setNotification(""), 3000);
   };
 
-  // Check authentication status on mount
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Ensure database tables exist first
-        try {
-          await fetch("/api/setup", { method: "POST" });
-        } catch { /* ignore setup errors */ }
+        try { await fetch("/api/setup", { method: "POST" }); } catch { /* ignore */ }
 
-        // First check if access code is required
         const configRes = await fetch("/api/admin/auth");
         const config = await configRes.json();
         setRequiresAccessCode(config.requiresAccessCode);
 
-        // Check existing session
         const sessionRes = await fetch("/api/admin/auth", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action: "verify-session" }),
         });
-        
+
         if (sessionRes.ok) {
           const data = await sessionRes.json();
-          if (data.valid) {
-            setAuthStep("authenticated");
-            return;
-          }
+          if (data.valid) { setAuthStep("authenticated"); return; }
         }
-        
+
         setAuthStep(config.requiresAccessCode ? "access-code" : "password");
       } catch {
         setAuthStep("password");
@@ -121,6 +130,14 @@ export default function AdminPage() {
     } catch {/* ignore */}
   }, []);
 
+  const fetchCategories = useCallback(async () => {
+    try {
+      const res = await fetch("/api/categories?all=true");
+      const data = await res.json();
+      if (Array.isArray(data)) setCategories(data);
+    } catch {/* ignore */}
+  }, []);
+
   const fetchSettings = useCallback(async () => {
     try {
       const res = await fetch("/api/settings");
@@ -132,9 +149,10 @@ export default function AdminPage() {
   useEffect(() => {
     if (authStep === "authenticated") {
       fetchProducts();
+      fetchCategories();
       fetchSettings();
     }
-  }, [authStep, fetchProducts, fetchSettings]);
+  }, [authStep, fetchProducts, fetchCategories, fetchSettings]);
 
   const handleVerifyAccessCode = async () => {
     try {
@@ -160,10 +178,10 @@ export default function AdminPage() {
       const res = await fetch("/api/admin/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           action: "login",
           password,
-          accessCode: requiresAccessCode ? accessCode : undefined 
+          accessCode: requiresAccessCode ? accessCode : undefined
         }),
       });
       const data = await res.json();
@@ -229,7 +247,7 @@ export default function AdminPage() {
   const handleBulkAction = async (action: "activate" | "deactivate" | "delete", ids: string[]) => {
     if (ids.length === 0) return;
     if (action === "delete" && !confirm(`Delete ${ids.length} products? This cannot be undone.`)) return;
-    
+
     setLoading(true);
     try {
       for (const id of ids) {
@@ -258,7 +276,7 @@ export default function AdminPage() {
         p.id, `"${p.name}"`, p.price, p.category, `"${p.brand}"`, p.stock, p.active
       ].join(","))
     ].join("\n");
-    
+
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -268,7 +286,6 @@ export default function AdminPage() {
     showNotification("Products exported successfully");
   };
 
-  // Loading state
   if (authStep === "loading") {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -280,7 +297,6 @@ export default function AdminPage() {
     );
   }
 
-  // Access Code Screen
   if (authStep === "access-code") {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
@@ -314,14 +330,13 @@ export default function AdminPage() {
             </button>
           </div>
           <div className="text-center mt-4">
-            <Link href="/" className="text-sm text-gray-500 hover:text-gray-900 transition">&larr;  Back to Store</Link>
+            <Link href="/" className="text-sm text-gray-500 hover:text-gray-900 transition">&larr; Back to Store</Link>
           </div>
         </div>
       </div>
     );
   }
 
-  // Password Screen
   if (authStep === "password") {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
@@ -354,7 +369,7 @@ export default function AdminPage() {
           <div className="text-center mt-4">
             {requiresAccessCode && (
               <button onClick={() => setAuthStep("access-code")} className="text-sm text-gray-500 hover:text-gray-900 transition mr-4">
-                &larr;  Back
+                &larr; Back
               </button>
             )}
             <Link href="/" className="text-sm text-gray-500 hover:text-gray-900 transition">Back to Store</Link>
@@ -364,7 +379,6 @@ export default function AdminPage() {
     );
   }
 
-  // Admin Dashboard (authenticated)
   const filteredProducts = products.filter(p =>
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -377,10 +391,10 @@ export default function AdminPage() {
   const featuredCount = products.filter(p => p.featured).length;
   const lowStockCount = products.filter(p => p.stock > 0 && p.stock <= 10).length;
   const outOfStockCount = products.filter(p => p.stock === 0).length;
+  const frenchTranslatedCount = products.filter(p => p.nameFr && p.nameFr.trim().length > 0).length;
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {/* Notification */}
       {notification && (
         <div className={`fixed top-4 right-4 z-50 px-6 py-3 rounded-xl shadow-lg animate-slide-in flex items-center gap-2 ${
           notificationType === "success" ? "bg-green-600 text-white" : "bg-red-600 text-white"
@@ -390,7 +404,6 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* Sidebar */}
       <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-100 transform transition-transform lg:relative lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="p-6">
           <div className="flex items-center justify-between">
@@ -417,6 +430,7 @@ export default function AdminPage() {
             { id: "dashboard" as Tab, icon: BarChart3, label: "Dashboard" },
             { id: "products" as Tab, icon: Package, label: "Products" },
             { id: "add" as Tab, icon: Plus, label: "Add Product" },
+            { id: "categories" as Tab, icon: Tag, label: "Categories" },
             { id: "reviews" as Tab, icon: MessageSquare, label: "Reviews" },
             { id: "settings" as Tab, icon: Settings, label: "Store Settings" },
             { id: "security" as Tab, icon: Shield, label: "Security" },
@@ -449,9 +463,7 @@ export default function AdminPage() {
         </div>
       </aside>
 
-      {/* Main Content */}
       <div className="flex-1 min-w-0">
-        {/* Top Bar */}
         <header className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 hover:bg-gray-100 rounded-xl">
@@ -462,17 +474,15 @@ export default function AdminPage() {
             </h1>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={fetchProducts} className="p-2 hover:bg-gray-100 rounded-xl" title="Refresh">
+            <button onClick={() => { fetchProducts(); fetchCategories(); }} className="p-2 hover:bg-gray-100 rounded-xl" title="Refresh">
               <RefreshCw className="w-4 h-4 text-gray-500" />
             </button>
           </div>
         </header>
 
         <div className="p-6">
-          {/* Dashboard Tab */}
           {activeTab === "dashboard" && (
             <div className="space-y-6">
-              {/* Stats Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
                 {[
                   { label: "Total Products", value: products.length, icon: Package, color: "blue" },
@@ -492,7 +502,30 @@ export default function AdminPage() {
                 ))}
               </div>
 
-              {/* Value & Quick Actions */}
+              {/* FR translation status */}
+              <div className="bg-white rounded-2xl border border-gray-100 p-6">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
+                    <Globe className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold">French Translation Status</h3>
+                    <p className="text-xs text-gray-500">Products with French translations show on /fr pages</p>
+                  </div>
+                </div>
+                <div className="flex items-end gap-4">
+                  <div>
+                    <p className="text-3xl font-bold">{frenchTranslatedCount} / {products.length}</p>
+                    <p className="text-sm text-gray-500">products translated to French</p>
+                  </div>
+                  <div className="flex-1">
+                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-blue-500 transition-all" style={{ width: `${products.length > 0 ? (frenchTranslatedCount / products.length) * 100 : 0}%` }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div className="grid lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-6">
                   <h3 className="font-bold mb-4">Inventory Value</h3>
@@ -515,6 +548,9 @@ export default function AdminPage() {
                     <button onClick={() => setActiveTab("add")} className="w-full flex items-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-xl text-sm font-medium hover:bg-gray-800 transition">
                       <Plus className="w-4 h-4" /> Add Product
                     </button>
+                    <button onClick={() => setActiveTab("categories")} className="w-full flex items-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-200 transition">
+                      <Tag className="w-4 h-4" /> Manage Categories
+                    </button>
                     <button onClick={handleExportProducts} className="w-full flex items-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-200 transition">
                       <Download className="w-4 h-4" /> Export CSV
                     </button>
@@ -522,11 +558,10 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              {/* Recent Products */}
               <div className="bg-white rounded-2xl border border-gray-100 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-bold">Recent Products</h3>
-                  <button onClick={() => setActiveTab("products")} className="text-sm text-brand-600 hover:underline">View All</button>
+                  <button onClick={() => setActiveTab("products")} className="text-sm text-gray-700 hover:underline">View All</button>
                 </div>
                 <div className="space-y-3">
                   {products.slice(0, 5).map((p) => (
@@ -536,12 +571,17 @@ export default function AdminPage() {
                           {p.imageUrl ? (
                             <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-lg">ðŸ‘Ÿ</div>
+                            <div className="w-full h-full flex items-center justify-center text-gray-300">
+                              <Package className="w-4 h-4" />
+                            </div>
                           )}
                         </div>
                         <div>
-                          <p className="font-medium text-sm">{p.name}</p>
-                          <p className="text-xs text-gray-400 capitalize">{p.category} Â· {p.stock} in stock</p>
+                          <p className="font-medium text-sm flex items-center gap-2">
+                            {p.name}
+                            {p.nameFr && <Globe className="w-3 h-3 text-blue-500" />}
+                          </p>
+                          <p className="text-xs text-gray-400 capitalize">{p.category} - {p.stock} in stock</p>
                         </div>
                       </div>
                       <div className="text-right">
@@ -557,7 +597,6 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* Products Tab */}
           {activeTab === "products" && (
             <ProductsTab
               products={filteredProducts}
@@ -574,9 +613,9 @@ export default function AdminPage() {
             />
           )}
 
-          {/* Add Product Tab */}
           {activeTab === "add" && (
             <ProductForm
+              categories={categories}
               onSave={async (data) => {
                 setLoading(true);
                 try {
@@ -601,10 +640,10 @@ export default function AdminPage() {
             />
           )}
 
-          {/* Edit Product Tab */}
           {activeTab === "edit" && editingProduct && (
             <ProductForm
               product={editingProduct}
+              categories={categories}
               onSave={async (data) => {
                 setLoading(true);
                 try {
@@ -629,7 +668,14 @@ export default function AdminPage() {
             />
           )}
 
-          {/* Reviews Tab */}
+          {activeTab === "categories" && (
+            <CategoriesTab
+              categories={categories}
+              onRefresh={fetchCategories}
+              onNotify={showNotification}
+            />
+          )}
+
           {activeTab === "reviews" && (
             <div className="bg-white rounded-2xl border border-gray-100 p-6">
               <h3 className="font-bold mb-4">Product Reviews</h3>
@@ -649,7 +695,6 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* Settings Tab */}
           {activeTab === "settings" && (
             <SettingsForm
               settings={storeSettings}
@@ -676,7 +721,6 @@ export default function AdminPage() {
             />
           )}
 
-          {/* Security Tab */}
           {activeTab === "security" && (
             <SecurityForm
               settings={storeSettings}
@@ -705,7 +749,6 @@ export default function AdminPage() {
         </div>
       </div>
 
-      {/* Mobile overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/50 z-30 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
@@ -713,7 +756,9 @@ export default function AdminPage() {
   );
 }
 
-// Products Tab Component
+// ============================================================
+// PRODUCTS TAB
+// ============================================================
 function ProductsTab({
   products, searchTerm, setSearchTerm, onEdit, onDelete, onToggleActive, onToggleFeatured, onBulkAction, onExport, onAdd, loading
 }: {
@@ -787,10 +832,11 @@ function ProductsTab({
               <thead className="bg-gray-50 border-b border-gray-100">
                 <tr>
                   <th className="text-left px-4 py-3">
-                    <input type="checkbox" checked={selectedIds.length === products.length} onChange={toggleSelectAll} className="rounded" />
+                    <input type="checkbox" checked={selectedIds.length === products.length && products.length > 0} onChange={toggleSelectAll} className="rounded" />
                   </th>
                   <th className="text-left px-4 py-3 font-semibold">Product</th>
                   <th className="text-left px-4 py-3 font-semibold hidden sm:table-cell">Category</th>
+                  <th className="text-left px-4 py-3 font-semibold hidden lg:table-cell">FR</th>
                   <th className="text-left px-4 py-3 font-semibold">Price</th>
                   <th className="text-left px-4 py-3 font-semibold hidden md:table-cell">Stock</th>
                   <th className="text-left px-4 py-3 font-semibold hidden md:table-cell">Status</th>
@@ -809,13 +855,24 @@ function ProductsTab({
                           {p.imageUrl ? (
                             <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center">ðŸ‘Ÿ</div>
+                            <div className="w-full h-full flex items-center justify-center text-gray-300">
+                              <Package className="w-4 h-4" />
+                            </div>
                           )}
                         </div>
                         <span className="font-medium truncate max-w-[150px]">{p.name}</span>
                       </div>
                     </td>
                     <td className="px-4 py-3 capitalize text-gray-500 hidden sm:table-cell">{p.category}</td>
+                    <td className="px-4 py-3 hidden lg:table-cell">
+                      {p.nameFr ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs font-medium">
+                          <Globe className="w-3 h-3" /> FR
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-300">-</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3 font-semibold">${parseFloat(p.price).toFixed(2)}</td>
                     <td className="px-4 py-3 hidden md:table-cell">
                       <span className={p.stock === 0 ? "text-red-500" : p.stock <= 10 ? "text-amber-500" : ""}>
@@ -854,23 +911,333 @@ function ProductsTab({
   );
 }
 
-// Product Form Component
+// ============================================================
+// CATEGORIES TAB (NEW)
+// ============================================================
+function CategoriesTab({
+  categories,
+  onRefresh,
+  onNotify,
+}: {
+  categories: Category[];
+  onRefresh: () => void;
+  onNotify: (msg: string, type?: "success" | "error") => void;
+}) {
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Add form state
+  const [newSlug, setNewSlug] = useState("");
+  const [newNameEn, setNewNameEn] = useState("");
+  const [newNameFr, setNewNameFr] = useState("");
+  const [newSortOrder, setNewSortOrder] = useState("100");
+  const [saving, setSaving] = useState(false);
+
+  const handleAdd = async () => {
+    if (!newSlug.trim() || !newNameEn.trim()) {
+      onNotify("Slug and English name are required", "error");
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await fetch("/api/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug: newSlug.trim(),
+          nameEn: newNameEn.trim(),
+          nameFr: newNameFr.trim() || null,
+          sortOrder: parseInt(newSortOrder) || 100,
+        }),
+      });
+      if (res.ok) {
+        onNotify("Category created");
+        setNewSlug("");
+        setNewNameEn("");
+        setNewNameFr("");
+        setNewSortOrder("100");
+        setShowAddForm(false);
+        onRefresh();
+      } else {
+        const data = await res.json();
+        onNotify(data.error || "Failed to create category", "error");
+      }
+    } catch {
+      onNotify("Failed to create category", "error");
+    }
+    setSaving(false);
+  };
+
+  const handleUpdate = async (cat: Category, updates: Partial<Category>) => {
+    try {
+      const res = await fetch(`/api/categories/${cat.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+      if (res.ok) {
+        onNotify("Category updated");
+        onRefresh();
+        setEditingId(null);
+      } else {
+        onNotify("Failed to update category", "error");
+      }
+    } catch {
+      onNotify("Failed to update category", "error");
+    }
+  };
+
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`Delete category "${name}"? Products in this category will still exist but won't have a category label.`)) return;
+    try {
+      const res = await fetch(`/api/categories/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        onNotify("Category deleted");
+        onRefresh();
+      } else {
+        onNotify("Failed to delete category", "error");
+      }
+    } catch {
+      onNotify("Failed to delete category", "error");
+    }
+  };
+
+  return (
+    <div className="space-y-6 max-w-4xl">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold">Categories</h2>
+          <p className="text-sm text-gray-500">Manage product categories in English and French</p>
+        </div>
+        <button
+          onClick={() => setShowAddForm(!showAddForm)}
+          className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-xl text-sm font-semibold hover:bg-gray-800 transition"
+        >
+          {showAddForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+          {showAddForm ? "Cancel" : "Add Category"}
+        </button>
+      </div>
+
+      {showAddForm && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
+          <h3 className="font-bold">New Category</h3>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Slug (URL identifier) *</label>
+              <input
+                type="text"
+                value={newSlug}
+                onChange={(e) => setNewSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"))}
+                placeholder="e.g., loafers"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition font-mono"
+              />
+              <p className="text-xs text-gray-400 mt-1">Lowercase, no spaces. Used in URLs like /shop?category=loafers</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Sort Order</label>
+              <input
+                type="number"
+                value={newSortOrder}
+                onChange={(e) => setNewSortOrder(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
+              />
+              <p className="text-xs text-gray-400 mt-1">Lower number = appears first</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Name (English) *</label>
+              <input
+                type="text"
+                value={newNameEn}
+                onChange={(e) => setNewNameEn(e.target.value)}
+                placeholder="e.g., Loafers"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5 flex items-center gap-1">
+                <Globe className="w-3 h-3 text-blue-500" /> Name (French)
+              </label>
+              <input
+                type="text"
+                value={newNameFr}
+                onChange={(e) => setNewNameFr(e.target.value)}
+                placeholder="e.g., Mocassins"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
+              />
+            </div>
+          </div>
+          <button
+            onClick={handleAdd}
+            disabled={saving}
+            className="px-6 py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition disabled:opacity-50"
+          >
+            {saving ? "Creating..." : "Create Category"}
+          </button>
+        </div>
+      )}
+
+      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 border-b border-gray-100">
+            <tr>
+              <th className="text-left px-4 py-3 font-semibold w-16">Order</th>
+              <th className="text-left px-4 py-3 font-semibold">Slug</th>
+              <th className="text-left px-4 py-3 font-semibold">Name (EN)</th>
+              <th className="text-left px-4 py-3 font-semibold">Name (FR)</th>
+              <th className="text-left px-4 py-3 font-semibold">Status</th>
+              <th className="text-right px-4 py-3 font-semibold">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {categories.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="text-center py-12 text-gray-500">No categories yet</td>
+              </tr>
+            ) : (
+              categories.map((cat) => (
+                <CategoryRow
+                  key={cat.id}
+                  category={cat}
+                  isEditing={editingId === cat.id}
+                  onStartEdit={() => setEditingId(cat.id)}
+                  onCancelEdit={() => setEditingId(null)}
+                  onSave={(updates) => handleUpdate(cat, updates)}
+                  onDelete={() => handleDelete(cat.id, cat.nameEn)}
+                  onToggleActive={() => handleUpdate(cat, { active: !cat.active })}
+                />
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-800">
+        <p className="font-semibold mb-1">How categories work:</p>
+        <ul className="list-disc list-inside space-y-1 text-xs">
+          <li>Categories appear on shop pages and homepage in the current language</li>
+          <li>When a product is assigned to a category slug, it uses that category&apos;s translations</li>
+          <li>Deleting a category won&apos;t delete products - they keep their category slug but no label</li>
+          <li>Set a category to inactive to hide it from the store without deleting it</li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+function CategoryRow({
+  category, isEditing, onStartEdit, onCancelEdit, onSave, onDelete, onToggleActive,
+}: {
+  category: Category;
+  isEditing: boolean;
+  onStartEdit: () => void;
+  onCancelEdit: () => void;
+  onSave: (updates: Partial<Category>) => void;
+  onDelete: () => void;
+  onToggleActive: () => void;
+}) {
+  const [nameEn, setNameEn] = useState(category.nameEn);
+  const [nameFr, setNameFr] = useState(category.nameFr || "");
+  const [sortOrder, setSortOrder] = useState(category.sortOrder.toString());
+
+  useEffect(() => {
+    setNameEn(category.nameEn);
+    setNameFr(category.nameFr || "");
+    setSortOrder(category.sortOrder.toString());
+  }, [category, isEditing]);
+
+  if (isEditing) {
+    return (
+      <tr className="bg-blue-50/50 border-b border-gray-100">
+        <td className="px-4 py-3">
+          <input type="number" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} className="w-16 px-2 py-1.5 border border-gray-200 rounded text-sm" />
+        </td>
+        <td className="px-4 py-3 text-xs font-mono text-gray-500">{category.slug}</td>
+        <td className="px-4 py-3">
+          <input type="text" value={nameEn} onChange={(e) => setNameEn(e.target.value)} className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm" />
+        </td>
+        <td className="px-4 py-3">
+          <input type="text" value={nameFr} onChange={(e) => setNameFr(e.target.value)} placeholder="(optional)" className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm" />
+        </td>
+        <td className="px-4 py-3">
+          <span className={`px-2 py-0.5 rounded-full text-xs ${category.active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+            {category.active ? "Active" : "Inactive"}
+          </span>
+        </td>
+        <td className="px-4 py-3">
+          <div className="flex items-center justify-end gap-1">
+            <button
+              onClick={() => onSave({ nameEn, nameFr: nameFr || null, sortOrder: parseInt(sortOrder) || 0 })}
+              className="px-3 py-1.5 bg-gray-900 text-white rounded-lg text-xs font-medium"
+            >
+              Save
+            </button>
+            <button onClick={onCancelEdit} className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs">Cancel</button>
+          </div>
+        </td>
+      </tr>
+    );
+  }
+
+  return (
+    <tr className="border-b border-gray-50 hover:bg-gray-50/50 transition">
+      <td className="px-4 py-3 text-gray-400 text-xs">{category.sortOrder}</td>
+      <td className="px-4 py-3 text-xs font-mono text-gray-500">{category.slug}</td>
+      <td className="px-4 py-3 font-medium">{category.nameEn}</td>
+      <td className="px-4 py-3 text-gray-700">
+        {category.nameFr || <span className="text-gray-300">-</span>}
+      </td>
+      <td className="px-4 py-3">
+        <button onClick={onToggleActive} className={`px-2.5 py-1 rounded-full text-xs font-semibold transition ${category.active ? "bg-green-100 text-green-700 hover:bg-green-200" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>
+          {category.active ? "Active" : "Inactive"}
+        </button>
+      </td>
+      <td className="px-4 py-3">
+        <div className="flex items-center justify-end gap-1">
+          <button onClick={onStartEdit} className="p-2 rounded-lg text-gray-400 hover:bg-gray-100 transition" title="Edit">
+            <Edit className="w-4 h-4" />
+          </button>
+          <button onClick={onDelete} className="p-2 rounded-lg text-red-400 hover:bg-red-50 transition" title="Delete">
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+// ============================================================
+// PRODUCT FORM (with French fields + dynamic categories)
+// ============================================================
 function ProductForm({
   product,
+  categories,
   onSave,
   loading,
 }: {
   product?: Product;
+  categories: Category[];
   onSave: (data: Record<string, unknown>) => Promise<void>;
   loading: boolean;
 }) {
   const [name, setName] = useState(product?.name || "");
   const [description, setDescription] = useState(product?.description || "");
-  const [shortDescription, setShortDescription] = useState((product as unknown as Record<string, string>)?.shortDescription || "");
-  const [longDescription, setLongDescription] = useState((product as unknown as Record<string, string>)?.longDescription || "");
+  const [shortDescription, setShortDescription] = useState(product?.shortDescription || "");
+  const [longDescription, setLongDescription] = useState(product?.longDescription || "");
+
+  // French fields
+  const [nameFr, setNameFr] = useState(product?.nameFr || "");
+  const [descriptionFr, setDescriptionFr] = useState(product?.descriptionFr || "");
+  const [shortDescriptionFr, setShortDescriptionFr] = useState(product?.shortDescriptionFr || "");
+  const [longDescriptionFr, setLongDescriptionFr] = useState(product?.longDescriptionFr || "");
+  const [tagsFrStr, setTagsFrStr] = useState(() => {
+    if (!product?.tagsFr) return "";
+    try { return (JSON.parse(product.tagsFr) as string[]).join(", "); } catch { return ""; }
+  });
+  const [showFrenchSection, setShowFrenchSection] = useState(!!product?.nameFr);
+
   const [price, setPrice] = useState(product?.price || "");
   const [comparePrice, setComparePrice] = useState(product?.comparePrice || "");
-  const [category, setCategory] = useState(product?.category || "sneakers");
+  const [category, setCategory] = useState(product?.category || (categories[0]?.slug ?? "sneakers"));
   const [brand, setBrand] = useState(product?.brand || "");
   const [sizesStr, setSizesStr] = useState(product ? (JSON.parse(product.sizes || "[]") as string[]).join(", ") : "7, 8, 9, 10, 11, 12");
   const [colorsStr, setColorsStr] = useState(product ? (JSON.parse(product.colors || "[]") as string[]).join(", ") : "");
@@ -887,9 +1254,15 @@ function ProductForm({
     const sizes = sizesStr.split(",").map((s) => s.trim()).filter(Boolean);
     const colors = colorsStr.split(",").map((c) => c.trim()).filter(Boolean);
     const tags = tagsStr.split(",").map((t) => t.trim()).filter(Boolean);
+    const tagsFr = tagsFrStr.split(",").map((t) => t.trim()).filter(Boolean);
 
     onSave({
       name, description, shortDescription, longDescription,
+      nameFr: nameFr.trim() || null,
+      descriptionFr: descriptionFr.trim() || null,
+      shortDescriptionFr: shortDescriptionFr.trim() || null,
+      longDescriptionFr: longDescriptionFr.trim() || null,
+      tagsFr: tagsFr.length > 0 ? tagsFr : null,
       price: parseFloat(price) || 0,
       comparePrice: comparePrice ? parseFloat(comparePrice) : null,
       category, brand, sizes, colors,
@@ -901,10 +1274,13 @@ function ProductForm({
     });
   };
 
+  const activeCategories = categories.filter(c => c.active);
+  const categoriesToShow = activeCategories.length > 0 ? activeCategories : categories;
+
   return (
     <form onSubmit={handleSubmit} className="max-w-3xl space-y-6">
       <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
-        <h3 className="font-bold text-lg">Basic Information</h3>
+        <h3 className="font-bold text-lg">Basic Information (English)</h3>
         <div className="grid sm:grid-cols-2 gap-4">
           <div className="sm:col-span-2">
             <label className="block text-sm font-medium mb-1.5">Product Name *</label>
@@ -918,8 +1294,8 @@ function ProductForm({
           </div>
           <div className="sm:col-span-2">
             <label className="block text-sm font-medium mb-1.5">Long Description</label>
-            <p className="text-xs text-gray-400 mb-1.5">Detailed product description shown on the product page. Include materials, features, use cases, etc.</p>
-            <textarea value={longDescription} onChange={(e) => setLongDescription(e.target.value)} rows={6} placeholder="Provide a detailed description of the product including materials, comfort features, design details, ideal use cases, care instructions, etc." className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition resize-none" />
+            <p className="text-xs text-gray-400 mb-1.5">Detailed product description shown on the product page.</p>
+            <textarea value={longDescription} onChange={(e) => setLongDescription(e.target.value)} rows={6} placeholder="Provide a detailed description of the product..." className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition resize-none" />
             <p className="text-xs text-gray-400 mt-1 text-right">{longDescription.length} characters</p>
           </div>
           <div className="sm:col-span-2">
@@ -938,13 +1314,17 @@ function ProductForm({
           <div>
             <label className="block text-sm font-medium mb-1.5">Category</label>
             <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition bg-white">
-              <option value="sneakers">Sneakers</option>
-              <option value="running">Running</option>
-              <option value="formal">Formal</option>
-              <option value="boots">Boots</option>
-              <option value="sandals">Sandals</option>
-              <option value="casual">Casual</option>
+              {categoriesToShow.length === 0 ? (
+                <option value="sneakers">Sneakers</option>
+              ) : (
+                categoriesToShow.map(cat => (
+                  <option key={cat.id} value={cat.slug}>
+                    {cat.nameEn}{cat.nameFr ? ` / ${cat.nameFr}` : ""}
+                  </option>
+                ))
+              )}
             </select>
+            <p className="text-xs text-gray-400 mt-1">Manage categories in the Categories tab</p>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1.5">Brand</label>
@@ -953,8 +1333,60 @@ function ProductForm({
         </div>
       </div>
 
+      {/* FRENCH TRANSLATIONS SECTION - COLLAPSIBLE */}
+      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setShowFrenchSection(!showFrenchSection)}
+          className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center">
+              <Globe className="w-4 h-4 text-blue-600" />
+            </div>
+            <div className="text-left">
+              <h3 className="font-bold text-lg">French Translations</h3>
+              <p className="text-xs text-gray-500">
+                {nameFr ? "Product will appear on French pages" : "Optional - leave blank to hide on French pages"}
+              </p>
+            </div>
+          </div>
+          {showFrenchSection ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
+        </button>
+
+        {showFrenchSection && (
+          <div className="p-6 border-t border-gray-100 space-y-4">
+            <div className="p-3 bg-blue-50 rounded-xl">
+              <p className="text-xs text-blue-800">
+                <strong>How it works:</strong> Fill in the French name (required) to make this product visible on <code className="bg-blue-100 px-1 rounded">/fr</code> pages. Empty French translations mean the product only shows on English pages.
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Product Name (French)</label>
+              <input type="text" value={nameFr} onChange={(e) => setNameFr(e.target.value)} placeholder="e.g., Air Max Vitesse" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Short Description (French)</label>
+              <textarea value={shortDescriptionFr} onChange={(e) => setShortDescriptionFr(e.target.value)} rows={2} placeholder="e.g., Baskets haut de gamme avec amorti reactif..." className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition resize-none" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Long Description (French)</label>
+              <textarea value={longDescriptionFr} onChange={(e) => setLongDescriptionFr(e.target.value)} rows={6} placeholder="Description detaillee du produit en francais..." className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition resize-none" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Description Fallback (French)</label>
+              <textarea value={descriptionFr} onChange={(e) => setDescriptionFr(e.target.value)} rows={3} placeholder="Description generale en francais (fallback)..." className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition resize-none" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Tags (French, comma separated)</label>
+              <input type="text" value={tagsFrStr} onChange={(e) => setTagsFrStr(e.target.value)} placeholder="ex: bon-plan, nouveaute" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
+            </div>
+          </div>
+        )}
+      </div>
+
       <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
-        <h3 className="font-bold text-lg">Variants & Media</h3>
+        <h3 className="font-bold text-lg">Variants &amp; Media</h3>
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium mb-1.5">Sizes (comma separated)</label>
@@ -982,7 +1414,7 @@ function ProductForm({
             <input type="text" value={material} onChange={(e) => setMaterial(e.target.value)} placeholder="Leather, Mesh, etc." className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition" />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1.5">Tags (comma separated)</label>
+            <label className="block text-sm font-medium mb-1.5">Tags EN (comma separated)</label>
             <input type="text" value={tagsStr} onChange={(e) => setTagsStr(e.target.value)} placeholder="hot-deal, new-arrival" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition" />
           </div>
         </div>
@@ -1007,7 +1439,9 @@ function ProductForm({
   );
 }
 
-// Settings Form Component
+// ============================================================
+// SETTINGS FORM
+// ============================================================
 function SettingsForm({
   settings,
   onSave,
@@ -1057,7 +1491,9 @@ function SettingsForm({
   );
 }
 
-// Security Form Component  
+// ============================================================
+// SECURITY FORM
+// ============================================================
 function SecurityForm({
   settings,
   onSave,
@@ -1114,7 +1550,7 @@ function SecurityForm({
           <Shield className="w-5 h-5 text-green-600" />
           <h3 className="font-bold text-lg">Security Settings</h3>
         </div>
-        
+
         <div className="p-4 bg-amber-50 rounded-xl">
           <div className="flex items-start gap-2">
             <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
@@ -1152,7 +1588,7 @@ function SecurityForm({
               {showCopied ? <CheckCircle className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
             </button>
           </div>
-          <p className="text-xs text-gray-400 mt-1">⚠️ IMPORTANT: When you set a custom path, `/admin` will be BLOCKED (404). Use ONLY your custom path to access the panel. Save the path somewhere safe!</p>
+          <p className="text-xs text-amber-600 mt-1 font-medium">IMPORTANT: When you set a custom path, /admin will be BLOCKED (404). Use ONLY your custom path to access the panel. Save the path somewhere safe!</p>
         </div>
       </div>
 
@@ -1177,6 +1613,3 @@ function SecurityForm({
     </form>
   );
 }
-
-
-
