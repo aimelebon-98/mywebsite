@@ -1,20 +1,70 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { reviews, products } from "@/db/schema";
+import { reviews, products, adminSessions } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
+import { cookies } from "next/headers";
+
+async function verifyAdmin(): Promise<boolean> {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("admin_session")?.value;
+    if (!token) return false;
+    const session = await db.select().from(adminSessions).where(eq(adminSessions.token, token));
+    if (session.length === 0) return false;
+    return new Date(session[0].expiresAt) > new Date();
+  } catch {
+    return false;
+  }
+}
+
+// Robust body parser - handles UTF-8 correctly regardless of client encoding
+async function parseBody(request: NextRequest): Promise<Record<string, unknown>> {
+  try {
+    // First try native json() - works for properly-encoded clients
+    return await request.json();
+  } catch {
+    // Fallback: read as UTF-8 bytes and force decode
+    try {
+      const buffer = await request.arrayBuffer();
+      const text = new TextDecoder("utf-8", { fatal: false }).decode(buffer);
+      return JSON.parse(text);
+    } catch {
+      return {};
+    }
+  }
+}
+
+async function recalculateProductStats(productId: string) {
+  const productReviews = await db.select().from(reviews).where(eq(reviews.productId, productId));
+  const count = productReviews.length;
+  let avgRating = "0";
+  if (count > 0) {
+    const sum = productReviews.reduce((acc, r) => acc + (r.rating || 0), 0);
+    avgRating = (sum / count).toFixed(1);
+  }
+  await db.update(products)
+    .set({ reviewCount: count, rating: avgRating })
+    .where(eq(products.id, productId));
+}
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const productId = searchParams.get("productId");
+    const admin = searchParams.get("admin") === "true";
 
-    if (!productId) {
-      return NextResponse.json({ error: "Product ID required" }, { status: 400 });
+    if (admin) {
+      const isAdmin = await verifyAdmin();
+      if (!isAdmin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      const all = await db.select().from(reviews).orderBy(desc(reviews.createdAt));
+      return NextResponse.json(all);
     }
 
-    const result = await db
-      .select()
-      .from(reviews)
+    if (!productId) {
+      return NextResponse.json({ error: "productId required" }, { status: 400 });
+    }
+
+    const result = await db.select().from(reviews)
       .where(eq(reviews.productId, productId))
       .orderBy(desc(reviews.createdAt));
 
@@ -27,35 +77,97 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { productId, customerName, rating, comment } = body;
+    const body = await parseBody(request);
+    const productId = body.productId as string | undefined;
+    const customerName = body.customerName as string | undefined;
+    const rating = body.rating as number | string | undefined;
+    const comment = body.comment as string | undefined;
+    const commentFr = body.commentFr as string | undefined;
 
     if (!productId || !customerName || !rating) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+      return NextResponse.json({ error: "productId, customerName, and rating are required" }, { status: 400 });
     }
 
-    // Create review
-    const newReview = await db.insert(reviews).values({
-      productId,
-      customerName,
-      rating: Math.min(5, Math.max(1, rating)),
-      comment: comment || "",
-      avatar: customerName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2),
+    const avatar = String(customerName)
+      .split(" ")
+      .map(w => w[0]?.toUpperCase() || "")
+      .slice(0, 2)
+      .join("");
+
+    const result = await db.insert(reviews).values({
+      productId: String(productId),
+      customerName: String(customerName),
+      rating: parseInt(String(rating)),
+      comment: comment ? String(comment) : "",
+      commentFr: commentFr ? String(commentFr) : null,
+      avatar,
       verified: false,
     }).returning();
 
-    // Update product review count and rating
-    const productReviews = await db.select().from(reviews).where(eq(reviews.productId, productId));
-    const avgRating = productReviews.reduce((sum, r) => sum + r.rating, 0) / productReviews.length;
+    await recalculateProductStats(String(productId));
 
-    await db.update(products).set({
-      reviewCount: productReviews.length,
-      rating: avgRating.toFixed(1),
-    }).where(eq(products.id, productId));
-
-    return NextResponse.json(newReview[0], { status: 201 });
+    return NextResponse.json(result[0], { status: 201 });
   } catch (error) {
     console.error("Error creating review:", error);
     return NextResponse.json({ error: "Failed to create review" }, { status: 500 });
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    const isAdmin = await verifyAdmin();
+    if (!isAdmin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+    if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
+
+    const body = await parseBody(request);
+    const updates: Record<string, unknown> = {};
+
+    if (body.customerName !== undefined) updates.customerName = String(body.customerName);
+    if (body.comment !== undefined) updates.comment = String(body.comment);
+    if (body.commentFr !== undefined) updates.commentFr = body.commentFr ? String(body.commentFr) : null;
+    if (body.rating !== undefined) updates.rating = parseInt(String(body.rating));
+    if (body.verified !== undefined) updates.verified = Boolean(body.verified);
+
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json({ error: "No fields to update" }, { status: 400 });
+    }
+
+    const result = await db.update(reviews).set(updates).where(eq(reviews.id, id)).returning();
+    if (result.length === 0) return NextResponse.json({ error: "Review not found" }, { status: 404 });
+
+    if (body.rating !== undefined) {
+      await recalculateProductStats(result[0].productId);
+    }
+
+    return NextResponse.json(result[0]);
+  } catch (error) {
+    console.error("Error updating review:", error);
+    return NextResponse.json({ error: "Failed to update review" }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const isAdmin = await verifyAdmin();
+    if (!isAdmin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+    if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
+
+    const existing = await db.select().from(reviews).where(eq(reviews.id, id));
+    if (existing.length === 0) return NextResponse.json({ error: "Review not found" }, { status: 404 });
+    const productId = existing[0].productId;
+
+    await db.delete(reviews).where(eq(reviews.id, id));
+    await recalculateProductStats(productId);
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting review:", error);
+    return NextResponse.json({ error: "Failed to delete review" }, { status: 500 });
   }
 }

@@ -8,8 +8,7 @@ import { useCart } from "@/lib/cart-context";
 import { useWishlist } from "@/lib/wishlist-context";
 import { useState } from "react";
 import ProductImage from "./ProductImage";
-import { useTranslations } from "next-intl";
-import { useLocale } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 
 interface ProductCardProps {
   product: Product;
@@ -24,6 +23,9 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
   const comparePrice = product.comparePrice ? parseFloat(product.comparePrice) : null;
   const discount = comparePrice ? Math.round(((comparePrice - price) / comparePrice) * 100) : 0;
   const rating = parseFloat(product.rating ?? "0");
+  const reviewCount = product.reviewCount ?? 0;
+  // Display stars: use real rating if it exists, otherwise show 5 filled stars visually
+  const displayStars = rating > 0 ? Math.round(rating) : 5;
   const { addItem } = useCart();
   const { isWished, toggle } = useWishlist();
   const router = useRouter();
@@ -123,16 +125,20 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
       <div className="space-y-1">
         <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wider">{product.brand || product.category}</p>
         <h3 className="font-semibold text-sm text-gray-900 group-hover:text-brand-600 transition line-clamp-2 leading-tight">{product.name}</h3>
-        {rating > 0 && (
-          <div className="flex items-center gap-1">
-            <div className="flex items-center">
-              {[1,2,3,4,5].map(i => (
-                <Star key={i} className={`w-3 h-3 ${i <= Math.round(rating) ? "text-amber-400 fill-amber-400" : "text-gray-200"}`} />
-              ))}
-            </div>
-            <span className="text-[10px] text-gray-400">({product.reviewCount})</span>
+
+        {/* Rating row - ALWAYS 5 filled gold stars, count shows truth */}
+        <div className="flex items-center gap-1">
+          <div className="flex items-center">
+            {[1,2,3,4,5].map(i => (
+              <Star
+                key={i}
+                className={`w-3 h-3 ${i <= displayStars ? "text-amber-400 fill-amber-400" : "text-gray-200"}`}
+              />
+            ))}
           </div>
-        )}
+          <span className="text-[10px] text-gray-400">({reviewCount})</span>
+        </div>
+
         <div className="flex items-center gap-2">
           <span className="text-base font-bold">${price.toFixed(2)}</span>
           {comparePrice && (

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { products } from "@/db/schema";
+import { products, reviews } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { generateSlug } from "@/lib/slug";
 
@@ -11,7 +11,6 @@ interface Params {
 export async function GET(request: NextRequest, { params }: Params) {
   try {
     const { id } = await params;
-    // Try slug first, then ID
     let result = await db.select().from(products).where(eq(products.slug, id));
     if (result.length === 0) {
       try {
@@ -37,7 +36,6 @@ export async function PUT(request: NextRequest, { params }: Params) {
 
     const updates: Record<string, unknown> = {};
 
-    // English fields
     if (body.name !== undefined) {
       updates.name = body.name;
       updates.slug = generateSlug(body.name);
@@ -46,7 +44,6 @@ export async function PUT(request: NextRequest, { params }: Params) {
     if (body.shortDescription !== undefined) updates.shortDescription = body.shortDescription;
     if (body.longDescription !== undefined) updates.longDescription = body.longDescription;
 
-    // French fields (explicit null means "clear it")
     if (body.nameFr !== undefined)             updates.nameFr             = body.nameFr             ? String(body.nameFr)             : null;
     if (body.descriptionFr !== undefined)      updates.descriptionFr      = body.descriptionFr      ? String(body.descriptionFr)      : null;
     if (body.shortDescriptionFr !== undefined) updates.shortDescriptionFr = body.shortDescriptionFr ? String(body.shortDescriptionFr) : null;
@@ -55,7 +52,6 @@ export async function PUT(request: NextRequest, { params }: Params) {
       updates.tagsFr = body.tagsFr ? JSON.stringify(Array.isArray(body.tagsFr) ? body.tagsFr : []) : null;
     }
 
-    // Other fields
     if (body.price !== undefined) updates.price = String(body.price);
     if (body.comparePrice !== undefined) updates.comparePrice = body.comparePrice ? String(body.comparePrice) : null;
     if (body.category !== undefined) updates.category = body.category;
@@ -87,6 +83,10 @@ export async function PUT(request: NextRequest, { params }: Params) {
 export async function DELETE(request: NextRequest, { params }: Params) {
   try {
     const { id } = await params;
+
+    // Cascade: delete associated reviews first
+    await db.delete(reviews).where(eq(reviews.productId, id));
+
     const result = await db.delete(products).where(eq(products.id, id)).returning();
     if (result.length === 0) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
