@@ -4,13 +4,16 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { X, ShoppingBag, Plus, Minus, Trash2, ArrowRight, Truck } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
+import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 
 const FREE_SHIPPING_THRESHOLD = 100;
 
 export default function MiniCartDrawer() {
+  const t = useTranslations("cart");
+  const locale = useLocale();
   const { items, drawerOpen, closeDrawer, updateQuantity, removeItem, totalPrice, totalQuantity } = useCart();
 
-  // Lock body scroll when drawer is open
   useEffect(() => {
     if (drawerOpen) {
       document.body.style.overflow = "hidden";
@@ -20,7 +23,6 @@ export default function MiniCartDrawer() {
     return () => { document.body.style.overflow = ""; };
   }, [drawerOpen]);
 
-  // Close on Escape
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape") closeDrawer(); };
     window.addEventListener("keydown", handler);
@@ -47,18 +49,20 @@ export default function MiniCartDrawer() {
         className={`fixed top-0 right-0 h-full w-full sm:w-[420px] bg-white z-[70] shadow-2xl flex flex-col transform transition-transform duration-300 ease-out ${
           drawerOpen ? "translate-x-0" : "translate-x-full"
         }`}
-        aria-label="Shopping cart"
+        aria-label={t("yourCart")}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
           <div className="flex items-center gap-2">
             <ShoppingBag className="w-5 h-5" />
-            <h2 className="text-base font-bold">Your Cart</h2>
-            <span className="text-xs text-gray-500">({totalQuantity} {totalQuantity === 1 ? "item" : "items"})</span>
+            <h2 className="text-base font-bold">{t("yourCart")}</h2>
+            <span className="text-xs text-gray-500">
+              ({totalQuantity} {totalQuantity === 1 ? t("item") : t("items")})
+            </span>
           </div>
           <button
             onClick={closeDrawer}
-            aria-label="Close cart"
+            aria-label={t("closeCart")}
             className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition"
           >
             <X className="w-5 h-5" />
@@ -71,10 +75,10 @@ export default function MiniCartDrawer() {
             <div className="flex items-center gap-2 mb-2">
               <Truck className="w-4 h-4 text-gray-600" />
               {qualifiesFreeShipping ? (
-                <p className="text-xs font-semibold text-green-600">You qualify for FREE shipping!</p>
+                <p className="text-xs font-semibold text-green-600">{t("freeShippingQualified")}</p>
               ) : (
                 <p className="text-xs text-gray-700">
-                  Add <span className="font-bold text-gray-900">${remaining.toFixed(2)}</span> more for FREE shipping
+                  {t("freeShippingProgress", { amount: `$${remaining.toFixed(2)}` })}
                 </p>
               )}
             </div>
@@ -94,13 +98,13 @@ export default function MiniCartDrawer() {
               <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                 <ShoppingBag className="w-10 h-10 text-gray-400" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Your cart is empty</h3>
-              <p className="text-sm text-gray-500 mb-6">Add some products to get started!</p>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">{t("empty")}</h3>
+              <p className="text-sm text-gray-500 mb-6">{t("emptyDescDrawer")}</p>
               <button
                 onClick={closeDrawer}
-                className="px-6 py-3 bg-brand-600 text-white rounded-xl text-sm font-bold hover:bg-brand-700 transition"
+                className="px-6 py-3 bg-gray-900 text-white rounded-xl text-sm font-bold hover:bg-gray-800 transition"
               >
-                Continue Shopping
+                {t("viewCartCheckout")}
               </button>
             </div>
           ) : (
@@ -108,7 +112,7 @@ export default function MiniCartDrawer() {
               {items.map((item) => (
                 <li key={`${item.id}-${item.size}-${item.color}`} className="flex gap-3 p-4">
                   <Link
-                    href={`/product/${item.id}`}
+                    href={`/${locale}/product/${item.id}`}
                     onClick={closeDrawer}
                     className="flex-shrink-0 w-20 h-20 bg-gray-100 rounded-xl overflow-hidden"
                   >
@@ -124,7 +128,7 @@ export default function MiniCartDrawer() {
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between gap-2">
                       <Link
-                        href={`/product/${item.id}`}
+                        href={`/${locale}/product/${item.id}`}
                         onClick={closeDrawer}
                         className="text-sm font-semibold text-gray-900 hover:text-brand-600 transition line-clamp-2 leading-tight"
                       >
@@ -139,7 +143,7 @@ export default function MiniCartDrawer() {
                       </button>
                     </div>
                     <p className="text-[11px] text-gray-500 mt-0.5">
-                      Size: {item.size} · Color: {item.color}
+                      {t("size")}: {item.size} · {t("color")}: {item.color}
                     </p>
 
                     <div className="flex items-center justify-between mt-2">
@@ -175,23 +179,23 @@ export default function MiniCartDrawer() {
         {items.length > 0 && (
           <div className="border-t border-gray-100 p-5 space-y-3 bg-white">
             <div className="flex justify-between items-baseline">
-              <span className="text-sm text-gray-600">Subtotal</span>
+              <span className="text-sm text-gray-600">{t("subtotal")}</span>
               <span className="text-xl font-bold text-gray-900">${totalPrice.toFixed(2)}</span>
             </div>
-            <p className="text-[11px] text-gray-400 -mt-2">Shipping and taxes calculated at checkout</p>
+            <p className="text-[11px] text-gray-400 -mt-2">{t("subtotalNote")}</p>
 
             <Link
-              href="/cart"
+              href={`/${locale}/cart`}
               onClick={closeDrawer}
-              className="w-full flex items-center justify-center gap-2 py-3 bg-brand-600 text-white rounded-xl text-sm font-bold hover:bg-brand-700 transition"
+              className="w-full flex items-center justify-center gap-2 py-3 bg-gray-900 text-white rounded-xl text-sm font-bold hover:bg-gray-800 transition"
             >
-              View Cart & Checkout <ArrowRight className="w-4 h-4" />
+              {t("viewCartCheckout")} <ArrowRight className="w-4 h-4" />
             </Link>
             <button
               onClick={closeDrawer}
               className="w-full py-2.5 text-xs font-semibold text-gray-600 hover:text-gray-900 transition"
             >
-              Continue Shopping
+              {t("continueShopping")}
             </button>
           </div>
         )}
