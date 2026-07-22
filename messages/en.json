@@ -11,14 +11,14 @@
     "searching": "Searching..."
   },
   "nav": {
-    "home": "Home",
-    "shopAll": "Shop All",
-    "sneakers": "Sneakers",
-    "running": "Running",
-    "formal": "Formal",
-    "boots": "Boots",
-    "sandals": "Sandals",
-    "casual": "Casual",
+    "home": "home",
+    "shopAll": "shop all",
+    "sneakers": "sneakers",
+    "running": "running",
+    "formal": "formal",
+    "boots": "boots",
+    "sandals": "sandals",
+    "casual": "casual",
     "wishlist": "Wishlist",
     "cart": "Cart",
     "faq": "FAQ",
@@ -226,7 +226,7 @@
     "newestFirst": "Newest First"
   },
   "productDetails": {
-    "home": "Home",
+    "home": "home",
     "shop": "Shop",
     "selectSize": "Select Size",
     "sizeGuide": "Size Guide",
