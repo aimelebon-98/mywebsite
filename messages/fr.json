@@ -168,7 +168,14 @@
     "setupTitle": "Bienvenue sur SoleVault!",
     "setupDesc": "Votre boutique est presque prete. Cliquez ci-dessous pour configurer la base de donnees et charger 50 produits exemples avec des avis.",
     "setupNote": "Cela creera toutes les tables de base de donnees et les donnees exemples automatiquement.",
-    "goToAdmin": "Aller a l administration"
+    "goToAdmin": "Aller a l administration",
+    "reviewsRating": "Note moyenne 4.7",
+    "reviewsTitle": "Avis clients",
+    "reviewsSubtitle": "Ce que nos clients disent de leur experience SoleVault",
+    "reviewsBought": "Achete:",
+    "reviewsVerified": "Achat verifie",
+    "recentlyViewed": "Vus recemment",
+    "recentlyViewedDesc": "Reprenez ou vous en etiez"
   },
   "shop": {
     "noProducts": "Aucun produit trouve",

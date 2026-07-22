@@ -168,7 +168,14 @@
     "setupTitle": "Welcome to SoleVault!",
     "setupDesc": "Your store is almost ready. Click below to set up the database and load 50 sample products with reviews.",
     "setupNote": "This will create all database tables and seed sample data automatically.",
-    "goToAdmin": "Go to Admin"
+    "goToAdmin": "Go to Admin",
+    "reviewsRating": "4.7 Average Rating",
+    "reviewsTitle": "Customer Reviews",
+    "reviewsSubtitle": "What our customers say about their SoleVault experience",
+    "reviewsBought": "Bought:",
+    "reviewsVerified": "Verified Purchase",
+    "recentlyViewed": "Recently Viewed",
+    "recentlyViewedDesc": "Pick up where you left off"
   },
   "shop": {
     "noProducts": "No products found",

@@ -1,15 +1,17 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import type { Product } from "@/db/schema";
 import ProductCard from "./ProductCard";
 import { Clock } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface RecentlyViewedProps {
   excludeId?: string;
 }
 
 export default function RecentlyViewed({ excludeId }: RecentlyViewedProps) {
+  const t = useTranslations("home");
   const [recentProducts, setRecentProducts] = useState<Product[]>([]);
 
   useEffect(() => {
@@ -41,8 +43,8 @@ export default function RecentlyViewed({ excludeId }: RecentlyViewedProps) {
             <Clock className="w-5 h-5 text-blue-600" />
           </div>
           <div>
-            <h2 className="text-2xl lg:text-3xl font-bold">Recently Viewed</h2>
-            <p className="text-gray-500 text-sm">Pick up where you left off</p>
+            <h2 className="text-2xl lg:text-3xl font-bold">{t("recentlyViewed")}</h2>
+            <p className="text-gray-500 text-sm">{t("recentlyViewedDesc")}</p>
           </div>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
