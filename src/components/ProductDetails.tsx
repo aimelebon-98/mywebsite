@@ -58,10 +58,16 @@ export default function ProductDetails({ product, initialReviews = [] }: Product
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewSuccess, setReviewSuccess] = useState(false);
   const [wishlist, setWishlist] = useState(false);
+  const REVIEWS_PER_PAGE = 5;
+  const [visibleReviews, setVisibleReviews] = useState(REVIEWS_PER_PAGE);
   const [imageLoaded, setImageLoaded] = useState(false);
 
   const shortDesc = product.shortDescription || product.description || "";
   const longDesc = product.longDescription || product.description || "";
+
+  useEffect(() => {
+    setVisibleReviews(REVIEWS_PER_PAGE);
+  }, [reviews.length]);
 
   useEffect(() => {
     try {
@@ -549,7 +555,7 @@ export default function ProductDetails({ product, initialReviews = [] }: Product
                 </button>
               </div>
             ) : (
-              reviews.map((review, idx) => (
+              reviews.slice(0, visibleReviews).map((review, idx) => (
                 <div key={review.id} className="p-6 bg-white rounded-2xl border border-gray-100 hover:shadow-md transition-shadow" style={{ animationDelay: `${idx * 50}ms` }}>
                   <div className="flex items-start gap-4">
                     <div className={`w-12 h-12 bg-gradient-to-br ${getAvatarColor(review.customerName)} rounded-full flex items-center justify-center flex-shrink-0 shadow-sm`}>
@@ -577,9 +583,34 @@ export default function ProductDetails({ product, initialReviews = [] }: Product
               ))
             )}
           </div>
+
+          {/* Pagination controls */}
+          {reviews.length > REVIEWS_PER_PAGE && (
+            <div className="flex flex-col items-center gap-3 mb-16 -mt-8">
+              <p className="text-sm text-gray-500">
+                {t("showingReviews", { visible: Math.min(visibleReviews, reviews.length), total: reviews.length })}
+              </p>
+              {visibleReviews < reviews.length ? (
+                <button
+                  onClick={() => setVisibleReviews((v) => Math.min(v + REVIEWS_PER_PAGE, reviews.length))}
+                  className="inline-flex items-center gap-2 px-8 py-3 bg-white border-2 border-gray-900 text-gray-900 rounded-xl font-semibold hover:bg-gray-900 hover:text-white transition"
+                >
+                  {t("loadMoreReviews")}
+                </button>
+              ) : (
+                <button
+                  onClick={() => setVisibleReviews(REVIEWS_PER_PAGE)}
+                  className="inline-flex items-center gap-2 px-6 py-2 text-sm text-gray-500 hover:text-gray-900 transition"
+                >
+                  {t("showLess")}
+                </button>
+              )}
+            </div>
+          )}
         </section>
       </div>
     </div>
   );
 }
+
 

@@ -297,6 +297,9 @@
     "thankYouReviewDesc": "Your review has been submitted successfully and is now visible on this page. We appreciate your feedback - it helps other customers make informed decisions.",
     "viewing": "viewing",
     "reviews": "reviews",
-    "saveAmount": "SAVE {amount}"
+    "saveAmount": "SAVE {amount}",
+    "loadMoreReviews": "Load More Reviews",
+    "showLess": "Show Less",
+    "showingReviews": "Showing {visible} of {total} reviews"
   }
 }
