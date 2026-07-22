@@ -1,6 +1,6 @@
-﻿import { db } from "@/db";
+import { db } from "@/db";
 import { products, reviews, type Product, type Review } from "@/db/schema";
-import { eq, and, ne, desc } from "drizzle-orm";
+import { eq, and, ne, desc, isNotNull } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
@@ -18,14 +18,28 @@ interface Props {
   params: Promise<{ slug: string; locale: string }>;
 }
 
+// Merge French translations into the product object for display
+function localizeProduct(p: Product, isFr: boolean): Product {
+  if (!isFr) return p;
+  return {
+    ...p,
+    name: p.nameFr || p.name,
+    description: p.descriptionFr || p.description,
+    shortDescription: p.shortDescriptionFr || p.shortDescription,
+    longDescription: p.longDescriptionFr || p.longDescription,
+    tags: p.tagsFr || p.tags,
+  };
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug, locale } = await params;
+  const isFr = locale === "fr";
   try {
     let result = await db.select().from(products).where(eq(products.slug, slug));
     if (result.length === 0) result = await db.select().from(products).where(eq(products.id, slug));
     if (result.length === 0) return { title: "Product Not Found - SoleVault" };
 
-    const product = result[0];
+    const product = localizeProduct(result[0], isFr);
     const price = parseFloat(product.price);
 
     return {
@@ -54,6 +68,7 @@ export default async function ProductPage({ params }: Props) {
   const { slug } = await params;
   const t = await getTranslations("product");
   const locale = await getLocale();
+  const isFr = locale === "fr";
 
   let product: Product;
   let relatedProducts: Product[] = [];
@@ -69,21 +84,37 @@ export default async function ProductPage({ params }: Props) {
       }
     }
     if (result.length === 0) notFound();
-    product = result[0];
+
+    // On French pages, if product doesn't have French translation, 404
+    if (isFr && !result[0].nameFr) notFound();
+
+    product = localizeProduct(result[0], isFr);
 
     productReviews = await db.select().from(reviews)
       .where(eq(reviews.productId, product.id))
       .orderBy(desc(reviews.createdAt));
 
-    relatedProducts = await db.select().from(products)
-      .where(and(eq(products.active, true), eq(products.category, product.category), ne(products.id, product.id)))
+    // Related products - respect locale (only show French-translated on /fr)
+    const relatedCond = isFr
+      ? and(eq(products.active, true), isNotNull(products.nameFr), eq(products.category, product.category), ne(products.id, product.id))
+      : and(eq(products.active, true), eq(products.category, product.category), ne(products.id, product.id));
+
+    const relatedRaw = await db.select().from(products)
+      .where(relatedCond)
       .orderBy(desc(products.rating)).limit(8);
 
+    relatedProducts = relatedRaw.map(p => localizeProduct(p, isFr));
+
     if (relatedProducts.length < 4) {
-      const moreProducts = await db.select().from(products)
-        .where(and(eq(products.active, true), ne(products.id, product.id), ne(products.category, product.category)))
+      const moreCond = isFr
+        ? and(eq(products.active, true), isNotNull(products.nameFr), ne(products.id, product.id), ne(products.category, product.category))
+        : and(eq(products.active, true), ne(products.id, product.id), ne(products.category, product.category));
+
+      const moreRaw = await db.select().from(products)
+        .where(moreCond)
         .orderBy(desc(products.rating)).limit(8 - relatedProducts.length);
-      relatedProducts = [...relatedProducts, ...moreProducts];
+
+      relatedProducts = [...relatedProducts, ...moreRaw.map(p => localizeProduct(p, isFr))];
     }
   } catch {
     notFound();

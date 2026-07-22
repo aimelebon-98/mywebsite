@@ -7,6 +7,12 @@ export const products = pgTable("products", {
   description: text("description").notNull().default(""),
   shortDescription: text("short_description").notNull().default(""),
   longDescription: text("long_description").notNull().default(""),
+  // French translations (nullable - product only shows in French when nameFr is filled)
+  nameFr: text("name_fr"),
+  descriptionFr: text("description_fr"),
+  shortDescriptionFr: text("short_description_fr"),
+  longDescriptionFr: text("long_description_fr"),
+  tagsFr: text("tags_fr"),
   price: numeric("price", { precision: 10, scale: 2 }).notNull(),
   comparePrice: numeric("compare_price", { precision: 10, scale: 2 }),
   category: text("category").notNull().default("sneakers"),
@@ -26,6 +32,17 @@ export const products = pgTable("products", {
   sku: text("sku").notNull().default(""),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// New: dynamic categories table
+export const categories = pgTable("categories", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  slug: text("slug").notNull().unique(),
+  nameEn: text("name_en").notNull(),
+  nameFr: text("name_fr"),
+  active: boolean("active").notNull().default(true),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const reviews = pgTable("reviews", {
@@ -83,6 +100,8 @@ export const wishlist = pgTable("wishlist", {
 
 export type Product = typeof products.$inferSelect;
 export type NewProduct = typeof products.$inferInsert;
+export type Category = typeof categories.$inferSelect;
+export type NewCategory = typeof categories.$inferInsert;
 export type Review = typeof reviews.$inferSelect;
 export type Newsletter = typeof newsletter.$inferSelect;
 export type Settings = typeof settings.$inferSelect;

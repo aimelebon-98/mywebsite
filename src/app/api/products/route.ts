@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { products } from "@/db/schema";
-import { eq, desc, and, ilike } from "drizzle-orm";
+import { eq, desc, and, ilike, or, isNotNull } from "drizzle-orm";
 import { generateSlug } from "@/lib/slug";
 
 export async function GET(request: NextRequest) {
@@ -11,12 +11,31 @@ export async function GET(request: NextRequest) {
     const featured = searchParams.get("featured");
     const search = searchParams.get("search");
     const activeOnly = searchParams.get("active") !== "false";
+    const locale = searchParams.get("locale"); // NEW: filter by locale
 
     const conditions = [];
     if (activeOnly) conditions.push(eq(products.active, true));
     if (category && category !== "all") conditions.push(eq(products.category, category));
     if (featured === "true") conditions.push(eq(products.featured, true));
-    if (search) conditions.push(ilike(products.name, `%${search}%`));
+
+    // If locale=fr, only return products that have French translations
+    if (locale === "fr") {
+      conditions.push(isNotNull(products.nameFr));
+    }
+
+    // Search — search in both languages if locale=fr
+    if (search) {
+      if (locale === "fr") {
+        conditions.push(
+          or(
+            ilike(products.nameFr, `%${search}%`),
+            ilike(products.descriptionFr, `%${search}%`)
+          )!
+        );
+      } else {
+        conditions.push(ilike(products.name, `%${search}%`));
+      }
+    }
 
     const result = await db
       .select()
@@ -34,7 +53,12 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, description, shortDescription, longDescription, price, comparePrice, category, brand, sizes, colors, imageUrl, images, stock, featured, active, material, sku, tags } = body;
+    const {
+      name, description, shortDescription, longDescription,
+      nameFr, descriptionFr, shortDescriptionFr, longDescriptionFr, tagsFr,
+      price, comparePrice, category, brand, sizes, colors,
+      imageUrl, images, stock, featured, active, material, sku, tags,
+    } = body;
 
     const slug = generateSlug(name);
 
@@ -44,6 +68,12 @@ export async function POST(request: NextRequest) {
       description: description || "",
       shortDescription: shortDescription || "",
       longDescription: longDescription || "",
+      // French fields (nullable)
+      nameFr: nameFr ? String(nameFr) : null,
+      descriptionFr: descriptionFr ? String(descriptionFr) : null,
+      shortDescriptionFr: shortDescriptionFr ? String(shortDescriptionFr) : null,
+      longDescriptionFr: longDescriptionFr ? String(longDescriptionFr) : null,
+      tagsFr: tagsFr ? JSON.stringify(Array.isArray(tagsFr) ? tagsFr : []) : null,
       price: String(price),
       comparePrice: comparePrice ? String(comparePrice) : null,
       category: category || "sneakers",
