@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import type { Product } from "@/db/schema";
@@ -10,11 +10,14 @@ import RecentlyViewed from "./RecentlyViewed";
 import SeedButton from "./SeedButton";
 import Link from "next/link";
 import ProductImage from "./ProductImage";
-import {
-  ArrowRight, Flame, Sparkles, Clock, Zap, TrendingUp, Tag,
-} from "lucide-react";
+import { ArrowRight, Flame, Sparkles, Clock, Zap, TrendingUp, Tag } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 
 export default function HomeProducts() {
+  const t = useTranslations("home");
+  const locale = useLocale();
+
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -29,11 +32,11 @@ export default function HomeProducts() {
   }, []);
 
   const hasTags = (p: Product, tag: string) => (p.tags || "").includes(tag);
-  const hotDeals = allProducts.filter(p => hasTags(p, "hot-deal")).slice(0, 8);
-  const featured = allProducts.filter(p => p.featured).slice(0, 8);
+  const hotDeals    = allProducts.filter(p => hasTags(p, "hot-deal")).slice(0, 8);
+  const featured    = allProducts.filter(p => p.featured).slice(0, 8);
   const newArrivals = allProducts.filter(p => hasTags(p, "new-arrival")).slice(0, 8);
-  const onSale = allProducts.filter(p => p.comparePrice).slice(0, 8);
-  const topRated = allProducts.filter(p => parseFloat(p.rating ?? "0") > 4.5).sort((a, b) => parseFloat(b.rating ?? "0") - parseFloat(a.rating ?? "0")).slice(0, 8);
+  const onSale      = allProducts.filter(p => p.comparePrice).slice(0, 8);
+  const topRated    = allProducts.filter(p => parseFloat(p.rating ?? "0") > 4.5).sort((a, b) => parseFloat(b.rating ?? "0") - parseFloat(a.rating ?? "0")).slice(0, 8);
   const limitedTime = allProducts.filter(p => hasTags(p, "limited")).slice(0, 6);
   const hasProducts = allProducts.length > 0;
 
@@ -67,13 +70,13 @@ export default function HomeProducts() {
             <div className="w-16 h-16 bg-gray-900 rounded-2xl flex items-center justify-center mx-auto mb-6">
               <span className="text-white text-2xl font-bold">SV</span>
             </div>
-            <h3 className="text-2xl font-bold mb-3">Welcome to SoleVault!</h3>
-            <p className="text-gray-500 mb-2 max-w-md mx-auto">Your store is almost ready. Click below to set up the database and load 50 sample products with reviews.</p>
-            <p className="text-xs text-gray-400 mb-8">This will create all database tables and seed sample data automatically.</p>
+            <h3 className="text-2xl font-bold mb-3">{t("setupTitle")}</h3>
+            <p className="text-gray-500 mb-2 max-w-md mx-auto">{t("setupDesc")}</p>
+            <p className="text-xs text-gray-400 mb-8">{t("setupNote")}</p>
             <div className="flex justify-center gap-4 flex-wrap items-start">
               <SeedButton />
-              <Link href="/admin" className="px-6 py-3 border-2 border-gray-200 rounded-xl font-semibold hover:border-gray-900 transition bg-white">
-                Go to Admin →
+              <Link href={`/${locale}/admin`} className="px-6 py-3 border-2 border-gray-200 rounded-xl font-semibold hover:border-gray-900 transition bg-white">
+                {t("goToAdmin")}
               </Link>
             </div>
           </div>
@@ -84,7 +87,7 @@ export default function HomeProducts() {
 
   return (
     <>
-      {/* 🔥 HOT DEALS */}
+      {/* HOT DEALS */}
       {hotDeals.length > 0 && (
         <section className="py-14 lg:py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -94,12 +97,12 @@ export default function HomeProducts() {
                   <Flame className="w-5 h-5 text-red-500" />
                 </div>
                 <div>
-                  <h2 className="text-2xl lg:text-3xl font-bold">Hot Deals</h2>
-                  <p className="text-gray-500 text-sm">Incredible prices, limited time only</p>
+                  <h2 className="text-2xl lg:text-3xl font-bold">{t("hotDeals")}</h2>
+                  <p className="text-gray-500 text-sm">{t("hotDealsDesc")}</p>
                 </div>
               </div>
-              <Link href="/shop" className="hidden sm:flex items-center gap-1 text-sm font-semibold text-brand-600 hover:gap-2 transition-all">
-                View All <ArrowRight className="w-4 h-4" />
+              <Link href={`/${locale}/shop`} className="hidden sm:flex items-center gap-1 text-sm font-semibold text-gray-700 hover:gap-2 transition-all">
+                {t("viewAll")} <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
             <ProductScroller products={hotDeals} badge="HOT" />
@@ -107,7 +110,7 @@ export default function HomeProducts() {
         </section>
       )}
 
-      {/* ⭐ FEATURED PRODUCTS */}
+      {/* FEATURED PRODUCTS */}
       {featured.length > 0 && (
         <section className="py-14 lg:py-20 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -117,12 +120,12 @@ export default function HomeProducts() {
                   <Sparkles className="w-5 h-5 text-amber-500" />
                 </div>
                 <div>
-                  <h2 className="text-2xl lg:text-3xl font-bold">Featured Products</h2>
-                  <p className="text-gray-500 text-sm">Hand-picked styles we love</p>
+                  <h2 className="text-2xl lg:text-3xl font-bold">{t("featuredProducts")}</h2>
+                  <p className="text-gray-500 text-sm">{t("featuredProductsDesc")}</p>
                 </div>
               </div>
-              <Link href="/shop" className="hidden sm:flex items-center gap-1 text-sm font-semibold text-brand-600 hover:gap-2 transition-all">
-                View All <ArrowRight className="w-4 h-4" />
+              <Link href={`/${locale}/shop`} className="hidden sm:flex items-center gap-1 text-sm font-semibold text-gray-700 hover:gap-2 transition-all">
+                {t("viewAll")} <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
@@ -134,7 +137,7 @@ export default function HomeProducts() {
         </section>
       )}
 
-      {/* ⏰ LIMITED TIME OFFER */}
+      {/* LIMITED TIME OFFER */}
       {limitedTime.length > 0 && (
         <section className="py-14 lg:py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -147,16 +150,16 @@ export default function HomeProducts() {
                   <div>
                     <div className="flex items-center gap-2 mb-3">
                       <Clock className="w-5 h-5 text-pink-400" />
-                      <span className="text-sm font-semibold text-pink-300 uppercase tracking-wider">Limited Time Offer</span>
+                      <span className="text-sm font-semibold text-pink-300 uppercase tracking-wider">{t("limitedTimeOffer")}</span>
                     </div>
-                    <h2 className="text-3xl lg:text-4xl font-bold mb-2">Flash Sale — Up to 40% Off</h2>
-                    <p className="text-purple-200">Don&apos;t miss these exclusive deals before time runs out!</p>
+                    <h2 className="text-3xl lg:text-4xl font-bold mb-2">{t("flashSale")}</h2>
+                    <p className="text-purple-200">{t("flashSaleDesc")}</p>
                   </div>
                   <CountdownTimer />
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                   {limitedTime.map((product) => (
-                    <Link key={product.id} href={`/product/${product.slug || product.id}`} className="group bg-white/10 backdrop-blur rounded-xl p-3 hover:bg-white/20 transition">
+                    <Link key={product.id} href={`/${locale}/product/${product.slug || product.id}`} className="group bg-white/10 backdrop-blur rounded-xl p-3 hover:bg-white/20 transition">
                       <div className="aspect-square rounded-lg overflow-hidden mb-2 bg-white/5">
                         <ProductImage src={product.imageUrl || ""} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                       </div>
@@ -176,7 +179,7 @@ export default function HomeProducts() {
         </section>
       )}
 
-      {/* 🆕 NEW ARRIVALS */}
+      {/* NEW ARRIVALS */}
       {newArrivals.length > 0 && (
         <section className="py-14 lg:py-20 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -186,12 +189,12 @@ export default function HomeProducts() {
                   <Zap className="w-5 h-5 text-emerald-500" />
                 </div>
                 <div>
-                  <h2 className="text-2xl lg:text-3xl font-bold">New Arrivals</h2>
-                  <p className="text-gray-500 text-sm">Fresh styles just dropped</p>
+                  <h2 className="text-2xl lg:text-3xl font-bold">{t("newArrivals")}</h2>
+                  <p className="text-gray-500 text-sm">{t("newArrivalsDesc")}</p>
                 </div>
               </div>
-              <Link href="/shop" className="hidden sm:flex items-center gap-1 text-sm font-semibold text-brand-600 hover:gap-2 transition-all">
-                View All <ArrowRight className="w-4 h-4" />
+              <Link href={`/${locale}/shop`} className="hidden sm:flex items-center gap-1 text-sm font-semibold text-gray-700 hover:gap-2 transition-all">
+                {t("viewAll")} <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
             <ProductScroller products={newArrivals} badge="NEW" />
@@ -199,7 +202,7 @@ export default function HomeProducts() {
         </section>
       )}
 
-      {/* 💰 ON SALE NOW */}
+      {/* ON SALE NOW */}
       {onSale.length > 0 && (
         <section className="py-14 lg:py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -209,12 +212,12 @@ export default function HomeProducts() {
                   <Tag className="w-5 h-5 text-orange-500" />
                 </div>
                 <div>
-                  <h2 className="text-2xl lg:text-3xl font-bold">On Sale Now</h2>
-                  <p className="text-gray-500 text-sm">Great shoes, even better prices</p>
+                  <h2 className="text-2xl lg:text-3xl font-bold">{t("onSaleNow")}</h2>
+                  <p className="text-gray-500 text-sm">{t("onSaleNowDesc")}</p>
                 </div>
               </div>
-              <Link href="/shop" className="hidden sm:flex items-center gap-1 text-sm font-semibold text-brand-600 hover:gap-2 transition-all">
-                View All <ArrowRight className="w-4 h-4" />
+              <Link href={`/${locale}/shop`} className="hidden sm:flex items-center gap-1 text-sm font-semibold text-gray-700 hover:gap-2 transition-all">
+                {t("viewAll")} <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
             <ProductScroller products={onSale} badge="SALE" />
@@ -222,7 +225,7 @@ export default function HomeProducts() {
         </section>
       )}
 
-      {/* ⭐ TOP RATED */}
+      {/* TOP RATED */}
       {topRated.length > 0 && (
         <section className="py-14 lg:py-20 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -232,12 +235,12 @@ export default function HomeProducts() {
                   <TrendingUp className="w-5 h-5 text-yellow-600" />
                 </div>
                 <div>
-                  <h2 className="text-2xl lg:text-3xl font-bold">Top Rated</h2>
-                  <p className="text-gray-500 text-sm">Loved by our customers</p>
+                  <h2 className="text-2xl lg:text-3xl font-bold">{t("topRatedSection")}</h2>
+                  <p className="text-gray-500 text-sm">{t("topRatedSectionDesc")}</p>
                 </div>
               </div>
-              <Link href="/shop" className="hidden sm:flex items-center gap-1 text-sm font-semibold text-brand-600 hover:gap-2 transition-all">
-                View All <ArrowRight className="w-4 h-4" />
+              <Link href={`/${locale}/shop`} className="hidden sm:flex items-center gap-1 text-sm font-semibold text-gray-700 hover:gap-2 transition-all">
+                {t("viewAll")} <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
@@ -263,14 +266,14 @@ export default function HomeProducts() {
             <div className="absolute bottom-0 left-0 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl" />
             <div className="relative grid lg:grid-cols-2 gap-8 items-center">
               <div>
-                <h2 className="text-3xl lg:text-5xl font-bold mb-4 leading-tight">Get 20% Off Your First Order</h2>
-                <p className="text-gray-300 mb-8 text-lg">Join thousands of happy customers. Shop the latest styles with free shipping on orders over $100.</p>
+                <h2 className="text-3xl lg:text-5xl font-bold mb-4 leading-tight">{t("ctaTitle")}</h2>
+                <p className="text-gray-300 mb-8 text-lg">{t("ctaDesc")}</p>
                 <div className="flex flex-wrap gap-4">
-                  <Link href="/shop" className="inline-flex items-center gap-2 px-8 py-4 bg-white text-gray-900 rounded-2xl font-semibold hover:bg-gray-100 transition">
-                    Shop Now <ArrowRight className="w-5 h-5" />
+                  <Link href={`/${locale}/shop`} className="inline-flex items-center gap-2 px-8 py-4 bg-white text-gray-900 rounded-2xl font-semibold hover:bg-gray-100 transition">
+                    {t("ctaShopNow")} <ArrowRight className="w-5 h-5" />
                   </Link>
-                  <Link href="/cart" className="inline-flex items-center gap-2 px-8 py-4 bg-white/10 text-white rounded-2xl font-semibold border border-white/20 hover:bg-white/20 transition">
-                    View Cart
+                  <Link href={`/${locale}/cart`} className="inline-flex items-center gap-2 px-8 py-4 bg-white/10 text-white rounded-2xl font-semibold border border-white/20 hover:bg-white/20 transition">
+                    {t("ctaViewCart")}
                   </Link>
                 </div>
               </div>
