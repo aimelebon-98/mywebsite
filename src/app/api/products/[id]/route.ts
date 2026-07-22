@@ -2,14 +2,24 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { products } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { generateSlug } from "@/lib/slug";
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+interface Params {
+  params: Promise<{ id: string }>;
+}
+
+export async function GET(request: NextRequest, { params }: Params) {
   try {
     const { id } = await params;
-    const result = await db.select().from(products).where(eq(products.id, id));
+    // Try slug first, then ID
+    let result = await db.select().from(products).where(eq(products.slug, id));
+    if (result.length === 0) {
+      try {
+        result = await db.select().from(products).where(eq(products.id, id));
+      } catch {
+        // invalid UUID
+      }
+    }
     if (result.length === 0) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
@@ -20,36 +30,50 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: Params) {
   try {
     const { id } = await params;
     const body = await request.json();
-    const { name, description, shortDescription, longDescription, price, comparePrice, category, brand, sizes, colors, imageUrl, images, stock, featured, active, material, sku, tags } = body;
 
-    const updateData: Record<string, unknown> = { updatedAt: new Date() };
-    if (name !== undefined) updateData.name = name;
-    if (description !== undefined) updateData.description = description;
-    if (shortDescription !== undefined) updateData.shortDescription = shortDescription;
-    if (longDescription !== undefined) updateData.longDescription = longDescription;
-    if (material !== undefined) updateData.material = material;
-    if (sku !== undefined) updateData.sku = sku;
-    if (tags !== undefined) updateData.tags = JSON.stringify(tags);
-    if (price !== undefined) updateData.price = String(price);
-    if (comparePrice !== undefined) updateData.comparePrice = comparePrice ? String(comparePrice) : null;
-    if (category !== undefined) updateData.category = category;
-    if (brand !== undefined) updateData.brand = brand;
-    if (sizes !== undefined) updateData.sizes = JSON.stringify(sizes);
-    if (colors !== undefined) updateData.colors = JSON.stringify(colors);
-    if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
-    if (images !== undefined) updateData.images = JSON.stringify(images);
-    if (stock !== undefined) updateData.stock = stock;
-    if (featured !== undefined) updateData.featured = featured;
-    if (active !== undefined) updateData.active = active;
+    const updates: Record<string, unknown> = {};
 
-    const result = await db.update(products).set(updateData).where(eq(products.id, id)).returning();
+    // English fields
+    if (body.name !== undefined) {
+      updates.name = body.name;
+      updates.slug = generateSlug(body.name);
+    }
+    if (body.description !== undefined) updates.description = body.description;
+    if (body.shortDescription !== undefined) updates.shortDescription = body.shortDescription;
+    if (body.longDescription !== undefined) updates.longDescription = body.longDescription;
+
+    // French fields (explicit null means "clear it")
+    if (body.nameFr !== undefined)             updates.nameFr             = body.nameFr             ? String(body.nameFr)             : null;
+    if (body.descriptionFr !== undefined)      updates.descriptionFr      = body.descriptionFr      ? String(body.descriptionFr)      : null;
+    if (body.shortDescriptionFr !== undefined) updates.shortDescriptionFr = body.shortDescriptionFr ? String(body.shortDescriptionFr) : null;
+    if (body.longDescriptionFr !== undefined)  updates.longDescriptionFr  = body.longDescriptionFr  ? String(body.longDescriptionFr)  : null;
+    if (body.tagsFr !== undefined) {
+      updates.tagsFr = body.tagsFr ? JSON.stringify(Array.isArray(body.tagsFr) ? body.tagsFr : []) : null;
+    }
+
+    // Other fields
+    if (body.price !== undefined) updates.price = String(body.price);
+    if (body.comparePrice !== undefined) updates.comparePrice = body.comparePrice ? String(body.comparePrice) : null;
+    if (body.category !== undefined) updates.category = body.category;
+    if (body.brand !== undefined) updates.brand = body.brand;
+    if (body.sizes !== undefined) updates.sizes = JSON.stringify(body.sizes || []);
+    if (body.colors !== undefined) updates.colors = JSON.stringify(body.colors || []);
+    if (body.imageUrl !== undefined) updates.imageUrl = body.imageUrl;
+    if (body.images !== undefined) updates.images = JSON.stringify(body.images || []);
+    if (body.stock !== undefined) updates.stock = parseInt(String(body.stock));
+    if (body.featured !== undefined) updates.featured = Boolean(body.featured);
+    if (body.active !== undefined) updates.active = Boolean(body.active);
+    if (body.material !== undefined) updates.material = body.material;
+    if (body.sku !== undefined) updates.sku = body.sku;
+    if (body.tags !== undefined) updates.tags = JSON.stringify(body.tags || []);
+
+    updates.updatedAt = new Date();
+
+    const result = await db.update(products).set(updates).where(eq(products.id, id)).returning();
     if (result.length === 0) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
@@ -60,17 +84,14 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(request: NextRequest, { params }: Params) {
   try {
     const { id } = await params;
     const result = await db.delete(products).where(eq(products.id, id)).returning();
     if (result.length === 0) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, deleted: result[0] });
   } catch (error) {
     console.error("Error deleting product:", error);
     return NextResponse.json({ error: "Failed to delete product" }, { status: 500 });
