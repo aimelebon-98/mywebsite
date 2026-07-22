@@ -58,7 +58,7 @@ export default function ProductDetails({ product, initialReviews = [] }: Product
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewSuccess, setReviewSuccess] = useState(false);
   const [wishlist, setWishlist] = useState(false);
-  const REVIEWS_PER_PAGE = 5;
+  const REVIEWS_PER_PAGE = 2;
   const [visibleReviews, setVisibleReviews] = useState(REVIEWS_PER_PAGE);
   const [imageLoaded, setImageLoaded] = useState(false);
 
@@ -612,5 +612,6 @@ export default function ProductDetails({ product, initialReviews = [] }: Product
     </div>
   );
 }
+
 
 
