@@ -570,7 +570,7 @@ export default function ProductDetails({ product, initialReviews = [] }: Product
                       <div className="flex items-center gap-1 mb-3">
                         {[1,2,3,4,5].map(i => <Star key={i} className={`w-4 h-4 ${i <= review.rating ? "text-amber-400 fill-amber-400" : "text-gray-200"}`} />)}
                       </div>
-                      {review.comment && <p className="text-gray-600 leading-relaxed">{review.comment}</p>}
+                      {(() => { const displayComment = (locale === "fr" && review.commentFr) ? review.commentFr : review.comment; return displayComment ? <p className="text-gray-600 leading-relaxed">{displayComment}</p> : null; })()}
                     </div>
                   </div>
                 </div>
@@ -582,3 +582,4 @@ export default function ProductDetails({ product, initialReviews = [] }: Product
     </div>
   );
 }
+

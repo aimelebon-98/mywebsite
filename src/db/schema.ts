@@ -7,7 +7,6 @@ export const products = pgTable("products", {
   description: text("description").notNull().default(""),
   shortDescription: text("short_description").notNull().default(""),
   longDescription: text("long_description").notNull().default(""),
-  // French translations (nullable - product only shows in French when nameFr is filled)
   nameFr: text("name_fr"),
   descriptionFr: text("description_fr"),
   shortDescriptionFr: text("short_description_fr"),
@@ -34,7 +33,6 @@ export const products = pgTable("products", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// New: dynamic categories table
 export const categories = pgTable("categories", {
   id: uuid("id").defaultRandom().primaryKey(),
   slug: text("slug").notNull().unique(),
@@ -51,6 +49,7 @@ export const reviews = pgTable("reviews", {
   customerName: text("customer_name").notNull(),
   rating: integer("rating").notNull().default(5),
   comment: text("comment").notNull().default(""),
+  commentFr: text("comment_fr"),
   avatar: text("avatar").notNull().default(""),
   verified: boolean("verified").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),

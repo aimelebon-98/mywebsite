@@ -4,7 +4,6 @@ import { sql } from "drizzle-orm";
 
 export async function POST() {
   try {
-    // Existing tables (idempotent - only creates if missing)
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS products (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -35,14 +34,14 @@ export async function POST() {
       )
     `);
 
-    // Additive migration: add French columns if they don't exist
+    // Additive: French columns for products
     await db.execute(sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS name_fr TEXT`);
     await db.execute(sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS description_fr TEXT`);
     await db.execute(sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS short_description_fr TEXT`);
     await db.execute(sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS long_description_fr TEXT`);
     await db.execute(sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS tags_fr TEXT`);
 
-    // New categories table
+    // Categories table
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS categories (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -55,7 +54,6 @@ export async function POST() {
       )
     `);
 
-    // Seed default categories (idempotent via ON CONFLICT)
     await db.execute(sql`
       INSERT INTO categories (slug, name_en, name_fr, sort_order) VALUES
       ('sneakers', 'Sneakers', 'Baskets', 1),
@@ -80,6 +78,9 @@ export async function POST() {
       )
     `);
 
+    // Additive: French comment column
+    await db.execute(sql`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS comment_fr TEXT`);
+
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS newsletter (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -103,10 +104,7 @@ export async function POST() {
       )
     `);
 
-    // Ensure settings row exists
-    await db.execute(sql`
-      INSERT INTO settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING
-    `);
+    await db.execute(sql`INSERT INTO settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING`);
 
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS admin_sessions (
@@ -139,7 +137,7 @@ export async function POST() {
 
     return NextResponse.json({
       success: true,
-      message: "Database setup complete. All tables + French columns + categories seeded."
+      message: "Database setup complete. All tables + French columns (products + reviews) + categories seeded."
     });
   } catch (error) {
     console.error("Setup error:", error);
@@ -153,6 +151,6 @@ export async function POST() {
 export async function GET() {
   return NextResponse.json({
     info: "POST to this endpoint to initialize/migrate the database.",
-    safe: "This is idempotent — safe to run multiple times. Only adds missing tables/columns.",
+    safe: "This is idempotent - safe to run multiple times.",
   });
 }
