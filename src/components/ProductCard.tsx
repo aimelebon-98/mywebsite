@@ -8,6 +8,8 @@ import { useCart } from "@/lib/cart-context";
 import { useWishlist } from "@/lib/wishlist-context";
 import { useState } from "react";
 import ProductImage from "./ProductImage";
+import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 
 interface ProductCardProps {
   product: Product;
@@ -15,6 +17,9 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, badge }: ProductCardProps) {
+  const t = useTranslations("product");
+  const locale = useLocale();
+
   const price = parseFloat(product.price);
   const comparePrice = product.comparePrice ? parseFloat(product.comparePrice) : null;
   const discount = comparePrice ? Math.round(((comparePrice - price) / comparePrice) * 100) : 0;
@@ -60,7 +65,7 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
       color: colors[0] || "Default",
       quantity: 1,
     });
-    router.push("/cart");
+    router.push(`/${locale}/cart`);
   };
 
   const handleWishlist = (e: React.MouseEvent) => {
@@ -70,7 +75,7 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
   };
 
   return (
-    <Link href={`/product/${product.slug || product.id}`} className="group block">
+    <Link href={`/${locale}/product/${product.slug || product.id}`} className="group block">
       <div className="relative overflow-hidden rounded-2xl bg-gray-100 aspect-square mb-3">
         <ProductImage
           src={product.imageUrl}
@@ -82,10 +87,10 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
         <div className="absolute top-3 left-3 flex flex-col gap-1.5">
           {badge && (
             <span className={`px-2.5 py-1 text-white text-[10px] font-bold rounded-full ${
-              badge === "HOT" ? "bg-red-500" :
-              badge === "NEW" ? "bg-emerald-500" :
+              badge === "HOT"     ? "bg-red-500"    :
+              badge === "NEW"     ? "bg-emerald-500":
               badge === "LIMITED" ? "bg-purple-500" :
-              badge === "SALE" ? "bg-orange-500" :
+              badge === "SALE"    ? "bg-orange-500" :
               "bg-gray-900"
             }`}>
               {badge}
@@ -98,15 +103,15 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
           )}
           {!badge && product.featured && (
             <span className="px-2.5 py-1 bg-gray-900 text-white text-[10px] font-bold rounded-full">
-              Featured
+              {t("featured")}
             </span>
           )}
         </div>
 
-        {/* Wishlist - always visible top-right */}
+        {/* Wishlist */}
         <button
           onClick={handleWishlist}
-          aria-label={wished ? "Remove from wishlist" : "Add to wishlist"}
+          aria-label={wished ? t("removeFromWishlist") : t("addToWishlist")}
           className={`absolute top-3 right-3 w-9 h-9 backdrop-blur rounded-full flex items-center justify-center shadow-md transition-all hover:scale-110 active:scale-95 ${
             wished ? "bg-red-500 text-white" : "bg-white/95 text-gray-700 hover:text-red-500"
           }`}
@@ -136,13 +141,13 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
         </div>
       </div>
 
-      {/* Always-visible Action Buttons */}
+      {/* Action Buttons */}
       <div className="flex gap-2 mt-2.5">
         <button
           onClick={handleBuyNow}
           className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-brand-600 text-white rounded-xl text-xs font-bold hover:bg-brand-700 active:scale-95 transition"
         >
-          <Zap className="w-3.5 h-3.5" /> BUY NOW
+          <Zap className="w-3.5 h-3.5" /> {t("buyNow")}
         </button>
         <button
           onClick={handleAddToCart}
@@ -151,6 +156,7 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
               ? "bg-green-500 text-white scale-95"
               : "bg-gray-900 text-white hover:bg-gray-800 active:scale-95"
           }`}
+          aria-label={t("addToCart")}
         >
           {addedToCart ? (
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>

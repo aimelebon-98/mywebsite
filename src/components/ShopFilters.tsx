@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { SlidersHorizontal, X, ChevronDown, Star, Tag } from "lucide-react";
 import SearchAutocomplete from "@/components/SearchAutocomplete";
+import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 
 interface ShopFiltersProps {
   category: string;
@@ -29,6 +31,9 @@ export default function ShopFilters({
   onSale,
   brands,
 }: ShopFiltersProps) {
+  const t = useTranslations("shop");
+  const tc = useTranslations("common");
+  const locale = useLocale();
   const router = useRouter();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [localSearch, setLocalSearch] = useState(search);
@@ -37,14 +42,11 @@ export default function ShopFilters({
 
   const buildUrl = (overrides: Record<string, string>) => {
     const params = new URLSearchParams();
-    const merged = {
-      category, search, sort, minPrice, maxPrice, brand, rating, onSale,
-      ...overrides,
-    };
+    const merged = { category, search, sort, minPrice, maxPrice, brand, rating, onSale, ...overrides };
     Object.entries(merged).forEach(([k, v]) => {
       if (v && v !== "all" && v !== "") params.set(k, v);
     });
-    return `/shop?${params.toString()}`;
+    return `/${locale}/shop?${params.toString()}`;
   };
 
   const hasActiveFilters = minPrice || maxPrice || brand || rating || onSale === "true" || search;
@@ -54,7 +56,7 @@ export default function ShopFilters({
   };
 
   const clearAll = () => {
-    router.push(`/shop${category !== "all" ? `?category=${category}` : ""}`);
+    router.push(`/${locale}/shop${category !== "all" ? `?category=${category}` : ""}`);
   };
 
   return (
@@ -62,7 +64,7 @@ export default function ShopFilters({
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="flex-1 max-w-md">
           <SearchAutocomplete
-            placeholder="Search here..."
+            placeholder={tc("search")}
             initialValue={localSearch}
             inputClassName="w-full pl-10 pr-8 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
             iconClassName="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
@@ -78,12 +80,12 @@ export default function ShopFilters({
               onChange={(e) => router.push(buildUrl({ sort: e.target.value }))}
               className="appearance-none pl-4 pr-9 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition cursor-pointer"
             >
-              <option value="newest">Newest First</option>
-              <option value="price-low">Price: Low → High</option>
-              <option value="price-high">Price: High → Low</option>
-              <option value="rating">Top Rated</option>
-              <option value="name-az">Name: A → Z</option>
-              <option value="name-za">Name: Z → A</option>
+              <option value="newest">{t("newestFirst")}</option>
+              <option value="price-low">{t("sortPriceLow")}</option>
+              <option value="price-high">{t("sortPriceHigh")}</option>
+              <option value="rating">{t("sortRating")}</option>
+              <option value="name-az">{t("sortNameAZ")}</option>
+              <option value="name-za">{t("sortNameZA")}</option>
             </select>
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
           </div>
@@ -97,9 +99,9 @@ export default function ShopFilters({
             }`}
           >
             <SlidersHorizontal className="w-4 h-4" />
-            <span className="hidden sm:inline">Filters</span>
+            <span className="hidden sm:inline">{t("filters")}</span>
             {hasActiveFilters && (
-              <span className="w-5 h-5 bg-brand-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+              <span className="w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                 {[minPrice, maxPrice, brand, rating, onSale === "true" ? "1" : "", search].filter(Boolean).length}
               </span>
             )}
@@ -110,7 +112,7 @@ export default function ShopFilters({
               onClick={clearAll}
               className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-red-500 hover:bg-red-50 rounded-xl transition"
             >
-              <X className="w-3.5 h-3.5" /> Clear
+              <X className="w-3.5 h-3.5" /> {t("clear")}
             </button>
           )}
         </div>
@@ -120,35 +122,20 @@ export default function ShopFilters({
         <div className="bg-gray-50 rounded-2xl p-5 border border-gray-200 animate-fade-in-up">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">Price Range</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">{t("filterPriceRange")}</h4>
               <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  value={localMinPrice}
-                  onChange={(e) => setLocalMinPrice(e.target.value)}
-                  placeholder="Min"
-                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
-                />
-                <span className="text-gray-400 text-sm">—</span>
-                <input
-                  type="number"
-                  value={localMaxPrice}
-                  onChange={(e) => setLocalMaxPrice(e.target.value)}
-                  placeholder="Max"
-                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
-                />
-                <button
-                  onClick={handleApplyPrice}
-                  className="px-3 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition flex-shrink-0"
-                >
-                  Go
+                <input type="number" value={localMinPrice} onChange={(e) => setLocalMinPrice(e.target.value)} placeholder={t("priceMin")} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition" />
+                <span className="text-gray-400 text-sm">-</span>
+                <input type="number" value={localMaxPrice} onChange={(e) => setLocalMaxPrice(e.target.value)} placeholder={t("priceMax")} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition" />
+                <button onClick={handleApplyPrice} className="px-3 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition flex-shrink-0">
+                  {t("go")}
                 </button>
               </div>
               <div className="flex flex-wrap gap-1.5 mt-2">
                 {[
-                  { label: "Under $100", min: "", max: "100" },
-                  { label: "$100 - $200", min: "100", max: "200" },
-                  { label: "$200+", min: "200", max: "" },
+                  { label: t("under100"), min: "", max: "100" },
+                  { label: t("100to200"), min: "100", max: "200" },
+                  { label: t("over200"),  min: "200", max: "" },
                 ].map((range) => (
                   <button
                     key={range.label}
@@ -166,30 +153,24 @@ export default function ShopFilters({
             </div>
 
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">Brand</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">{t("filterBrand")}</h4>
               <div className="relative">
-                <select
-                  value={brand}
-                  onChange={(e) => router.push(buildUrl({ brand: e.target.value }))}
-                  className="w-full appearance-none px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition cursor-pointer"
-                >
-                  <option value="">All Brands</option>
-                  {brands.map((b) => (
-                    <option key={b} value={b}>{b}</option>
-                  ))}
+                <select value={brand} onChange={(e) => router.push(buildUrl({ brand: e.target.value }))} className="w-full appearance-none px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition cursor-pointer">
+                  <option value="">{t("allBrands")}</option>
+                  {brands.map((b) => <option key={b} value={b}>{b}</option>)}
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
               </div>
             </div>
 
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">Min. Rating</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">{t("minRating")}</h4>
               <div className="space-y-1.5">
                 {[
                   { label: "4.5+", value: "4.4" },
                   { label: "4.0+", value: "3.9" },
                   { label: "3.5+", value: "3.4" },
-                  { label: "Any Rating", value: "" },
+                  { label: t("anyRating"), value: "" },
                 ].map((r) => (
                   <button
                     key={r.label}
@@ -205,16 +186,14 @@ export default function ShopFilters({
                         <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                         {r.label}
                       </>
-                    ) : (
-                      r.label
-                    )}
+                    ) : r.label}
                   </button>
                 ))}
               </div>
             </div>
 
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">Special</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">{t("filterSpecial")}</h4>
               <div className="space-y-1.5">
                 <button
                   onClick={() => router.push(buildUrl({ onSale: onSale === "true" ? "" : "true" }))}
@@ -225,14 +204,14 @@ export default function ShopFilters({
                   }`}
                 >
                   <Tag className="w-4 h-4" />
-                  On Sale Only
+                  {t("onSaleOnly")}
                 </button>
                 <button
                   onClick={clearAll}
                   className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm text-red-500 bg-white border border-gray-200 hover:bg-red-50 transition"
                 >
                   <X className="w-4 h-4" />
-                  Reset All Filters
+                  {t("resetAllFilters")}
                 </button>
               </div>
             </div>

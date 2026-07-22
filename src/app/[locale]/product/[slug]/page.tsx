@@ -1,4 +1,4 @@
-import { db } from "@/db";
+﻿import { db } from "@/db";
 import { products, reviews, type Product, type Review } from "@/db/schema";
 import { eq, and, ne, desc } from "drizzle-orm";
 import { notFound } from "next/navigation";
@@ -10,30 +10,26 @@ import ProductCard from "@/components/ProductCard";
 import RecentlyViewed from "@/components/RecentlyViewed";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { getTranslations, getLocale } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
 interface Props {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string; locale: string }>;
 }
 
-// Dynamic SEO metadata
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-
   try {
-    // Try slug first, then ID
     let result = await db.select().from(products).where(eq(products.slug, slug));
-    if (result.length === 0) {
-      result = await db.select().from(products).where(eq(products.id, slug));
-    }
-    if (result.length === 0) return { title: "Product Not Found — SoleVault" };
+    if (result.length === 0) result = await db.select().from(products).where(eq(products.id, slug));
+    if (result.length === 0) return { title: "Product Not Found - SoleVault" };
 
     const product = result[0];
     const price = parseFloat(product.price);
 
     return {
-      title: `${product.name} — SoleVault`,
+      title: `${product.name} - SoleVault`,
       description: product.description.slice(0, 160) || `Shop ${product.name} at SoleVault. ${product.brand} ${product.category}. Starting at $${price.toFixed(2)}.`,
       keywords: [product.name, product.brand, product.category, "shoes", "footwear", "SoleVault"].filter(Boolean).join(", "),
       openGraph: {
@@ -50,41 +46,39 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       },
     };
   } catch {
-    return { title: "Product — SoleVault" };
+    return { title: "Product - SoleVault" };
   }
 }
 
 export default async function ProductPage({ params }: Props) {
   const { slug } = await params;
+  const t = await getTranslations("product");
+  const locale = await getLocale();
 
   let product: Product;
   let relatedProducts: Product[] = [];
   let productReviews: Review[] = [];
 
   try {
-    // Find by slug first, fallback to ID
     let result = await db.select().from(products).where(eq(products.slug, slug));
     if (result.length === 0) {
       try {
         result = await db.select().from(products).where(eq(products.id, slug));
       } catch {
-        // invalid UUID format for ID lookup — ignore
+        // invalid UUID
       }
     }
     if (result.length === 0) notFound();
     product = result[0];
 
-    // Fetch reviews
     productReviews = await db.select().from(reviews)
       .where(eq(reviews.productId, product.id))
       .orderBy(desc(reviews.createdAt));
 
-    // Fetch related products from same category
     relatedProducts = await db.select().from(products)
       .where(and(eq(products.active, true), eq(products.category, product.category), ne(products.id, product.id)))
       .orderBy(desc(products.rating)).limit(8);
 
-    // Fill with other products if needed
     if (relatedProducts.length < 4) {
       const moreProducts = await db.select().from(products)
         .where(and(eq(products.active, true), ne(products.id, product.id), ne(products.category, product.category)))
@@ -95,7 +89,6 @@ export default async function ProductPage({ params }: Props) {
     notFound();
   }
 
-  // JSON-LD Structured Data for SEO
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -120,7 +113,6 @@ export default async function ProductPage({ params }: Props) {
   return (
     <main className="min-h-screen bg-white">
       <Navbar />
-      {/* JSON-LD */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -129,20 +121,19 @@ export default async function ProductPage({ params }: Props) {
       <div className="pt-20 lg:pt-24">
         <ProductDetails product={product} initialReviews={productReviews} />
 
-        {/* Related Products */}
         {relatedProducts.length > 0 && (
           <section className="py-14 lg:py-20 bg-gray-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex items-center justify-between mb-8">
                 <div>
-                  <h2 className="text-2xl lg:text-3xl font-bold">You May Also Like</h2>
-                  <p className="text-gray-500 text-sm mt-1">Related products you might enjoy</p>
+                  <h2 className="text-2xl lg:text-3xl font-bold">{t("youMayAlsoLike")}</h2>
+                  <p className="text-gray-500 text-sm mt-1">{t("relatedDesc")}</p>
                 </div>
                 <Link
-                  href={`/shop?category=${product.category}`}
-                  className="hidden sm:flex items-center gap-1 text-sm font-semibold text-brand-600 hover:gap-2 transition-all"
+                  href={`/${locale}/shop?category=${product.category}`}
+                  className="hidden sm:flex items-center gap-1 text-sm font-semibold text-gray-900 hover:gap-2 transition-all"
                 >
-                  View More <ArrowRight className="w-4 h-4" />
+                  {t("viewMore")} <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
@@ -154,7 +145,6 @@ export default async function ProductPage({ params }: Props) {
           </section>
         )}
 
-        {/* Recently Viewed */}
         <RecentlyViewed excludeId={product.id} />
       </div>
       <Footer />

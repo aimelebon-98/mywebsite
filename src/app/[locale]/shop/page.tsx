@@ -9,6 +9,7 @@ import Link from "next/link";
 import { Package } from "lucide-react";
 import ShopSidebar from "@/components/ShopSidebar";
 import ShopTopBar from "@/components/ShopTopBar";
+import { getTranslations, getLocale } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
@@ -16,20 +17,10 @@ export const metadata: Metadata = {
   title: "Shop All Products",
   description: "Browse our full collection of premium sneakers, running shoes, boots, formal shoes, sandals and casual shoes. Free shipping on orders over $100.",
   openGraph: {
-    title: "Shop All Products — SoleVault",
+    title: "Shop All Products - SoleVault",
     description: "Browse our full collection of premium footwear. 50+ styles available.",
   },
 };
-
-const categories = [
-  { name: "All", slug: "all" },
-  { name: "Sneakers", slug: "sneakers" },
-  { name: "Running", slug: "running" },
-  { name: "Formal", slug: "formal" },
-  { name: "Boots", slug: "boots" },
-  { name: "Sandals", slug: "sandals" },
-  { name: "Casual", slug: "casual" },
-];
 
 interface Props {
   searchParams: Promise<{
@@ -45,6 +36,9 @@ interface Props {
 }
 
 export default async function ShopPage({ searchParams }: Props) {
+  const t = await getTranslations("shop");
+  const locale = await getLocale();
+
   const sp = await searchParams;
   const category = sp.category || "all";
   const search = sp.search || "";
@@ -54,6 +48,16 @@ export default async function ShopPage({ searchParams }: Props) {
   const brand = sp.brand || "";
   const ratingFilter = sp.rating || "";
   const onSale = sp.onSale || "";
+
+  const categories = [
+    { name: t("catAll"),      slug: "all"      },
+    { name: t("catSneakers"), slug: "sneakers" },
+    { name: t("catRunning"),  slug: "running"  },
+    { name: t("catFormal"),   slug: "formal"   },
+    { name: t("catBoots"),    slug: "boots"    },
+    { name: t("catSandals"),  slug: "sandals"  },
+    { name: t("catCasual"),   slug: "casual"   },
+  ];
 
   let productList: Product[] = [];
   let allBrands: string[] = [];
@@ -66,18 +70,16 @@ export default async function ShopPage({ searchParams }: Props) {
     if (maxPrice) conditions.push(lte(products.price, maxPrice));
     if (brand) conditions.push(eq(products.brand, brand));
     if (ratingFilter) conditions.push(gt(products.rating, ratingFilter));
-    if (onSale === "true") {
-      conditions.push(gt(products.comparePrice, "0"));
-    }
+    if (onSale === "true") conditions.push(gt(products.comparePrice, "0"));
 
     let orderBy;
     switch (sort) {
-      case "price-low": orderBy = asc(products.price); break;
-      case "price-high": orderBy = desc(products.price); break;
-      case "rating": orderBy = desc(products.rating); break;
-      case "name-az": orderBy = asc(products.name); break;
-      case "name-za": orderBy = desc(products.name); break;
-      default: orderBy = desc(products.createdAt);
+      case "price-low":  orderBy = asc(products.price);       break;
+      case "price-high": orderBy = desc(products.price);      break;
+      case "rating":     orderBy = desc(products.rating);     break;
+      case "name-az":    orderBy = asc(products.name);        break;
+      case "name-za":    orderBy = desc(products.name);       break;
+      default:           orderBy = desc(products.createdAt);
     }
 
     productList = await db.select().from(products)
@@ -100,7 +102,7 @@ export default async function ShopPage({ searchParams }: Props) {
             {categories.map((cat) => (
               <Link
                 key={cat.slug}
-                href={`/shop?category=${cat.slug}`}
+                href={`/${locale}/shop?category=${cat.slug}`}
                 className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition ${
                   category === cat.slug
                     ? "bg-gray-900 text-white"
@@ -148,10 +150,10 @@ export default async function ShopPage({ searchParams }: Props) {
               ) : (
                 <div className="text-center py-20">
                   <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold mb-2">No products found</h3>
-                  <p className="text-gray-500 mb-6">Try adjusting your filters or search term</p>
-                  <Link href="/shop" className="px-6 py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition">
-                    Clear All Filters
+                  <h3 className="text-xl font-bold mb-2">{t("noProducts")}</h3>
+                  <p className="text-gray-500 mb-6">{t("noProductsDesc")}</p>
+                  <Link href={`/${locale}/shop`} className="px-6 py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition">
+                    {t("clearAllFilters")}
                   </Link>
                 </div>
               )}
