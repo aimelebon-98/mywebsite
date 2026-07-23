@@ -10,6 +10,7 @@ import { Package, ChevronRight, Home } from "lucide-react";
 import ShopSidebar from "@/components/ShopSidebar";
 import ShopTopBar from "@/components/ShopTopBar";
 import ActiveFilterChips from "@/components/ActiveFilterChips";
+import CategoryShowcase from "@/components/CategoryShowcase";
 import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
@@ -142,8 +143,9 @@ export default async function ShopPage({ params, searchParams }: Props) {
             )}
           </nav>
 
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
-            <div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+            {/* Left: Title + Tagline */}
+            <div className="lg:col-span-4">
               <h1 className="text-3xl lg:text-4xl font-bold tracking-tight text-gray-900">
                 {pageTitle}
               </h1>
@@ -151,8 +153,13 @@ export default async function ShopPage({ params, searchParams }: Props) {
                 {t("headerTagline")}
               </p>
             </div>
-            <div className="flex items-center gap-2 text-xs text-gray-400">
-              <span className="hidden sm:inline">{t("premiumSelection")}</span>
+
+            {/* Right: Category Showcase */}
+            <div className="lg:col-span-8 relative">
+              <CategoryShowcase
+                categories={categoryOptions}
+                activeCategory={category}
+              />
             </div>
           </div>
         </div>
