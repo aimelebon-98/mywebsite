@@ -71,15 +71,15 @@ export default function Navbar() {
                   <div className="absolute right-0 top-full mt-1 w-32 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden">
                     <button
                       onClick={() => switchLocale("en")}
-                      className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition ${locale === "en" ? "font-bold bg-gray-50" : ""}`}
+                      className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition flex items-center gap-2 ${locale === "en" ? "font-bold bg-gray-50" : ""}`}
                     >
-                      English
+                      <svg width="20" height="14" viewBox="0 0 60 42" xmlns="http://www.w3.org/2000/svg" className="rounded-sm flex-shrink-0"><rect width="60" height="42" fill="#B22234"/><rect y="3.23" width="60" height="3.23" fill="#fff"/><rect y="9.69" width="60" height="3.23" fill="#fff"/><rect y="16.15" width="60" height="3.23" fill="#fff"/><rect y="22.62" width="60" height="3.23" fill="#fff"/><rect y="29.08" width="60" height="3.23" fill="#fff"/><rect y="35.54" width="60" height="3.23" fill="#fff"/><rect width="24" height="22.62" fill="#3C3B6E"/></svg> English
                     </button>
                     <button
                       onClick={() => switchLocale("fr")}
-                      className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition ${locale === "fr" ? "font-bold bg-gray-50" : ""}`}
+                      className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition flex items-center gap-2 ${locale === "fr" ? "font-bold bg-gray-50" : ""}`}
                     >
-                      Francais
+                      <svg width="20" height="14" viewBox="0 0 3 2" xmlns="http://www.w3.org/2000/svg" className="rounded-sm flex-shrink-0"><rect width="1" height="2" x="0" fill="#0055A4"/><rect width="1" height="2" x="1" fill="#fff"/><rect width="1" height="2" x="2" fill="#EF4135"/></svg> Francais
                     </button>
                   </div>
                 </>
