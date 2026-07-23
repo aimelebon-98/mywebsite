@@ -1,11 +1,11 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import type { BlogPost, Author } from "@/db/schema";
 import { getCategoryLabel, getCategoryColor, formatDate } from "@/lib/blog";
-import { Clock, Calendar, ChevronRight, Share2, Facebook, Copy, Check, ArrowLeft, ArrowRight } from "lucide-react";
+import { Clock, Calendar, ChevronRight, Share2, Copy, Check, ArrowLeft, ArrowRight } from "lucide-react";
 
 interface Props {
   post: BlogPost;
@@ -173,7 +173,7 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
                 aria-label="Share on Facebook"
                 className="w-9 h-9 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition"
               >
-                <Facebook className="w-4 h-4" />
+                <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M13.5 21v-7.5h2.5l.4-3H13.5V8.6c0-.9.3-1.5 1.6-1.5h1.7V4.4c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3v2.4H7.6v3h2.5V21h3.4z"/></svg>
               </a>
               <a
                 href={`https://wa.me/?text=${shareText}%20${encodeURIComponent(shareUrl)}`}
