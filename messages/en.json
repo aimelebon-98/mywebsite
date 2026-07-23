@@ -1,4 +1,4 @@
-{
+﻿{
     "common": {
         "loading": "Loading...",
         "search": "Search here...",
@@ -131,7 +131,9 @@
         "viewMore": "View More",
         "viewFullDetails": "View full details",
         "added": "Added",
-        "quickView": "Quick View"
+        "quickView": "Quick View",
+        "review": "review",
+        "reviews": "reviews"
     },
     "cart": {
         "title": "Shopping Cart",

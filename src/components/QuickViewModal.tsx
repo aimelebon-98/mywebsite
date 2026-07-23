@@ -158,7 +158,7 @@ export default function QuickViewModal({ product, open, onClose }: QuickViewModa
                 />
               ))}
             </div>
-            <span className="text-xs text-gray-500">({reviewCount} {reviewCount === 1 ? "review" : "reviews"})</span>
+            <span className="text-xs text-gray-500">({reviewCount} {reviewCount === 1 ? t("review") : t("reviews")})</span>
           </div>
 
           {/* Price */}

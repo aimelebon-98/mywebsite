@@ -1,4 +1,4 @@
-{
+﻿{
     "common": {
         "loading": "Chargement...",
         "search": "Rechercher ici...",
@@ -131,7 +131,9 @@
         "viewMore": "Voir plus",
         "viewFullDetails": "Voir les details complets",
         "added": "Ajoute",
-        "quickView": "Apercu rapide"
+        "quickView": "Apercu rapide",
+        "review": "avis",
+        "reviews": "avis"
     },
     "cart": {
         "title": "Panier",
