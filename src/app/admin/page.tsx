@@ -19,6 +19,15 @@ interface Product {
   shortDescriptionFr?: string | null;
   longDescriptionFr?: string | null;
   tagsFr?: string | null;
+  seoTitle?: string | null;
+  metaDescription?: string | null;
+  focusKeyphrase?: string | null;
+  ogImage?: string | null;
+  canonicalUrl?: string | null;
+  noIndex?: boolean | null;
+  seoTitleFr?: string | null;
+  metaDescriptionFr?: string | null;
+  focusKeyphraseFr?: string | null;
   price: string;
   comparePrice: string | null;
   category: string;
@@ -1250,6 +1259,17 @@ function ProductForm({
   const [sku, setSku] = useState(product?.sku || "");
   const [tagsStr, setTagsStr] = useState(product?.tags ? (JSON.parse(product.tags) as string[]).join(", ") : "");
 
+  // SEO fields
+  const [seoTitle, setSeoTitle] = useState(product?.seoTitle || "");
+  const [metaDescription, setMetaDescription] = useState(product?.metaDescription || "");
+  const [focusKeyphrase, setFocusKeyphrase] = useState(product?.focusKeyphrase || "");
+  const [ogImage, setOgImage] = useState(product?.ogImage || "");
+  const [canonicalUrl, setCanonicalUrl] = useState(product?.canonicalUrl || "");
+  const [noIndex, setNoIndex] = useState(product?.noIndex || false);
+  const [seoTitleFr, setSeoTitleFr] = useState(product?.seoTitleFr || "");
+  const [metaDescriptionFr, setMetaDescriptionFr] = useState(product?.metaDescriptionFr || "");
+  const [focusKeyphraseFr, setFocusKeyphraseFr] = useState(product?.focusKeyphraseFr || "");
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const sizes = sizesStr.split(",").map((s) => s.trim()).filter(Boolean);
@@ -1272,6 +1292,15 @@ function ProductForm({
       stock: parseInt(stock) || 0,
       featured, active,
       material, sku, tags,
+      seoTitle: seoTitle.trim() || null,
+      metaDescription: metaDescription.trim() || null,
+      focusKeyphrase: focusKeyphrase.trim() || null,
+      ogImage: ogImage.trim() || null,
+      canonicalUrl: canonicalUrl.trim() || null,
+      noIndex,
+      seoTitleFr: seoTitleFr.trim() || null,
+      metaDescriptionFr: metaDescriptionFr.trim() || null,
+      focusKeyphraseFr: focusKeyphraseFr.trim() || null,
     });
   };
 
@@ -1385,6 +1414,164 @@ function ProductForm({
           </div>
         )}
       </div>
+
+      {/* ============================================ SEO SECTION ============================================ */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-bold text-lg">SEO &amp; Search Engines</h3>
+            <p className="text-xs text-gray-500 mt-0.5">Control how this product appears in Google and social media.</p>
+          </div>
+          <div className="flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs font-semibold">
+            <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+            Yoast-style
+          </div>
+        </div>
+
+        {/* Google Snippet Preview */}
+        <div className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl p-5">
+          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Google Preview</div>
+          <div className="space-y-1">
+            <div className="text-xs text-gray-600">mywebsite-inky-gamma.vercel.app &rsaquo; shop &rsaquo; {name ? name.toLowerCase().replace(/\s+/g,"-").slice(0,40) : "product-slug"}</div>
+            <div className="text-[#1a0dab] text-lg leading-tight hover:underline cursor-pointer font-normal" style={{fontFamily:"arial,sans-serif"}}>
+              {(seoTitle || name || "Your product SEO title").slice(0, 60)}{(seoTitle || name || "").length > 60 ? "..." : ""}
+            </div>
+            <div className="text-sm text-gray-700 leading-snug" style={{fontFamily:"arial,sans-serif"}}>
+              {(metaDescription || shortDescription || "Your meta description will appear here. Write 120-155 characters that entice users to click.").slice(0, 155)}{(metaDescription || shortDescription || "").length > 155 ? "..." : ""}
+            </div>
+          </div>
+        </div>
+
+        {/* Focus keyphrase */}
+        <div>
+          <label className="block text-sm font-medium mb-1.5">Focus Keyphrase (English)</label>
+          <input
+            type="text"
+            value={focusKeyphrase}
+            onChange={(e) => setFocusKeyphrase(e.target.value)}
+            placeholder="e.g., nike air max running shoes"
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition"
+          />
+          <p className="text-xs text-gray-500 mt-1">The main keyword you want to rank for on Google.</p>
+        </div>
+
+        {/* SEO Title */}
+        <div>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="block text-sm font-medium">SEO Title (English)</label>
+            <span className={`text-xs font-medium ${seoTitle.length > 60 ? "text-red-500" : seoTitle.length > 50 ? "text-green-600" : "text-gray-400"}`}>
+              {seoTitle.length} / 60
+            </span>
+          </div>
+          <input
+            type="text"
+            value={seoTitle}
+            onChange={(e) => setSeoTitle(e.target.value)}
+            placeholder={name || "Leave empty to use product name"}
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition"
+          />
+        </div>
+
+        {/* Meta description */}
+        <div>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="block text-sm font-medium">Meta Description (English)</label>
+            <span className={`text-xs font-medium ${metaDescription.length > 155 ? "text-red-500" : metaDescription.length >= 120 ? "text-green-600" : "text-gray-400"}`}>
+              {metaDescription.length} / 155
+            </span>
+          </div>
+          <textarea
+            value={metaDescription}
+            onChange={(e) => setMetaDescription(e.target.value)}
+            rows={3}
+            placeholder="Write a compelling summary (120-155 chars) that makes users want to click."
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition resize-none"
+          />
+        </div>
+
+        {/* SEO Analysis */}
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+          <div className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-3">SEO Analysis</div>
+          <div className="space-y-2 text-sm">
+            {[
+              { pass: seoTitle.length >= 40 && seoTitle.length <= 60, label: `SEO title length (${seoTitle.length} chars)`, hint: "Aim for 40-60 characters" },
+              { pass: metaDescription.length >= 120 && metaDescription.length <= 155, label: `Meta description length (${metaDescription.length} chars)`, hint: "Aim for 120-155 characters" },
+              { pass: !!focusKeyphrase && (seoTitle || name).toLowerCase().includes(focusKeyphrase.toLowerCase()), label: "Keyphrase in SEO title", hint: "Include your focus keyphrase in the title" },
+              { pass: !!focusKeyphrase && metaDescription.toLowerCase().includes(focusKeyphrase.toLowerCase()), label: "Keyphrase in meta description", hint: "Include your focus keyphrase in the description" },
+              { pass: !!focusKeyphrase && (longDescription || description).toLowerCase().includes(focusKeyphrase.toLowerCase()), label: "Keyphrase in content", hint: "Use the keyphrase in your product description" },
+              { pass: (longDescription || description).length >= 300, label: `Content length (${(longDescription || description).length} chars)`, hint: "Aim for 300+ characters of description" },
+            ].map((check, i) => (
+              <div key={i} className="flex items-start gap-2">
+                <span className={`w-4 h-4 rounded-full flex-shrink-0 mt-0.5 flex items-center justify-center text-white text-[10px] font-bold ${check.pass ? "bg-green-500" : "bg-orange-400"}`}>
+                  {check.pass ? "OK" : "!"}
+                </span>
+                <div className="flex-1">
+                  <div className={check.pass ? "text-gray-700" : "text-gray-900 font-medium"}>{check.label}</div>
+                  {!check.pass && <div className="text-xs text-gray-500 mt-0.5">{check.hint}</div>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Advanced SEO */}
+        <details className="border border-gray-200 rounded-xl overflow-hidden">
+          <summary className="cursor-pointer px-4 py-3 bg-gray-50 hover:bg-gray-100 transition text-sm font-medium select-none">
+            Advanced (OG Image, Canonical, Robots)
+          </summary>
+          <div className="p-4 space-y-4 border-t border-gray-200">
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Open Graph Image URL</label>
+              <input type="url" value={ogImage} onChange={(e) => setOgImage(e.target.value)} placeholder="https://... (leave empty to use product image)" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition" />
+              <p className="text-xs text-gray-500 mt-1">Custom image shown when this page is shared on Facebook, WhatsApp, LinkedIn, etc.</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Canonical URL</label>
+              <input type="url" value={canonicalUrl} onChange={(e) => setCanonicalUrl(e.target.value)} placeholder="Leave empty for auto (recommended)" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition" />
+              <p className="text-xs text-gray-500 mt-1">Only set if this content also exists on another URL.</p>
+            </div>
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" checked={noIndex} onChange={(e) => setNoIndex(e.target.checked)} className="w-5 h-5 rounded" />
+              <div>
+                <div className="text-sm font-medium">Hide from search engines (noindex)</div>
+                <div className="text-xs text-gray-500">Prevent Google and Bing from indexing this product.</div>
+              </div>
+            </label>
+          </div>
+        </details>
+
+        {/* French SEO */}
+        <details className="border border-blue-200 rounded-xl overflow-hidden">
+          <summary className="cursor-pointer px-4 py-3 bg-blue-50 hover:bg-blue-100 transition text-sm font-medium select-none">
+            French SEO (for /fr routes)
+          </summary>
+          <div className="p-4 space-y-4 border-t border-blue-200 bg-blue-50/30">
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Focus Keyphrase (French)</label>
+              <input type="text" value={focusKeyphraseFr} onChange={(e) => setFocusKeyphraseFr(e.target.value)} placeholder="ex: chaussures de course nike" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-sm font-medium">Titre SEO (French)</label>
+                <span className={`text-xs font-medium ${seoTitleFr.length > 60 ? "text-red-500" : seoTitleFr.length > 50 ? "text-green-600" : "text-gray-400"}`}>
+                  {seoTitleFr.length} / 60
+                </span>
+              </div>
+              <input type="text" value={seoTitleFr} onChange={(e) => setSeoTitleFr(e.target.value)} placeholder={nameFr || "Vide = utilise le nom du produit"} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-sm font-medium">Meta Description (French)</label>
+                <span className={`text-xs font-medium ${metaDescriptionFr.length > 155 ? "text-red-500" : metaDescriptionFr.length >= 120 ? "text-green-600" : "text-gray-400"}`}>
+                  {metaDescriptionFr.length} / 155
+                </span>
+              </div>
+              <textarea value={metaDescriptionFr} onChange={(e) => setMetaDescriptionFr(e.target.value)} rows={3} placeholder="Description en francais pour les moteurs de recherche (120-155 caracteres)." className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition resize-none" />
+            </div>
+          </div>
+        </details>
+      </div>
+      {/* ============================================ END SEO SECTION ============================================ */}
 
       <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
         <h3 className="font-bold text-lg">Variants &amp; Media</h3>
