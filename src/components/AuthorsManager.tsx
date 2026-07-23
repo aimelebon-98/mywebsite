@@ -1,8 +1,8 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import type { Author } from "@/db/schema";
-import { Plus, Edit2, Trash2, Check, X, User, Mail, Twitter, Instagram, Linkedin, Globe } from "lucide-react";
+import { Plus, Edit2, Trash2, Check, X, User, Mail, Instagram, Linkedin, Globe } from "lucide-react";
 
 interface Props {
   onNotify: (msg: string, type?: "success" | "error") => void;
@@ -264,7 +264,7 @@ function AuthorForm({
         <h3 className="font-bold text-lg">Social Links</h3>
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <label className="text-sm font-medium mb-1.5 flex items-center gap-2"><Twitter className="w-3.5 h-3.5" /> Twitter / X</label>
+            <label className="text-sm font-medium mb-1.5 flex items-center gap-2"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Twitter / X</label>
             <input type="url" value={twitter} onChange={(e) => setTwitter(e.target.value)} placeholder="https://twitter.com/@handle" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition" />
           </div>
           <div>
