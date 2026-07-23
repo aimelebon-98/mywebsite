@@ -90,9 +90,9 @@ export default function Navbar() {
             </div>
 
             <Link href="/wishlist" aria-label={t("wishlist")} className="relative p-2 rounded-xl hover:bg-gray-100 transition">
-              <Heart className={`w-5 h-5 ${wishlistCount > 0 ? "text-red-500 fill-red-500" : "text-gray-600"}`} />
+              <Heart className={`w-5 h-5 ${wishlistCount > 0 ? "text-gray-900 fill-gray-900" : "text-gray-600"}`} />
               {wishlistCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-gray-900 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                   {wishlistCount > 9 ? "9+" : wishlistCount}
                 </span>
               )}
@@ -105,7 +105,7 @@ export default function Navbar() {
             >
               <ShoppingBag className="w-5 h-5 text-gray-600" />
               {totalItems > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-brand-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-gray-900 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                   {totalItems > 9 ? "9+" : totalItems}
                 </span>
               )}
