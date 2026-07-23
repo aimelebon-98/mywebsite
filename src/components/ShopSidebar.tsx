@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Search, Star, Tag, X, ChevronDown, ChevronUp } from "lucide-react";
 import SearchAutocomplete from "@/components/SearchAutocomplete";
 import { useTranslations } from "next-intl";
@@ -40,7 +40,6 @@ export default function ShopSidebar(props: ShopSidebarProps) {
     special: true,
   });
 
-  // Slider values (numbers)
   const [sliderMin, setSliderMin] = useState<number>(
     minPrice ? Math.max(PRICE_FLOOR, Number(minPrice)) : PRICE_FLOOR
   );
@@ -48,7 +47,6 @@ export default function ShopSidebar(props: ShopSidebarProps) {
     maxPrice ? Math.min(PRICE_CEILING, Number(maxPrice)) : PRICE_CEILING
   );
 
-  // Keep slider in sync when URL params change
   useEffect(() => {
     setSliderMin(minPrice ? Math.max(PRICE_FLOOR, Number(minPrice)) : PRICE_FLOOR);
     setSliderMax(maxPrice ? Math.min(PRICE_CEILING, Number(maxPrice)) : PRICE_CEILING);
@@ -154,7 +152,6 @@ export default function ShopSidebar(props: ShopSidebarProps) {
 
         <FilterGroup title={t("filterPriceRange")} icon={<span className="text-sm">$</span>} open={openSection.price} onToggle={() => toggleSection("price")}>
           <div className="space-y-4">
-            {/* Current selected range display */}
             <div className="flex items-center justify-between text-xs">
               <span className="text-gray-500">Range</span>
               <span className="font-semibold text-gray-900">
@@ -162,7 +159,6 @@ export default function ShopSidebar(props: ShopSidebarProps) {
               </span>
             </div>
 
-            {/* Dual range slider */}
             <DualRangeSlider
               min={PRICE_FLOOR}
               max={PRICE_CEILING}
@@ -175,7 +171,6 @@ export default function ShopSidebar(props: ShopSidebarProps) {
               onMaxChange={handleSliderMaxChange}
             />
 
-            {/* Min / Max inputs (still editable) */}
             <div className="flex items-center gap-2">
               <input
                 type="number"
@@ -306,13 +301,13 @@ function DualRangeSlider({
   onMaxChange: (v: number) => void;
 }) {
   return (
-    <div className="relative h-6 flex items-center">
-      {/* Track background */}
-      <div className="absolute inset-x-0 h-1.5 bg-gray-200 rounded-full" />
+    <div className="relative w-full h-5 my-2">
+      {/* Track background (centered) */}
+      <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1.5 bg-gray-200 rounded-full" />
 
       {/* Selected range fill */}
       <div
-        className="absolute h-1.5 bg-gray-900 rounded-full"
+        className="absolute top-1/2 -translate-y-1/2 h-1.5 bg-gray-900 rounded-full"
         style={{ left: `${minPct}%`, right: `${100 - maxPct}%` }}
       />
 
@@ -324,7 +319,7 @@ function DualRangeSlider({
         step={step}
         value={valueMin}
         onChange={(e) => onMinChange(Number(e.target.value))}
-        className="range-thumb absolute inset-0 w-full h-6 appearance-none bg-transparent pointer-events-none"
+        className="range-thumb absolute left-0 right-0 top-0 w-full h-5 appearance-none bg-transparent m-0 p-0"
         aria-label="Minimum price"
       />
 
@@ -336,11 +331,24 @@ function DualRangeSlider({
         step={step}
         value={valueMax}
         onChange={(e) => onMaxChange(Number(e.target.value))}
-        className="range-thumb absolute inset-0 w-full h-6 appearance-none bg-transparent pointer-events-none"
+        className="range-thumb absolute left-0 right-0 top-0 w-full h-5 appearance-none bg-transparent m-0 p-0"
         aria-label="Maximum price"
       />
 
       <style jsx>{`
+        .range-thumb {
+          pointer-events: none;
+        }
+        .range-thumb::-webkit-slider-runnable-track {
+          background: transparent;
+          height: 20px;
+          border: none;
+        }
+        .range-thumb::-moz-range-track {
+          background: transparent;
+          height: 20px;
+          border: none;
+        }
         .range-thumb::-webkit-slider-thumb {
           pointer-events: auto;
           -webkit-appearance: none;
@@ -350,9 +358,11 @@ function DualRangeSlider({
           border-radius: 9999px;
           background: #ffffff;
           border: 2px solid #111827;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+          box-shadow: 0 2px 6px rgba(0,0,0,0.2);
           cursor: pointer;
-          margin-top: 0;
+          margin-top: 1px;
+          position: relative;
+          z-index: 3;
         }
         .range-thumb::-moz-range-thumb {
           pointer-events: auto;
@@ -361,16 +371,8 @@ function DualRangeSlider({
           border-radius: 9999px;
           background: #ffffff;
           border: 2px solid #111827;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+          box-shadow: 0 2px 6px rgba(0,0,0,0.2);
           cursor: pointer;
-        }
-        .range-thumb::-webkit-slider-runnable-track {
-          background: transparent;
-          height: 6px;
-        }
-        .range-thumb::-moz-range-track {
-          background: transparent;
-          height: 6px;
         }
         .range-thumb:focus {
           outline: none;
