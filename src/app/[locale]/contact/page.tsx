@@ -1,8 +1,10 @@
-﻿"use client";
+"use client";
 
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { useState } from "react";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { Mail, MessageCircle, MapPin, Clock, Send, CheckCircle } from "lucide-react";
 
 export default function ContactPage() {
@@ -23,10 +25,10 @@ export default function ContactPage() {
   };
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen">
+      <Navbar />
 
-      {/* Hero */}
-      <section className="bg-gray-900 text-white py-20 px-4">
+      <section className="bg-gray-900 text-white pt-32 lg:pt-36 pb-20 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <span className="inline-block px-4 py-1.5 bg-white/10 rounded-full text-xs font-semibold tracking-widest uppercase mb-6">
             {t("badge")}
@@ -36,14 +38,13 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* Info Cards */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8">
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             { Icon: MessageCircle, title: t("infoWhatsappTitle"), desc: t("infoWhatsappDesc"), sub: t("infoWhatsappSub") },
-            { Icon: Mail,          title: t("infoEmailTitle"),    desc: t("infoEmailDesc"),    sub: t("infoEmailSub") },
-            { Icon: Clock,         title: t("infoHoursTitle"),    desc: t("infoHoursDesc"),    sub: t("infoHoursSub") },
-            { Icon: MapPin,        title: t("infoLocationTitle"), desc: t("infoLocationDesc"), sub: t("infoLocationSub") },
+            { Icon: Mail, title: t("infoEmailTitle"), desc: t("infoEmailDesc"), sub: t("infoEmailSub") },
+            { Icon: Clock, title: t("infoHoursTitle"), desc: t("infoHoursDesc"), sub: t("infoHoursSub") },
+            { Icon: MapPin, title: t("infoLocationTitle"), desc: t("infoLocationDesc"), sub: t("infoLocationSub") },
           ].map(({ Icon, title, desc, sub }) => (
             <div key={title} className="bg-white rounded-2xl p-6 shadow-md border border-gray-100">
               <div className="w-11 h-11 bg-gray-900 rounded-xl flex items-center justify-center mb-4">
@@ -57,11 +58,8 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* Form + WhatsApp */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="grid lg:grid-cols-2 gap-14">
-
-          {/* Contact Form */}
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">{t("formTitle")}</h2>
             <p className="text-gray-500 mb-8 text-sm">{t("formDesc")}</p>
@@ -74,7 +72,10 @@ export default function ContactPage() {
                 <h3 className="text-xl font-bold text-gray-900 mb-2">{t("successTitle")}</h3>
                 <p className="text-gray-500 text-sm max-w-sm">{t("successDesc")}</p>
                 <button
-                  onClick={() => { setStatus("idle"); setForm({ name: "", email: "", subject: "", message: "" }); }}
+                  onClick={() => {
+                    setStatus("idle");
+                    setForm({ name: "", email: "", subject: "", message: "" });
+                  }}
                   className="mt-6 px-6 py-3 bg-gray-900 text-white rounded-xl text-sm font-semibold hover:bg-gray-800 transition"
                 >
                   {t("sendAnother")}
@@ -147,7 +148,6 @@ export default function ContactPage() {
             )}
           </div>
 
-          {/* WhatsApp + FAQ + Hours */}
           <div className="space-y-6">
             <div className="bg-green-50 border border-green-100 rounded-3xl p-8">
               <div className="w-14 h-14 bg-green-500 rounded-2xl flex items-center justify-center mb-5">
@@ -189,6 +189,7 @@ export default function ContactPage() {
         </div>
       </section>
 
+      <Footer />
     </main>
   );
 }

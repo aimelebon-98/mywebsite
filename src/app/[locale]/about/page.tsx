@@ -1,15 +1,17 @@
-﻿import { useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { Shield, Star, Truck, HeartHandshake, Users, Award } from "lucide-react";
 
 export default function AboutPage() {
   const t = useTranslations("about");
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen">
+      <Navbar />
 
-      {/* Hero */}
-      <section className="relative bg-gray-900 text-white py-24 px-4 overflow-hidden">
+      <section className="relative bg-gray-900 text-white pt-32 lg:pt-36 pb-24 px-4 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900" />
         <div className="relative max-w-4xl mx-auto text-center">
           <span className="inline-block px-4 py-1.5 bg-white/10 rounded-full text-xs font-semibold tracking-widest uppercase mb-6">
@@ -25,15 +27,14 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Stats */}
       <section className="bg-gray-50 border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
               { value: "2,400+", label: t("statCustomers") },
-              { value: "50+",    label: t("statStyles") },
-              { value: "4.8",    label: t("statRating") },
-              { value: "30",     label: t("statReturn") },
+              { value: "50+", label: t("statStyles") },
+              { value: "4.8", label: t("statRating") },
+              { value: "30", label: t("statReturn") },
             ].map((s) => (
               <div key={s.label}>
                 <p className="text-3xl font-bold text-gray-900 mb-1">{s.value}</p>
@@ -44,7 +45,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Our Story */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="grid md:grid-cols-2 gap-14 items-center">
           <div>
@@ -74,7 +74,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Values */}
       <section className="bg-gray-50 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
@@ -85,12 +84,12 @@ export default function AboutPage() {
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
-              { Icon: Shield,         title: t("val1Title"), desc: t("val1Desc") },
-              { Icon: Star,           title: t("val2Title"), desc: t("val2Desc") },
-              { Icon: Truck,          title: t("val3Title"), desc: t("val3Desc") },
+              { Icon: Shield, title: t("val1Title"), desc: t("val1Desc") },
+              { Icon: Star, title: t("val2Title"), desc: t("val2Desc") },
+              { Icon: Truck, title: t("val3Title"), desc: t("val3Desc") },
               { Icon: HeartHandshake, title: t("val4Title"), desc: t("val4Desc") },
-              { Icon: Users,          title: t("val5Title"), desc: t("val5Desc") },
-              { Icon: Award,          title: t("val6Title"), desc: t("val6Desc") },
+              { Icon: Users, title: t("val5Title"), desc: t("val5Desc") },
+              { Icon: Award, title: t("val6Title"), desc: t("val6Desc") },
             ].map(({ Icon, title, desc }) => (
               <div key={title} className="bg-white rounded-2xl p-7 shadow-sm border border-gray-100 hover:shadow-md transition">
                 <div className="w-12 h-12 bg-gray-900 rounded-xl flex items-center justify-center mb-5">
@@ -104,7 +103,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Team */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center mb-14">
           <span className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3 block">
@@ -115,8 +113,8 @@ export default function AboutPage() {
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {[
-            { name: "Alex Martin",  role: t("roleCEO"),     img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80" },
-            { name: "Sophie Lee",   role: t("roleDesign"),  img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80" },
+            { name: "Alex Martin", role: t("roleCEO"), img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80" },
+            { name: "Sophie Lee", role: t("roleDesign"), img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80" },
             { name: "James Carter", role: t("roleSupport"), img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80" },
           ].map((m) => (
             <div key={m.name} className="text-center group">
@@ -130,7 +128,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* CTA */}
       <section className="bg-gray-900 text-white py-20 px-4">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl sm:text-4xl font-bold mb-4">{t("ctaTitle")}</h2>
@@ -152,6 +149,7 @@ export default function AboutPage() {
         </div>
       </section>
 
+      <Footer />
     </main>
   );
 }

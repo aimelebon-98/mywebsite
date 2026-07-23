@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useTranslations, useLocale } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/routing";
@@ -42,13 +42,9 @@ export default function Navbar() {
           <div className="hidden lg:flex items-center gap-5">
             <Link href="/" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">{t("home")}</Link>
             <Link href="/shop" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">{t("shopAll")}</Link>
-            <Link href="/shop?category=sneakers" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">{t("sneakers")}</Link>
-            <Link href="/shop?category=running" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">{t("running")}</Link>
-            <Link href="/shop?category=formal" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">{t("formal")}</Link>
-            <Link href="/shop?category=boots" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">{t("boots")}</Link>
-            <Link href="/shop?category=casual" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">{t("casual")}</Link>
             <Link href="/about" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">{t("about")}</Link>
             <Link href="/contact" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">{t("contact")}</Link>
+            <Link href="/faq" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">{t("faq")}</Link>
           </div>
 
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -111,6 +107,7 @@ export default function Navbar() {
                 </span>
               )}
             </button>
+
             <button onClick={() => setMenuOpen(!menuOpen)} className="lg:hidden p-2 rounded-xl hover:bg-gray-100 transition">
               {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -131,17 +128,11 @@ export default function Navbar() {
             {[
               { href: "/", label: t("home") },
               { href: "/shop", label: t("shopAll") },
-              { href: "/shop?category=sneakers", label: t("sneakers") },
-              { href: "/shop?category=running", label: t("running") },
-              { href: "/shop?category=formal", label: t("formal") },
-              { href: "/shop?category=boots", label: t("boots") },
-              { href: "/shop?category=sandals", label: t("sandals") },
-              { href: "/shop?category=casual", label: t("casual") },
-              { href: "/wishlist", label: `${t("wishlist")}${wishlistCount > 0 ? ` (${wishlistCount})` : ""}` },
-              { href: "/cart", label: t("cart") },
-              { href: "/faq", label: t("faq") },
               { href: "/about", label: t("about") },
               { href: "/contact", label: t("contact") },
+              { href: "/faq", label: t("faq") },
+              { href: "/wishlist", label: `${t("wishlist")}${wishlistCount > 0 ? ` (${wishlistCount})` : ""}` },
+              { href: "/cart", label: t("cart") },
             ].map((item) => (
               <Link
                 key={item.href + item.label}
