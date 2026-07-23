@@ -15,7 +15,7 @@ const CATEGORY_IMAGES: Record<string, string> = {
   formal:   "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=400&q=80",
   boots:    "https://images.unsplash.com/photo-1520639888713-7851133b1ed0?w=400&q=80",
   sandals:  "https://images.unsplash.com/photo-1603487742131-4160ec999306?w=400&q=80",
-  casual:   "https://images.unsplash.com/photo-1604671368394-2240d0b1bb6c?w=400&q=80",
+  casual:   "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=400&q=80",
 };
 
 const DEFAULT_CATEGORY_IMAGE = "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=400&q=80";
