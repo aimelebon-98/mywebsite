@@ -11,19 +11,17 @@ export async function GET(request: NextRequest) {
     const featured = searchParams.get("featured");
     const search = searchParams.get("search");
     const activeOnly = searchParams.get("active") !== "false";
-    const locale = searchParams.get("locale"); // NEW: filter by locale
+    const locale = searchParams.get("locale");
 
     const conditions = [];
     if (activeOnly) conditions.push(eq(products.active, true));
     if (category && category !== "all") conditions.push(eq(products.category, category));
     if (featured === "true") conditions.push(eq(products.featured, true));
 
-    // If locale=fr, only return products that have French translations
     if (locale === "fr") {
       conditions.push(isNotNull(products.nameFr));
     }
 
-    // Search — search in both languages if locale=fr
     if (search) {
       if (locale === "fr") {
         conditions.push(
@@ -58,6 +56,8 @@ export async function POST(request: NextRequest) {
       nameFr, descriptionFr, shortDescriptionFr, longDescriptionFr, tagsFr,
       price, comparePrice, category, brand, sizes, colors,
       imageUrl, images, stock, featured, active, material, sku, tags,
+      seoTitle, metaDescription, focusKeyphrase, ogImage, canonicalUrl, noIndex,
+      seoTitleFr, metaDescriptionFr, focusKeyphraseFr,
     } = body;
 
     const slug = generateSlug(name);
@@ -68,7 +68,6 @@ export async function POST(request: NextRequest) {
       description: description || "",
       shortDescription: shortDescription || "",
       longDescription: longDescription || "",
-      // French fields (nullable)
       nameFr: nameFr ? String(nameFr) : null,
       descriptionFr: descriptionFr ? String(descriptionFr) : null,
       shortDescriptionFr: shortDescriptionFr ? String(shortDescriptionFr) : null,
@@ -88,6 +87,15 @@ export async function POST(request: NextRequest) {
       material: material || "",
       sku: sku || "",
       tags: JSON.stringify(tags || []),
+      seoTitle: seoTitle || null,
+      metaDescription: metaDescription || null,
+      focusKeyphrase: focusKeyphrase || null,
+      ogImage: ogImage || null,
+      canonicalUrl: canonicalUrl || null,
+      noIndex: Boolean(noIndex),
+      seoTitleFr: seoTitleFr || null,
+      metaDescriptionFr: metaDescriptionFr || null,
+      focusKeyphraseFr: focusKeyphraseFr || null,
     }).returning();
 
     return NextResponse.json(result[0], { status: 201 });

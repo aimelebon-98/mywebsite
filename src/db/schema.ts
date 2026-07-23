@@ -1,4 +1,4 @@
-import { pgTable, text, numeric, integer, boolean, timestamp, uuid } from "drizzle-orm/pg-core";
+﻿import { pgTable, text, numeric, integer, boolean, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const products = pgTable("products", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -29,6 +29,17 @@ export const products = pgTable("products", {
   material: text("material").notNull().default(""),
   weight: text("weight").notNull().default(""),
   sku: text("sku").notNull().default(""),
+  // SEO fields (English)
+  seoTitle: text("seo_title"),
+  metaDescription: text("meta_description"),
+  focusKeyphrase: text("focus_keyphrase"),
+  ogImage: text("og_image"),
+  canonicalUrl: text("canonical_url"),
+  noIndex: boolean("no_index").notNull().default(false),
+  // SEO fields (French)
+  seoTitleFr: text("seo_title_fr"),
+  metaDescriptionFr: text("meta_description_fr"),
+  focusKeyphraseFr: text("focus_keyphrase_fr"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

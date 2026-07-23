@@ -15,9 +15,7 @@ export async function GET(request: NextRequest, { params }: Params) {
     if (result.length === 0) {
       try {
         result = await db.select().from(products).where(eq(products.id, id));
-      } catch {
-        // invalid UUID
-      }
+      } catch {}
     }
     if (result.length === 0) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
@@ -67,6 +65,17 @@ export async function PUT(request: NextRequest, { params }: Params) {
     if (body.sku !== undefined) updates.sku = body.sku;
     if (body.tags !== undefined) updates.tags = JSON.stringify(body.tags || []);
 
+    // SEO fields
+    if (body.seoTitle !== undefined)          updates.seoTitle          = body.seoTitle          || null;
+    if (body.metaDescription !== undefined)   updates.metaDescription   = body.metaDescription   || null;
+    if (body.focusKeyphrase !== undefined)    updates.focusKeyphrase    = body.focusKeyphrase    || null;
+    if (body.ogImage !== undefined)           updates.ogImage           = body.ogImage           || null;
+    if (body.canonicalUrl !== undefined)      updates.canonicalUrl      = body.canonicalUrl      || null;
+    if (body.noIndex !== undefined)           updates.noIndex           = Boolean(body.noIndex);
+    if (body.seoTitleFr !== undefined)        updates.seoTitleFr        = body.seoTitleFr        || null;
+    if (body.metaDescriptionFr !== undefined) updates.metaDescriptionFr = body.metaDescriptionFr || null;
+    if (body.focusKeyphraseFr !== undefined)  updates.focusKeyphraseFr  = body.focusKeyphraseFr  || null;
+
     updates.updatedAt = new Date();
 
     const result = await db.update(products).set(updates).where(eq(products.id, id)).returning();
@@ -83,10 +92,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
 export async function DELETE(request: NextRequest, { params }: Params) {
   try {
     const { id } = await params;
-
-    // Cascade: delete associated reviews first
     await db.delete(reviews).where(eq(reviews.productId, id));
-
     const result = await db.delete(products).where(eq(products.id, id)).returning();
     if (result.length === 0) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
