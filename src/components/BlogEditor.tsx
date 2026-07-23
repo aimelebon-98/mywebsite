@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -58,7 +58,7 @@ export default function BlogEditor({ value, onChange, placeholder = "Start writi
   // Sync external value changes
   useEffect(() => {
     if (editor && value !== editor.getHTML()) {
-      editor.commands.setContent(value || "", false);
+      editor.commands.setContent(value || "", { emitUpdate: false });
     }
   }, [value, editor]);
 
