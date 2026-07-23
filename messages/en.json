@@ -39,7 +39,9 @@
                     "youMayAlsoLike":  "You May Also Like",
                     "relatedDesc":  "Related products you might enjoy",
                     "viewMore":  "View More",
-                    "quickView":  "Quick View"
+                    "quickView":  "Quick View",
+                    "added":  "Added",
+                    "viewFullDetails":  "View full details"
                 },
     "cart":  {
                  "title":  "Shopping Cart",
