@@ -1,7 +1,8 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import HomeProducts from "@/components/HomeProducts";
+import AnimatedNetwork from "@/components/AnimatedNetwork";
 import { ArrowRight, Truck, Shield, RotateCcw, Headphones, Star } from "lucide-react";
 import { getTranslations, getLocale } from "next-intl/server";
 import { db } from "@/db";
@@ -38,7 +39,6 @@ export default async function HomePage() {
       img: CATEGORY_IMAGES[c.slug] || DEFAULT_CATEGORY_IMAGE,
     }));
   } catch {
-    // Fallback to hardcoded if DB unavailable
     categories = [
       { name: t("catSneakers"), slug: "sneakers", img: CATEGORY_IMAGES.sneakers },
       { name: t("catRunning"),  slug: "running",  img: CATEGORY_IMAGES.running },
@@ -62,14 +62,23 @@ export default async function HomePage() {
 
       {/* HERO */}
       <section className="relative pt-20 lg:pt-24 overflow-hidden">
+        {/* Layered background */}
         <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-100" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-28">
+        <div className="absolute inset-0 opacity-[0.55]">
+          <AnimatedNetwork className="absolute inset-0 w-full h-full" color="17, 24, 39" density={70} maxDistance={150} speed={0.35} />
+        </div>
+        {/* Soft glow accents */}
+        <div className="absolute top-24 -left-20 w-72 h-72 bg-brand-200/40 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-10 right-0 w-96 h-96 bg-gray-200/60 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-28 pointer-events-none">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="animate-fade-in-up">
-              <span className="inline-block px-4 py-2 bg-gray-900 text-white text-xs font-bold uppercase tracking-widest rounded-full mb-6">
+            <div className="animate-fade-in-up pointer-events-auto">
+              <span className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900/95 backdrop-blur text-white text-[11px] font-bold uppercase tracking-[0.2em] rounded-full mb-6 shadow-lg shadow-gray-900/10">
+                <span className="w-1.5 h-1.5 bg-brand-400 rounded-full animate-pulse" />
                 {t("badge")}
               </span>
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tight mb-6">
+              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black leading-[1.02] tracking-tight mb-6">
                 {t("heroTitle1")} <br />
                 <span className="bg-gradient-to-r from-brand-500 to-brand-700 bg-clip-text text-transparent">
                   {t("heroTitle2")}
@@ -81,13 +90,14 @@ export default async function HomePage() {
               <div className="flex flex-wrap gap-4">
                 <Link
                   href={`/${locale}/shop`}
-                  className="inline-flex items-center gap-2 px-8 py-4 bg-gray-900 text-white rounded-2xl font-semibold hover:bg-gray-800 transition-all hover:gap-3 shadow-lg shadow-gray-900/20"
+                  className="group inline-flex items-center gap-2 px-8 py-4 bg-gray-900 text-white rounded-2xl font-semibold hover:bg-gray-800 transition-all shadow-xl shadow-gray-900/25 hover:shadow-2xl hover:shadow-gray-900/30 hover:-translate-y-0.5"
                 >
-                  {t("shopNow")} <ArrowRight className="w-5 h-5" />
+                  {t("shopNow")}
+                  <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
                 </Link>
                 <Link
                   href={`/${locale}/shop?category=sneakers`}
-                  className="inline-flex items-center gap-2 px-8 py-4 bg-white text-gray-900 rounded-2xl font-semibold border-2 border-gray-200 hover:border-gray-900 transition-all"
+                  className="inline-flex items-center gap-2 px-8 py-4 bg-white/80 backdrop-blur text-gray-900 rounded-2xl font-semibold border-2 border-gray-200 hover:border-gray-900 hover:bg-white transition-all hover:-translate-y-0.5"
                 >
                   {t("exploreSnkrs")}
                 </Link>
@@ -95,7 +105,7 @@ export default async function HomePage() {
               <div className="flex items-center gap-6 mt-10">
                 <div className="flex -space-x-2">
                   {["bg-blue-500","bg-pink-500","bg-green-500","bg-purple-500"].map((c, i) => (
-                    <div key={i} className={`w-8 h-8 ${c} rounded-full border-2 border-white flex items-center justify-center`}>
+                    <div key={i} className={`w-8 h-8 ${c} rounded-full border-2 border-white flex items-center justify-center shadow-sm`}>
                       <span className="text-white text-[10px] font-bold">{["JW","SC","MT","EP"][i]}</span>
                     </div>
                   ))}
@@ -109,11 +119,11 @@ export default async function HomePage() {
               </div>
             </div>
 
-            <div className="relative animate-fade-in-up animation-delay-200">
+            <div className="relative animate-fade-in-up animation-delay-200 pointer-events-auto">
               <div className="relative aspect-square max-w-lg mx-auto">
                 <div className="absolute inset-0 bg-gradient-to-br from-brand-200 via-brand-100 to-brand-50 rounded-[3rem] rotate-6" />
                 <div className="absolute inset-0 bg-gradient-to-tr from-gray-200 via-gray-100 to-white rounded-[3rem] -rotate-3" />
-                <div className="relative rounded-[3rem] overflow-hidden aspect-square shadow-2xl bg-gradient-to-br from-brand-100 to-brand-50">
+                <div className="relative rounded-[3rem] overflow-hidden aspect-square shadow-2xl bg-gradient-to-br from-brand-100 to-brand-50 animate-float-slow">
                   <img
                     src="https://images.unsplash.com/photo-1588361861040-ac9b1018f6d5?w=800&q=80"
                     alt="Featured Shoe"
@@ -121,7 +131,7 @@ export default async function HomePage() {
                     loading="eager"
                   />
                 </div>
-                <div className="absolute -bottom-3 -left-3 bg-white rounded-2xl p-3 shadow-xl animate-float">
+                <div className="absolute -bottom-3 -left-3 bg-white/95 backdrop-blur rounded-2xl p-3 shadow-xl animate-float">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
                       <Truck className="w-4 h-4 text-green-600" />
@@ -132,7 +142,7 @@ export default async function HomePage() {
                     </div>
                   </div>
                 </div>
-                <div className="absolute -top-3 -right-3 bg-white rounded-2xl p-3 shadow-xl animate-float animation-delay-300">
+                <div className="absolute -top-3 -right-3 bg-white/95 backdrop-blur rounded-2xl p-3 shadow-xl animate-float animation-delay-300">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
                       <Star className="w-4 h-4 text-amber-600 fill-amber-600" />
@@ -168,7 +178,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* CATEGORIES (dynamic from DB) */}
+      {/* CATEGORIES */}
       {categories.length > 0 && (
         <section className="py-14 lg:py-20 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -195,7 +205,6 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* DYNAMIC PRODUCT SECTIONS (client-side, filters by locale) */}
       <HomeProducts />
 
       <Footer />
