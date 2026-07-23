@@ -107,8 +107,8 @@ export default function Footer() {
               <li><Link href="/faq" className="text-sm hover:text-white transition">{t("shippingPolicy")}</Link></li>
               <li><Link href="/faq" className="text-sm hover:text-white transition">{t("returns")}</Link></li>
               <li><Link href="/faq" className="text-sm hover:text-white transition">{t("sizeGuide")}</Link></li>
-              <li><span className="text-sm">{t("aboutUs")}</span></li>
-              <li><span className="text-sm">{t("contact")}</span></li>
+              <li><Link href="/about" className="text-sm hover:text-white transition">{t("aboutUs")}</Link></li>
+              <li><Link href="/contact" className="text-sm hover:text-white transition">{t("contact")}</Link></li>
             </ul>
           </div>
 

@@ -47,6 +47,8 @@ export default function Navbar() {
             <Link href="/shop?category=formal" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">{t("formal")}</Link>
             <Link href="/shop?category=boots" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">{t("boots")}</Link>
             <Link href="/shop?category=casual" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">{t("casual")}</Link>
+            <Link href="/about" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">{t("about")}</Link>
+            <Link href="/contact" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">{t("contact")}</Link>
           </div>
 
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -58,7 +60,6 @@ export default function Navbar() {
               />
             </div>
 
-            {/* Language Switcher */}
             <div className="relative">
               <button
                 onClick={() => setLangOpen(!langOpen)}
@@ -139,6 +140,8 @@ export default function Navbar() {
               { href: "/wishlist", label: `${t("wishlist")}${wishlistCount > 0 ? ` (${wishlistCount})` : ""}` },
               { href: "/cart", label: t("cart") },
               { href: "/faq", label: t("faq") },
+              { href: "/about", label: t("about") },
+              { href: "/contact", label: t("contact") },
             ].map((item) => (
               <Link
                 key={item.href + item.label}
