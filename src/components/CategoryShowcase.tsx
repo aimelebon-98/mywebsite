@@ -102,11 +102,13 @@ export default function CategoryShowcase({ categories, activeCategory }: Categor
               key={cat.slug}
               href={`/${locale}/shop?category=${cat.slug}`}
               onMouseEnter={() => setHoveredSlug(cat.slug)}
-              className={`relative flex-shrink-0 w-32 sm:w-36 lg:w-40 aspect-square rounded-2xl overflow-hidden group transition-all duration-300 ${
+              className={`relative flex-shrink-0 w-32 sm:w-36 lg:w-40 aspect-square rounded-2xl overflow-hidden group transition-all duration-300 border-2 ${
+                isActive
+                  ? "border-white shadow-[0_0_0_2px_rgba(255,255,255,0.3),0_10px_40px_-5px_rgba(255,255,255,0.4)]"
+                  : "border-white/70 hover:border-white shadow-[0_4px_20px_-2px_rgba(0,0,0,0.5)]"
+              } ${
                 isHovered ? "scale-110 shadow-2xl z-10" : ""
-              } ${isDimmed ? "opacity-50 scale-95" : ""} ${
-                isActive ? "ring-2 ring-gray-900 ring-offset-2" : ""
-              }`}
+              } ${isDimmed ? "opacity-50 scale-95" : ""}`}
               style={{
                 backgroundImage: `url(${bgImg})`,
                 backgroundSize: "cover",
@@ -114,6 +116,9 @@ export default function CategoryShowcase({ categories, activeCategory }: Categor
                 backgroundColor: "#f3f4f6",
               }}
             >
+              {/* Inner subtle white glow ring */}
+              <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/30 pointer-events-none" />
+
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
               {!cat.imageUrl && !fallbackImages[cat.slug] && (
@@ -129,7 +134,7 @@ export default function CategoryShowcase({ categories, activeCategory }: Categor
               </div>
 
               {isActive && (
-                <div className="absolute top-2 right-2 w-2 h-2 bg-white rounded-full shadow-lg" />
+                <div className="absolute top-2 right-2 w-2.5 h-2.5 bg-white rounded-full shadow-lg ring-2 ring-white/40" />
               )}
             </Link>
           );
