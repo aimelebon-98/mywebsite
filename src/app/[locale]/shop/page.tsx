@@ -1,6 +1,6 @@
 ﻿import { db } from "@/db";
 import { products, categories as categoriesTable, type Product } from "@/db/schema";
-import { eq, desc, asc, and, ilike, gte, lte, gt, isNotNull, or } from "drizzle-orm";
+import { eq, desc, asc, and, ilike, gte, lte, gt, isNotNull, or, inArray } from "drizzle-orm";
 import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -38,6 +38,12 @@ interface Props {
   }>;
 }
 
+interface CategoryOption {
+  name: string;
+  slug: string;
+  imageUrl?: string;
+}
+
 export default async function ShopPage({ params, searchParams }: Props) {
   const { locale } = await params;
   const t = await getTranslations("shop");
@@ -56,18 +62,47 @@ export default async function ShopPage({ params, searchParams }: Props) {
 
   let productList: Product[] = [];
   let allBrands: string[] = [];
-  let categoryOptions: { name: string; slug: string }[] = [{ name: t("catAll"), slug: "all" }];
+  let categoryOptions: CategoryOption[] = [{ name: t("catAll"), slug: "all" }];
 
   try {
     const cats = await db.select().from(categoriesTable)
       .where(eq(categoriesTable.active, true))
       .orderBy(asc(categoriesTable.sortOrder));
 
+    // Get selected image product IDs
+    const selectedIds = cats.map(c => c.imageProductId).filter((x): x is string => Boolean(x));
+
+    // Fetch selected products' images
+    const selectedProducts = selectedIds.length > 0
+      ? await db.select({ id: products.id, imageUrl: products.imageUrl })
+          .from(products)
+          .where(inArray(products.id, selectedIds))
+      : [];
+    const selectedImageMap = new Map(selectedProducts.map(p => [p.id, p.imageUrl]));
+
+    // Fetch fallback: first product per category (used if no specific product selected)
+    const fallbackImageMap = new Map<string, string>();
+    for (const cat of cats) {
+      if (!cat.imageProductId) {
+        const firstProduct = await db.select({ imageUrl: products.imageUrl })
+          .from(products)
+          .where(and(eq(products.category, cat.slug), eq(products.active, true)))
+          .orderBy(desc(products.createdAt))
+          .limit(1);
+        if (firstProduct.length > 0) {
+          fallbackImageMap.set(cat.slug, firstProduct[0].imageUrl);
+        }
+      }
+    }
+
     categoryOptions = [
       { name: t("catAll"), slug: "all" },
       ...cats.map(c => ({
         name: isFr && c.nameFr ? c.nameFr : c.nameEn,
         slug: c.slug,
+        imageUrl: c.imageProductId
+          ? selectedImageMap.get(c.imageProductId) || fallbackImageMap.get(c.slug)
+          : fallbackImageMap.get(c.slug),
       })),
     ];
 
@@ -122,10 +157,8 @@ export default async function ShopPage({ params, searchParams }: Props) {
     <main className="min-h-screen bg-white">
       <Navbar />
 
-      {/* Page Header */}
       <div className="pt-24 lg:pt-28 border-b border-gray-100 bg-gradient-to-b from-gray-50/50 to-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-          {/* Breadcrumb */}
           <nav className="flex items-center gap-1.5 text-xs text-gray-500 mb-3">
             <Link href={`/${locale}`} className="flex items-center gap-1 hover:text-gray-900 transition">
               <Home className="w-3.5 h-3.5" />
@@ -144,7 +177,6 @@ export default async function ShopPage({ params, searchParams }: Props) {
           </nav>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-            {/* Left: Title + Tagline */}
             <div className="lg:col-span-4">
               <h1 className="text-3xl lg:text-4xl font-bold tracking-tight text-gray-900">
                 {pageTitle}
@@ -154,7 +186,6 @@ export default async function ShopPage({ params, searchParams }: Props) {
               </p>
             </div>
 
-            {/* Right: Category Showcase */}
             <div className="lg:col-span-8 relative">
               <CategoryShowcase
                 categories={categoryOptions}
@@ -166,7 +197,6 @@ export default async function ShopPage({ params, searchParams }: Props) {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-        {/* Category Tabs - Underline style */}
         <div className="border-b border-gray-200 mb-6 overflow-x-auto scrollbar-hide">
           <div className="flex items-center gap-1 min-w-max">
             {categoryOptions.map((cat) => (

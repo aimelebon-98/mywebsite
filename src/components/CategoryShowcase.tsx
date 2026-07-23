@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useRef, useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Package } from "lucide-react";
 import { useLocale } from "next-intl";
 
 interface Category {
   name: string;
   slug: string;
+  imageUrl?: string;
 }
 
 interface CategoryShowcaseProps {
@@ -15,8 +16,8 @@ interface CategoryShowcaseProps {
   activeCategory: string;
 }
 
-// Map category slugs to background images
-const categoryImages: Record<string, string> = {
+// Unsplash fallback images when no product image is available
+const fallbackImages: Record<string, string> = {
   sneakers: "https://images.unsplash.com/photo-1552346154-21d32810aba3?w=400&q=80",
   running:  "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=400&q=80",
   formal:   "https://images.unsplash.com/photo-1614252369475-531eba835eb1?w=400&q=80",
@@ -33,7 +34,6 @@ export default function CategoryShowcase({ categories, activeCategory }: Categor
   const [canScrollRight, setCanScrollRight] = useState(false);
   const [hoveredSlug, setHoveredSlug] = useState<string | null>(null);
 
-  // Filter out "all" from visible categories (it's the default view)
   const visibleCategories = categories.filter(c => c.slug !== "all");
 
   const checkScroll = () => {
@@ -66,7 +66,6 @@ export default function CategoryShowcase({ categories, activeCategory }: Categor
 
   return (
     <div className="relative w-full">
-      {/* Left arrow */}
       {canScrollLeft && (
         <button
           onClick={() => scroll("left")}
@@ -77,7 +76,6 @@ export default function CategoryShowcase({ categories, activeCategory }: Categor
         </button>
       )}
 
-      {/* Right arrow */}
       {canScrollRight && (
         <button
           onClick={() => scroll("right")}
@@ -88,7 +86,6 @@ export default function CategoryShowcase({ categories, activeCategory }: Categor
         </button>
       )}
 
-      {/* Scroll container */}
       <div
         ref={scrollRef}
         className="flex gap-3 overflow-x-auto scrollbar-hide scroll-smooth px-1 py-2"
@@ -98,7 +95,7 @@ export default function CategoryShowcase({ categories, activeCategory }: Categor
           const isActive = activeCategory === cat.slug;
           const isHovered = hoveredSlug === cat.slug;
           const isDimmed = hoveredSlug !== null && hoveredSlug !== cat.slug;
-          const bgImg = categoryImages[cat.slug] || categoryImages.all;
+          const bgImg = cat.imageUrl || fallbackImages[cat.slug] || fallbackImages.all;
 
           return (
             <Link
@@ -114,19 +111,23 @@ export default function CategoryShowcase({ categories, activeCategory }: Categor
                 backgroundImage: `url(${bgImg})`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
+                backgroundColor: "#f3f4f6",
               }}
             >
-              {/* Dark gradient overlay */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
-              {/* Category name */}
+              {!cat.imageUrl && !fallbackImages[cat.slug] && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Package className="w-10 h-10 text-gray-400" />
+                </div>
+              )}
+
               <div className="absolute bottom-3 left-3 right-3">
                 <p className="text-white font-bold text-sm sm:text-base drop-shadow-lg capitalize">
                   {cat.name}
                 </p>
               </div>
 
-              {/* Active indicator dot */}
               {isActive && (
                 <div className="absolute top-2 right-2 w-2 h-2 bg-white rounded-full shadow-lg" />
               )}

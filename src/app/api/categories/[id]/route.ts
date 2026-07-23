@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { categories, adminSessions } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -35,6 +35,9 @@ export async function PUT(request: NextRequest, { params }: Params) {
     if (body.nameFr !== undefined) updates.nameFr = body.nameFr ? String(body.nameFr) : null;
     if (body.active !== undefined) updates.active = Boolean(body.active);
     if (body.sortOrder !== undefined) updates.sortOrder = parseInt(String(body.sortOrder));
+    if (body.imageProductId !== undefined) {
+      updates.imageProductId = body.imageProductId ? String(body.imageProductId) : null;
+    }
     if (body.slug !== undefined) {
       updates.slug = String(body.slug).toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
     }
