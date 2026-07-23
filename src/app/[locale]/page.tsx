@@ -26,7 +26,7 @@ export default async function HomePage() {
   const locale = await getLocale();
   const isFr = locale === "fr";
 
-  // Words that naturally follow "Walk the ___" / "Marche vers le/la/l'___"
+  // Try to read heroTitle2Words from translations; fallback to defaults
   let typingWords: string[];
   try {
     const raw = t("heroTitle2Words");
@@ -34,8 +34,8 @@ export default async function HomePage() {
     if (typingWords.length === 0) throw new Error("empty");
   } catch {
     typingWords = isFr
-      ? ["Futur", "Sommet", "Style", "Rythme", "Succes", "Horizon"]
-      : ["Future", "Streets", "Runway", "Extra Mile", "City", "Distance"];
+      ? ["Futur", "Rues", "Sentiers", "Ville", "Legende"]
+      : ["Future", "Streets", "Trails", "City", "Legacy"];
   }
 
   let categories: { name: string; slug: string; img: string }[] = [];
