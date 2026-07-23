@@ -29,14 +29,12 @@ export const products = pgTable("products", {
   material: text("material").notNull().default(""),
   weight: text("weight").notNull().default(""),
   sku: text("sku").notNull().default(""),
-  // SEO fields (English)
   seoTitle: text("seo_title"),
   metaDescription: text("meta_description"),
   focusKeyphrase: text("focus_keyphrase"),
   ogImage: text("og_image"),
   canonicalUrl: text("canonical_url"),
   noIndex: boolean("no_index").notNull().default(false),
-  // SEO fields (French)
   seoTitleFr: text("seo_title_fr"),
   metaDescriptionFr: text("meta_description_fr"),
   focusKeyphraseFr: text("focus_keyphrase_fr"),
@@ -109,6 +107,67 @@ export const wishlist = pgTable("wishlist", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// ============================================
+// BLOG: Authors
+// ============================================
+export const authors = pgTable("authors", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  avatar: text("avatar").notNull().default(""),
+  email: text("email").notNull().default(""),
+  bio: text("bio").notNull().default(""),
+  bioFr: text("bio_fr"),
+  role: text("role").notNull().default(""),
+  roleFr: text("role_fr"),
+  twitter: text("twitter").notNull().default(""),
+  instagram: text("instagram").notNull().default(""),
+  linkedin: text("linkedin").notNull().default(""),
+  website: text("website").notNull().default(""),
+  active: boolean("active").notNull().default(true),
+  sortOrder: integer("sort_order").notNull().default(100),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// ============================================
+// BLOG: Posts
+// ============================================
+export const blogPosts = pgTable("blog_posts", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  excerpt: text("excerpt").notNull().default(""),
+  content: text("content").notNull().default(""),
+  coverImage: text("cover_image").notNull().default(""),
+  // French
+  titleFr: text("title_fr"),
+  excerptFr: text("excerpt_fr"),
+  contentFr: text("content_fr"),
+  // Meta
+  category: text("category").notNull().default("style-tips"),
+  tags: text("tags").notNull().default("[]"),
+  tagsFr: text("tags_fr"),
+  authorId: uuid("author_id"),
+  readTime: integer("read_time").notNull().default(5),
+  // Status
+  published: boolean("published").notNull().default(false),
+  featured: boolean("featured").notNull().default(false),
+  publishedAt: timestamp("published_at"),
+  viewCount: integer("view_count").notNull().default(0),
+  // SEO
+  seoTitle: text("seo_title"),
+  metaDescription: text("meta_description"),
+  focusKeyphrase: text("focus_keyphrase"),
+  ogImage: text("og_image"),
+  canonicalUrl: text("canonical_url"),
+  noIndex: boolean("no_index").notNull().default(false),
+  seoTitleFr: text("seo_title_fr"),
+  metaDescriptionFr: text("meta_description_fr"),
+  focusKeyphraseFr: text("focus_keyphrase_fr"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export type Product = typeof products.$inferSelect;
 export type NewProduct = typeof products.$inferInsert;
 export type Category = typeof categories.$inferSelect;
@@ -118,3 +177,7 @@ export type Newsletter = typeof newsletter.$inferSelect;
 export type Settings = typeof settings.$inferSelect;
 export type AdminSession = typeof adminSessions.$inferSelect;
 export type Wishlist = typeof wishlist.$inferSelect;
+export type Author = typeof authors.$inferSelect;
+export type NewAuthor = typeof authors.$inferInsert;
+export type BlogPost = typeof blogPosts.$inferSelect;
+export type NewBlogPost = typeof blogPosts.$inferInsert;
