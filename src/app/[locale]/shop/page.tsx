@@ -69,10 +69,8 @@ export default async function ShopPage({ params, searchParams }: Props) {
       .where(eq(categoriesTable.active, true))
       .orderBy(asc(categoriesTable.sortOrder));
 
-    // Get selected image product IDs
     const selectedIds = cats.map(c => c.imageProductId).filter((x): x is string => Boolean(x));
 
-    // Fetch selected products' images
     const selectedProducts = selectedIds.length > 0
       ? await db.select({ id: products.id, imageUrl: products.imageUrl })
           .from(products)
@@ -80,7 +78,6 @@ export default async function ShopPage({ params, searchParams }: Props) {
       : [];
     const selectedImageMap = new Map(selectedProducts.map(p => [p.id, p.imageUrl]));
 
-    // Fetch fallback: first product per category (used if no specific product selected)
     const fallbackImageMap = new Map<string, string>();
     for (const cat of cats) {
       if (!cat.imageProductId) {
@@ -157,31 +154,32 @@ export default async function ShopPage({ params, searchParams }: Props) {
     <main className="min-h-screen bg-white">
       <Navbar />
 
-      <div className="pt-24 lg:pt-28 border-b border-gray-100 bg-gradient-to-b from-gray-50/50 to-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-          <nav className="flex items-center gap-1.5 text-xs text-gray-500 mb-3">
-            <Link href={`/${locale}`} className="flex items-center gap-1 hover:text-gray-900 transition">
+      <div className="pt-24 lg:pt-28 border-b border-gray-800 relative overflow-hidden bg-gradient-to-br from-black via-neutral-900 to-neutral-700">
+        <div className="absolute inset-0 opacity-30 pointer-events-none" style={{ backgroundImage: "radial-gradient(circle at 20% 30%, rgba(255,255,255,0.08) 0%, transparent 50%), radial-gradient(circle at 80% 70%, rgba(255,255,255,0.05) 0%, transparent 50%)" }} />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 relative">
+          <nav className="flex items-center gap-1.5 text-xs text-gray-400 mb-3">
+            <Link href={`/${locale}`} className="flex items-center gap-1 hover:text-white transition">
               <Home className="w-3.5 h-3.5" />
               {tNav("home")}
             </Link>
             <ChevronRight className="w-3.5 h-3.5" />
-            <Link href={`/${locale}/shop`} className="hover:text-gray-900 transition">
+            <Link href={`/${locale}/shop`} className="hover:text-white transition">
               {tNav("shopAll")}
             </Link>
             {category !== "all" && (
               <>
                 <ChevronRight className="w-3.5 h-3.5" />
-                <span className="text-gray-900 font-medium">{currentCategoryName}</span>
+                <span className="text-white font-medium">{currentCategoryName}</span>
               </>
             )}
           </nav>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
             <div className="lg:col-span-4">
-              <h1 className="text-3xl lg:text-4xl font-bold tracking-tight text-gray-900">
+              <h1 className="text-3xl lg:text-4xl font-bold tracking-tight text-white">
                 {pageTitle}
               </h1>
-              <p className="text-sm text-gray-500 mt-1.5">
+              <p className="text-sm text-gray-400 mt-1.5">
                 {t("headerTagline")}
               </p>
             </div>
