@@ -176,35 +176,24 @@ export default function ProductDetails({ product, initialReviews = [] }: Product
           </nav>
 
           <div className="grid lg:grid-cols-2 gap-10 lg:gap-16">
-            {/* IMAGE */}
+            {/* IMAGE GALLERY */}
             <div className="space-y-4">
-              <div className="relative group">
-                <div className="relative aspect-square rounded-3xl overflow-hidden bg-gray-100">
-                  {product.imageUrl ? (
-                    <img
-                      src={product.imageUrl}
-                      alt={product.name}
-                      loading="eager"
-                      decoding="async"
-                      className={`w-full h-full object-cover group-hover:scale-[1.03] transition-all duration-700 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
-                      onLoad={() => setImageLoaded(true)}
-                      onError={(e) => {
-                        setImageLoaded(true);
-                        (e.target as HTMLImageElement).style.display = "none";
-                        (e.target as HTMLImageElement).parentElement!.querySelector(".img-fallback")?.classList.remove("hidden");
-                      }}
-                    />
-                  ) : null}
-                  <div className={`img-fallback absolute inset-0 flex items-center justify-center text-gray-300 ${product.imageUrl && imageLoaded ? "hidden" : ""}`}>
-                    <ShoppingBag className="w-24 h-24 text-gray-200" />
-                  </div>
-                </div>
-                {!imageLoaded && product.imageUrl && (
-                  <div className="absolute inset-0 rounded-3xl bg-gray-100 animate-pulse" />
-                )}
+              <div className="relative">
+                <ProductGallery
+                  images={(() => {
+                    const arr: string[] = [];
+                    if (product.imageUrl) arr.push(product.imageUrl);
+                    try {
+                      const parsed = JSON.parse(product.images || "[]") as string[];
+                      parsed.forEach(img => { if (img && !arr.includes(img)) arr.push(img); });
+                    } catch {}
+                    return arr;
+                  })()}
+                  productName={product.name}
+                />
 
                 {/* Floating badges */}
-                <div className="absolute top-4 left-4 flex flex-col gap-2">
+                <div className="absolute top-4 left-4 flex flex-col gap-2 z-10 pointer-events-none">
                   {discount > 0 && (
                     <span className="pointer-events-auto px-4 py-2 bg-red-500 text-white text-sm font-bold rounded-full shadow-lg shadow-red-500/30 animate-pulse-glow">
                       -{discount}% OFF
