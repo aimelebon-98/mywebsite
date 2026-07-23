@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -9,6 +9,7 @@ import {
   Zap, Package, Ruler, Scale, MessageSquare, Send, Share2, Award, Sparkles, Eye
 } from "lucide-react";
 import Link from "next/link";
+import ProductGallery from "@/components/ProductGallery";
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 
@@ -205,19 +206,19 @@ export default function ProductDetails({ product, initialReviews = [] }: Product
                 {/* Floating badges */}
                 <div className="absolute top-4 left-4 flex flex-col gap-2">
                   {discount > 0 && (
-                    <span className="px-4 py-2 bg-red-500 text-white text-sm font-bold rounded-full shadow-lg shadow-red-500/30 animate-pulse-glow">
+                    <span className="pointer-events-auto px-4 py-2 bg-red-500 text-white text-sm font-bold rounded-full shadow-lg shadow-red-500/30 animate-pulse-glow">
                       -{discount}% OFF
                     </span>
                   )}
                   {product.featured && (
-                    <span className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-400 text-amber-900 text-xs font-bold rounded-full shadow-lg">
+                    <span className="pointer-events-auto flex items-center gap-1.5 px-3 py-1.5 bg-amber-400 text-amber-900 text-xs font-bold rounded-full shadow-lg">
                       <Sparkles className="w-3.5 h-3.5" /> {t("featured")}
                     </span>
                   )}
                 </div>
 
                 {/* Action buttons */}
-                <div className="absolute top-4 right-4 flex flex-col gap-2">
+                <div className="absolute top-4 right-4 flex flex-col gap-2 z-10 pointer-events-auto">
                   <button onClick={() => setWishlist(!wishlist)} className={`w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-all ${wishlist ? "bg-red-500 text-white scale-110" : "bg-white/90 backdrop-blur text-gray-700 hover:bg-white"}`}>
                     <Heart className={`w-5 h-5 ${wishlist ? "fill-white" : ""}`} />
                   </button>
