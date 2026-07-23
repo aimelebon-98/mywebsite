@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { useState } from "react";
-import { ArrowRight, Mail } from "lucide-react";
+import { ArrowRight, Mail, Facebook, Instagram, Twitter } from "lucide-react";
 
 export default function Footer() {
   const t = useTranslations("footer");
@@ -26,6 +26,12 @@ export default function Footer() {
       setSubStatus("idle");
     }
   };
+
+  const socials = [
+    { name: "Facebook", href: "https://facebook.com", Icon: Facebook },
+    { name: "Instagram", href: "https://instagram.com", Icon: Instagram },
+    { name: "Twitter", href: "https://twitter.com", Icon: Twitter },
+  ];
 
   return (
     <footer className="bg-gray-950 text-gray-400">
@@ -80,10 +86,17 @@ export default function Footer() {
             </div>
             <p className="text-sm leading-relaxed mb-4">{t("tagline")}</p>
             <div className="flex items-center gap-3">
-              {["Instagram", "Twitter", "Facebook"].map((social) => (
-                <span key={social} className="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center text-xs hover:bg-white/20 transition cursor-pointer">
-                  {social[0]}
-                </span>
+              {socials.map(({ name, href, Icon }) => (
+                <a
+                  key={name}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={name}
+                  className="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center text-white hover:bg-white/20 transition"
+                >
+                  <Icon className="w-4 h-4" />
+                </a>
               ))}
             </div>
           </div>
