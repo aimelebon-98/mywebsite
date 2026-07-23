@@ -1,16 +1,32 @@
-import { MetadataRoute } from "next";
+﻿import type { MetadataRoute } from "next";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://mywebsite-inky-gamma.vercel.app";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://solevault.com";
-
   return {
     rules: [
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin", "/api/"],
+        disallow: [
+          "/admin",
+          "/admin/",
+          "/api/",
+          "/_next/",
+          "/wishlist",
+          "/cart",
+        ],
+      },
+      {
+        userAgent: "GPTBot",
+        disallow: "/",
+      },
+      {
+        userAgent: "CCBot",
+        disallow: "/",
       },
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
+    sitemap: `${SITE_URL}/sitemap.xml`,
+    host: SITE_URL,
   };
 }
