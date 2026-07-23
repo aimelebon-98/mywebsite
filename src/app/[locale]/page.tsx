@@ -3,13 +3,13 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import HomeProducts from "@/components/HomeProducts";
 import AnimatedNetwork from "@/components/AnimatedNetwork";
+import TypingText from "@/components/TypingText";
 import { ArrowRight, Truck, Shield, RotateCcw, Headphones, Star } from "lucide-react";
 import { getTranslations, getLocale } from "next-intl/server";
 import { db } from "@/db";
 import { categories as categoriesTable } from "@/db/schema";
 import { eq, asc } from "drizzle-orm";
 
-// Category images fallback (matches by slug)
 const CATEGORY_IMAGES: Record<string, string> = {
   sneakers: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80",
   running:  "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400&q=80",
@@ -26,7 +26,18 @@ export default async function HomePage() {
   const locale = await getLocale();
   const isFr = locale === "fr";
 
-  // Fetch categories from DB
+  // Try to read heroTitle2Words from translations; fallback to defaults
+  let typingWords: string[];
+  try {
+    const raw = t("heroTitle2Words");
+    typingWords = raw.split(",").map(w => w.trim()).filter(Boolean);
+    if (typingWords.length === 0) throw new Error("empty");
+  } catch {
+    typingWords = isFr
+      ? ["Futur", "Rues", "Sentiers", "Ville", "Legende"]
+      : ["Future", "Streets", "Trails", "City", "Legacy"];
+  }
+
   let categories: { name: string; slug: string; img: string }[] = [];
   try {
     const cats = await db.select().from(categoriesTable)
@@ -62,12 +73,17 @@ export default async function HomePage() {
 
       {/* HERO */}
       <section className="relative pt-20 lg:pt-24 overflow-hidden">
-        {/* Layered background */}
         <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-100" />
-        <div className="absolute inset-0 opacity-[0.55]">
-          <AnimatedNetwork className="absolute inset-0 w-full h-full" color="17, 24, 39" density={70} maxDistance={150} speed={0.35} />
+        <div className="absolute inset-0 opacity-[0.6]">
+          <AnimatedNetwork
+            className="absolute inset-0 w-full h-full"
+            color="17, 24, 39"
+            density={80}
+            maxDistance={140}
+            influenceRadius={190}
+            attractStrength={0.65}
+          />
         </div>
-        {/* Soft glow accents */}
         <div className="absolute top-24 -left-20 w-72 h-72 bg-brand-200/40 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-10 right-0 w-96 h-96 bg-gray-200/60 rounded-full blur-3xl pointer-events-none" />
 
@@ -80,9 +96,10 @@ export default async function HomePage() {
               </span>
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black leading-[1.02] tracking-tight mb-6">
                 {t("heroTitle1")} <br />
-                <span className="bg-gradient-to-r from-brand-500 to-brand-700 bg-clip-text text-transparent">
-                  {t("heroTitle2")}
-                </span>
+                <TypingText
+                  words={typingWords}
+                  className="bg-gradient-to-r from-brand-500 to-brand-700 bg-clip-text text-transparent"
+                />
               </h1>
               <p className="text-lg text-gray-600 max-w-md mb-8 leading-relaxed">
                 {t("heroDesc")}
