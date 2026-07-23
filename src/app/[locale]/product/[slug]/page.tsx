@@ -14,6 +14,9 @@ import { getTranslations, getLocale } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://mywebsite-inky-gamma.vercel.app";
+const SITE_NAME = "SoleVault";
+
 interface Props {
   params: Promise<{ slug: string; locale: string }>;
 }
@@ -34,42 +37,100 @@ function localizeProduct(p: Product, isFr: boolean): Product {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug, locale } = await params;
   const isFr = locale === "fr";
+
   try {
     let result = await db.select().from(products).where(eq(products.slug, slug));
     if (result.length === 0) result = await db.select().from(products).where(eq(products.id, slug));
     if (result.length === 0) return { title: "Product Not Found - SoleVault" };
 
-    const product = localizeProduct(result[0], isFr);
+    const raw = result[0];
+    const product = localizeProduct(raw, isFr);
     const price = parseFloat(product.price);
+    const currency = "USD";
 
-    return {
-      title: `${product.name} - SoleVault`,
-      description: product.description.slice(0, 160) || `Shop ${product.name} at SoleVault. ${product.brand} ${product.category}. Starting at $${price.toFixed(2)}.`,
-      keywords: [product.name, product.brand, product.category, "shoes", "footwear", "SoleVault"].filter(Boolean).join(", "),
+    // Choose SEO fields with locale awareness + smart fallbacks
+    const seoTitle = isFr
+      ? (raw.seoTitleFr || raw.seoTitle || `${product.name} - ${SITE_NAME}`)
+      : (raw.seoTitle || `${product.name} - ${SITE_NAME}`);
+
+    const metaDescription = isFr
+      ? (raw.metaDescriptionFr || raw.metaDescription || product.shortDescription || product.description.slice(0, 155))
+      : (raw.metaDescription || product.shortDescription || product.description.slice(0, 155));
+
+    const ogImage = raw.ogImage || product.imageUrl;
+    const productUrl = `${SITE_URL}/${locale}/product/${slug}`;
+    const canonical = raw.canonicalUrl || productUrl;
+
+    // Keyphrase-driven keywords
+    const focusKp = isFr ? (raw.focusKeyphraseFr || raw.focusKeyphrase || "") : (raw.focusKeyphrase || "");
+    const keywordList = [
+      focusKp,
+      product.name,
+      product.brand,
+      product.category,
+      "shoes",
+      "footwear",
+      SITE_NAME,
+    ].filter(Boolean);
+
+    const metadata: Metadata = {
+      title: seoTitle,
+      description: metaDescription,
+      keywords: [...new Set(keywordList)].join(", "),
+      alternates: {
+        canonical,
+        languages: {
+          "en-US": `${SITE_URL}/en/product/${slug}`,
+          "fr-FR": `${SITE_URL}/fr/product/${slug}`,
+          "x-default": `${SITE_URL}/en/product/${slug}`,
+        },
+      },
       openGraph: {
-        title: product.name,
-        description: product.description.slice(0, 200),
-        images: product.imageUrl ? [{ url: product.imageUrl, width: 800, height: 800, alt: product.name }] : [],
+        title: seoTitle,
+        description: metaDescription,
+        url: productUrl,
+        siteName: SITE_NAME,
+        locale: isFr ? "fr_FR" : "en_US",
         type: "website",
+        images: ogImage ? [{ url: ogImage, width: 1200, height: 630, alt: product.name }] : [],
       },
       twitter: {
         card: "summary_large_image",
-        title: product.name,
-        description: product.description.slice(0, 200),
-        images: product.imageUrl ? [product.imageUrl] : [],
+        title: seoTitle,
+        description: metaDescription,
+        images: ogImage ? [ogImage] : [],
+      },
+      other: {
+        "product:price:amount": price.toFixed(2),
+        "product:price:currency": currency,
+        "product:availability": product.stock > 0 ? "in stock" : "out of stock",
+        "product:brand": product.brand || SITE_NAME,
+        "product:category": product.category,
       },
     };
+
+    // Honor noindex flag from admin
+    if (raw.noIndex) {
+      metadata.robots = {
+        index: false,
+        follow: false,
+        googleBot: { index: false, follow: false },
+      };
+    }
+
+    return metadata;
   } catch {
     return { title: "Product - SoleVault" };
   }
 }
 
 export default async function ProductPage({ params }: Props) {
-  const { slug } = await params;
+  const { slug, locale: paramLocale } = await params;
   const t = await getTranslations("product");
   const locale = await getLocale();
   const isFr = locale === "fr";
 
+  let rawProduct: Product;
   let product: Product;
   let relatedProducts: Product[] = [];
   let productReviews: Review[] = [];
@@ -85,16 +146,15 @@ export default async function ProductPage({ params }: Props) {
     }
     if (result.length === 0) notFound();
 
-    // On French pages, if product doesn't have French translation, 404
     if (isFr && !result[0].nameFr) notFound();
 
-    product = localizeProduct(result[0], isFr);
+    rawProduct = result[0];
+    product = localizeProduct(rawProduct, isFr);
 
     productReviews = await db.select().from(reviews)
       .where(eq(reviews.productId, product.id))
       .orderBy(desc(reviews.createdAt));
 
-    // Related products - respect locale (only show French-translated on /fr)
     const relatedCond = isFr
       ? and(eq(products.active, true), isNotNull(products.nameFr), eq(products.category, product.category), ne(products.id, product.id))
       : and(eq(products.active, true), eq(products.category, product.category), ne(products.id, product.id));
@@ -120,25 +180,77 @@ export default async function ProductPage({ params }: Props) {
     notFound();
   }
 
-  const jsonLd = {
+  // Enhanced JSON-LD (rich Google snippets)
+  const productUrl = `${SITE_URL}/${paramLocale}/product/${slug}`;
+  const images: string[] = [];
+  if (product.imageUrl) images.push(product.imageUrl);
+  try {
+    const parsedImages = JSON.parse(product.images) as string[];
+    if (Array.isArray(parsedImages)) {
+      parsedImages.forEach(img => { if (img && !images.includes(img)) images.push(img); });
+    }
+  } catch {}
+
+  const jsonLd: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
     description: product.description,
-    image: product.imageUrl,
-    brand: { "@type": "Brand", name: product.brand || "SoleVault" },
+    image: images.length > 0 ? images : undefined,
+    url: productUrl,
+    brand: { "@type": "Brand", name: product.brand || SITE_NAME },
     sku: product.sku || product.id,
+    mpn: product.sku || product.id,
+    category: product.category,
     offers: {
       "@type": "Offer",
+      url: productUrl,
       price: product.price,
       priceCurrency: "USD",
+      priceValidUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
       availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      itemCondition: "https://schema.org/NewCondition",
+      seller: { "@type": "Organization", name: SITE_NAME },
     },
-    aggregateRating: parseFloat(product.rating ?? "0") > 0 ? {
+  };
+
+  const ratingNum = parseFloat(product.rating ?? "0");
+  if (ratingNum > 0 && (product.reviewCount || 0) > 0) {
+    jsonLd.aggregateRating = {
       "@type": "AggregateRating",
       ratingValue: product.rating,
       reviewCount: product.reviewCount || 0,
-    } : undefined,
+      bestRating: "5",
+      worstRating: "1",
+    };
+  }
+
+  // Include up to 5 real reviews in JSON-LD
+  if (productReviews.length > 0) {
+    jsonLd.review = productReviews.slice(0, 5).map(r => ({
+      "@type": "Review",
+      author: { "@type": "Person", name: r.customerName },
+      datePublished: r.createdAt instanceof Date ? r.createdAt.toISOString() : String(r.createdAt),
+      reviewBody: isFr ? (r.commentFr || r.comment) : r.comment,
+      reviewRating: {
+        "@type": "Rating",
+        ratingValue: r.rating,
+        bestRating: "5",
+        worstRating: "1",
+      },
+    }));
+  }
+
+  // Breadcrumb JSON-LD
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: `${SITE_URL}/${paramLocale}` },
+      { "@type": "ListItem", position: 2, name: "Shop", item: `${SITE_URL}/${paramLocale}/shop` },
+      { "@type": "ListItem", position: 3, name: product.category, item: `${SITE_URL}/${paramLocale}/shop?category=${product.category}` },
+      { "@type": "ListItem", position: 4, name: product.name, item: productUrl },
+    ],
   };
 
   return (
@@ -147,6 +259,10 @@ export default async function ProductPage({ params }: Props) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
 
       <div className="pt-20 lg:pt-24">
