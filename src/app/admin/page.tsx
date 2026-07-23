@@ -1252,6 +1252,14 @@ function ProductForm({
   const [sizesStr, setSizesStr] = useState(product ? (JSON.parse(product.sizes || "[]") as string[]).join(", ") : "7, 8, 9, 10, 11, 12");
   const [colorsStr, setColorsStr] = useState(product ? (JSON.parse(product.colors || "[]") as string[]).join(", ") : "");
   const [imageUrl, setImageUrl] = useState(product?.imageUrl || "");
+  const [extraImages, setExtraImages] = useState<string[]>(() => {
+    try {
+      const parsed = JSON.parse(product?.images || "[]") as string[];
+      // Filter out the main imageUrl to avoid duplication
+      return parsed.filter(img => img && img !== product?.imageUrl);
+    } catch { return []; }
+  });
+  const [newImageUrl, setNewImageUrl] = useState("");
   const [stock, setStock] = useState(product?.stock?.toString() || "0");
   const [featured, setFeatured] = useState(product?.featured || false);
   const [active, setActive] = useState(product?.active !== false);
@@ -1288,7 +1296,7 @@ function ProductForm({
       comparePrice: comparePrice ? parseFloat(comparePrice) : null,
       category, brand, sizes, colors,
       imageUrl,
-      images: imageUrl ? [imageUrl] : [],
+      images: [imageUrl, ...extraImages].filter(Boolean),
       stock: parseInt(stock) || 0,
       featured, active,
       material, sku, tags,
@@ -1585,9 +1593,143 @@ function ProductForm({
             <input type="text" value={colorsStr} onChange={(e) => setColorsStr(e.target.value)} placeholder="Black, White, Red" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition" />
           </div>
           <div className="sm:col-span-2">
-            <label className="block text-sm font-medium mb-1.5">Image URL</label>
-            <input type="url" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://example.com/shoe.jpg" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition" />
-            {imageUrl && <div className="mt-3 w-24 h-24 bg-gray-100 rounded-xl overflow-hidden"><img src={imageUrl} alt="Preview" className="w-full h-full object-cover" /></div>}
+            <label className="block text-sm font-medium mb-1.5">
+              Main Image URL <span className="text-xs text-gray-500 font-normal">(shown in cards &amp; as cover)</span>
+            </label>
+            <input
+              type="url"
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+              placeholder="https://example.com/shoe.jpg"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
+            />
+            {imageUrl && (
+              <div className="mt-3 relative w-24 h-24 bg-gray-100 rounded-xl overflow-hidden group">
+                <img src={imageUrl} alt="Main preview" className="w-full h-full object-cover" />
+                <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-gray-900 text-white text-[9px] font-bold rounded uppercase tracking-wide">Main</div>
+              </div>
+            )}
+          </div>
+
+          <div className="sm:col-span-2">
+            <label className="block text-sm font-medium mb-1.5">
+              Additional Images <span className="text-xs text-gray-500 font-normal">(gallery thumbnails)</span>
+            </label>
+
+            {/* Add new image input */}
+            <div className="flex gap-2">
+              <input
+                type="url"
+                value={newImageUrl}
+                onChange={(e) => setNewImageUrl(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    const url = newImageUrl.trim();
+                    if (url && !extraImages.includes(url) && url !== imageUrl) {
+                      setExtraImages([...extraImages, url]);
+                      setNewImageUrl("");
+                    }
+                  }
+                }}
+                placeholder="https://example.com/shoe-side.jpg  (press Enter or click Add)"
+                className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  const url = newImageUrl.trim();
+                  if (url && !extraImages.includes(url) && url !== imageUrl) {
+                    setExtraImages([...extraImages, url]);
+                    setNewImageUrl("");
+                  }
+                }}
+                className="px-5 py-3 bg-gray-900 text-white rounded-xl text-sm font-semibold hover:bg-gray-800 transition flex-shrink-0"
+              >
+                Add
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mt-1.5">
+              Add multiple photos to create a gallery. Customers can zoom, swipe, and view fullscreen.
+            </p>
+
+            {/* Extra images grid */}
+            {extraImages.length > 0 && (
+              <div className="mt-3 grid grid-cols-4 sm:grid-cols-6 gap-2">
+                {extraImages.map((img, i) => (
+                  <div key={i} className="relative aspect-square bg-gray-100 rounded-xl overflow-hidden group">
+                    <img src={img} alt={`Extra ${i + 1}`} className="w-full h-full object-cover" />
+                    <div className="absolute top-1 left-1 w-5 h-5 bg-black/60 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                      {i + 2}
+                    </div>
+
+                    {/* Move up */}
+                    {i > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const arr = [...extraImages];
+                          [arr[i], arr[i - 1]] = [arr[i - 1], arr[i]];
+                          setExtraImages(arr);
+                        }}
+                        className="absolute bottom-1 left-1 w-6 h-6 bg-white/90 text-gray-700 rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition shadow-lg hover:bg-white"
+                        title="Move earlier"
+                      >
+                        &larr;
+                      </button>
+                    )}
+
+                    {/* Move down */}
+                    {i < extraImages.length - 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const arr = [...extraImages];
+                          [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]];
+                          setExtraImages(arr);
+                        }}
+                        className="absolute bottom-1 left-8 w-6 h-6 bg-white/90 text-gray-700 rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition shadow-lg hover:bg-white"
+                        title="Move later"
+                      >
+                        &rarr;
+                      </button>
+                    )}
+
+                    {/* Remove */}
+                    <button
+                      type="button"
+                      onClick={() => setExtraImages(extraImages.filter((_, idx) => idx !== i))}
+                      className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold opacity-0 group-hover:opacity-100 transition shadow-lg hover:bg-red-600"
+                      title="Remove"
+                    >
+                      &times;
+                    </button>
+
+                    {/* Set as main */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const oldMain = imageUrl;
+                        setImageUrl(img);
+                        const newExtras = extraImages.filter((_, idx) => idx !== i);
+                        if (oldMain) newExtras.unshift(oldMain);
+                        setExtraImages(newExtras);
+                      }}
+                      className="absolute bottom-1 right-1 px-2 py-0.5 bg-gray-900 text-white text-[9px] font-bold rounded uppercase tracking-wide opacity-0 group-hover:opacity-100 transition hover:bg-gray-800"
+                      title="Set as main image"
+                    >
+                      Main
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {(imageUrl || extraImages.length > 0) && (
+              <div className="mt-2 text-xs text-gray-500">
+                Total: <span className="font-semibold text-gray-700">{(imageUrl ? 1 : 0) + extraImages.length}</span> image{(imageUrl ? 1 : 0) + extraImages.length !== 1 ? "s" : ""}
+              </div>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium mb-1.5">Stock</label>
