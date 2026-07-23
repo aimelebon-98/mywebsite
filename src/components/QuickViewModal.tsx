@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -9,6 +9,7 @@ import { useCart } from "@/lib/cart-context";
 import { useWishlist } from "@/lib/wishlist-context";
 import ProductImage from "./ProductImage";
 import { useTranslations, useLocale } from "next-intl";
+import { getProductName, getProductShortDescription } from "@/lib/product-i18n";
 
 interface QuickViewModalProps {
   product: Product;
@@ -23,6 +24,9 @@ export default function QuickViewModal({ product, open, onClose }: QuickViewModa
   const { addItem } = useCart();
   const { isWished, toggle } = useWishlist();
   const wished = isWished(product.id);
+
+  const displayName = getProductName(product, locale);
+  const displayDescription = getProductShortDescription(product, locale);
 
   const price = parseFloat(product.price);
   const comparePrice = product.comparePrice ? parseFloat(product.comparePrice) : null;
@@ -73,7 +77,7 @@ export default function QuickViewModal({ product, open, onClose }: QuickViewModa
   const handleAddToCart = () => {
     addItem({
       id: product.id,
-      name: product.name,
+      name: displayName,
       price,
       imageUrl: product.imageUrl,
       size: selectedSize,
@@ -87,7 +91,7 @@ export default function QuickViewModal({ product, open, onClose }: QuickViewModa
   const handleBuyNow = () => {
     addItem({
       id: product.id,
-      name: product.name,
+      name: displayName,
       price,
       imageUrl: product.imageUrl,
       size: selectedSize,
@@ -99,15 +103,12 @@ export default function QuickViewModal({ product, open, onClose }: QuickViewModa
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4">
-      {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in"
         onClick={onClose}
       />
 
-      {/* Modal */}
       <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-hidden flex flex-col sm:flex-row animate-fade-in-up">
-        {/* Close button */}
         <button
           onClick={onClose}
           aria-label="Close"
@@ -116,15 +117,13 @@ export default function QuickViewModal({ product, open, onClose }: QuickViewModa
           <X className="w-5 h-5 text-gray-700" />
         </button>
 
-        {/* Image Side */}
         <div className="relative w-full sm:w-1/2 bg-gray-100 aspect-square sm:aspect-auto sm:h-auto flex-shrink-0">
           <ProductImage
             src={product.imageUrl}
-            alt={product.name}
+            alt={displayName}
             className="w-full h-full object-cover"
           />
 
-          {/* Badges */}
           <div className="absolute top-3 left-3 flex flex-col gap-1.5">
             {discount > 0 && (
               <span className="px-2.5 py-1 bg-red-500 text-white text-[10px] font-bold rounded-full shadow-sm">
@@ -139,16 +138,14 @@ export default function QuickViewModal({ product, open, onClose }: QuickViewModa
           </div>
         </div>
 
-        {/* Details Side */}
         <div className="w-full sm:w-1/2 p-5 sm:p-6 overflow-y-auto flex flex-col">
           <p className="text-[10px] text-gray-400 font-medium tracking-wide uppercase mb-1">
             {product.brand || product.category}
           </p>
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight mb-2">
-            {product.name}
+            {displayName}
           </h2>
 
-          {/* Rating */}
           <div className="flex items-center gap-1.5 mb-3">
             <div className="flex items-center">
               {[1,2,3,4,5].map(i => (
@@ -161,7 +158,6 @@ export default function QuickViewModal({ product, open, onClose }: QuickViewModa
             <span className="text-xs text-gray-500">({reviewCount} {reviewCount === 1 ? t("review") : t("reviews")})</span>
           </div>
 
-          {/* Price */}
           <div className="flex items-baseline gap-2 mb-4">
             <span className="text-2xl font-bold text-gray-900">${price.toFixed(2)}</span>
             {comparePrice && (
@@ -172,14 +168,12 @@ export default function QuickViewModal({ product, open, onClose }: QuickViewModa
             )}
           </div>
 
-          {/* Description */}
-          {product.description && (
+          {displayDescription && (
             <p className="text-sm text-gray-600 line-clamp-3 mb-4">
-              {product.description}
+              {displayDescription}
             </p>
           )}
 
-          {/* Colors */}
           {colors.length > 0 && (
             <div className="mb-4">
               <p className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
@@ -206,7 +200,6 @@ export default function QuickViewModal({ product, open, onClose }: QuickViewModa
             </div>
           )}
 
-          {/* Sizes */}
           {sizes.length > 0 && (
             <div className="mb-5">
               <p className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
@@ -233,7 +226,6 @@ export default function QuickViewModal({ product, open, onClose }: QuickViewModa
             </div>
           )}
 
-          {/* Actions */}
           <div className="mt-auto space-y-2">
             <div className="flex gap-2">
               <button

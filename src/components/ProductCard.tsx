@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -10,6 +10,7 @@ import { useState } from "react";
 import ProductImage from "./ProductImage";
 import QuickViewModal from "./QuickViewModal";
 import { useTranslations, useLocale } from "next-intl";
+import { getProductName } from "@/lib/product-i18n";
 
 interface ProductCardProps {
   product: Product;
@@ -19,6 +20,8 @@ interface ProductCardProps {
 export default function ProductCard({ product, badge }: ProductCardProps) {
   const t = useTranslations("product");
   const locale = useLocale();
+
+  const displayName = getProductName(product, locale);
 
   const price = parseFloat(product.price);
   const comparePrice = product.comparePrice ? parseFloat(product.comparePrice) : null;
@@ -45,7 +48,7 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
     e.stopPropagation();
     addItem({
       id: product.id,
-      name: product.name,
+      name: displayName,
       price,
       imageUrl: product.imageUrl,
       size: sizes[0] || "One Size",
@@ -61,7 +64,7 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
     e.stopPropagation();
     addItem({
       id: product.id,
-      name: product.name,
+      name: displayName,
       price,
       imageUrl: product.imageUrl,
       size: sizes[0] || "One Size",
@@ -97,14 +100,12 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
         <div className="relative overflow-hidden rounded-2xl bg-gray-100 aspect-square mb-3">
           <ProductImage
             src={product.imageUrl}
-            alt={product.name}
+            alt={displayName}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
           />
 
-          {/* Gradient overlay on hover */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-          {/* Badges */}
           <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
             {badge && (
               <span className={`px-2.5 py-1 text-white text-[10px] font-bold rounded-full shadow-sm ${
@@ -129,7 +130,6 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
             )}
           </div>
 
-          {/* Wishlist */}
           <button
             onClick={handleWishlist}
             aria-label={wished ? t("removeFromWishlist") : t("addToWishlist")}
@@ -140,7 +140,6 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
             <Heart className={`w-4 h-4 ${wished ? "fill-current" : ""}`} />
           </button>
 
-          {/* Quick View button (appears on hover) */}
           <button
             onClick={handleQuickView}
             className="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 z-10"
@@ -154,9 +153,8 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
 
         <div className="space-y-1">
           <p className="text-[10px] text-gray-400 font-medium tracking-wide">{product.brand || product.category}</p>
-          <h3 className="font-semibold text-sm text-gray-900 group-hover:text-brand-600 transition line-clamp-2 leading-tight">{product.name}</h3>
+          <h3 className="font-semibold text-sm text-gray-900 group-hover:text-brand-600 transition line-clamp-2 leading-tight">{displayName}</h3>
 
-          {/* Color swatches */}
           {colors.length > 0 && (
             <div className="flex items-center gap-1 pt-0.5">
               {colors.slice(0, 4).map((c, idx) => {
@@ -177,7 +175,6 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
             </div>
           )}
 
-          {/* Rating */}
           <div className="flex items-center gap-1">
             <div className="flex items-center">
               {[1,2,3,4,5].map(i => (
@@ -198,7 +195,6 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
           </div>
         </div>
 
-        {/* Action Buttons */}
         <div className="flex gap-2 mt-2.5">
           <button
             onClick={handleBuyNow}
