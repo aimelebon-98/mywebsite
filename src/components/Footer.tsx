@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
@@ -137,8 +137,8 @@ export default function Footer() {
             <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">{t("support")}</h4>
             <ul className="space-y-3">
               <li><Link href="/faq" className="text-sm hover:text-white transition">{t("faq")}</Link></li>
-              <li><Link href="/faq" className="text-sm hover:text-white transition">{t("shippingPolicy")}</Link></li>
-              <li><Link href="/faq" className="text-sm hover:text-white transition">{t("returns")}</Link></li>
+              <li><Link href="/shipping" className="text-sm hover:text-white transition">{t("shippingPolicy")}</Link></li>
+              <li><Link href="/returns" className="text-sm hover:text-white transition">{t("returns")}</Link></li>
               <li><Link href="/faq" className="text-sm hover:text-white transition">{t("sizeGuide")}</Link></li>
               <li><Link href="/about" className="text-sm hover:text-white transition">{t("aboutUs")}</Link></li>
               <li><Link href="/contact" className="text-sm hover:text-white transition">{t("contact")}</Link></li>
@@ -159,9 +159,9 @@ export default function Footer() {
         <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm">&copy; {new Date().getFullYear()} SoleVault. {t("copyright")}</p>
           <div className="flex items-center gap-4 text-xs text-gray-500">
-            <span>Privacy Policy</span>
-            <span>Terms of Service</span>
-            <span>Cookies</span>
+            <Link href="/privacy" className="hover:text-white transition">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-white transition">Terms of Service</Link>
+            <Link href="/privacy#cookies" className="hover:text-white transition">Cookies</Link>
           </div>
         </div>
       </div>
