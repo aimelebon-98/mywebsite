@@ -1,6 +1,7 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { X, MessageCircle } from "lucide-react";
 
 export default function WhatsAppButton() {
@@ -8,6 +9,42 @@ export default function WhatsAppButton() {
   const [whatsappNumber, setWhatsappNumber] = useState("");
   const [message, setMessage] = useState("");
   const [showBubble, setShowBubble] = useState(false);
+  const pathname = usePathname();
+  const isFr = pathname?.startsWith("/fr");
+
+  const t = isFr
+    ? {
+        supportName: "SoleVault Support",
+        replies: "Repond generalement rapidement",
+        welcome: "Bonjour ! Bienvenue chez SoleVault. Comment pouvons-nous vous aider aujourd'hui ?",
+        justNow: "A l'instant",
+        placeholder: "Ecrivez un message...",
+        needHelp: "Besoin d'aide ?",
+        chatWithUs: "Discutez avec nous sur WhatsApp",
+        defaultMsg: "Bonjour ! Je suis interesse par vos chaussures. Pouvez-vous m'aider ?",
+        quick: [
+          "Bonjour ! J'ai besoin d'aide pour choisir des chaussures.",
+          "Avez-vous ceci dans ma taille ?",
+          "Quelles sont vos meilleures offres aujourd'hui ?",
+          "J'ai une question concernant ma commande.",
+        ],
+      }
+    : {
+        supportName: "SoleVault Support",
+        replies: "Usually replies instantly",
+        welcome: "Hey there! Welcome to SoleVault. How can we help you today?",
+        justNow: "Just now",
+        placeholder: "Type a message...",
+        needHelp: "Need help?",
+        chatWithUs: "Chat with us on WhatsApp",
+        defaultMsg: "Hi! I'm interested in your shoes. Can you help me?",
+        quick: [
+          "Hi! I need help choosing shoes.",
+          "Do you have this in my size?",
+          "What are your best deals today?",
+          "I have a question about my order.",
+        ],
+      };
 
   useEffect(() => {
     fetch("/api/settings")
@@ -17,26 +54,18 @@ export default function WhatsAppButton() {
       })
       .catch(() => {});
 
-    // Show bubble after 3 seconds
     const timer = setTimeout(() => setShowBubble(true), 3000);
     return () => clearTimeout(timer);
   }, []);
 
   const handleSend = () => {
     const phone = whatsappNumber.replace(/\D/g, "");
-    const text = message || "Hi! I'm interested in your shoes. Can you help me?";
+    const text = message || t.defaultMsg;
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
     window.open(url, "_blank");
     setIsOpen(false);
     setMessage("");
   };
-
-  const quickMessages = [
-    "Hi! I need help choosing shoes.",
-    "Do you have this in my size?",
-    "What are your best deals today?",
-    "I have a question about my order.",
-  ];
 
   return (
     <>
@@ -53,8 +82,8 @@ export default function WhatsAppButton() {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-white font-bold text-sm">SoleVault Support</p>
-                  <p className="text-green-100 text-xs">Usually replies instantly</p>
+                  <p className="text-white font-bold text-sm">{t.supportName}</p>
+                  <p className="text-green-100 text-xs">{t.replies}</p>
                 </div>
               </div>
               <button
@@ -70,14 +99,14 @@ export default function WhatsAppButton() {
               {/* Welcome message bubble */}
               <div className="bg-white rounded-xl rounded-tl-none px-4 py-3 shadow-sm max-w-[85%] mb-3">
                 <p className="text-sm text-gray-800">
-                  👋 Hey there! Welcome to SoleVault. How can we help you today?
+                  {t.welcome}
                 </p>
-                <p className="text-[10px] text-gray-400 mt-1 text-right">Just now</p>
+                <p className="text-[10px] text-gray-400 mt-1 text-right">{t.justNow}</p>
               </div>
 
               {/* Quick replies */}
               <div className="space-y-1.5 mt-4">
-                {quickMessages.map((msg, i) => (
+                {t.quick.map((msg, i) => (
                   <button
                     key={i}
                     onClick={() => { setMessage(msg); }}
@@ -97,7 +126,7 @@ export default function WhatsAppButton() {
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                  placeholder="Type a message..."
+                  placeholder={t.placeholder}
                   className="flex-1 px-4 py-2.5 bg-white border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition"
                 />
                 <button
@@ -126,8 +155,8 @@ export default function WhatsAppButton() {
           >
             <X className="w-3 h-3 text-gray-600" />
           </button>
-          <p className="text-sm text-gray-800 font-medium">Need help? 👋</p>
-          <p className="text-xs text-gray-500 mt-0.5">Chat with us on WhatsApp</p>
+          <p className="text-sm text-gray-800 font-medium">{t.needHelp}</p>
+          <p className="text-xs text-gray-500 mt-0.5">{t.chatWithUs}</p>
         </div>
       )}
 
@@ -143,7 +172,6 @@ export default function WhatsAppButton() {
         ) : (
           <MessageCircle className="w-6 h-6 text-white" />
         )}
-        {/* Pulse ring */}
         {!isOpen && (
           <span className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-20" />
         )}
