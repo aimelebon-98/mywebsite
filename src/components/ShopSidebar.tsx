@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Search, Star, Tag, X, ChevronDown, ChevronUp } from "lucide-react";
 import SearchAutocomplete from "@/components/SearchAutocomplete";
 import { useTranslations } from "next-intl";
@@ -18,6 +18,10 @@ interface ShopSidebarProps {
   onSale: string;
   brands: string[];
 }
+
+const PRICE_FLOOR = 0;
+const PRICE_CEILING = 1000;
+const PRICE_STEP = 10;
 
 export default function ShopSidebar(props: ShopSidebarProps) {
   const { category, search, sort, minPrice, maxPrice, brand, rating, onSale, brands } = props;
@@ -36,6 +40,22 @@ export default function ShopSidebar(props: ShopSidebarProps) {
     special: true,
   });
 
+  // Slider values (numbers)
+  const [sliderMin, setSliderMin] = useState<number>(
+    minPrice ? Math.max(PRICE_FLOOR, Number(minPrice)) : PRICE_FLOOR
+  );
+  const [sliderMax, setSliderMax] = useState<number>(
+    maxPrice ? Math.min(PRICE_CEILING, Number(maxPrice)) : PRICE_CEILING
+  );
+
+  // Keep slider in sync when URL params change
+  useEffect(() => {
+    setSliderMin(minPrice ? Math.max(PRICE_FLOOR, Number(minPrice)) : PRICE_FLOOR);
+    setSliderMax(maxPrice ? Math.min(PRICE_CEILING, Number(maxPrice)) : PRICE_CEILING);
+    setLocalMinPrice(minPrice);
+    setLocalMaxPrice(maxPrice);
+  }, [minPrice, maxPrice]);
+
   const toggleSection = (key: string) =>
     setOpenSection(prev => ({ ...prev, [key]: !prev[key] }));
 
@@ -51,12 +71,53 @@ export default function ShopSidebar(props: ShopSidebarProps) {
   const hasActiveFilters = minPrice || maxPrice || brand || rating || onSale === "true" || search;
 
   const handleApplyPrice = () => {
-    router.push(buildUrl({ minPrice: localMinPrice, maxPrice: localMaxPrice }));
+    const minVal = sliderMin > PRICE_FLOOR ? String(sliderMin) : "";
+    const maxVal = sliderMax < PRICE_CEILING ? String(sliderMax) : "";
+    router.push(buildUrl({ minPrice: minVal, maxPrice: maxVal }));
   };
 
   const clearAll = () => {
     router.push(`/${locale}/shop${category !== "all" ? `?category=${category}` : ""}`);
   };
+
+  const handleSliderMinChange = (val: number) => {
+    const clamped = Math.min(val, sliderMax - PRICE_STEP);
+    const safe = Math.max(PRICE_FLOOR, clamped);
+    setSliderMin(safe);
+    setLocalMinPrice(safe > PRICE_FLOOR ? String(safe) : "");
+  };
+
+  const handleSliderMaxChange = (val: number) => {
+    const clamped = Math.max(val, sliderMin + PRICE_STEP);
+    const safe = Math.min(PRICE_CEILING, clamped);
+    setSliderMax(safe);
+    setLocalMaxPrice(safe < PRICE_CEILING ? String(safe) : "");
+  };
+
+  const handleInputMinChange = (v: string) => {
+    setLocalMinPrice(v);
+    const num = Number(v);
+    if (!isNaN(num) && v !== "") {
+      const safe = Math.max(PRICE_FLOOR, Math.min(num, sliderMax - PRICE_STEP));
+      setSliderMin(safe);
+    } else if (v === "") {
+      setSliderMin(PRICE_FLOOR);
+    }
+  };
+
+  const handleInputMaxChange = (v: string) => {
+    setLocalMaxPrice(v);
+    const num = Number(v);
+    if (!isNaN(num) && v !== "") {
+      const safe = Math.min(PRICE_CEILING, Math.max(num, sliderMin + PRICE_STEP));
+      setSliderMax(safe);
+    } else if (v === "") {
+      setSliderMax(PRICE_CEILING);
+    }
+  };
+
+  const minPct = ((sliderMin - PRICE_FLOOR) / (PRICE_CEILING - PRICE_FLOOR)) * 100;
+  const maxPct = ((sliderMax - PRICE_FLOOR) / (PRICE_CEILING - PRICE_FLOOR)) * 100;
 
   return (
     <aside className="hidden lg:block w-64 flex-shrink-0">
@@ -92,12 +153,34 @@ export default function ShopSidebar(props: ShopSidebarProps) {
         </FilterGroup>
 
         <FilterGroup title={t("filterPriceRange")} icon={<span className="text-sm">$</span>} open={openSection.price} onToggle={() => toggleSection("price")}>
-          <div className="space-y-3">
+          <div className="space-y-4">
+            {/* Current selected range display */}
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-gray-500">Range</span>
+              <span className="font-semibold text-gray-900">
+                ${sliderMin} - ${sliderMax}{sliderMax >= PRICE_CEILING ? "+" : ""}
+              </span>
+            </div>
+
+            {/* Dual range slider */}
+            <DualRangeSlider
+              min={PRICE_FLOOR}
+              max={PRICE_CEILING}
+              step={PRICE_STEP}
+              valueMin={sliderMin}
+              valueMax={sliderMax}
+              minPct={minPct}
+              maxPct={maxPct}
+              onMinChange={handleSliderMinChange}
+              onMaxChange={handleSliderMaxChange}
+            />
+
+            {/* Min / Max inputs (still editable) */}
             <div className="flex items-center gap-2">
               <input
                 type="number"
                 value={localMinPrice}
-                onChange={(e) => setLocalMinPrice(e.target.value)}
+                onChange={(e) => handleInputMinChange(e.target.value)}
                 placeholder={t("priceMin")}
                 className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
               />
@@ -105,17 +188,19 @@ export default function ShopSidebar(props: ShopSidebarProps) {
               <input
                 type="number"
                 value={localMaxPrice}
-                onChange={(e) => setLocalMaxPrice(e.target.value)}
+                onChange={(e) => handleInputMaxChange(e.target.value)}
                 placeholder={t("priceMax")}
                 className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
               />
             </div>
+
             <button
               onClick={handleApplyPrice}
               className="w-full py-2 bg-gray-900 text-white rounded-lg text-xs font-semibold hover:bg-gray-800 transition"
             >
               {t("apply")}
             </button>
+
             <div className="grid grid-cols-1 gap-1.5">
               {[
                 { label: t("under100"), min: "", max: "100" },
@@ -207,6 +292,91 @@ export default function ShopSidebar(props: ShopSidebarProps) {
         </FilterGroup>
       </div>
     </aside>
+  );
+}
+
+function DualRangeSlider({
+  min, max, step, valueMin, valueMax, minPct, maxPct,
+  onMinChange, onMaxChange,
+}: {
+  min: number; max: number; step: number;
+  valueMin: number; valueMax: number;
+  minPct: number; maxPct: number;
+  onMinChange: (v: number) => void;
+  onMaxChange: (v: number) => void;
+}) {
+  return (
+    <div className="relative h-6 flex items-center">
+      {/* Track background */}
+      <div className="absolute inset-x-0 h-1.5 bg-gray-200 rounded-full" />
+
+      {/* Selected range fill */}
+      <div
+        className="absolute h-1.5 bg-gray-900 rounded-full"
+        style={{ left: `${minPct}%`, right: `${100 - maxPct}%` }}
+      />
+
+      {/* Min range input */}
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={valueMin}
+        onChange={(e) => onMinChange(Number(e.target.value))}
+        className="range-thumb absolute inset-0 w-full h-6 appearance-none bg-transparent pointer-events-none"
+        aria-label="Minimum price"
+      />
+
+      {/* Max range input */}
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={valueMax}
+        onChange={(e) => onMaxChange(Number(e.target.value))}
+        className="range-thumb absolute inset-0 w-full h-6 appearance-none bg-transparent pointer-events-none"
+        aria-label="Maximum price"
+      />
+
+      <style jsx>{`
+        .range-thumb::-webkit-slider-thumb {
+          pointer-events: auto;
+          -webkit-appearance: none;
+          appearance: none;
+          width: 18px;
+          height: 18px;
+          border-radius: 9999px;
+          background: #ffffff;
+          border: 2px solid #111827;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+          cursor: pointer;
+          margin-top: 0;
+        }
+        .range-thumb::-moz-range-thumb {
+          pointer-events: auto;
+          width: 18px;
+          height: 18px;
+          border-radius: 9999px;
+          background: #ffffff;
+          border: 2px solid #111827;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+          cursor: pointer;
+        }
+        .range-thumb::-webkit-slider-runnable-track {
+          background: transparent;
+          height: 6px;
+        }
+        .range-thumb::-moz-range-track {
+          background: transparent;
+          height: 6px;
+        }
+        .range-thumb:focus {
+          outline: none;
+        }
+      `}</style>
+    </div>
   );
 }
 
