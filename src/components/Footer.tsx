@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { useState } from "react";
-import { ArrowRight, Mail, Facebook, Instagram, Twitter } from "lucide-react";
+import { ArrowRight, Mail } from "lucide-react";
 
 export default function Footer() {
   const t = useTranslations("footer");
@@ -27,10 +27,30 @@ export default function Footer() {
     }
   };
 
+  const FacebookIcon = () => (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4" aria-hidden="true">
+      <path d="M13.5 21v-7.5h2.5l.4-3H13.5V8.6c0-.9.3-1.5 1.6-1.5h1.7V4.4c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3v2.4H7.6v3h2.5V21h3.4z" />
+    </svg>
+  );
+
+  const InstagramIcon = () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4" aria-hidden="true">
+      <rect x="3" y="3" width="18" height="18" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+
+  const XIcon = () => (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4" aria-hidden="true">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  );
+
   const socials = [
-    { name: "Facebook", href: "https://facebook.com", Icon: Facebook },
-    { name: "Instagram", href: "https://instagram.com", Icon: Instagram },
-    { name: "Twitter", href: "https://twitter.com", Icon: Twitter },
+    { name: "Facebook", href: "https://facebook.com", Icon: FacebookIcon },
+    { name: "Instagram", href: "https://instagram.com", Icon: InstagramIcon },
+    { name: "X (Twitter)", href: "https://twitter.com", Icon: XIcon },
   ];
 
   return (
@@ -95,7 +115,7 @@ export default function Footer() {
                   aria-label={name}
                   className="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center text-white hover:bg-white/20 transition"
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon />
                 </a>
               ))}
             </div>
