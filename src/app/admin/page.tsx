@@ -7,6 +7,11 @@ import {
   DollarSign, ShoppingBag, CheckCircle, Clock, Copy, Tag, Globe, ChevronDown, ChevronUp
 } from "lucide-react";
 import Link from "next/link";
+import { BookOpen, UsersRound, PenLine } from "lucide-react";
+import type { BlogPost } from "@/db/schema";
+import AuthorsManager from "@/components/AuthorsManager";
+import BlogPostsList from "@/components/BlogPostsList";
+import BlogPostForm from "@/components/BlogPostForm";
 
 interface Product {
   id: string;
@@ -69,7 +74,7 @@ interface StoreSettings {
   lockoutMinutes: number;
 }
 
-type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security";
+type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors";
 
 export default function AdminPage() {
   const [authStep, setAuthStep] = useState<"loading" | "access-code" | "password" | "authenticated">("loading");
@@ -92,6 +97,8 @@ export default function AdminPage() {
     lockoutMinutes: 15,
   });
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
+  const [blogRefreshKey, setBlogRefreshKey] = useState(0);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -442,6 +449,8 @@ export default function AdminPage() {
             { id: "add" as Tab, icon: Plus, label: "Add Product" },
             { id: "categories" as Tab, icon: Tag, label: "Categories" },
             { id: "reviews" as Tab, icon: MessageSquare, label: "Reviews" },
+            { id: "blog" as Tab, icon: BookOpen, label: "Blog Posts" },
+            { id: "authors" as Tab, icon: UsersRound, label: "Authors" },
             { id: "settings" as Tab, icon: Settings, label: "Store Settings" },
             { id: "security" as Tab, icon: Shield, label: "Security" },
           ].map((item) => (
@@ -480,7 +489,7 @@ export default function AdminPage() {
               <Menu className="w-5 h-5" />
             </button>
             <h1 className="text-lg font-bold capitalize">
-              {activeTab === "add" ? "Add Product" : activeTab === "edit" ? "Edit Product" : activeTab}
+              {activeTab === "add" ? "Add Product" : activeTab === "edit" ? "Edit Product" : activeTab === "blog-add" ? "New Blog Post" : activeTab === "blog-edit" ? "Edit Blog Post" : activeTab === "blog" ? "Blog Posts" : activeTab}
             </h1>
           </div>
           <div className="flex items-center gap-2">
@@ -755,6 +764,75 @@ export default function AdminPage() {
               }}
               loading={loading}
             />
+          )}
+
+          {activeTab === "blog" && (
+            <BlogPostsList
+              refreshKey={blogRefreshKey}
+              onAdd={() => setActiveTab("blog-add")}
+              onEdit={(p) => { setEditingPost(p); setActiveTab("blog-edit"); }}
+              onNotify={showNotification}
+            />
+          )}
+
+          {activeTab === "blog-add" && (
+            <BlogPostForm
+              onCancel={() => setActiveTab("blog")}
+              loading={loading}
+              onSave={async (data) => {
+                setLoading(true);
+                try {
+                  const res = await fetch("/api/blog", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data),
+                  });
+                  if (res.ok) {
+                    showNotification("Post created!");
+                    setBlogRefreshKey(k => k + 1);
+                    setActiveTab("blog");
+                  } else {
+                    showNotification("Failed to create post", "error");
+                  }
+                } catch {
+                  showNotification("Failed to create post", "error");
+                }
+                setLoading(false);
+              }}
+            />
+          )}
+
+          {activeTab === "blog-edit" && editingPost && (
+            <BlogPostForm
+              post={editingPost}
+              onCancel={() => { setEditingPost(null); setActiveTab("blog"); }}
+              loading={loading}
+              onSave={async (data) => {
+                setLoading(true);
+                try {
+                  const res = await fetch(`/api/blog/${editingPost.id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data),
+                  });
+                  if (res.ok) {
+                    showNotification("Post updated!");
+                    setBlogRefreshKey(k => k + 1);
+                    setEditingPost(null);
+                    setActiveTab("blog");
+                  } else {
+                    showNotification("Failed to update post", "error");
+                  }
+                } catch {
+                  showNotification("Failed to update post", "error");
+                }
+                setLoading(false);
+              }}
+            />
+          )}
+
+          {activeTab === "authors" && (
+            <AuthorsManager onNotify={showNotification} />
           )}
         </div>
       </div>
