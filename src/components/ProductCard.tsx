@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Heart, Star, ShoppingBag, Zap } from "lucide-react";
+import { Heart, Star, ShoppingBag, Zap, Eye } from "lucide-react";
 import type { Product } from "@/db/schema";
 import { useCart } from "@/lib/cart-context";
 import { useWishlist } from "@/lib/wishlist-context";
@@ -24,7 +24,6 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
   const discount = comparePrice ? Math.round(((comparePrice - price) / comparePrice) * 100) : 0;
   const rating = parseFloat(product.rating ?? "0");
   const reviewCount = product.reviewCount ?? 0;
-  // Display stars: use real rating if it exists, otherwise show 5 filled stars visually
   const displayStars = rating > 0 ? Math.round(rating) : 5;
   const { addItem } = useCart();
   const { isWished, toggle } = useWishlist();
@@ -76,19 +75,31 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
     toggle(product.id);
   };
 
+  // Map color names to hex for swatches
+  const colorMap: Record<string, string> = {
+    black: "#1a1a1a", white: "#ffffff", red: "#dc2626", blue: "#2563eb",
+    green: "#16a34a", yellow: "#eab308", orange: "#f97316", pink: "#ec4899",
+    purple: "#9333ea", brown: "#78350f", gray: "#6b7280", grey: "#6b7280",
+    beige: "#d4b896", navy: "#1e3a8a", cream: "#f5f5dc", tan: "#d2b48c",
+    silver: "#c0c0c0", gold: "#d4af37",
+  };
+
   return (
     <Link href={`/${locale}/product/${product.slug || product.id}`} className="group block">
       <div className="relative overflow-hidden rounded-2xl bg-gray-100 aspect-square mb-3">
         <ProductImage
           src={product.imageUrl}
           alt={product.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
         />
 
+        {/* Gradient overlay on hover */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
         {/* Badges */}
-        <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+        <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
           {badge && (
-            <span className={`px-2.5 py-1 text-white text-[10px] font-bold rounded-full ${
+            <span className={`px-2.5 py-1 text-white text-[10px] font-bold rounded-full shadow-sm ${
               badge === "HOT"     ? "bg-red-500"    :
               badge === "NEW"     ? "bg-emerald-500":
               badge === "LIMITED" ? "bg-purple-500" :
@@ -99,12 +110,12 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
             </span>
           )}
           {!badge && discount > 0 && (
-            <span className="px-2.5 py-1 bg-red-500 text-white text-[10px] font-bold rounded-full">
+            <span className="px-2.5 py-1 bg-red-500 text-white text-[10px] font-bold rounded-full shadow-sm">
               -{discount}%
             </span>
           )}
           {!badge && product.featured && (
-            <span className="px-2.5 py-1 bg-gray-900 text-white text-[10px] font-bold rounded-full">
+            <span className="px-2.5 py-1 bg-gray-900 text-white text-[10px] font-bold rounded-full shadow-sm">
               {t("featured")}
             </span>
           )}
@@ -114,19 +125,48 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
         <button
           onClick={handleWishlist}
           aria-label={wished ? t("removeFromWishlist") : t("addToWishlist")}
-          className={`absolute top-3 right-3 w-9 h-9 backdrop-blur rounded-full flex items-center justify-center shadow-md transition-all hover:scale-110 active:scale-95 ${
+          className={`absolute top-3 right-3 w-9 h-9 backdrop-blur rounded-full flex items-center justify-center shadow-md transition-all hover:scale-110 active:scale-95 z-10 ${
             wished ? "bg-red-500 text-white" : "bg-white/95 text-gray-700 hover:text-red-500"
           }`}
         >
           <Heart className={`w-4 h-4 ${wished ? "fill-current" : ""}`} />
         </button>
+
+        {/* Quick View overlay (appears on hover) */}
+        <div className="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 z-10">
+          <div className="flex items-center justify-center gap-1.5 px-3 py-2 bg-white/95 backdrop-blur text-gray-900 rounded-xl text-xs font-semibold shadow-lg">
+            <Eye className="w-3.5 h-3.5" />
+            {t("quickView")}
+          </div>
+        </div>
       </div>
 
       <div className="space-y-1">
-        <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wider">{product.brand || product.category}</p>
+        <p className="text-[10px] text-gray-400 font-medium tracking-wide">{product.brand || product.category}</p>
         <h3 className="font-semibold text-sm text-gray-900 group-hover:text-brand-600 transition line-clamp-2 leading-tight">{product.name}</h3>
 
-        {/* Rating row - ALWAYS 5 filled gold stars, count shows truth */}
+        {/* Color swatches */}
+        {colors.length > 0 && (
+          <div className="flex items-center gap-1 pt-0.5">
+            {colors.slice(0, 4).map((c, idx) => {
+              const key = c.toLowerCase().trim();
+              const bg = colorMap[key] || "#d1d5db";
+              return (
+                <span
+                  key={idx}
+                  title={c}
+                  className="w-3 h-3 rounded-full border border-gray-200 shadow-sm"
+                  style={{ backgroundColor: bg }}
+                />
+              );
+            })}
+            {colors.length > 4 && (
+              <span className="text-[9px] text-gray-400 font-medium ml-0.5">+{colors.length - 4}</span>
+            )}
+          </div>
+        )}
+
+        {/* Rating */}
         <div className="flex items-center gap-1">
           <div className="flex items-center">
             {[1,2,3,4,5].map(i => (

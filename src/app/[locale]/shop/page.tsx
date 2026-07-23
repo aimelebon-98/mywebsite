@@ -6,9 +6,10 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
 import Link from "next/link";
-import { Package } from "lucide-react";
+import { Package, ChevronRight, Home } from "lucide-react";
 import ShopSidebar from "@/components/ShopSidebar";
 import ShopTopBar from "@/components/ShopTopBar";
+import ActiveFilterChips from "@/components/ActiveFilterChips";
 import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
@@ -39,6 +40,7 @@ interface Props {
 export default async function ShopPage({ params, searchParams }: Props) {
   const { locale } = await params;
   const t = await getTranslations("shop");
+  const tNav = await getTranslations("nav");
   const isFr = locale === "fr";
 
   const sp = await searchParams;
@@ -56,7 +58,6 @@ export default async function ShopPage({ params, searchParams }: Props) {
   let categoryOptions: { name: string; slug: string }[] = [{ name: t("catAll"), slug: "all" }];
 
   try {
-    // Fetch active categories with translations
     const cats = await db.select().from(categoriesTable)
       .where(eq(categoriesTable.active, true))
       .orderBy(asc(categoriesTable.sortOrder));
@@ -69,7 +70,6 @@ export default async function ShopPage({ params, searchParams }: Props) {
       })),
     ];
 
-    // Product query
     const conditions = [eq(products.active, true)];
     if (isFr) conditions.push(isNotNull(products.nameFr));
     if (category && category !== "all") conditions.push(eq(products.category, category));
@@ -104,7 +104,6 @@ export default async function ShopPage({ params, searchParams }: Props) {
     productList = await db.select().from(products)
       .where(and(...conditions)).orderBy(orderBy);
 
-    // Brands - only from products visible in current locale
     const brandCond = isFr
       ? and(eq(products.active, true), isNotNull(products.nameFr))
       : eq(products.active, true);
@@ -115,30 +114,88 @@ export default async function ShopPage({ params, searchParams }: Props) {
     // Tables might not exist yet
   }
 
+  const currentCategoryName = categoryOptions.find(c => c.slug === category)?.name || t("catAll");
+  const pageTitle = category !== "all" ? currentCategoryName : t("catAll");
+
   return (
     <main className="min-h-screen bg-white">
       <Navbar />
 
-      <div className="pt-24 lg:pt-28">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
+      {/* Page Header */}
+      <div className="pt-24 lg:pt-28 border-b border-gray-100 bg-gradient-to-b from-gray-50/50 to-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+          {/* Breadcrumb */}
+          <nav className="flex items-center gap-1.5 text-xs text-gray-500 mb-3">
+            <Link href={`/${locale}`} className="flex items-center gap-1 hover:text-gray-900 transition">
+              <Home className="w-3.5 h-3.5" />
+              {tNav("home")}
+            </Link>
+            <ChevronRight className="w-3.5 h-3.5" />
+            <Link href={`/${locale}/shop`} className="hover:text-gray-900 transition">
+              {tNav("shopAll")}
+            </Link>
+            {category !== "all" && (
+              <>
+                <ChevronRight className="w-3.5 h-3.5" />
+                <span className="text-gray-900 font-medium">{currentCategoryName}</span>
+              </>
+            )}
+          </nav>
+
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+            <div>
+              <h1 className="text-3xl lg:text-4xl font-bold tracking-tight text-gray-900">
+                {pageTitle}
+              </h1>
+              <p className="text-sm text-gray-500 mt-1.5">
+                {t("headerTagline")}
+              </p>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-gray-400">
+              <span className="hidden sm:inline">{t("premiumSelection")}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+        {/* Category Tabs - Underline style */}
+        <div className="border-b border-gray-200 mb-6 overflow-x-auto scrollbar-hide">
+          <div className="flex items-center gap-1 min-w-max">
             {categoryOptions.map((cat) => (
               <Link
                 key={cat.slug}
                 href={`/${locale}/shop?category=${cat.slug}`}
-                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition ${
+                className={`relative px-4 py-3 text-sm font-medium whitespace-nowrap transition ${
                   category === cat.slug
-                    ? "bg-gray-900 text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    ? "text-gray-900"
+                    : "text-gray-500 hover:text-gray-900"
                 }`}
               >
                 {cat.name}
+                {category === cat.slug && (
+                  <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-gray-900 rounded-t-full" />
+                )}
               </Link>
             ))}
           </div>
+        </div>
 
-          <div className="flex gap-6">
-            <ShopSidebar
+        <div className="flex gap-6">
+          <ShopSidebar
+            category={category}
+            search={search}
+            sort={sort}
+            minPrice={minPrice}
+            maxPrice={maxPrice}
+            brand={brand}
+            rating={ratingFilter}
+            onSale={onSale}
+            brands={allBrands}
+          />
+
+          <div className="flex-1 min-w-0">
+            <ShopTopBar
               category={category}
               search={search}
               sort={sort}
@@ -148,39 +205,38 @@ export default async function ShopPage({ params, searchParams }: Props) {
               rating={ratingFilter}
               onSale={onSale}
               brands={allBrands}
+              totalResults={productList.length}
             />
 
-            <div className="flex-1 min-w-0">
-              <ShopTopBar
-                category={category}
-                search={search}
-                sort={sort}
-                minPrice={minPrice}
-                maxPrice={maxPrice}
-                brand={brand}
-                rating={ratingFilter}
-                onSale={onSale}
-                brands={allBrands}
-                totalResults={productList.length}
-              />
+            <ActiveFilterChips
+              category={category}
+              search={search}
+              sort={sort}
+              minPrice={minPrice}
+              maxPrice={maxPrice}
+              brand={brand}
+              rating={ratingFilter}
+              onSale={onSale}
+            />
 
-              {productList.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
-                  {productList.map((product) => (
-                    <ProductCard key={product.id} product={product} />
-                  ))}
+            {productList.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+                {productList.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-20 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                <div className="w-20 h-20 mx-auto mb-4 bg-white rounded-full flex items-center justify-center shadow-sm">
+                  <Package className="w-10 h-10 text-gray-300" />
                 </div>
-              ) : (
-                <div className="text-center py-20">
-                  <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold mb-2">{t("noProducts")}</h3>
-                  <p className="text-gray-500 mb-6">{t("noProductsDesc")}</p>
-                  <Link href={`/${locale}/shop`} className="px-6 py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition">
-                    {t("clearAllFilters")}
-                  </Link>
-                </div>
-              )}
-            </div>
+                <h3 className="text-xl font-bold mb-2 text-gray-900">{t("noProducts")}</h3>
+                <p className="text-gray-500 mb-6 max-w-sm mx-auto">{t("noProductsDesc")}</p>
+                <Link href={`/${locale}/shop`} className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition">
+                  {t("clearAllFilters")}
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </div>

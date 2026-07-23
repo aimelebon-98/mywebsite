@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { SlidersHorizontal, ChevronDown, X, Star, Tag, Search } from "lucide-react";
+import { SlidersHorizontal, ChevronDown, X, Star, Tag, Search, LayoutGrid } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 
@@ -41,16 +41,22 @@ export default function ShopTopBar(props: ShopTopBarProps) {
   const hasActiveFilters = minPrice || maxPrice || brand || rating || onSale === "true" || search;
   const activeCount = [minPrice, maxPrice, brand, rating, onSale === "true" ? "1" : "", search].filter(Boolean).length;
 
-  const resultsLabel = totalResults === 1
-    ? t("result", { count: totalResults })
-    : t("results", { count: totalResults });
-
   return (
     <>
-      <div className="flex items-center justify-between mb-5">
-        <p className="text-sm text-gray-500">{resultsLabel}</p>
+      <div className="flex items-center justify-between mb-5 gap-3 flex-wrap">
+        <div className="flex items-baseline gap-2">
+          <p className="text-lg font-bold text-gray-900">{totalResults}</p>
+          <p className="text-sm text-gray-500">{totalResults === 1 ? t("resultLabel") : t("resultsLabel")}</p>
+        </div>
 
         <div className="flex items-center gap-2">
+          {/* View toggle - decorative for now, could hook up grid columns */}
+          <div className="hidden sm:flex items-center gap-1 p-1 bg-gray-100 rounded-xl">
+            <button className="p-1.5 bg-white rounded-lg shadow-sm" aria-label="Grid view">
+              <LayoutGrid className="w-4 h-4 text-gray-700" />
+            </button>
+          </div>
+
           <div className="relative">
             <select
               value={sort}
@@ -97,7 +103,6 @@ export default function ShopTopBar(props: ShopTopBarProps) {
             </button>
           )}
 
-          {/* Search */}
           <div>
             <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">{t("filterSearch")}</h4>
             <form onSubmit={(e) => { e.preventDefault(); router.push(buildUrl({ search: localSearch })); setMobileFiltersOpen(false); }} className="flex gap-2">
@@ -109,7 +114,6 @@ export default function ShopTopBar(props: ShopTopBarProps) {
             </form>
           </div>
 
-          {/* Price */}
           <div>
             <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">{t("filterPriceRange")}</h4>
             <div className="flex items-center gap-2 mb-2">
@@ -131,7 +135,6 @@ export default function ShopTopBar(props: ShopTopBarProps) {
             </div>
           </div>
 
-          {/* Brand */}
           <div>
             <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">{t("filterBrand")}</h4>
             <div className="relative">
@@ -143,7 +146,6 @@ export default function ShopTopBar(props: ShopTopBarProps) {
             </div>
           </div>
 
-          {/* Rating */}
           <div>
             <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">{t("filterRating")}</h4>
             <div className="flex flex-wrap gap-1.5">
@@ -161,7 +163,6 @@ export default function ShopTopBar(props: ShopTopBarProps) {
             </div>
           </div>
 
-          {/* On Sale */}
           <button
             onClick={() => { router.push(buildUrl({ onSale: onSale === "true" ? "" : "true" })); setMobileFiltersOpen(false); }}
             className={`flex items-center gap-2 w-full px-3 py-2.5 rounded-lg text-sm font-semibold transition ${
