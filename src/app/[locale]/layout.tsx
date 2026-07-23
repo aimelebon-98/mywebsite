@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { notFound } from "next/navigation";
@@ -8,6 +8,7 @@ import { WishlistProvider } from "@/lib/wishlist-context";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import MiniCartDrawer from "@/components/MiniCartDrawer";
 
+import CookieConsent from "@/components/CookieConsent";
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://solevault.com";
 
 export const metadata: Metadata = {
@@ -77,6 +78,7 @@ export default async function LocaleLayout({
             </WishlistProvider>
           </CartProvider>
         </NextIntlClientProvider>
+        <CookieConsent />
       </body>
     </html>
   );
