@@ -6,7 +6,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
 import Link from "next/link";
-import { Package, ChevronRight, Home } from "lucide-react";
+import { Package, ChevronRight, Home, Sparkles } from "lucide-react";
 import ShopSidebar from "@/components/ShopSidebar";
 import ShopTopBar from "@/components/ShopTopBar";
 import ActiveFilterChips from "@/components/ActiveFilterChips";
@@ -154,10 +154,53 @@ export default async function ShopPage({ params, searchParams }: Props) {
     <main className="min-h-screen bg-white">
       <Navbar />
 
-      <div className="pt-24 lg:pt-28 border-b border-gray-800 relative overflow-hidden bg-gradient-to-br from-black via-neutral-900 to-neutral-700">
-        <div className="absolute inset-0 opacity-30 pointer-events-none" style={{ backgroundImage: "radial-gradient(circle at 20% 30%, rgba(255,255,255,0.08) 0%, transparent 50%), radial-gradient(circle at 80% 70%, rgba(255,255,255,0.05) 0%, transparent 50%)" }} />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 relative">
-          <nav className="flex items-center gap-1.5 text-xs text-gray-400 mb-3">
+      <div className="pt-24 lg:pt-28 relative overflow-hidden bg-[#0a0a0a]">
+        {/* Layer 1: Deep gradient base */}
+        <div className="absolute inset-0 bg-gradient-to-br from-black via-neutral-900 to-neutral-800" />
+
+        {/* Layer 2: Soft radial glows (ash / white light) */}
+        <div
+          className="absolute inset-0 opacity-60 pointer-events-none"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 15% 20%, rgba(148,163,184,0.18) 0%, transparent 45%), radial-gradient(circle at 85% 80%, rgba(255,255,255,0.10) 0%, transparent 50%), radial-gradient(circle at 60% 10%, rgba(120,120,120,0.15) 0%, transparent 40%)",
+          }}
+        />
+
+        {/* Layer 3: Fine grid pattern */}
+        <div
+          className="absolute inset-0 opacity-[0.07] pointer-events-none"
+          style={{
+            backgroundImage:
+              "linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)",
+            backgroundSize: "60px 60px",
+            maskImage:
+              "radial-gradient(ellipse at center, black 40%, transparent 80%)",
+            WebkitMaskImage:
+              "radial-gradient(ellipse at center, black 40%, transparent 80%)",
+          }}
+        />
+
+        {/* Layer 4: Noise / grain texture */}
+        <div
+          className="absolute inset-0 opacity-[0.15] pointer-events-none mix-blend-overlay"
+          style={{
+            backgroundImage:
+              "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E\")",
+          }}
+        />
+
+        {/* Layer 5: Floating orbs */}
+        <div className="absolute -top-24 -left-20 w-96 h-96 rounded-full bg-white/5 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-32 right-1/4 w-[500px] h-[500px] rounded-full bg-neutral-500/10 blur-3xl pointer-events-none" />
+        <div className="absolute top-1/3 right-0 w-72 h-72 rounded-full bg-slate-400/10 blur-3xl pointer-events-none" />
+
+        {/* Layer 6: Top & bottom fade lines */}
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 relative">
+          <nav className="flex items-center gap-1.5 text-xs text-gray-400 mb-4">
             <Link href={`/${locale}`} className="flex items-center gap-1 hover:text-white transition">
               <Home className="w-3.5 h-3.5" />
               {tNav("home")}
@@ -176,10 +219,15 @@ export default async function ShopPage({ params, searchParams }: Props) {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
             <div className="lg:col-span-4">
-              <h1 className="text-3xl lg:text-4xl font-bold tracking-tight text-white">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[10px] font-semibold uppercase tracking-widest text-white/80 mb-4">
+                <Sparkles className="w-3 h-3" />
+                Premium Collection
+              </div>
+              <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight bg-gradient-to-br from-white via-gray-200 to-gray-400 bg-clip-text text-transparent drop-shadow-2xl">
                 {pageTitle}
               </h1>
-              <p className="text-sm text-gray-400 mt-1.5">
+              <div className="h-1 w-16 bg-gradient-to-r from-white to-transparent rounded-full mt-3" />
+              <p className="text-sm text-gray-400 mt-3 leading-relaxed max-w-xs">
                 {t("headerTagline")}
               </p>
             </div>
@@ -192,6 +240,9 @@ export default async function ShopPage({ params, searchParams }: Props) {
             </div>
           </div>
         </div>
+
+        {/* Bottom smooth transition to white content area */}
+        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-b from-transparent to-white/5 pointer-events-none" />
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
