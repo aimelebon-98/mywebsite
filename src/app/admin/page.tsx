@@ -103,6 +103,7 @@ export default function AdminPage() {
   const [blogRefreshKey, setBlogRefreshKey] = useState(0);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [productFilter, setProductFilter] = useState<"all" | "active" | "inactive" | "featured" | "lowStock" | "outOfStock" | "highStock">("all");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notification, setNotification] = useState("");
   const [notificationType, setNotificationType] = useState<"success" | "error">("success");
@@ -399,9 +400,16 @@ export default function AdminPage() {
   }
 
   const filteredProducts = products.filter(p =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.brand.toLowerCase().includes(searchTerm.toLowerCase())
+    p.brand.toLowerCase().includes(searchTerm.toLowerCase())) &&
+    (productFilter === "all" ||
+     (productFilter === "active" && p.active) ||
+     (productFilter === "inactive" && !p.active) ||
+     (productFilter === "featured" && p.featured) ||
+     (productFilter === "lowStock" && p.stock > 0 && p.stock < 10) ||
+     (productFilter === "outOfStock" && p.stock === 0) ||
+     (productFilter === "highStock" && p.stock >= 10))
   );
 
   const totalStock = products.reduce((sum, p) => sum + p.stock, 0);
@@ -507,20 +515,27 @@ export default function AdminPage() {
             <div className="space-y-6">
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
                 {[
-                  { label: "Total Products", value: products.length, icon: Package, color: "blue" },
-                  { label: "Active", value: activeCount, icon: CheckCircle, color: "green" },
-                  { label: "Featured", value: featuredCount, icon: Star, color: "amber" },
-                  { label: "Total Stock", value: totalStock, icon: ShoppingBag, color: "purple" },
-                  { label: "Low Stock", value: lowStockCount, icon: AlertTriangle, color: "orange" },
-                  { label: "Out of Stock", value: outOfStockCount, icon: X, color: "red" },
+                  { label: "Total Products", value: products.length, icon: Package, color: "blue",   filter: "all" as const },
+                  { label: "Active",         value: activeCount,     icon: CheckCircle, color: "green",  filter: "active" as const },
+                  { label: "Featured",       value: featuredCount,   icon: Star, color: "amber",  filter: "featured" as const },
+                  { label: "Total Stock",    value: totalStock,      icon: ShoppingBag, color: "purple", filter: "highStock" as const },
+                  { label: "Low Stock",      value: lowStockCount,   icon: AlertTriangle, color: "orange", filter: "lowStock" as const },
+                  { label: "Out of Stock",   value: outOfStockCount, icon: X, color: "red",    filter: "outOfStock" as const },
                 ].map((stat) => (
-                  <div key={stat.label} className="bg-white rounded-2xl p-5 border border-gray-100">
-                    <div className={`w-8 h-8 bg-${stat.color}-50 rounded-lg flex items-center justify-center mb-3`}>
+                  <button
+                    key={stat.label}
+                    onClick={() => { setProductFilter(stat.filter); setActiveTab("products"); }}
+                    className="text-left bg-white rounded-2xl p-5 border border-gray-100 hover:border-gray-300 hover:shadow-md transition-all cursor-pointer group"
+                  >
+                    <div className={`w-8 h-8 bg-${stat.color}-50 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
                       <stat.icon className={`w-4 h-4 text-${stat.color}-600`} />
                     </div>
                     <p className="text-2xl font-bold">{stat.value}</p>
-                    <p className="text-xs text-gray-500">{stat.label}</p>
-                  </div>
+                    <p className="text-xs text-gray-500 flex items-center gap-1">
+                      {stat.label}
+                      <span className="opacity-0 group-hover:opacity-100 transition-opacity">&rarr;</span>
+                    </p>
+                  </button>
                 ))}
               </div>
 
@@ -622,7 +637,7 @@ export default function AdminPage() {
           {activeTab === "products" && (
             <ProductsTab
               products={filteredProducts}
-              searchTerm={searchTerm}
+              productFilter={productFilter} setProductFilter={setProductFilter} searchTerm={searchTerm}
               setSearchTerm={setSearchTerm}
               onEdit={(p) => { setEditingProduct(p); setActiveTab("edit"); }}
               onDelete={handleDeleteProduct}
@@ -855,11 +870,13 @@ export default function AdminPage() {
 // PRODUCTS TAB
 // ============================================================
 function ProductsTab({
-  products, searchTerm, setSearchTerm, onEdit, onDelete, onToggleActive, onToggleFeatured, onBulkAction, onExport, onAdd, loading
+  products, searchTerm, setSearchTerm, productFilter, setProductFilter, onEdit, onDelete, onToggleActive, onToggleFeatured, onBulkAction, onExport, onAdd, loading
 }: {
   products: Product[];
   searchTerm: string;
   setSearchTerm: (s: string) => void;
+  productFilter: "all" | "active" | "inactive" | "featured" | "lowStock" | "outOfStock" | "highStock";
+  setProductFilter: (f: "all" | "active" | "inactive" | "featured" | "lowStock" | "outOfStock" | "highStock") => void;
   onEdit: (p: Product) => void;
   onDelete: (id: string) => void;
   onToggleActive: (id: string, active: boolean) => void;
@@ -892,6 +909,25 @@ function ProductsTab({
             className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
           />
         </div>
+          {productFilter !== "all" && (
+            <div className="flex items-center gap-2 mb-4 px-4 py-2.5 bg-blue-50 border border-blue-200 rounded-xl">
+              <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Filtered:</span>
+              <span className="text-sm font-medium text-blue-900">
+                {productFilter === "active" && "Active products only"}
+                {productFilter === "inactive" && "Inactive products only"}
+                {productFilter === "featured" && "Featured products only"}
+                {productFilter === "lowStock" && "Low stock (< 10 units)"}
+                {productFilter === "outOfStock" && "Out of stock"}
+                {productFilter === "highStock" && "In stock (>= 10 units)"}
+              </span>
+              <button
+                onClick={() => setProductFilter("all")}
+                className="ml-auto text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline"
+              >
+                Clear filter x
+              </button>
+            </div>
+          )}
         <div className="flex gap-2 flex-wrap">
           {selectedIds.length > 0 && (
             <>
