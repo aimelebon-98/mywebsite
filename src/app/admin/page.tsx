@@ -594,6 +594,14 @@ export default function AdminPage() {
                 </div>
               </div>
 
+              <DashboardOrderStats onOpenOrders={() => setActiveTab("orders")} />
+
+              <DashboardBlogStats
+                onAddPost={() => setActiveTab("blog-add")}
+                onOpenBlog={() => setActiveTab("blog")}
+                onOpenComments={() => setActiveTab("comments")}
+              />
+
               <div className="grid lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-6">
                   <h3 className="font-bold mb-4">Inventory Value</h3>

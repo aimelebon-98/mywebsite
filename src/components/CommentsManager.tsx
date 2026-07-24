@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import type { BlogComment, BlogPost } from "@/db/schema";
@@ -36,7 +36,7 @@ export default function CommentsManager({ onNotify }: Props) {
     setLoading(true);
     try {
       const [cRes, pRes] = await Promise.all([
-        fetch("/api/blog-comments?all=true"),
+        fetch("/api/blog-comments?all=true", { credentials: "include" }),
         fetch("/api/blog?published=false"),
       ]);
       if (cRes.ok) setComments(await cRes.json());

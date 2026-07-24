@@ -19,7 +19,7 @@ export default function DashboardBlogStats({ onAddPost, onOpenBlog, onOpenCommen
   useEffect(() => {
     Promise.all([
       fetch("/api/blog?published=false").then(r => r.ok ? r.json() : []),
-      fetch("/api/blog-comments?all=true").then(r => r.ok ? r.json() : []),
+      fetch("/api/blog-comments?all=true", { credentials: "include" }).then(r => r.ok ? r.json() : []),
     ]).then(([p, c]) => {
       setPosts(p);
       setComments(c);

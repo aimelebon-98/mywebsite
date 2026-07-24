@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import type { Order } from "@/db/schema";
@@ -13,7 +13,7 @@ export default function DashboardOrderStats({ onOpenOrders }: Props) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/orders")
+    fetch("/api/orders", { credentials: "include" })
       .then(r => r.ok ? r.json() : [])
       .then(setOrders)
       .finally(() => setLoading(false));

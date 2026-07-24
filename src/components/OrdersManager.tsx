@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import type { Order } from "@/db/schema";
@@ -95,7 +95,7 @@ export default function OrdersManager({ onNotify }: Props) {
   const handleDelete = async (order: Order) => {
     if (!confirm(`Delete order ${order.orderNumber}? This cannot be undone.`)) return;
     try {
-      const res = await fetch(`/api/orders/${order.id}`, { method: "DELETE" });
+      const res = await fetch(`/api/orders/${order.id}`, { method: "DELETE", credentials: "include" });
       if (res.ok) {
         onNotify("Order deleted", "success");
         setOrders(prev => prev.filter(o => o.id !== order.id));
