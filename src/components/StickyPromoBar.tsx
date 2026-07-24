@@ -2,12 +2,16 @@
 
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { X, Send, Check } from "lucide-react";
+import { X, Check } from "lucide-react";
 
 const DISMISS_KEY = "sv_promo_dismissed";
+const DISMISS_COUNT_KEY = "sv_promo_dismiss_count";
 const SUBSCRIBED_KEY = "sv_promo_subscribed";
 const BRAND_RED = "#CA3F2E";
 const AVATAR_URL = "https://i.ibb.co/HTrQYdfK/Aime-komlan.jpg";
+
+// Reappear schedule (in hours) - gets longer each dismissal so we don't annoy
+const REAPPEAR_HOURS = [24, 72, 168]; // 1 day, 3 days, 7 days, then permanent
 
 export default function StickyPromoBar() {
   const [visible, setVisible] = useState(false);
@@ -15,50 +19,57 @@ export default function StickyPromoBar() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const pathname = usePathname();
   const isFr = pathname?.startsWith("/fr");
+  const isAdminRoute = pathname?.includes("/admin");
 
   const t = isFr
     ? {
-        headline: "Obtenez 10% de reduction sur votre premiere commande",
+        headline: "Obtenez 10% de reduction sur votre 1ere commande",
         subline: "+ conseils de style hebdomadaires. Zero spam.",
         placeholder: "Votre email",
-        cta: "S'INSCRIRE",
-        success: "Merci ! Verifiez votre boite mail.",
-        error: "Erreur. Reessayez.",
+        cta: "S'inscrire",
+        success: "Merci !",
+        error: "Erreur",
       }
     : {
         headline: "Get 10% off your first order",
         subline: "+ weekly style tips. Zero spam.",
         placeholder: "Your email",
-        cta: "SUBSCRIBE",
-        success: "Thanks! Check your inbox.",
-        error: "Something went wrong. Try again.",
+        cta: "Subscribe",
+        success: "Thanks!",
+        error: "Error",
       };
-
-  // Hide on admin routes entirely
-  const isAdminRoute = pathname?.includes("/admin");
 
   useEffect(() => {
     if (isAdminRoute) return;
 
-    // Check dismissal/subscription state
     try {
-      const dismissed = localStorage.getItem(DISMISS_KEY);
       const subscribed = localStorage.getItem(SUBSCRIBED_KEY);
       if (subscribed) return;
+
+      const dismissed = localStorage.getItem(DISMISS_KEY);
+      const dismissCountStr = localStorage.getItem(DISMISS_COUNT_KEY);
+      const dismissCount = dismissCountStr ? parseInt(dismissCountStr) : 0;
+
       if (dismissed) {
         const dismissedAt = parseInt(dismissed);
-        // Reappear after 7 days
-        if (Date.now() - dismissedAt < 7 * 24 * 60 * 60 * 1000) return;
+        // If they dismissed 3+ times, stop showing (respect them)
+        if (dismissCount >= REAPPEAR_HOURS.length) return;
+        const waitHours = REAPPEAR_HOURS[Math.min(dismissCount, REAPPEAR_HOURS.length - 1)];
+        const waitMs = waitHours * 60 * 60 * 1000;
+        if (Date.now() - dismissedAt < waitMs) return;
       }
     } catch { /* ignore */ }
 
-    // Appear after 5 seconds
     const timer = setTimeout(() => setVisible(true), 5000);
     return () => clearTimeout(timer);
   }, [isAdminRoute]);
 
   const handleDismiss = () => {
-    try { localStorage.setItem(DISMISS_KEY, Date.now().toString()); } catch { /* ignore */ }
+    try {
+      localStorage.setItem(DISMISS_KEY, Date.now().toString());
+      const currentCount = parseInt(localStorage.getItem(DISMISS_COUNT_KEY) || "0");
+      localStorage.setItem(DISMISS_COUNT_KEY, String(currentCount + 1));
+    } catch { /* ignore */ }
     setVisible(false);
   };
 
@@ -75,7 +86,7 @@ export default function StickyPromoBar() {
       if (res.ok) {
         setStatus("success");
         try { localStorage.setItem(SUBSCRIBED_KEY, "1"); } catch { /* ignore */ }
-        setTimeout(() => setVisible(false), 3000);
+        setTimeout(() => setVisible(false), 2500);
       } else {
         setStatus("error");
         setTimeout(() => setStatus("idle"), 3000);
@@ -89,83 +100,35 @@ export default function StickyPromoBar() {
   if (isAdminRoute || !visible) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 animate-slide-up">
-      <div className="bg-gray-900 text-white shadow-2xl border-t border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
-          <div className="flex items-center gap-3 sm:gap-5">
-            {/* Avatar (hidden on very small mobile) */}
-            <div className="hidden sm:block relative flex-shrink-0">
-              <img
-                src={AVATAR_URL}
-                alt="Aime Komlon"
-                className="w-14 h-14 lg:w-16 lg:h-16 rounded-full object-cover border-2 border-white/20"
-              />
+    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 animate-slide-up px-3 w-full sm:w-auto max-w-[calc(100vw-1rem)]">
+      <div className="bg-gray-900 text-white shadow-2xl rounded-2xl border border-gray-800 overflow-hidden">
+        <div className="flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-2.5 sm:py-3">
+          {/* Avatar */}
+          <img
+            src={AVATAR_URL}
+            alt=""
+            className="w-11 h-11 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-white/20 flex-shrink-0"
+          />
+
+          {/* Text */}
+          <div className="min-w-0 flex-shrink">
+            <div className="flex items-center gap-1.5">
+              <span className="text-base leading-none" style={{ color: BRAND_RED }}>*</span>
+              <p className="text-sm font-bold leading-tight whitespace-nowrap sm:whitespace-normal truncate sm:truncate-none">
+                {t.headline}
+              </p>
             </div>
-
-            {/* Text */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-lg" style={{ color: BRAND_RED }}>*</span>
-                <p className="text-sm sm:text-base font-bold leading-tight">{t.headline}</p>
-              </div>
-              <p className="text-xs sm:text-sm text-gray-300 mt-0.5 hidden sm:block">{t.subline}</p>
-            </div>
-
-            {/* Form or Success */}
-            {status === "success" ? (
-              <div className="flex items-center gap-2 text-green-400 flex-shrink-0">
-                <Check className="w-5 h-5" />
-                <span className="text-sm font-semibold hidden sm:inline">{t.success}</span>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="flex items-center gap-2 flex-shrink-0">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={t.placeholder}
-                  required
-                  disabled={status === "loading"}
-                  className="hidden sm:block w-48 lg:w-64 px-4 py-2.5 bg-white text-gray-900 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-white/40 placeholder-gray-500 disabled:opacity-50"
-                />
-                <button
-                  type="submit"
-                  disabled={status === "loading"}
-                  className="flex items-center gap-1.5 px-4 sm:px-5 py-2.5 text-white rounded-lg text-xs sm:text-sm font-bold uppercase tracking-wide hover:opacity-90 transition disabled:opacity-50 whitespace-nowrap"
-                  style={{ backgroundColor: BRAND_RED }}
-                >
-                  {status === "loading" ? "..." : (
-                    <>
-                      <span className="hidden sm:inline">{t.cta}</span>
-                      <Send className="w-4 h-4 sm:hidden" />
-                      <span className="hidden sm:inline">
-                        <svg className="w-4 h-4 inline ml-1" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                        </svg>
-                      </span>
-                    </>
-                  )}
-                </button>
-              </form>
-            )}
-
-            {/* Close button */}
-            <button
-              onClick={handleDismiss}
-              aria-label="Close"
-              className="flex-shrink-0 w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition"
-            >
-              <X className="w-4 h-4 text-gray-400" />
-            </button>
+            <p className="text-[11px] text-gray-400 mt-0.5 hidden sm:block">{t.subline}</p>
           </div>
 
-          {status === "error" && (
-            <p className="text-xs text-red-400 mt-2 text-center sm:text-left sm:ml-24">{t.error}</p>
-          )}
-
-          {/* Mobile-only email input (below the row when small screen) */}
-          {status !== "success" && (
-            <form onSubmit={handleSubmit} className="sm:hidden mt-3">
+          {/* Form */}
+          {status === "success" ? (
+            <div className="flex items-center gap-1.5 text-green-400 flex-shrink-0 pr-1">
+              <Check className="w-4 h-4" />
+              <span className="text-xs font-semibold">{t.success}</span>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="flex items-center gap-1.5 flex-shrink-0">
               <input
                 type="email"
                 value={email}
@@ -173,11 +136,42 @@ export default function StickyPromoBar() {
                 placeholder={t.placeholder}
                 required
                 disabled={status === "loading"}
-                className="w-full px-4 py-2.5 bg-white text-gray-900 rounded-lg text-sm focus:outline-none placeholder-gray-500 disabled:opacity-50"
+                className="hidden md:block w-40 lg:w-52 px-3 py-2 bg-white text-gray-900 rounded-lg text-sm focus:outline-none placeholder-gray-400 disabled:opacity-50"
               />
+              <button
+                type="submit"
+                disabled={status === "loading"}
+                className="flex items-center gap-1 px-3 sm:px-4 py-2 text-white rounded-lg text-xs sm:text-sm font-bold hover:opacity-90 transition disabled:opacity-50 whitespace-nowrap"
+                style={{ backgroundColor: BRAND_RED }}
+              >
+                {status === "loading" ? "..." : t.cta}
+              </button>
             </form>
           )}
+
+          {/* Close */}
+          <button
+            onClick={handleDismiss}
+            aria-label="Close"
+            className="flex-shrink-0 w-6 h-6 rounded-full hover:bg-white/10 flex items-center justify-center transition -mr-1"
+          >
+            <X className="w-3.5 h-3.5 text-gray-400" />
+          </button>
         </div>
+
+        {/* Mobile-only email input */}
+        {status === "idle" && (
+          <form onSubmit={handleSubmit} className="md:hidden px-3 pb-3 -mt-1">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={t.placeholder}
+              required
+              className="w-full px-3 py-2 bg-white text-gray-900 rounded-lg text-sm focus:outline-none placeholder-gray-400"
+            />
+          </form>
+        )}
       </div>
     </div>
   );
