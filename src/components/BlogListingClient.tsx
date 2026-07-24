@@ -131,28 +131,16 @@ export default function BlogListingClient({ posts, authors, locale }: Props) {
         className="relative overflow-hidden border-b border-gray-800"
         style={{ backgroundColor: "#0a0a0a" }}
       >
-        {/* Base grid pattern (always visible as background) */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)
-            `,
-            backgroundSize: `${TILE_SIZE}px ${TILE_SIZE}px`,
-          }}
-        ></div>
-
-        {/* Flipping tiles overlay */}
+        {/* Flipping tiles grid */}
         <div className="absolute inset-0 pointer-events-none" style={{ perspective: "1200px" }}>
           {tiles}
         </div>
 
-        {/* Subtle red glow at center */}
+        {/* Subtle radial glow at center for focus */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: "radial-gradient(ellipse 50% 60% at center, rgba(202, 63, 46, 0.12) 0%, transparent 70%)",
+            background: "radial-gradient(ellipse 50% 60% at center, rgba(202, 63, 46, 0.08) 0%, transparent 70%)",
           }}
         ></div>
 
@@ -205,11 +193,13 @@ export default function BlogListingClient({ posts, authors, locale }: Props) {
           }
           .tile-front {
             background: transparent;
+            border-right: 1px solid rgba(255, 255, 255, 0.06);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
           }
           .tile-back {
             transform: rotateY(180deg);
             background: linear-gradient(135deg, #CA3F2E 0%, #f97316 100%);
-            box-shadow: 0 0 25px rgba(202, 63, 46, 0.6), inset 0 0 10px rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 20px rgba(202, 63, 46, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.1);
           }
           .hero-gradient-text {
             background: linear-gradient(135deg, #ff6b5b 0%, #f97316 50%, #ff6b5b 100%);
