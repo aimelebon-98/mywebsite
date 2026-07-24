@@ -1,13 +1,20 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { blogComments } from "@/db/schema";
 import { eq, and, desc, asc } from "drizzle-orm";
+import { requireAdmin, verifyAdmin } from "@/lib/admin-auth";
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const postId = searchParams.get("postId");
     const includeUnapproved = searchParams.get("all") === "true";
+
+    // Admin-only if requesting unapproved (moderation view)
+    if (includeUnapproved) {
+      const isAdmin = await verifyAdmin();
+      if (!isAdmin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     if (!postId && !includeUnapproved) {
       return NextResponse.json({ error: "postId required" }, { status: 400 });

@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { blogPosts } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { generateSlug } from "@/lib/slug";
+import { requireAdmin } from "@/lib/admin-auth";
 
 function calcReadTime(content: string): number {
   const words = content.replace(/<[^>]*>/g, "").split(/\s+/).filter(Boolean).length;
@@ -43,6 +44,8 @@ export async function GET(request: NextRequest, { params }: Params) {
 }
 
 export async function PUT(request: NextRequest, { params }: Params) {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
   try {
     const { slug: idOrSlug } = await params;
     const body = await request.json();
@@ -98,6 +101,8 @@ export async function PUT(request: NextRequest, { params }: Params) {
 }
 
 export async function DELETE(request: NextRequest, { params }: Params) {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
   try {
     const { slug: idOrSlug } = await params;
     const result = await db.delete(blogPosts).where(eq(blogPosts.id, idOrSlug)).returning();

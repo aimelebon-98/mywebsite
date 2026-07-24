@@ -2,12 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { blogComments } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { requireAdmin } from "@/lib/admin-auth";
 
 interface Params {
   params: Promise<{ id: string }>;
 }
 
 export async function PUT(request: NextRequest, { params }: Params) {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
   try {
     const { id } = await params;
     const body = await request.json();
@@ -26,6 +29,8 @@ export async function PUT(request: NextRequest, { params }: Params) {
 }
 
 export async function DELETE(request: NextRequest, { params }: Params) {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
   try {
     const { id } = await params;
     // Also delete any replies (children)

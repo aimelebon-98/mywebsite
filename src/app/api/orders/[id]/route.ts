@@ -2,15 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { orders } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { requireAdmin } from "@/lib/admin-auth";
 
 interface Params {
   params: Promise<{ id: string }>;
 }
 
 export async function GET(request: NextRequest, { params }: Params) {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
+
   try {
     const { id } = await params;
-    // Support lookup by ID or order number
     let result = await db.select().from(orders).where(eq(orders.orderNumber, id));
     if (result.length === 0) {
       try {
@@ -26,6 +29,9 @@ export async function GET(request: NextRequest, { params }: Params) {
 }
 
 export async function PUT(request: NextRequest, { params }: Params) {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
+
   try {
     const { id } = await params;
     const body = await request.json();
@@ -33,7 +39,6 @@ export async function PUT(request: NextRequest, { params }: Params) {
 
     if (body.status !== undefined) {
       updates.status = String(body.status);
-      // Auto-set shipped/delivered timestamps
       if (body.status === "shipped") updates.shippedAt = new Date();
       if (body.status === "delivered") updates.deliveredAt = new Date();
     }
@@ -57,6 +62,9 @@ export async function PUT(request: NextRequest, { params }: Params) {
 }
 
 export async function DELETE(request: NextRequest, { params }: Params) {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
+
   try {
     const { id } = await params;
     const result = await db.delete(orders).where(eq(orders.id, id)).returning();

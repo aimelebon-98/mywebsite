@@ -1,8 +1,9 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { authors } from "@/db/schema";
 import { eq, asc, desc } from "drizzle-orm";
 import { generateSlug } from "@/lib/slug";
+import { requireAdmin } from "@/lib/admin-auth";
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,6 +25,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
   try {
     const body = await request.json();
     const {

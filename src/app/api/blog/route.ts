@@ -1,8 +1,9 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { blogPosts } from "@/db/schema";
 import { eq, desc, and, ilike, or, isNotNull } from "drizzle-orm";
 import { generateSlug } from "@/lib/slug";
+import { requireAdmin } from "@/lib/admin-auth";
 
 function calcReadTime(content: string): number {
   const words = content.replace(/<[^>]*>/g, "").split(/\s+/).filter(Boolean).length;
@@ -66,6 +67,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
   try {
     const body = await request.json();
     const {

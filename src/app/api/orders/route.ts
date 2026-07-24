@@ -2,8 +2,8 @@
 import { db } from "@/db";
 import { orders } from "@/db/schema";
 import { eq, desc, and, or, ilike, sql } from "drizzle-orm";
+import { requireAdmin } from "@/lib/admin-auth";
 
-// Generate order number like SV-2026-0001
 async function generateOrderNumber(): Promise<string> {
   const year = new Date().getFullYear();
   const prefix = `SV-${year}-`;
@@ -15,7 +15,11 @@ async function generateOrderNumber(): Promise<string> {
   return `${prefix}${String(count).padStart(4, "0")}`;
 }
 
+// ADMIN ONLY - lists all orders
 export async function GET(request: NextRequest) {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
+
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
@@ -50,6 +54,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// PUBLIC - customers submit checkout
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -90,7 +95,11 @@ export async function POST(request: NextRequest) {
       ipAddress: ip,
     }).returning();
 
-    return NextResponse.json({ success: true, order: result[0] }, { status: 201 });
+    // Return only the order number to the client (not full customer data back)
+    return NextResponse.json({
+      success: true,
+      order: { orderNumber: result[0].orderNumber, id: result[0].id }
+    }, { status: 201 });
   } catch (error) {
     console.error("Error creating order:", error);
     return NextResponse.json({ error: "Failed to create order" }, { status: 500 });
