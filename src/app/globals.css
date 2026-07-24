@@ -138,80 +138,90 @@ body {
   animation: float-slow 6s ease-in-out infinite;
 }
 
-
 /* ============================================
    TIPTAP BLOG EDITOR STYLES (admin editor)
+   Using !important + ProseMirror class for reliable overrides
    ============================================ */
-.tiptap-editor {
-  color: #111827;
+.tiptap-editor.ProseMirror,
+div.tiptap-editor {
+  color: #111827 !important;
   font-size: 15px;
   line-height: 1.7;
   min-height: 300px;
 }
 
-.tiptap-editor > *:first-child { margin-top: 0; }
-.tiptap-editor > *:last-child { margin-bottom: 0; }
+.tiptap-editor > *:first-child { margin-top: 0 !important; }
+.tiptap-editor > *:last-child { margin-bottom: 0 !important; }
 
 .tiptap-editor p {
-  margin: 0.75em 0;
+  margin: 0.75em 0 !important;
+  font-size: 15px !important;
+  font-weight: 400 !important;
+  line-height: 1.7 !important;
 }
 
 .tiptap-editor h1 {
-  font-size: 1.875rem;
-  font-weight: 800;
-  line-height: 1.2;
-  margin: 1.5em 0 0.5em;
-  color: #0f172a;
+  font-size: 2rem !important;
+  font-weight: 800 !important;
+  line-height: 1.2 !important;
+  margin: 1.5em 0 0.5em !important;
+  color: #0f172a !important;
 }
 
 .tiptap-editor h2 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  line-height: 1.3;
-  margin: 1.4em 0 0.5em;
-  color: #0f172a;
+  font-size: 1.625rem !important;
+  font-weight: 700 !important;
+  line-height: 1.3 !important;
+  margin: 1.4em 0 0.5em !important;
+  color: #0f172a !important;
+  border-bottom: 2px solid #f3f4f6;
+  padding-bottom: 0.3em;
 }
 
 .tiptap-editor h3 {
-  font-size: 1.25rem;
-  font-weight: 700;
-  line-height: 1.4;
-  margin: 1.2em 0 0.4em;
-  color: #0f172a;
+  font-size: 1.3rem !important;
+  font-weight: 700 !important;
+  line-height: 1.4 !important;
+  margin: 1.2em 0 0.4em !important;
+  color: #0f172a !important;
 }
 
-.tiptap-editor ul,
+.tiptap-editor ul {
+  padding-left: 1.75rem !important;
+  margin: 0.75em 0 !important;
+  list-style-type: disc !important;
+}
+
 .tiptap-editor ol {
-  padding-left: 1.75rem;
-  margin: 0.75em 0;
+  padding-left: 1.75rem !important;
+  margin: 0.75em 0 !important;
+  list-style-type: decimal !important;
 }
-
-.tiptap-editor ul { list-style-type: disc; }
-.tiptap-editor ol { list-style-type: decimal; }
 
 .tiptap-editor li {
-  margin: 0.25em 0;
+  margin: 0.25em 0 !important;
+  display: list-item !important;
 }
 
-.tiptap-editor li > p { margin: 0; }
+.tiptap-editor li > p { margin: 0 !important; }
 
 .tiptap-editor blockquote {
-  border-left: 4px solid #CA3F2E;
-  padding: 0.5em 0 0.5em 1em;
-  margin: 1em 0;
-  color: #4b5563;
+  border-left: 4px solid #CA3F2E !important;
+  padding: 0.5em 0 0.5em 1em !important;
+  margin: 1em 0 !important;
+  color: #4b5563 !important;
   font-style: italic;
   background-color: #fef2f0;
   border-radius: 0 0.5rem 0.5rem 0;
 }
 
 .tiptap-editor pre {
-  background-color: #0f172a;
-  color: #f1f5f9;
-  padding: 1rem;
-  border-radius: 0.5rem;
+  background-color: #0f172a !important;
+  color: #f1f5f9 !important;
+  padding: 1rem !important;
+  border-radius: 0.5rem !important;
   overflow-x: auto;
-  margin: 1em 0;
+  margin: 1em 0 !important;
   font-family: ui-monospace, monospace;
   font-size: 0.875em;
 }
@@ -226,33 +236,33 @@ body {
 }
 
 .tiptap-editor pre code {
-  background: none;
-  color: inherit;
-  padding: 0;
+  background: none !important;
+  color: inherit !important;
+  padding: 0 !important;
 }
 
 .tiptap-editor hr {
-  border: none;
-  border-top: 2px solid #e5e7eb;
-  margin: 2em 0;
+  border: none !important;
+  border-top: 2px solid #e5e7eb !important;
+  margin: 2em 0 !important;
 }
 
 .tiptap-editor a {
-  color: #2563eb;
-  text-decoration: underline;
+  color: #2563eb !important;
+  text-decoration: underline !important;
 }
 
 .tiptap-editor img {
   border-radius: 0.75rem;
-  margin: 1em auto;
+  margin: 1em auto !important;
   max-width: 100%;
   height: auto;
 }
 
-.tiptap-editor strong { font-weight: 700; }
-.tiptap-editor em { font-style: italic; }
-.tiptap-editor u { text-decoration: underline; }
-.tiptap-editor s { text-decoration: line-through; }
+.tiptap-editor strong { font-weight: 700 !important; }
+.tiptap-editor em { font-style: italic !important; }
+.tiptap-editor u { text-decoration: underline !important; }
+.tiptap-editor s { text-decoration: line-through !important; }
 
 /* Placeholder */
 .tiptap-editor p.is-editor-empty:first-child::before {
@@ -265,7 +275,6 @@ body {
 
 /* ============================================
    BLOG POST CONTENT STYLES (public post view)
-   Uses the #blog-content id we set in BlogPostContent.tsx
    ============================================ */
 #blog-content {
   color: #1f2937;
@@ -277,6 +286,8 @@ body {
 
 #blog-content p {
   margin: 1em 0;
+  font-size: 1.05rem;
+  line-height: 1.75;
 }
 
 #blog-content h1 {
@@ -295,6 +306,8 @@ body {
   margin: 1.8em 0 0.7em;
   color: #0f172a;
   letter-spacing: -0.015em;
+  border-bottom: 2px solid #f3f4f6;
+  padding-bottom: 0.4em;
 }
 
 #blog-content h3 {
@@ -305,17 +318,21 @@ body {
   color: #0f172a;
 }
 
-#blog-content ul,
+#blog-content ul {
+  padding-left: 1.75rem;
+  margin: 1em 0;
+  list-style-type: disc;
+}
+
 #blog-content ol {
   padding-left: 1.75rem;
   margin: 1em 0;
+  list-style-type: decimal;
 }
-
-#blog-content ul { list-style-type: disc; }
-#blog-content ol { list-style-type: decimal; }
 
 #blog-content li {
   margin: 0.4em 0;
+  display: list-item;
 }
 
 #blog-content li > p { margin: 0.2em 0; }
