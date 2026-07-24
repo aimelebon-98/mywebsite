@@ -1,12 +1,19 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
-import type { Product, Category } from "@/db/schema";
+import type { Product } from "@/db/schema";
+
+// Minimal Category shape (works with both admin local type and schema type)
+type CategoryLike = {
+  slug: string;
+  nameEn: string;
+  active: boolean;
+};
 import { Save, Eye, EyeOff, Star, ChevronDown, Search, Globe, Image as ImageIcon, Tag, Package, Layers, DollarSign } from "lucide-react";
 
 interface Props {
   product?: Product;
-  categories: Category[];
+  categories: CategoryLike[];
   onSave: (data: Record<string, unknown>) => Promise<void>;
   loading: boolean;
   onCancel?: () => void;
