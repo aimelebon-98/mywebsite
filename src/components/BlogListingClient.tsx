@@ -15,8 +15,8 @@ interface Props {
 
 const POSTS_PER_PAGE = 9;
 const BRAND_RED = "#CA3F2E";
-const TILE_SIZE = 55;
-const FLIP_RADIUS = 100;
+const TILE_SIZE = 50;
+const FLIP_RADIUS = 90;
 
 export default function BlogListingClient({ posts, authors, locale }: Props) {
   const isFr = locale === "fr";
@@ -124,28 +124,29 @@ export default function BlogListingClient({ posts, authors, locale }: Props) {
 
   return (
     <div>
-      {/* Hero header - Interactive flipping tiles */}
+      {/* Hero header - Dark theme with visible grid tiles */}
       <section
         ref={heroRef}
         onMouseMove={handleMouseMove}
-        className="relative overflow-hidden bg-gradient-to-b from-gray-50 to-white border-b border-gray-100"
+        className="relative overflow-hidden border-b border-gray-800"
+        style={{ backgroundColor: "#0a0a0a" }}
       >
         {/* Flipping tiles grid */}
         <div className="absolute inset-0 pointer-events-none" style={{ perspective: "1200px" }}>
           {tiles}
         </div>
 
-        {/* Soft radial fade at center to keep text readable */}
+        {/* Subtle radial glow at center for focus */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: "radial-gradient(ellipse 60% 70% at center, rgba(255,255,255,0.85) 0%, transparent 70%)",
+            background: "radial-gradient(ellipse 50% 60% at center, rgba(202, 63, 46, 0.08) 0%, transparent 70%)",
           }}
         ></div>
 
-        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24 text-center pointer-events-none">
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14 text-center pointer-events-none">
           {/* Animated badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-full text-xs font-semibold text-gray-700 mb-6 shadow-sm hero-fade-in">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full text-xs font-semibold text-gray-300 mb-4 shadow-sm hero-fade-in">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: BRAND_RED }}></span>
               <span className="relative inline-flex rounded-full h-2 w-2" style={{ backgroundColor: BRAND_RED }}></span>
@@ -155,25 +156,18 @@ export default function BlogListingClient({ posts, authors, locale }: Props) {
           </div>
 
           {/* Title with gradient text */}
-          <h1 className="text-5xl lg:text-7xl font-black tracking-tight mb-5 hero-fade-in hero-delay-1">
+          <h1 className="text-4xl lg:text-6xl font-black tracking-tight mb-3 text-white hero-fade-in hero-delay-1">
             {isFr ? "Le Blog " : "The "}
             <span className="hero-gradient-text">SoleVault</span>
             {!isFr && " Blog"}
           </h1>
 
           {/* Subtitle */}
-          <p className="text-gray-600 text-lg lg:text-xl max-w-2xl mx-auto leading-relaxed hero-fade-in hero-delay-2">
+          <p className="text-gray-400 text-base lg:text-lg max-w-2xl mx-auto leading-relaxed hero-fade-in hero-delay-2">
             {isFr
               ? "Conseils de style, tests, guides d'achat et actualites du monde des sneakers premium."
               : "Style tips, reviews, buying guides, and news from the world of premium footwear."}
           </p>
-
-          {/* Decorative divider */}
-          <div className="mt-8 flex items-center justify-center gap-2 hero-fade-in hero-delay-3">
-            <div className="h-px w-12 bg-gradient-to-r from-transparent to-gray-300"></div>
-            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: BRAND_RED }}></div>
-            <div className="h-px w-12 bg-gradient-to-l from-transparent to-gray-300"></div>
-          </div>
         </div>
 
         <style jsx>{`
@@ -198,18 +192,17 @@ export default function BlogListingClient({ posts, authors, locale }: Props) {
             -webkit-backface-visibility: hidden;
           }
           .tile-front {
-            background: rgba(255, 255, 255, 0.4);
-            border: 1px solid rgba(0, 0, 0, 0.08);
-            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+            background: transparent;
+            border-right: 1px solid rgba(255, 255, 255, 0.06);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
           }
           .tile-back {
             transform: rotateY(180deg);
             background: linear-gradient(135deg, #CA3F2E 0%, #f97316 100%);
-            border: 1px solid rgba(202, 63, 46, 0.4);
-            box-shadow: 0 4px 12px rgba(202, 63, 46, 0.25);
+            box-shadow: 0 0 20px rgba(202, 63, 46, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.1);
           }
           .hero-gradient-text {
-            background: linear-gradient(135deg, #CA3F2E 0%, #f97316 50%, #CA3F2E 100%);
+            background: linear-gradient(135deg, #ff6b5b 0%, #f97316 50%, #ff6b5b 100%);
             background-size: 200% auto;
             -webkit-background-clip: text;
             background-clip: text;
@@ -226,7 +219,6 @@ export default function BlogListingClient({ posts, authors, locale }: Props) {
           }
           .hero-delay-1 { animation-delay: 0.15s; }
           .hero-delay-2 { animation-delay: 0.3s; }
-          .hero-delay-3 { animation-delay: 0.45s; }
           @keyframes fadeInUp {
             to {
               opacity: 1;
@@ -306,7 +298,7 @@ export default function BlogListingClient({ posts, authors, locale }: Props) {
       )}
 
       {/* Search + Filters */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         <div className="flex flex-col md:flex-row gap-3 mb-8">
           <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
