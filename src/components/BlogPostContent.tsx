@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
@@ -308,7 +308,7 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
                     </h3>
                     <ShareIcons />
                   </div>
-                  <div className="w-full h-0.5 bg-gray-900" />
+                  <div className="w-full h-0.5" style={{ backgroundColor: "#CA3F2E" }} />
                   <nav className="px-5 py-4 max-h-[60vh] overflow-y-auto">
                     <ul className="space-y-2.5">
                       {toc.map(item => (
@@ -321,8 +321,8 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
                                 : "text-gray-600 hover:text-gray-900"
                             }`}
                           >
-                            <span className={`flex-shrink-0 w-2 h-2 mt-1.5 rounded-sm transition ${
-                              activeId === item.id ? "bg-gray-900" : "bg-gray-400 group-hover:bg-gray-900"
+                            <span style={activeId === item.id ? { backgroundColor: "#CA3F2E" } : undefined} className={`flex-shrink-0 w-2 h-2 mt-1.5 rounded-sm transition ${
+                              activeId === item.id ? "" : "bg-gray-400 group-hover:opacity-100 opacity-70"
                             }`} />
                             <span className="leading-snug">{item.text}</span>
                           </a>
@@ -334,9 +334,9 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
               )}
 
               {/* Promotional CTA card */}
-              <div className="relative bg-gradient-to-br from-gray-900 to-black rounded-2xl p-6 text-white overflow-hidden">
+              <div className="relative rounded-2xl p-6 text-white overflow-hidden" style={{ background: "linear-gradient(135deg, #CA3F2E 0%, #8B2A1E 100%)" }}>
                 {/* Decorative badge */}
-                <div className="absolute -top-1 -right-1 w-24 h-24 bg-amber-400 rounded-full blur-2xl opacity-30 pointer-events-none" />
+                <div className="absolute -top-1 -right-1 w-24 h-24 bg-white rounded-full blur-2xl opacity-20 pointer-events-none" />
 
                 <div className="relative">
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/10 backdrop-blur rounded-full text-[10px] font-bold uppercase tracking-wider mb-3">
@@ -346,7 +346,7 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
                   <h3 className="text-lg font-bold leading-tight mb-2">
                     {isFr ? "Trouvez votre prochaine paire" : "Find Your Next Pair"}
                   </h3>
-                  <p className="text-sm text-gray-300 mb-4 leading-relaxed">
+                  <p className="text-sm text-white/90 mb-4 leading-relaxed">
                     {isFr
                       ? "Decouvrez notre selection de chaussures premium. Livraison gratuite pour les commandes de plus de 100$."
                       : "Discover our premium footwear selection. Free shipping on orders over $100."}

@@ -4,8 +4,8 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import type { BlogPost, Author } from "@/db/schema";
-import { BLOG_CATEGORIES, getCategoryLabel, getCategoryColor, formatDate } from "@/lib/blog";
-import { Search, Clock, Star, ArrowRight, User } from "lucide-react";
+import { BLOG_CATEGORIES, getCategoryLabel, formatDate } from "@/lib/blog";
+import { Search, Clock, Star, ArrowRight, Calendar } from "lucide-react";
 
 interface Props {
   posts: BlogPost[];
@@ -14,6 +14,7 @@ interface Props {
 }
 
 const POSTS_PER_PAGE = 9;
+const BRAND_RED = "#CA3F2E";
 
 export default function BlogListingClient({ posts, authors, locale }: Props) {
   const isFr = locale === "fr";
@@ -46,7 +47,7 @@ export default function BlogListingClient({ posts, authors, locale }: Props) {
       <section className="bg-gradient-to-b from-gray-50 to-white py-12 lg:py-16 border-b border-gray-100">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 rounded-full text-xs font-semibold text-gray-700 mb-4">
-            <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: BRAND_RED }}></span>
             {isFr ? "Nouveau contenu chaque semaine" : "New content every week"}
           </div>
           <h1 className="text-4xl lg:text-5xl font-bold tracking-tight mb-3">
@@ -82,17 +83,18 @@ export default function BlogListingClient({ posts, authors, locale }: Props) {
                   <Star className="w-16 h-16 text-gray-200" />
                 </div>
               )}
-              <div className="absolute top-4 left-4 flex items-center gap-1.5 px-3 py-1.5 bg-amber-400 text-amber-900 text-xs font-bold rounded-full shadow-lg">
-                <Star className="w-3.5 h-3.5 fill-amber-900" />
+              <div className="absolute top-4 left-4 flex items-center gap-1.5 px-3 py-1.5 text-white text-xs font-bold rounded-full shadow-lg" style={{ backgroundColor: BRAND_RED }}>
+                <Star className="w-3.5 h-3.5 fill-white" />
                 {isFr ? "A LA UNE" : "FEATURED"}
               </div>
             </div>
 
             <div className="flex flex-col justify-center">
               <div className="flex items-center gap-2 mb-3">
-                <span className={`text-xs font-bold px-3 py-1 rounded-full ${getCategoryColor(featured.category)}`}>
+                <span className="text-xs font-bold uppercase tracking-wider" style={{ color: BRAND_RED }}>
                   {getCategoryLabel(featured.category, isFr)}
                 </span>
+                <span className="text-gray-300">/</span>
                 <span className="text-xs text-gray-500 flex items-center gap-1">
                   <Clock className="w-3 h-3" /> {featured.readTime} min
                 </span>
@@ -117,7 +119,10 @@ export default function BlogListingClient({ posts, authors, locale }: Props) {
                 </div>
               )}
 
-              <div className="inline-flex items-center gap-1 text-sm font-semibold text-gray-900 group-hover:gap-2 transition-all">
+              <div
+                className="inline-flex items-center gap-1 text-sm font-semibold group-hover:gap-2 transition-all"
+                style={{ color: BRAND_RED }}
+              >
                 {isFr ? "Lire l'article" : "Read article"} <ArrowRight className="w-4 h-4" />
               </div>
             </div>
@@ -135,15 +140,21 @@ export default function BlogListingClient({ posts, authors, locale }: Props) {
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
               placeholder={isFr ? "Rechercher un article..." : "Search articles..."}
-              className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
+              className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 transition"
+              style={{ boxShadow: "none" }}
+              onFocus={(e) => e.currentTarget.style.borderColor = BRAND_RED}
+              onBlur={(e) => e.currentTarget.style.borderColor = ""}
             />
           </div>
           <div className="flex gap-2 overflow-x-auto md:overflow-visible pb-1 md:pb-0">
             <button
               onClick={() => { setCategory("all"); setPage(1); }}
               className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition ${
-                category === "all" ? "bg-gray-900 text-white" : "bg-white border border-gray-200 hover:bg-gray-50"
+                category === "all"
+                  ? "text-white"
+                  : "bg-white border border-gray-200 hover:bg-gray-50"
               }`}
+              style={category === "all" ? { backgroundColor: BRAND_RED } : undefined}
             >
               {isFr ? "Tout" : "All"}
             </button>
@@ -152,8 +163,11 @@ export default function BlogListingClient({ posts, authors, locale }: Props) {
                 key={c.slug}
                 onClick={() => { setCategory(c.slug); setPage(1); }}
                 className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition ${
-                  category === c.slug ? "bg-gray-900 text-white" : "bg-white border border-gray-200 hover:bg-gray-50"
+                  category === c.slug
+                    ? "text-white"
+                    : "bg-white border border-gray-200 hover:bg-gray-50"
                 }`}
+                style={category === c.slug ? { backgroundColor: BRAND_RED } : undefined}
               >
                 {isFr ? c.nameFr : c.name}
               </button>
@@ -162,7 +176,7 @@ export default function BlogListingClient({ posts, authors, locale }: Props) {
         </div>
       </section>
 
-      {/* Posts grid */}
+      {/* Posts grid - Neil Patel style */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
         {paginated.length === 0 ? (
           <div className="text-center py-20">
@@ -174,7 +188,8 @@ export default function BlogListingClient({ posts, authors, locale }: Props) {
             </p>
             <button
               onClick={() => { setSearch(""); setCategory("all"); }}
-              className="text-sm text-gray-900 font-semibold underline"
+              className="text-sm font-semibold underline"
+              style={{ color: BRAND_RED }}
             >
               {isFr ? "Effacer les filtres" : "Clear filters"}
             </button>
@@ -190,6 +205,7 @@ export default function BlogListingClient({ posts, authors, locale }: Props) {
                     href={`/${locale}/blog/${p.slug}`}
                     className="group flex flex-col bg-white rounded-2xl overflow-hidden border border-gray-100 hover:border-gray-200 hover:shadow-lg transition-all"
                   >
+                    {/* Cover image */}
                     <div className="relative aspect-[16/10] bg-gray-100 overflow-hidden">
                       {p.coverImage ? (
                         <Image
@@ -204,34 +220,52 @@ export default function BlogListingClient({ posts, authors, locale }: Props) {
                           <span className="text-4xl font-bold text-gray-200">SV</span>
                         </div>
                       )}
-                      <div className="absolute top-3 left-3">
-                        <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${getCategoryColor(p.category)}`}>
-                          {getCategoryLabel(p.category, isFr)}
-                        </span>
-                      </div>
                     </div>
 
                     <div className="flex-1 p-5 flex flex-col">
-                      <h3 className="font-bold text-lg leading-tight mb-2 group-hover:text-gray-700 transition line-clamp-2">
+                      {/* Category + read time (top row) */}
+                      <div className="flex items-center justify-between mb-3">
+                        <span
+                          className="text-[11px] font-bold uppercase tracking-wider"
+                          style={{ color: BRAND_RED }}
+                        >
+                          {getCategoryLabel(p.category, isFr)}
+                        </span>
+                        <span className="text-xs text-gray-500 flex items-center gap-1">
+                          <Clock className="w-3 h-3" /> {p.readTime} min
+                        </span>
+                      </div>
+
+                      {/* Title */}
+                      <h3 className="font-bold text-lg leading-snug mb-3 group-hover:text-gray-700 transition line-clamp-2">
                         {p.title}
                       </h3>
-                      <p className="text-sm text-gray-600 leading-relaxed line-clamp-3 mb-4 flex-1">
+
+                      {/* Excerpt */}
+                      <p className="text-sm text-gray-600 leading-relaxed line-clamp-3 mb-5 flex-1">
                         {p.excerpt}
                       </p>
 
-                      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                        <div className="flex items-center gap-2 min-w-0">
+                      {/* Author + date footer */}
+                      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                        <div className="flex items-center gap-2.5 min-w-0">
                           {author ? (
                             <>
-                              <img src={author.avatar} alt={author.name} className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
-                              <span className="text-xs font-medium text-gray-700 truncate">{author.name}</span>
+                              <img src={author.avatar} alt={author.name} className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
+                              <div className="min-w-0">
+                                <div className="text-xs font-semibold text-gray-900 truncate">{author.name}</div>
+                                {(isFr ? author.roleFr : author.role) && (
+                                  <div className="text-[10px] text-gray-500 truncate">{isFr ? author.roleFr : author.role}</div>
+                                )}
+                              </div>
                             </>
                           ) : (
-                            <span className="text-xs text-gray-400 flex items-center gap-1"><User className="w-3 h-3" /> SoleVault</span>
+                            <span className="text-xs text-gray-400">SoleVault</span>
                           )}
                         </div>
                         <div className="text-xs text-gray-500 flex items-center gap-1 flex-shrink-0">
-                          <Clock className="w-3 h-3" /> {p.readTime} min
+                          <Calendar className="w-3 h-3" />
+                          {formatDate(p.publishedAt, locale)}
                         </div>
                       </div>
                     </div>
@@ -255,8 +289,9 @@ export default function BlogListingClient({ posts, authors, locale }: Props) {
                     key={n}
                     onClick={() => setPage(n)}
                     className={`w-10 h-10 rounded-lg text-sm font-semibold transition ${
-                      n === page ? "bg-gray-900 text-white" : "hover:bg-gray-100"
+                      n === page ? "text-white" : "hover:bg-gray-100"
                     }`}
+                    style={n === page ? { backgroundColor: BRAND_RED } : undefined}
                   >
                     {n}
                   </button>
