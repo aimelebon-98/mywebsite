@@ -547,6 +547,8 @@ export default function AdminPage() {
         <div className="p-6">
           {activeTab === "dashboard" && (
             <div className="space-y-6">
+              <DashboardOrderStats onOpenOrders={() => setActiveTab("orders")} />
+
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
                 {[
                   { label: "Total Products", value: products.length, icon: Package, color: "blue",   filter: "all" as const },
@@ -596,8 +598,6 @@ export default function AdminPage() {
                   </div>
                 </div>
               </div>
-
-              <DashboardOrderStats onOpenOrders={() => setActiveTab("orders")} />
 
               <DashboardBlogStats
                 onAddPost={() => setActiveTab("blog-add")}
