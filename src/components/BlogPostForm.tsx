@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import type { BlogPost, Author } from "@/db/schema";
@@ -58,6 +58,7 @@ export default function BlogPostForm({ post, onSave, onCancel, loading }: Props)
   const [focusKeyphraseFr, setFocusKeyphraseFr] = useState(post?.focusKeyphraseFr || "");
 
   const [showFrench, setShowFrench] = useState(!!(post?.titleFr || post?.contentFr));
+  const [langTab, setLangTab] = useState<"en" | "fr">("en");
 
   useEffect(() => {
     fetch("/api/authors")
@@ -124,9 +125,42 @@ export default function BlogPostForm({ post, onSave, onCancel, loading }: Props)
         </div>
       </div>
 
-      {/* Basic English */}
+      {/* Bilingual tabbed section */}
       <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
-        <h3 className="font-bold text-lg">Post (English)</h3>
+        {/* Language tabs */}
+        <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+          <div className="flex gap-1 bg-gray-100 p-1 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setLangTab("en")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition ${
+                langTab === "en" ? "bg-white shadow-sm text-gray-900" : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              <span className="text-base">EN</span>
+              <span>English</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setLangTab("fr")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition ${
+                langTab === "fr" ? "bg-white shadow-sm text-gray-900" : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              <span className="text-base">FR</span>
+              <span>Francais</span>
+              {(titleFr || contentFr) && (
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500" title="French content added" />
+              )}
+            </button>
+          </div>
+          <span className="text-xs text-gray-500">
+            {langTab === "en" ? "Required" : "Optional but recommended"}
+          </span>
+        </div>
+
+        {/* ENGLISH TAB CONTENT */}
+        <div style={{ display: langTab === "en" ? "block" : "none" }} className="space-y-5">
 
         <div>
           <label className="block text-sm font-medium mb-1.5">Title *</label>
@@ -147,6 +181,49 @@ export default function BlogPostForm({ post, onSave, onCancel, loading }: Props)
           <label className="block text-sm font-medium mb-1.5">Content *</label>
           <BlogEditor value={content} onChange={setContent} placeholder="Start writing your post..." minHeight={500} />
         </div>
+        </div>
+        {/* END ENGLISH TAB */}
+
+        {/* FRENCH TAB CONTENT */}
+        <div style={{ display: langTab === "fr" ? "block" : "none" }} className="space-y-5">
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Titre (French)</label>
+            <input
+              type="text"
+              value={titleFr}
+              onChange={(e) => setTitleFr(e.target.value)}
+              placeholder="Comment porter les baskets chunky en 2026"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Resume (French)</label>
+            <textarea
+              value={excerptFr}
+              onChange={(e) => setExcerptFr(e.target.value)}
+              rows={2}
+              placeholder="Un court resume qui accroche..."
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition resize-none"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Contenu (French)</label>
+            {langTab === "fr" && (
+              <BlogEditor value={contentFr} onChange={setContentFr} placeholder="Commencez a ecrire en francais..." minHeight={500} />
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Tags (French)</label>
+            <input
+              type="text"
+              value={tagsFrStr}
+              onChange={(e) => setTagsFrStr(e.target.value)}
+              placeholder="chunky, streetwear, 2026"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+            />
+          </div>
+        </div>
+        {/* END FRENCH TAB */}
       </div>
 
       {/* Cover + meta */}
@@ -206,41 +283,6 @@ export default function BlogPostForm({ post, onSave, onCancel, loading }: Props)
         </div>
       </div>
 
-      {/* French translations (collapsible) */}
-      <div className="bg-white rounded-2xl border border-blue-100 overflow-hidden">
-        <button
-          type="button"
-          onClick={() => setShowFrench(!showFrench)}
-          className="w-full px-6 py-4 flex items-center justify-between hover:bg-blue-50/50 transition text-left"
-        >
-          <div>
-            <h3 className="font-bold text-lg text-blue-900">French Translation</h3>
-            <p className="text-xs text-blue-600 mt-0.5">Optional - only appears on /fr routes</p>
-          </div>
-          <span className="text-blue-600 text-sm font-semibold">{showFrench ? "Hide" : "Show"}</span>
-        </button>
-
-        {showFrench && (
-          <div className="p-6 space-y-5 border-t border-blue-100 bg-blue-50/20">
-            <div>
-              <label className="block text-sm font-medium mb-1.5">Titre (French)</label>
-              <input type="text" value={titleFr} onChange={(e) => setTitleFr(e.target.value)} placeholder="Comment porter les baskets chunky en 2026" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1.5">Resume (French)</label>
-              <textarea value={excerptFr} onChange={(e) => setExcerptFr(e.target.value)} rows={2} placeholder="Un court resume qui accroche..." className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition resize-none" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1.5">Contenu (French)</label>
-              <BlogEditor value={contentFr} onChange={setContentFr} placeholder="Commencez a ecrire en francais..." minHeight={500} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1.5">Tags (French)</label>
-              <input type="text" value={tagsFrStr} onChange={(e) => setTagsFrStr(e.target.value)} placeholder="chunky, streetwear, 2026" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
-            </div>
-          </div>
-        )}
-      </div>
 
       {/* SEO */}
       <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
