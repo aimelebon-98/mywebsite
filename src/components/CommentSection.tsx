@@ -290,7 +290,7 @@ export default function CommentSection({ postId }: Props) {
               required
               rows={4}
               maxLength={5000}
-              className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition resize-none"
+              className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#CA3F2E] focus:border-[#CA3F2E] transition resize-none"
             />
           </div>
 
@@ -308,7 +308,7 @@ export default function CommentSection({ postId }: Props) {
           <button
             type="submit"
             disabled={submitting || !name.trim() || !content.trim()}
-            className="flex items-center gap-2 px-5 py-2.5 text-white rounded-xl text-sm font-semibold hover:opacity-90 transition disabled:opacity-50" style={{ backgroundColor: "#CA3F2E" }}
+            className="inline-flex items-center gap-2 px-6 py-3 text-white rounded-xl text-sm font-bold uppercase tracking-wide hover:brightness-110 hover:shadow-xl transition disabled:opacity-50 shadow-lg" style={{ backgroundColor: "#CA3F2E", boxShadow: "0 4px 14px rgba(202, 63, 46, 0.4)" }}
           >
             <Send className="w-4 h-4" /> {submitting ? t.submitting : t.submit}
           </button>

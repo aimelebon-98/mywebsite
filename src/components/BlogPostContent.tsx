@@ -135,8 +135,17 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
   return (
     <>
       {/* Reading progress bar */}
-      <div className="fixed top-[88px] lg:top-[96px] left-0 right-0 h-1.5 bg-gray-200/60 z-30 shadow-sm">
-        <div className="h-full transition-all duration-100 shadow-md" style={{ width: `${progress}%`, backgroundColor: "#CA3F2E" }} />
+      <div className="fixed top-[88px] lg:top-[96px] left-0 right-0 h-2 bg-gray-100 z-30 shadow-sm">
+        <div
+          className="h-full transition-all duration-100 relative"
+          style={{ width: `${progress}%`, backgroundColor: "#CA3F2E", boxShadow: "0 0 8px rgba(202, 63, 46, 0.5)" }}
+        >
+          {progress > 5 && progress < 99 && (
+            <div className="absolute right-0 top-full mt-1 mr-1 px-2 py-0.5 text-white text-[10px] font-bold rounded-md shadow-lg" style={{ backgroundColor: "#CA3F2E" }}>
+              {Math.round(progress)}%
+            </div>
+          )}
+        </div>
       </div>
 
       <article className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
