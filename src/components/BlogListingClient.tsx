@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
@@ -367,19 +367,18 @@ export default function BlogListingClient({ posts, authors, locale }: Props) {
               {paginated.map((p) => {
                 const author = p.authorId ? authorMap.get(p.authorId) : null;
                 return (
-                  <Link
+                  <article
                     key={p.id}
-                    href={`/${locale}/blog/${p.slug}`}
-                    className="group flex flex-col bg-white rounded-2xl overflow-hidden border border-gray-100 hover:border-gray-200 hover:shadow-lg transition-all"
+                    className="group flex flex-col bg-white rounded-2xl overflow-hidden border border-gray-200 hover:border-gray-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                   >
                     {/* Cover image */}
-                    <div className="relative aspect-[16/10] bg-gray-100 overflow-hidden">
+                    <Link href={`/${locale}/blog/${p.slug}`} className="block relative aspect-[16/10] bg-gray-100 overflow-hidden">
                       {p.coverImage ? (
                         <Image
                           src={p.coverImage}
                           alt={p.title}
                           fill
-                          className="object-cover group-hover:scale-[1.05] transition-transform duration-500"
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
                           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         />
                       ) : (
@@ -387,7 +386,7 @@ export default function BlogListingClient({ posts, authors, locale }: Props) {
                           <span className="text-4xl font-bold text-gray-200">SV</span>
                         </div>
                       )}
-                    </div>
+                    </Link>
 
                     <div className="flex-1 p-5 flex flex-col">
                       {/* Category + read time (top row) */}
@@ -404,17 +403,19 @@ export default function BlogListingClient({ posts, authors, locale }: Props) {
                       </div>
 
                       {/* Title */}
-                      <h3 className="font-bold text-lg leading-snug mb-3 group-hover:text-gray-700 transition line-clamp-2">
-                        {p.title}
-                      </h3>
+                      <Link href={`/${locale}/blog/${p.slug}`}>
+                        <h3 className="font-black text-gray-900 text-lg leading-snug mb-3 group-hover:text-[#CA3F2E] transition line-clamp-2">
+                          {p.title}
+                        </h3>
+                      </Link>
 
                       {/* Excerpt */}
                       <p className="text-sm text-gray-600 leading-relaxed line-clamp-3 mb-5 flex-1">
                         {p.excerpt}
                       </p>
 
-                      {/* Author + date footer */}
-                      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                      {/* Author + date */}
+                      <div className="flex items-center justify-between pt-4 border-t border-gray-100 mb-4">
                         <div className="flex items-center gap-2.5 min-w-0">
                           {author ? (
                             <>
@@ -435,8 +436,17 @@ export default function BlogListingClient({ posts, authors, locale }: Props) {
                           {formatDate(p.publishedAt, locale)}
                         </div>
                       </div>
+
+                      {/* Read Article button */}
+                      <Link
+                        href={`/${locale}/blog/${p.slug}`}
+                        className="inline-flex items-center justify-center gap-1.5 w-full px-4 py-2.5 bg-gray-900 hover:bg-[#CA3F2E] text-white rounded-lg text-xs font-bold transition-all group/btn"
+                      >
+                        {isFr ? "Lire l'article" : "Read Article"}
+                        <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition" />
+                      </Link>
                     </div>
-                  </Link>
+                  </article>
                 );
               })}
             </div>
