@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
@@ -91,6 +91,7 @@ export default function StickyPromoBar() {
       localStorage.setItem(DISMISS_COUNT_KEY, String(currentCount + 1));
     } catch { /* ignore */ }
     setVisible(false);
+    setAllowed(false); // prevent scroll listener from re-showing it during same session
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -106,6 +107,7 @@ export default function StickyPromoBar() {
       if (res.ok) {
         setStatus("success");
         try { localStorage.setItem(SUBSCRIBED_KEY, "1"); } catch { /* ignore */ }
+        setAllowed(false); // stop scroll listener
         setTimeout(() => setVisible(false), 3500);
       } else {
         setStatus("idle");
