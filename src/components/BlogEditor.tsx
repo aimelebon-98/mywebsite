@@ -44,7 +44,7 @@ export default function BlogEditor({ value, onChange, placeholder = "Start writi
     content: value,
     editorProps: {
       attributes: {
-        class: "prose prose-gray max-w-none focus:outline-none px-5 py-4",
+        class: "tiptap-editor focus:outline-none px-5 py-4",
       },
     },
     onUpdate: ({ editor }) => {

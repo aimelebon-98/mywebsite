@@ -238,7 +238,7 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
             {/* Article body */}
             <div
               id="blog-content"
-              className="prose prose-gray prose-lg max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-h2:mt-10 prose-h2:mb-4 prose-h3:mt-6 prose-a:text-gray-900 prose-a:underline prose-img:rounded-2xl prose-blockquote:border-l-gray-900 prose-blockquote:not-italic scroll-mt-24"
+              className="max-w-none scroll-mt-24"
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
 
