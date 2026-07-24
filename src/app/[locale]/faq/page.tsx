@@ -303,44 +303,30 @@ export default function FAQPage() {
           </div>
         </section>
 
-        {/* CATEGORY CARDS */}
-        <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-          <div className="text-center mb-10">
-            <p className="text-xs font-bold uppercase tracking-widest text-[#CA3F2E] mb-2">
-              {isFr ? "Parcourir par" : "Browse by"}
-            </p>
-            <h2 className="text-2xl sm:text-3xl font-black text-gray-900">
-              {isFr ? "Choisissez une catégorie" : "Pick a Category"}
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
-            {CATEGORIES.map((c) => {
-              const Icon = c.icon;
-              const active = category === c.id;
-              return (
-                <button
-                  key={c.id}
-                  onClick={() => { setCategory(c.id); setOpenIndex(null); }}
-                  className={`group relative p-4 rounded-2xl border-2 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
-                    active
-                      ? "border-transparent bg-gradient-to-br " + c.color + " shadow-xl"
-                      : "border-gray-200 bg-white hover:border-gray-300"
-                  }`}
-                >
-                  <div className={`inline-flex items-center justify-center w-11 h-11 rounded-xl mb-2 transition-all ${
-                    active
-                      ? "bg-white/20 backdrop-blur-sm"
-                      : "bg-gradient-to-br " + c.color + " group-hover:scale-110"
-                  }`}>
-                    <Icon className={`w-5 h-5 ${active ? "text-white" : "text-white"}`} />
-                  </div>
-                  <div className={`text-xs font-bold ${active ? "text-white" : "text-gray-900"}`}>
+        {/* CATEGORY TABS */}
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 lg:pt-14">
+          <div className="border-b border-gray-200 overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-1 sm:gap-2 min-w-max">
+              {CATEGORIES.map((c) => {
+                const active = category === c.id;
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => { setCategory(c.id); setOpenIndex(null); }}
+                    className={`relative px-4 sm:px-5 py-3 text-sm font-semibold transition-colors whitespace-nowrap ${
+                      active
+                        ? "text-gray-900"
+                        : "text-gray-500 hover:text-gray-900"
+                    }`}
+                  >
                     {c.label}
-                  </div>
-                </button>
-              );
-            })}
+                    {active && (
+                      <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </section>
 
