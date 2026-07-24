@@ -298,7 +298,7 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
 
           {/* SIDEBAR */}
           <aside className="hidden lg:block">
-            <div className="sticky top-24 space-y-4">
+            <div className="sticky top-28 space-y-4">
               {/* Table of Contents card */}
               {toc.length > 1 && (
                 <div className="bg-gray-50 rounded-2xl border border-gray-200 overflow-hidden">
