@@ -242,7 +242,7 @@ export default function CommentSection({ postId }: Props) {
         <form
           id="comment-form"
           onSubmit={handleSubmit}
-          className="bg-gray-50 rounded-2xl p-5 lg:p-6 mb-8"
+          className="rounded-2xl p-5 lg:p-6 mb-8 border border-[#CA3F2E]/15" style={{ backgroundColor: "#FDF3F1" }}
         >
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-lg">{t.formTitle}</h3>
@@ -308,7 +308,7 @@ export default function CommentSection({ postId }: Props) {
           <button
             type="submit"
             disabled={submitting || !name.trim() || !content.trim()}
-            className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-xl text-sm font-semibold hover:bg-gray-800 transition disabled:opacity-50"
+            className="flex items-center gap-2 px-5 py-2.5 text-white rounded-xl text-sm font-semibold hover:opacity-90 transition disabled:opacity-50" style={{ backgroundColor: "#CA3F2E" }}
           >
             <Send className="w-4 h-4" /> {submitting ? t.submitting : t.submit}
           </button>
