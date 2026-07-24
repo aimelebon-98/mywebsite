@@ -1,8 +1,8 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { BookOpen, FileText, Star, Eye, MessageSquare, Globe, Clock, ArrowRight } from "lucide-react";
+import { BookOpen, FileText, Star, Eye, MessageSquare, Globe, ArrowRight, ExternalLink } from "lucide-react";
 import type { BlogPost, BlogComment } from "@/db/schema";
 
 interface Props {
@@ -63,14 +63,26 @@ export default function DashboardBlogStats({ onAddPost, onOpenBlog, onOpenCommen
             <p className="text-xs text-gray-500">All the blog metrics at a glance</p>
           </div>
         </div>
-        {onAddPost && (
-          <button
-            onClick={onAddPost}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white rounded-lg text-xs font-semibold hover:bg-gray-800 transition"
+        <div className="flex items-center gap-2">
+          <a
+            href="/en/blog"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg text-xs font-semibold hover:bg-gray-50 transition"
+            title="Open live blog in new tab"
           >
-            + New Post
-          </button>
-        )}
+            <ExternalLink className="w-3.5 h-3.5" />
+            View live
+          </a>
+          {onAddPost && (
+            <button
+              onClick={onAddPost}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white rounded-lg text-xs font-semibold hover:bg-gray-800 transition"
+            >
+              + New Post
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Stat grid */}

@@ -1,8 +1,8 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import type { BlogPost, Author } from "@/db/schema";
-import { Plus, Edit2, Trash2, Search, Eye, Star, FileText, CheckSquare, Square } from "lucide-react";
+import { Plus, Edit2, Trash2, Search, Eye, Star, FileText, CheckSquare, Square, ExternalLink } from "lucide-react";
 
 const CATEGORIES = [
   { slug: "all", name: "All Categories" },
@@ -284,7 +284,20 @@ export default function BlogPostsList({ onEdit, onAdd, onNotify, refreshKey }: P
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <h3 className="font-semibold text-sm">{p.title}</h3>
+                      {p.published ? (
+                        <a
+                          href={`/en/blog/${p.slug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-semibold text-sm hover:text-gray-700 hover:underline transition inline-flex items-center gap-1"
+                          title="View live post"
+                        >
+                          {p.title}
+                          <ExternalLink className="w-3 h-3 opacity-50" />
+                        </a>
+                      ) : (
+                        <h3 className="font-semibold text-sm">{p.title}</h3>
+                      )}
                       {p.published ? (
                         <span className="text-[10px] px-2 py-0.5 bg-green-50 text-green-600 rounded-full font-semibold">PUBLISHED</span>
                       ) : (
@@ -315,6 +328,15 @@ export default function BlogPostsList({ onEdit, onAdd, onNotify, refreshKey }: P
                     <button onClick={() => toggleFeatured(p)} title="Toggle featured" className={`w-8 h-8 rounded-lg flex items-center justify-center transition ${p.featured ? "text-amber-500 hover:bg-amber-50" : "text-gray-400 hover:bg-gray-50"}`}>
                       <Star className={`w-4 h-4 ${p.featured ? "fill-amber-500" : ""}`} />
                     </button>
+                    <a
+                      href={p.published ? `/en/blog/${p.slug}` : `/en/blog/${p.slug}?preview=1`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={p.published ? "View live post" : "Preview draft"}
+                      className="w-8 h-8 rounded-lg flex items-center justify-center text-blue-600 hover:bg-blue-50 transition"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                    </a>
                     <button onClick={() => onEdit(p)} title="Edit" className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-600 hover:bg-gray-100 transition">
                       <Edit2 className="w-4 h-4" />
                     </button>
