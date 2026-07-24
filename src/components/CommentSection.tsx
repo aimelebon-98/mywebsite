@@ -265,7 +265,7 @@ export default function CommentSection({ postId }: Props) {
                 placeholder={t.namePh}
                 required
                 maxLength={100}
-                className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
+                className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#CA3F2E] focus:border-[#CA3F2E] transition"
               />
             </div>
             <div>
@@ -276,7 +276,7 @@ export default function CommentSection({ postId }: Props) {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={t.emailPh}
                 maxLength={200}
-                className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
+                className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#CA3F2E] focus:border-[#CA3F2E] transition"
               />
             </div>
           </div>
