@@ -242,7 +242,7 @@ export default function CommentSection({ postId }: Props) {
         <form
           id="comment-form"
           onSubmit={handleSubmit}
-          className="rounded-2xl p-5 lg:p-6 mb-8 border border-[#CA3F2E]/15" style={{ backgroundColor: "#FDF3F1" }}
+          className="rounded-2xl p-5 lg:p-6 mb-8 border border-gray-300 bg-gray-200"
         >
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-lg">{t.formTitle}</h3>
