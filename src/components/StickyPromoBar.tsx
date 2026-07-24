@@ -10,8 +10,7 @@ const SUBSCRIBED_KEY = "sv_promo_subscribed";
 const BRAND_RED = "#CA3F2E";
 const AVATAR_URL = "https://i.ibb.co/HTrQYdfK/Aime-komlan.jpg";
 
-// Reappear schedule (in hours) - gets longer each dismissal so we don't annoy
-const REAPPEAR_HOURS = [24, 72, 168]; // 1 day, 3 days, 7 days, then permanent
+const REAPPEAR_HOURS = [24, 72, 168];
 
 export default function StickyPromoBar() {
   const [visible, setVisible] = useState(false);
@@ -52,7 +51,6 @@ export default function StickyPromoBar() {
 
       if (dismissed) {
         const dismissedAt = parseInt(dismissed);
-        // If they dismissed 3+ times, stop showing (respect them)
         if (dismissCount >= REAPPEAR_HOURS.length) return;
         const waitHours = REAPPEAR_HOURS[Math.min(dismissCount, REAPPEAR_HOURS.length - 1)];
         const waitMs = waitHours * 60 * 60 * 1000;
@@ -100,21 +98,37 @@ export default function StickyPromoBar() {
   if (isAdminRoute || !visible) return null;
 
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 animate-slide-up px-3 w-full sm:w-auto max-w-[calc(100vw-1rem)]">
-      <div className="bg-gray-900 text-white shadow-2xl rounded-2xl border border-gray-800 overflow-hidden">
-        <div className="flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-2.5 sm:py-3">
-          {/* Avatar */}
-          <img
-            src={AVATAR_URL}
-            alt=""
-            className="w-11 h-11 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-white/20 flex-shrink-0"
-          />
+    <div className="fixed bottom-4 left-4 z-40 animate-slide-up max-w-[calc(100vw-2rem)]">
+      {/* Pop-out avatar (positioned above and slightly overlapping the bar) */}
+      <div className="absolute -top-8 left-3 sm:-top-10 sm:left-4 z-10 pointer-events-none">
+        <img
+          src={AVATAR_URL}
+          alt=""
+          className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover shadow-xl"
+          style={{
+            objectPosition: "top center",
+            filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.25))"
+          }}
+        />
+      </div>
 
+      {/* Main bar */}
+      <div className="relative bg-gray-900 text-white shadow-2xl rounded-2xl border border-gray-800 overflow-hidden pt-3">
+        {/* Close button (top-right of the card) */}
+        <button
+          onClick={handleDismiss}
+          aria-label="Close"
+          className="absolute top-2 right-2 w-6 h-6 rounded-full hover:bg-white/10 flex items-center justify-center transition z-20"
+        >
+          <X className="w-3.5 h-3.5 text-gray-400" />
+        </button>
+
+        <div className="flex items-center gap-3 sm:gap-4 pl-[5.5rem] sm:pl-[6.5rem] pr-8 py-2.5 sm:py-3">
           {/* Text */}
-          <div className="min-w-0 flex-shrink">
+          <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
               <span className="text-base leading-none" style={{ color: BRAND_RED }}>*</span>
-              <p className="text-sm font-bold leading-tight whitespace-nowrap sm:whitespace-normal truncate sm:truncate-none">
+              <p className="text-sm font-bold leading-tight">
                 {t.headline}
               </p>
             </div>
@@ -123,7 +137,7 @@ export default function StickyPromoBar() {
 
           {/* Form */}
           {status === "success" ? (
-            <div className="flex items-center gap-1.5 text-green-400 flex-shrink-0 pr-1">
+            <div className="flex items-center gap-1.5 text-green-400 flex-shrink-0">
               <Check className="w-4 h-4" />
               <span className="text-xs font-semibold">{t.success}</span>
             </div>
@@ -148,20 +162,11 @@ export default function StickyPromoBar() {
               </button>
             </form>
           )}
-
-          {/* Close */}
-          <button
-            onClick={handleDismiss}
-            aria-label="Close"
-            className="flex-shrink-0 w-6 h-6 rounded-full hover:bg-white/10 flex items-center justify-center transition -mr-1"
-          >
-            <X className="w-3.5 h-3.5 text-gray-400" />
-          </button>
         </div>
 
         {/* Mobile-only email input */}
         {status === "idle" && (
-          <form onSubmit={handleSubmit} className="md:hidden px-3 pb-3 -mt-1">
+          <form onSubmit={handleSubmit} className="md:hidden px-3 pb-3">
             <input
               type="email"
               value={email}
