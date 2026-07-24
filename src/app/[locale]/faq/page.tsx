@@ -148,7 +148,7 @@ export default function FAQPage() {
   const isFr = locale === "fr";
 
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState("all");
+  const [category, setCategory] = useState("orders");
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [votes, setVotes] = useState<Record<number, "up" | "down" | null>>({});
   const [mounted, setMounted] = useState(false);
@@ -156,7 +156,6 @@ export default function FAQPage() {
   useEffect(() => { setMounted(true); }, []);
 
   const CATEGORIES = [
-    { id: "all",      label: t("catAll"),      icon: Sparkles,   color: "from-[#CA3F2E] to-[#8B2A1E]" },
     { id: "orders",   label: t("catOrders"),   icon: Package,    color: "from-blue-500 to-blue-600" },
     { id: "shipping", label: t("catShipping"), icon: Truck,      color: "from-purple-500 to-purple-600" },
     { id: "returns",  label: t("catReturns"),  icon: RefreshCw,  color: "from-amber-500 to-orange-600" },
@@ -170,7 +169,7 @@ export default function FAQPage() {
     return FAQS.map((f, i) => ({ ...f, originalIndex: i })).filter(f => {
       const question = isFr ? f.qFr : f.q;
       const answer   = isFr ? f.aFr : f.a;
-      const matchesCategory = category === "all" || f.category === category;
+      const matchesCategory = f.category === category;
       const matchesQuery = !q || question.toLowerCase().includes(q) || answer.toLowerCase().includes(q);
       return matchesCategory && matchesQuery;
     });
@@ -333,7 +332,7 @@ export default function FAQPage() {
         </section>
 
         {/* POPULAR (only when no filter/search) */}
-        {category === "all" && !query && (
+        {!query && (
           <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
             <div className="flex items-center gap-2 mb-5">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
@@ -353,7 +352,7 @@ export default function FAQPage() {
                   <button
                     key={idx}
                     onClick={() => {
-                      setCategory("all");
+                      setCategory(faq.category);
                       setOpenIndex(idx);
                       setTimeout(() => {
                         document.getElementById(`faq-${idx}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -381,13 +380,13 @@ export default function FAQPage() {
         {/* FAQ LIST */}
         <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Result counter */}
-          {(query || category !== "all") && filtered.length > 0 && (
+          {(query || filtered.length !== FAQS.filter(f => f.category === category).length) && filtered.length > 0 && (
             <div className="mb-6 flex items-center justify-between">
               <p className="text-sm text-gray-600">
                 <span className="font-bold text-gray-900">{filtered.length}</span> {isFr ? "résultat(s)" : "result(s)"}
               </p>
               <button
-                onClick={() => { setQuery(""); setCategory("all"); setOpenIndex(null); }}
+                onClick={() => { setQuery(""); setCategory("orders"); setOpenIndex(null); }}
                 className="text-xs font-semibold text-[#CA3F2E] hover:text-[#8B2A1E] transition"
               >
                 {tc("clearFilters")}
@@ -405,7 +404,7 @@ export default function FAQPage() {
                 {t("noResultsDesc")}
               </p>
               <button
-                onClick={() => { setQuery(""); setCategory("all"); }}
+                onClick={() => { setQuery(""); setCategory("orders"); }}
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-xl text-sm font-semibold hover:bg-gray-800 transition"
               >
                 <RefreshCw className="w-4 h-4" />
