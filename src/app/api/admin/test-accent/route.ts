@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
 import { cookies } from "next/headers";
@@ -19,7 +19,7 @@ async function verifyAdmin(): Promise<boolean> {
 export async function POST() {
   try {
     const isAdmin = await verifyAdmin();
-    if (!isAdmin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!isAdmin) return new NextResponse("Not Found", { status: 404 });
 
     // Test 1: Write via raw SQL with chr() codes (SEEDING METHOD - known to work)
     // "cafe" + e-acute + " test"

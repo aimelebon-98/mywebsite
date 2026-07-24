@@ -1,4 +1,4 @@
-﻿import { cookies } from "next/headers";
+import { cookies } from "next/headers";
 import { db } from "@/db";
 import { adminSessions } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -21,6 +21,6 @@ export async function verifyAdmin(): Promise<boolean> {
 // Returns 401 response if not admin, or null if authorized
 export async function requireAdmin(): Promise<NextResponse | null> {
   const ok = await verifyAdmin();
-  if (!ok) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!ok) return new NextResponse("Not Found", { status: 404 });
   return null;
 }

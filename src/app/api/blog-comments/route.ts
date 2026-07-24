@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     // Admin-only if requesting unapproved (moderation view)
     if (includeUnapproved) {
       const isAdmin = await verifyAdmin();
-      if (!isAdmin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      if (!isAdmin) return new NextResponse("Not Found", { status: 404 });
     }
 
     if (!postId && !includeUnapproved) {

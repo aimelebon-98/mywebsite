@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
 import { cookies } from "next/headers";
@@ -84,7 +84,7 @@ const translations: Translation[] = [
 export async function POST() {
   try {
     const isAdmin = await verifyAdmin();
-    if (!isAdmin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!isAdmin) return new NextResponse("Not Found", { status: 404 });
 
     let success = 0;
     let failed = 0;
