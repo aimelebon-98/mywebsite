@@ -184,6 +184,44 @@ export const blogComments = pgTable("blog_comments", {
 export type BlogComment = typeof blogComments.$inferSelect;
 export type NewBlogComment = typeof blogComments.$inferInsert;
 
+export const orders = pgTable("orders", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  orderNumber: text("order_number").notNull().unique(),
+  // Customer info
+  customerName: text("customer_name").notNull(),
+  customerPhone: text("customer_phone").notNull(),
+  customerEmail: text("customer_email").notNull().default(""),
+  customerAddress: text("customer_address").notNull(),
+  // Order data (JSON string of items)
+  items: text("items").notNull().default("[]"),
+  itemCount: integer("item_count").notNull().default(0),
+  // Financials
+  subtotal: numeric("subtotal", { precision: 10, scale: 2 }).notNull().default("0"),
+  discountAmount: numeric("discount_amount", { precision: 10, scale: 2 }).notNull().default("0"),
+  discountCode: text("discount_code").notNull().default(""),
+  shippingCost: numeric("shipping_cost", { precision: 10, scale: 2 }).notNull().default("0"),
+  total: numeric("total", { precision: 10, scale: 2 }).notNull(),
+  currency: text("currency").notNull().default("$"),
+  // Status: pending, confirmed, shipped, delivered, cancelled
+  status: text("status").notNull().default("pending"),
+  // Fulfillment
+  trackingNumber: text("tracking_number").notNull().default(""),
+  trackingCarrier: text("tracking_carrier").notNull().default(""),
+  shippedAt: timestamp("shipped_at"),
+  deliveredAt: timestamp("delivered_at"),
+  // Notes
+  adminNotes: text("admin_notes").notNull().default(""),
+  customerNotes: text("customer_notes").notNull().default(""),
+  // Metadata
+  locale: text("locale").notNull().default("en"),
+  ipAddress: text("ip_address").notNull().default(""),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type Order = typeof orders.$inferSelect;
+export type NewOrder = typeof orders.$inferInsert;
+
 export type Product = typeof products.$inferSelect;
 export type NewProduct = typeof products.$inferInsert;
 export type Category = typeof categories.$inferSelect;

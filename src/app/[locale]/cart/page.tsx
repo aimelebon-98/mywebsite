@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -48,14 +48,52 @@ export default function CartPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleWhatsAppCheckout = () => {
+  const handleWhatsAppCheckout = async () => {
     if (!validate()) {
       const firstErrorField = document.querySelector("[data-error='true']") as HTMLElement | null;
       if (firstErrorField) firstErrorField.focus();
       return;
     }
 
+    // Save order to DB first
+    let orderNumber = "";
+    try {
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customerName,
+          customerPhone,
+          customerAddress,
+          items: items.map(it => ({
+            id: it.id,
+            name: it.name,
+            size: it.size,
+            color: it.color,
+            quantity: it.quantity,
+            price: it.price,
+            imageUrl: it.imageUrl,
+            subtotal: it.price * it.quantity,
+          })),
+          subtotal: totalPrice,
+          total: totalPrice,
+          currency,
+          locale,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        orderNumber = data.order?.orderNumber || "";
+      }
+    } catch (err) {
+      console.error("Failed to save order:", err);
+      // Don't block WhatsApp - still send message
+    }
+
     let message = `*New Order from SoleVault*\n\n`;
+    if (orderNumber) {
+      message += `*Order:* ${orderNumber}\n`;
+    }
     message += `*Customer:* ${customerName}\n`;
     message += `*Phone:* ${customerPhone}\n`;
     message += `*Address:* ${customerAddress}\n`;
