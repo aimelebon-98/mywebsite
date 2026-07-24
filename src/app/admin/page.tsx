@@ -434,7 +434,7 @@ export default function AdminPage() {
         </div>
       )}
 
-      <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-100 transform transition-transform lg:relative lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-100 transform transition-transform lg:relative lg:translate-x-0 flex flex-col h-screen lg:h-auto lg:sticky lg:top-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -455,7 +455,7 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <nav className="px-3 space-y-1">
+        <nav className="px-3 space-y-1 flex-1 overflow-y-auto pb-4 min-h-0">
           {[
             { id: "dashboard" as Tab, icon: BarChart3, label: "Dashboard" },
             { id: "products" as Tab, icon: Package, label: "Products" },
@@ -484,7 +484,7 @@ export default function AdminPage() {
           ))}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-3 space-y-1 border-t border-gray-100">
+        <div className="flex-none p-3 space-y-1 border-t border-gray-100 bg-white">
           <Link href="/" className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition">
             <Home className="w-5 h-5" /> View Store
           </Link>
@@ -497,8 +497,8 @@ export default function AdminPage() {
         </div>
       </aside>
 
-      <div className="flex-1 min-w-0">
-        <header className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
+      <div className="flex-1 min-w-0 flex flex-col h-screen lg:h-auto lg:min-h-screen">
+        <header className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between sticky top-0 z-20 flex-none">
           <div className="flex items-center gap-3">
             <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 hover:bg-gray-100 rounded-xl">
               <Menu className="w-5 h-5" />
