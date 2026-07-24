@@ -131,13 +131,13 @@ export default function BlogListingClient({ posts, authors, locale }: Props) {
         className="relative overflow-hidden border-b border-gray-800"
         style={{ backgroundColor: "#0a0a0a" }}
       >
-        {/* HIGHLY VISIBLE grid pattern background */}
+        {/* Base grid pattern (always visible as background) */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
             backgroundImage: `
-              linear-gradient(rgba(255,255,255,0.35) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,255,255,0.35) 1px, transparent 1px)
+              linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)
             `,
             backgroundSize: `${TILE_SIZE}px ${TILE_SIZE}px`,
           }}
@@ -148,17 +148,17 @@ export default function BlogListingClient({ posts, authors, locale }: Props) {
           {tiles}
         </div>
 
-        {/* Subtle vignette to fade grid at edges (optional soft look) */}
+        {/* Subtle red glow at center */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: "radial-gradient(ellipse at center, transparent 20%, rgba(10,10,10,0.4) 90%)",
+            background: "radial-gradient(ellipse 50% 60% at center, rgba(202, 63, 46, 0.12) 0%, transparent 70%)",
           }}
         ></div>
 
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14 text-center pointer-events-none">
           {/* Animated badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-black/60 backdrop-blur-sm border border-white/20 rounded-full text-xs font-semibold text-gray-200 mb-4 shadow-lg hero-fade-in">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full text-xs font-semibold text-gray-300 mb-4 shadow-sm hero-fade-in">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: BRAND_RED }}></span>
               <span className="relative inline-flex rounded-full h-2 w-2" style={{ backgroundColor: BRAND_RED }}></span>
@@ -168,14 +168,14 @@ export default function BlogListingClient({ posts, authors, locale }: Props) {
           </div>
 
           {/* Title with gradient text */}
-          <h1 className="text-4xl lg:text-6xl font-black tracking-tight mb-3 text-white hero-fade-in hero-delay-1" style={{ textShadow: "0 2px 20px rgba(0,0,0,0.8)" }}>
+          <h1 className="text-4xl lg:text-6xl font-black tracking-tight mb-3 text-white hero-fade-in hero-delay-1">
             {isFr ? "Le Blog " : "The "}
             <span className="hero-gradient-text">SoleVault</span>
             {!isFr && " Blog"}
           </h1>
 
           {/* Subtitle */}
-          <p className="text-gray-300 text-base lg:text-lg max-w-2xl mx-auto leading-relaxed hero-fade-in hero-delay-2" style={{ textShadow: "0 2px 10px rgba(0,0,0,0.8)" }}>
+          <p className="text-gray-400 text-base lg:text-lg max-w-2xl mx-auto leading-relaxed hero-fade-in hero-delay-2">
             {isFr
               ? "Conseils de style, tests, guides d'achat et actualites du monde des sneakers premium."
               : "Style tips, reviews, buying guides, and news from the world of premium footwear."}
@@ -209,7 +209,7 @@ export default function BlogListingClient({ posts, authors, locale }: Props) {
           .tile-back {
             transform: rotateY(180deg);
             background: linear-gradient(135deg, #CA3F2E 0%, #f97316 100%);
-            box-shadow: 0 0 30px rgba(202, 63, 46, 0.8), inset 0 0 12px rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 25px rgba(202, 63, 46, 0.6), inset 0 0 10px rgba(255, 255, 255, 0.15);
           }
           .hero-gradient-text {
             background: linear-gradient(135deg, #ff6b5b 0%, #f97316 50%, #ff6b5b 100%);
