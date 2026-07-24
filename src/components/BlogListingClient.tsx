@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import type { BlogPost, Author } from "@/db/schema";
 import { BLOG_CATEGORIES, getCategoryLabel, formatDate } from "@/lib/blog";
-import { Search, Clock, Star, ArrowRight, Calendar } from "lucide-react";
+import { Search, Clock, Star, ArrowRight, Calendar, Sparkles } from "lucide-react";
 
 interface Props {
   posts: BlogPost[];
@@ -43,22 +43,137 @@ export default function BlogListingClient({ posts, authors, locale }: Props) {
 
   return (
     <div>
-      {/* Hero header */}
-      <section className="bg-gradient-to-b from-gray-50 to-white py-12 lg:py-16 border-b border-gray-100">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 rounded-full text-xs font-semibold text-gray-700 mb-4">
-            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: BRAND_RED }}></span>
+      {/* Hero header - Animated gradient with floating blobs */}
+      <section className="relative overflow-hidden bg-white border-b border-gray-100">
+        {/* Animated gradient blobs */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="blob blob-1"></div>
+          <div className="blob blob-2"></div>
+          <div className="blob blob-3"></div>
+        </div>
+
+        {/* Grid pattern overlay */}
+        <div
+          className="absolute inset-0 opacity-[0.04] pointer-events-none"
+          style={{
+            backgroundImage: `linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)`,
+            backgroundSize: "40px 40px",
+          }}
+        ></div>
+
+        {/* Radial fade at edges */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: "radial-gradient(ellipse at center, transparent 40%, rgba(255,255,255,0.8) 100%)",
+          }}
+        ></div>
+
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24 text-center">
+          {/* Animated badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full text-xs font-semibold text-gray-700 mb-6 shadow-sm hero-fade-in">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: BRAND_RED }}></span>
+              <span className="relative inline-flex rounded-full h-2 w-2" style={{ backgroundColor: BRAND_RED }}></span>
+            </span>
+            <Sparkles className="w-3.5 h-3.5" style={{ color: BRAND_RED }} />
             {isFr ? "Nouveau contenu chaque semaine" : "New content every week"}
           </div>
-          <h1 className="text-4xl lg:text-5xl font-bold tracking-tight mb-3">
-            {isFr ? "Le Blog SoleVault" : "The SoleVault Blog"}
+
+          {/* Title with gradient text */}
+          <h1 className="text-5xl lg:text-7xl font-black tracking-tight mb-5 hero-fade-in hero-delay-1">
+            {isFr ? "Le Blog " : "The "}
+            <span className="hero-gradient-text">SoleVault</span>
+            {!isFr && " Blog"}
           </h1>
-          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+
+          {/* Subtitle */}
+          <p className="text-gray-600 text-lg lg:text-xl max-w-2xl mx-auto leading-relaxed hero-fade-in hero-delay-2">
             {isFr
               ? "Conseils de style, tests, guides d'achat et actualites du monde des sneakers premium."
               : "Style tips, reviews, buying guides, and news from the world of premium footwear."}
           </p>
+
+          {/* Decorative divider */}
+          <div className="mt-8 flex items-center justify-center gap-2 hero-fade-in hero-delay-3">
+            <div className="h-px w-12 bg-gradient-to-r from-transparent to-gray-300"></div>
+            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: BRAND_RED }}></div>
+            <div className="h-px w-12 bg-gradient-to-l from-transparent to-gray-300"></div>
+          </div>
         </div>
+
+        <style jsx>{`
+          .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.5;
+            will-change: transform;
+          }
+          .blob-1 {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(202, 63, 46, 0.35), transparent 70%);
+            top: -150px;
+            left: -100px;
+            animation: float1 18s ease-in-out infinite;
+          }
+          .blob-2 {
+            width: 450px;
+            height: 450px;
+            background: radial-gradient(circle, rgba(251, 146, 60, 0.3), transparent 70%);
+            top: -100px;
+            right: -100px;
+            animation: float2 22s ease-in-out infinite;
+          }
+          .blob-3 {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(168, 85, 247, 0.2), transparent 70%);
+            bottom: -150px;
+            left: 40%;
+            animation: float3 20s ease-in-out infinite;
+          }
+          @keyframes float1 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(60px, 40px) scale(1.1); }
+            66% { transform: translate(-40px, 60px) scale(0.95); }
+          }
+          @keyframes float2 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(-50px, 30px) scale(1.05); }
+            66% { transform: translate(30px, -40px) scale(0.9); }
+          }
+          @keyframes float3 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-60px, -30px) scale(1.15); }
+          }
+          .hero-gradient-text {
+            background: linear-gradient(135deg, #CA3F2E 0%, #f97316 50%, #CA3F2E 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 4s linear infinite;
+          }
+          @keyframes shimmer {
+            to { background-position: 200% center; }
+          }
+          .hero-fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.8s ease-out forwards;
+          }
+          .hero-delay-1 { animation-delay: 0.15s; }
+          .hero-delay-2 { animation-delay: 0.3s; }
+          .hero-delay-3 { animation-delay: 0.45s; }
+          @keyframes fadeInUp {
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+        `}</style>
       </section>
 
       {/* Featured post */}
