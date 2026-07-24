@@ -333,7 +333,7 @@ export default function FAQPage() {
 
         {/* POPULAR (only when no filter/search) */}
         {!query && (
-          <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+          <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 lg:pt-12 pb-8">
             <div className="flex items-center gap-2 mb-5">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
                 <TrendingUp className="w-4 h-4 text-white" />
