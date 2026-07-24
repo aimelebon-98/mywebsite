@@ -136,6 +136,7 @@ export default function Footer() {
           <div>
             <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">{t("support")}</h4>
             <ul className="space-y-3">
+              <li><Link href="/blog" className="text-sm hover:text-white transition">Blog</Link></li>
               <li><Link href="/faq" className="text-sm hover:text-white transition">{t("faq")}</Link></li>
               <li><Link href="/shipping" className="text-sm hover:text-white transition">{t("shippingPolicy")}</Link></li>
               <li><Link href="/returns" className="text-sm hover:text-white transition">{t("returns")}</Link></li>

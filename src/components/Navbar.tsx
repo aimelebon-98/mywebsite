@@ -128,6 +128,7 @@ export default function Navbar() {
             {[
               { href: "/", label: t("home") },
               { href: "/shop", label: t("shopAll") },
+              { href: "/blog", label: "Blog" },
               { href: "/about", label: t("about") },
               { href: "/contact", label: t("contact") },
               { href: "/faq", label: t("faq") },
