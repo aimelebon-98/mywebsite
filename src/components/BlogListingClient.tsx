@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import type { BlogPost, Author } from "@/db/schema";
@@ -15,12 +15,68 @@ interface Props {
 
 const POSTS_PER_PAGE = 9;
 const BRAND_RED = "#CA3F2E";
+const TILE_SIZE = 55;
+const FLIP_RADIUS = 100;
 
 export default function BlogListingClient({ posts, authors, locale }: Props) {
   const isFr = locale === "fr";
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
   const [page, setPage] = useState(1);
+
+  const heroRef = useRef<HTMLElement>(null);
+  const [grid, setGrid] = useState<{ cols: number; rows: number }>({ cols: 0, rows: 0 });
+  const [flipped, setFlipped] = useState<Set<number>>(new Set());
+  const lastFlipRef = useRef<Map<number, number>>(new Map());
+
+  useEffect(() => {
+    if (!heroRef.current) return;
+    const update = () => {
+      const rect = heroRef.current!.getBoundingClientRect();
+      setGrid({
+        cols: Math.ceil(rect.width / TILE_SIZE),
+        rows: Math.ceil(rect.height / TILE_SIZE),
+      });
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!heroRef.current) return;
+    const rect = heroRef.current.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    const now = Date.now();
+    const newFlipped = new Set(flipped);
+    let changed = false;
+
+    for (let r = 0; r < grid.rows; r++) {
+      for (let c = 0; c < grid.cols; c++) {
+        const cx = c * TILE_SIZE + TILE_SIZE / 2;
+        const cy = r * TILE_SIZE + TILE_SIZE / 2;
+        const dist = Math.hypot(mx - cx, my - cy);
+        if (dist < FLIP_RADIUS) {
+          const idx = r * grid.cols + c;
+          const last = lastFlipRef.current.get(idx) || 0;
+          if (now - last > 800) {
+            newFlipped.add(idx);
+            lastFlipRef.current.set(idx, now);
+            changed = true;
+            setTimeout(() => {
+              setFlipped(prev => {
+                const next = new Set(prev);
+                next.delete(idx);
+                return next;
+              });
+            }, 700);
+          }
+        }
+      }
+    }
+    if (changed) setFlipped(newFlipped);
+  };
 
   const authorMap = useMemo(() => new Map(authors.map(a => [a.id, a])), [authors]);
 
@@ -41,37 +97,55 @@ export default function BlogListingClient({ posts, authors, locale }: Props) {
   const totalPages = Math.ceil(filtered.length / POSTS_PER_PAGE);
   const paginated = filtered.slice((page - 1) * POSTS_PER_PAGE, page * POSTS_PER_PAGE);
 
+  const tiles = [];
+  for (let r = 0; r < grid.rows; r++) {
+    for (let c = 0; c < grid.cols; c++) {
+      const idx = r * grid.cols + c;
+      const isFlipped = flipped.has(idx);
+      tiles.push(
+        <div
+          key={idx}
+          className="tile"
+          style={{
+            left: c * TILE_SIZE,
+            top: r * TILE_SIZE,
+            width: TILE_SIZE,
+            height: TILE_SIZE,
+          }}
+        >
+          <div className={`tile-inner ${isFlipped ? "flipped" : ""}`}>
+            <div className="tile-face tile-front"></div>
+            <div className="tile-face tile-back"></div>
+          </div>
+        </div>
+      );
+    }
+  }
+
   return (
     <div>
-      {/* Hero header - Animated gradient with floating blobs */}
-      <section className="relative overflow-hidden bg-white border-b border-gray-100">
-        {/* Animated gradient blobs */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="blob blob-1"></div>
-          <div className="blob blob-2"></div>
-          <div className="blob blob-3"></div>
+      {/* Hero header - Interactive flipping tiles */}
+      <section
+        ref={heroRef}
+        onMouseMove={handleMouseMove}
+        className="relative overflow-hidden bg-gradient-to-b from-gray-50 to-white border-b border-gray-100"
+      >
+        {/* Flipping tiles grid */}
+        <div className="absolute inset-0 pointer-events-none" style={{ perspective: "1200px" }}>
+          {tiles}
         </div>
 
-        {/* Grid pattern overlay */}
-        <div
-          className="absolute inset-0 opacity-[0.04] pointer-events-none"
-          style={{
-            backgroundImage: `linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)`,
-            backgroundSize: "40px 40px",
-          }}
-        ></div>
-
-        {/* Radial fade at edges */}
+        {/* Soft radial fade at center to keep text readable */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: "radial-gradient(ellipse at center, transparent 40%, rgba(255,255,255,0.8) 100%)",
+            background: "radial-gradient(ellipse 60% 70% at center, rgba(255,255,255,0.85) 0%, transparent 70%)",
           }}
         ></div>
 
-        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24 text-center">
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24 text-center pointer-events-none">
           {/* Animated badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full text-xs font-semibold text-gray-700 mb-6 shadow-sm hero-fade-in">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-full text-xs font-semibold text-gray-700 mb-6 shadow-sm hero-fade-in">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: BRAND_RED }}></span>
               <span className="relative inline-flex rounded-full h-2 w-2" style={{ backgroundColor: BRAND_RED }}></span>
@@ -103,50 +177,36 @@ export default function BlogListingClient({ posts, authors, locale }: Props) {
         </div>
 
         <style jsx>{`
-          .blob {
+          .tile {
             position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.5;
-            will-change: transform;
+            transform-style: preserve-3d;
           }
-          .blob-1 {
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, rgba(202, 63, 46, 0.35), transparent 70%);
-            top: -150px;
-            left: -100px;
-            animation: float1 18s ease-in-out infinite;
+          .tile-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
           }
-          .blob-2 {
-            width: 450px;
-            height: 450px;
-            background: radial-gradient(circle, rgba(251, 146, 60, 0.3), transparent 70%);
-            top: -100px;
-            right: -100px;
-            animation: float2 22s ease-in-out infinite;
+          .tile-inner.flipped {
+            transform: rotateY(180deg);
           }
-          .blob-3 {
-            width: 400px;
-            height: 400px;
-            background: radial-gradient(circle, rgba(168, 85, 247, 0.2), transparent 70%);
-            bottom: -150px;
-            left: 40%;
-            animation: float3 20s ease-in-out infinite;
+          .tile-face {
+            position: absolute;
+            inset: 0;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
           }
-          @keyframes float1 {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(60px, 40px) scale(1.1); }
-            66% { transform: translate(-40px, 60px) scale(0.95); }
+          .tile-front {
+            background: rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
           }
-          @keyframes float2 {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(-50px, 30px) scale(1.05); }
-            66% { transform: translate(30px, -40px) scale(0.9); }
-          }
-          @keyframes float3 {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(-60px, -30px) scale(1.15); }
+          .tile-back {
+            transform: rotateY(180deg);
+            background: linear-gradient(135deg, #CA3F2E 0%, #f97316 100%);
+            border: 1px solid rgba(202, 63, 46, 0.4);
+            box-shadow: 0 4px 12px rgba(202, 63, 46, 0.25);
           }
           .hero-gradient-text {
             background: linear-gradient(135deg, #CA3F2E 0%, #f97316 50%, #CA3F2E 100%);
