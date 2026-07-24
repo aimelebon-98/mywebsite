@@ -284,7 +284,6 @@ export default function FAQPage() {
                         onClick={() => {
                           setCategory(c.id);
                           setQuery("");
-                          document.getElementById("faq-content")?.scrollIntoView({ behavior: "smooth", block: "start" });
                         }}
                         className={`flex-shrink-0 lg:flex-shrink group flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all ${
                           active
@@ -422,12 +421,13 @@ export default function FAQPage() {
 
                   {/* Questions list */}
                   <div className="space-y-3">
-                    {filtered.map((faq) => {
+                    {filtered.map((faq, idx) => {
                       const question = isFr ? faq.qFr : faq.q;
                       const answer   = isFr ? faq.aFr : faq.a;
                       return (
                         <details
-                          key={faq.originalIndex}
+                          key={`${category}-${faq.originalIndex}`}
+                          open={idx === 0}
                           className="group bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 hover:shadow-sm transition-all"
                         >
                           <summary className="flex items-center justify-between gap-4 px-5 py-4 cursor-pointer list-none">
