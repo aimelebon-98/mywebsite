@@ -15,6 +15,8 @@ import BlogPostForm from "@/components/BlogPostForm";
 import CommentsManager from "@/components/CommentsManager";
 import DashboardBlogStats from "@/components/DashboardBlogStats";
 import ProductForm from "@/components/ProductForm";
+import OrdersManager from "@/components/OrdersManager";
+import DashboardOrderStats from "@/components/DashboardOrderStats";
 
 interface Product {
   id: string;
@@ -77,7 +79,7 @@ interface StoreSettings {
   lockoutMinutes: number;
 }
 
-type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments";
+type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments" | "orders";
 
 export default function AdminPage() {
   const [authStep, setAuthStep] = useState<"loading" | "access-code" | "password" | "authenticated">("loading");
@@ -457,6 +459,7 @@ export default function AdminPage() {
           {[
             { id: "dashboard" as Tab, icon: BarChart3, label: "Dashboard" },
             { id: "products" as Tab, icon: Package, label: "Products" },
+            { id: "orders" as Tab, icon: ShoppingBag, label: "Orders" },
             { id: "add" as Tab, icon: Plus, label: "Add Product" },
             { id: "categories" as Tab, icon: Tag, label: "Categories" },
             { id: "reviews" as Tab, icon: MessageSquare, label: "Reviews" },
@@ -856,6 +859,10 @@ export default function AdminPage() {
 
           {activeTab === "comments" && (
             <CommentsManager onNotify={showNotification} />
+          )}
+
+          {activeTab === "orders" && (
+            <OrdersManager onNotify={showNotification} />
           )}
         </div>
       </div>
