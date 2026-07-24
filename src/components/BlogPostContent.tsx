@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import type { BlogPost, Author } from "@/db/schema";
+import CommentSection from "@/components/CommentSection";
 import { getCategoryLabel, getCategoryColor, formatDate } from "@/lib/blog";
 import { Clock, Calendar, ChevronRight, Share2, Copy, Check, ArrowLeft, ArrowRight } from "lucide-react";
 
@@ -294,6 +295,8 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
           </div>
         )}
       </article>
+
+      <CommentSection postId={post.id} />
 
       {/* Related posts */}
       {relatedPosts.length > 0 && (

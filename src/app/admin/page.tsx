@@ -12,6 +12,7 @@ import type { BlogPost } from "@/db/schema";
 import AuthorsManager from "@/components/AuthorsManager";
 import BlogPostsList from "@/components/BlogPostsList";
 import BlogPostForm from "@/components/BlogPostForm";
+import CommentsManager from "@/components/CommentsManager";
 
 interface Product {
   id: string;
@@ -74,7 +75,7 @@ interface StoreSettings {
   lockoutMinutes: number;
 }
 
-type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors";
+type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments";
 
 export default function AdminPage() {
   const [authStep, setAuthStep] = useState<"loading" | "access-code" | "password" | "authenticated">("loading");
@@ -451,6 +452,7 @@ export default function AdminPage() {
             { id: "reviews" as Tab, icon: MessageSquare, label: "Reviews" },
             { id: "blog" as Tab, icon: BookOpen, label: "Blog Posts" },
             { id: "authors" as Tab, icon: UsersRound, label: "Authors" },
+            { id: "comments" as Tab, icon: MessageSquare, label: "Comments" },
             { id: "settings" as Tab, icon: Settings, label: "Store Settings" },
             { id: "security" as Tab, icon: Shield, label: "Security" },
           ].map((item) => (
@@ -833,6 +835,10 @@ export default function AdminPage() {
 
           {activeTab === "authors" && (
             <AuthorsManager onNotify={showNotification} />
+          )}
+
+          {activeTab === "comments" && (
+            <CommentsManager onNotify={showNotification} />
           )}
         </div>
       </div>

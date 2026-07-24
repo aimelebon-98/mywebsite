@@ -1,4 +1,4 @@
-﻿import { pgTable, text, numeric, integer, boolean, timestamp, uuid } from "drizzle-orm/pg-core";
+import { pgTable, text, numeric, integer, boolean, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const products = pgTable("products", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -167,6 +167,22 @@ export const blogPosts = pgTable("blog_posts", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+export const blogComments = pgTable("blog_comments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  postId: uuid("post_id").notNull(),
+  parentId: uuid("parent_id"),
+  authorName: text("author_name").notNull(),
+  authorEmail: text("author_email").notNull().default(""),
+  content: text("content").notNull(),
+  approved: boolean("approved").notNull().default(false),
+  likes: integer("likes").notNull().default(0),
+  ipAddress: text("ip_address").notNull().default(""),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type BlogComment = typeof blogComments.$inferSelect;
+export type NewBlogComment = typeof blogComments.$inferInsert;
 
 export type Product = typeof products.$inferSelect;
 export type NewProduct = typeof products.$inferInsert;
