@@ -1,9 +1,43 @@
 "use client";
 
 import { useState } from "react";
-import type { Product } from "@/db/schema";
+// Structural types (accept both schema types and local admin types)
+type ProductLike = {
+  id?: string;
+  name?: string;
+  description?: string;
+  shortDescription?: string;
+  longDescription?: string;
+  nameFr?: string | null;
+  descriptionFr?: string | null;
+  shortDescriptionFr?: string | null;
+  longDescriptionFr?: string | null;
+  tagsFr?: string | null;
+  price?: string;
+  comparePrice?: string | null;
+  category?: string;
+  brand?: string;
+  sizes?: string;
+  colors?: string;
+  imageUrl?: string;
+  images?: string;
+  stock?: number;
+  featured?: boolean;
+  active?: boolean;
+  material?: string;
+  sku?: string;
+  tags?: string;
+  seoTitle?: string | null;
+  metaDescription?: string | null;
+  focusKeyphrase?: string | null;
+  ogImage?: string | null;
+  canonicalUrl?: string | null;
+  noIndex?: boolean | null;
+  seoTitleFr?: string | null;
+  metaDescriptionFr?: string | null;
+  focusKeyphraseFr?: string | null;
+};
 
-// Minimal Category shape (works with both admin local type and schema type)
 type CategoryLike = {
   slug: string;
   nameEn: string;
@@ -12,7 +46,7 @@ type CategoryLike = {
 import { Save, Eye, EyeOff, Star, ChevronDown, Search, Globe, Image as ImageIcon, Tag, Package, Layers, DollarSign } from "lucide-react";
 
 interface Props {
-  product?: Product;
+  product?: ProductLike;
   categories: CategoryLike[];
   onSave: (data: Record<string, unknown>) => Promise<void>;
   loading: boolean;
