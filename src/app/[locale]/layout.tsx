@@ -9,6 +9,7 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 import MiniCartDrawer from "@/components/MiniCartDrawer";
 
 import CookieConsent from "@/components/CookieConsent";
+import StickyPromoBar from "@/components/StickyPromoBar";
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://solevault.com";
 
 export const metadata: Metadata = {
@@ -78,6 +79,7 @@ export default async function LocaleLayout({
             </WishlistProvider>
           </CartProvider>
         </NextIntlClientProvider>
+        <StickyPromoBar />
         <CookieConsent />
       </body>
     </html>
