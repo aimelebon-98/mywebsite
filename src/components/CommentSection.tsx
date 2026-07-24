@@ -227,8 +227,10 @@ export default function CommentSection({ postId }: Props) {
   };
 
   return (
-    <section className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 pt-0">
-      <div className="border-t border-gray-100 pt-8">
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 pt-0">
+      <div className="lg:grid lg:grid-cols-[1fr_320px] lg:gap-8">
+        <div className="lg:pr-4">
+          <div className="border-t border-gray-100 pt-8">
         <div className="flex items-center gap-2 mb-6">
           <MessageSquare className="w-5 h-5 text-gray-700" />
           <h2 className="text-2xl font-bold">
@@ -325,6 +327,8 @@ export default function CommentSection({ postId }: Props) {
             {topLevel.map(c => <CommentItem key={c.id} c={c} />)}
           </div>
         )}
+          </div>
+        </div>
       </div>
     </section>
   );
