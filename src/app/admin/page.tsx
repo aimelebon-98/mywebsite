@@ -109,6 +109,7 @@ export default function AdminPage() {
   const [productFilter, setProductFilter] = useState<"all" | "active" | "inactive" | "featured" | "lowStock" | "outOfStock" | "highStock">("all");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notification, setNotification] = useState("");
+  const [notifCounts, setNotifCounts] = useState<{ orders: number; comments: number; reviews: number }>({ orders: 0, comments: 0, reviews: 0 });
   const [notificationType, setNotificationType] = useState<"success" | "error">("success");
 
   const showNotification = (msg: string, type: "success" | "error" = "success") => {
@@ -176,6 +177,20 @@ export default function AdminPage() {
       fetchSettings();
     }
   }, [authStep, fetchProducts, fetchCategories, fetchSettings]);
+
+  // Fetch notification badge counts every 30 seconds
+  useEffect(() => {
+    if (authStep !== "authenticated") return;
+    const fetchCounts = () => {
+      fetch("/api/admin/notification-counts")
+        .then(r => r.ok ? r.json() : { orders: 0, comments: 0, reviews: 0 })
+        .then(setNotifCounts)
+        .catch(() => {});
+    };
+    fetchCounts();
+    const interval = setInterval(fetchCounts, 30000);
+    return () => clearInterval(interval);
+  }, [authStep]);
 
   const handleVerifyAccessCode = async () => {
     try {
@@ -457,17 +472,17 @@ export default function AdminPage() {
 
         <nav className="px-3 space-y-1 flex-1 overflow-y-auto pb-4 min-h-0">
           {[
-            { id: "dashboard" as Tab, icon: BarChart3, label: "Dashboard" },
-            { id: "products" as Tab, icon: Package, label: "Products" },
-            { id: "orders" as Tab, icon: ShoppingBag, label: "Orders" },
-            { id: "add" as Tab, icon: Plus, label: "Add Product" },
-            { id: "categories" as Tab, icon: Tag, label: "Categories" },
-            { id: "reviews" as Tab, icon: MessageSquare, label: "Reviews" },
-            { id: "blog" as Tab, icon: BookOpen, label: "Blog Posts" },
-            { id: "authors" as Tab, icon: UsersRound, label: "Authors" },
-            { id: "comments" as Tab, icon: MessageSquare, label: "Comments" },
-            { id: "settings" as Tab, icon: Settings, label: "Store Settings" },
-            { id: "security" as Tab, icon: Shield, label: "Security" },
+            { id: "dashboard" as Tab, icon: BarChart3, label: "Dashboard", badge: 0 },
+            { id: "products" as Tab, icon: Package, label: "Products", badge: 0 },
+            { id: "orders" as Tab, icon: ShoppingBag, label: "Orders", badge: notifCounts.orders },
+            { id: "add" as Tab, icon: Plus, label: "Add Product", badge: 0 },
+            { id: "categories" as Tab, icon: Tag, label: "Categories", badge: 0 },
+            { id: "reviews" as Tab, icon: MessageSquare, label: "Reviews", badge: notifCounts.reviews },
+            { id: "blog" as Tab, icon: BookOpen, label: "Blog Posts", badge: 0 },
+            { id: "authors" as Tab, icon: UsersRound, label: "Authors", badge: 0 },
+            { id: "comments" as Tab, icon: MessageSquare, label: "Comments", badge: notifCounts.comments },
+            { id: "settings" as Tab, icon: Settings, label: "Store Settings", badge: 0 },
+            { id: "security" as Tab, icon: Shield, label: "Security", badge: 0 },
           ].map((item) => (
             <button
               key={item.id}
@@ -478,8 +493,20 @@ export default function AdminPage() {
                   : "text-gray-600 hover:bg-gray-50"
               }`}
             >
-              <item.icon className="w-5 h-5" />
-              {item.label}
+              <item.icon className="w-5 h-5 flex-shrink-0" />
+              <span className="flex-1 text-left">{item.label}</span>
+              {item.badge > 0 && (
+                <span
+                  className={`min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center ${
+                    activeTab === item.id
+                      ? "bg-white text-gray-900"
+                      : "text-white"
+                  }`}
+                  style={activeTab !== item.id ? { backgroundColor: "#CA3F2E" } : undefined}
+                >
+                  {item.badge > 99 ? "99+" : item.badge}
+                </span>
+              )}
             </button>
           ))}
         </nav>

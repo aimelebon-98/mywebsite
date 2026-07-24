@@ -22,8 +22,9 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
 
-  // Apply brand red styling to all pages
-  const isBlogPage = true;
+  // Apply brand red styling to all pages EXCEPT homepage
+  const isHomepage = pathname === "/" || pathname === "";
+  const isBlogPage = !isHomepage;
 
   const switchLocale = (nextLocale: "en" | "fr") => {
     router.replace(pathname, { locale: nextLocale });
