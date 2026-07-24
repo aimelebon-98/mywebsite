@@ -244,7 +244,7 @@ export default function FAQPage() {
             </div>
 
             {/* Icon */}
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-[#CA3F2E] to-[#8B2A1E] rounded-3xl mb-6 shadow-2xl shadow-[#CA3F2E]/50 rotate-3 hover:rotate-0 transition-transform duration-500">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-[#CA3F2E] to-[#8B2A1E] rounded-3xl mb-6 shadow-2xl shadow-[#CA3F2E]/50 hover:scale-105 transition-transform duration-500">
               <HelpCircle className="w-10 h-10 text-white" />
             </div>
 
@@ -306,23 +306,25 @@ export default function FAQPage() {
         {/* CATEGORY TABS */}
         <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 lg:pt-14">
           <div className="border-b border-gray-200 overflow-x-auto scrollbar-hide">
-            <div className="flex items-center gap-1 sm:gap-2 min-w-max">
+            <div className="flex items-center min-w-max">
               {CATEGORIES.map((c) => {
                 const active = category === c.id;
                 return (
                   <button
                     key={c.id}
                     onClick={() => { setCategory(c.id); setOpenIndex(null); }}
-                    className={`relative px-4 sm:px-5 py-3 text-sm font-semibold transition-colors whitespace-nowrap ${
+                    className={`relative px-5 sm:px-6 py-3 text-sm font-semibold transition-colors whitespace-nowrap ${
                       active
                         ? "text-gray-900"
                         : "text-gray-500 hover:text-gray-900"
                     }`}
                   >
-                    {c.label}
-                    {active && (
-                      <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900" />
-                    )}
+                    <span className="relative inline-block">
+                      {c.label}
+                      {active && (
+                        <span className="absolute -bottom-3 left-0 right-0 h-0.5 bg-gray-900" />
+                      )}
+                    </span>
                   </button>
                 );
               })}
@@ -539,7 +541,7 @@ export default function FAQPage() {
             />
 
             <div className="relative p-8 sm:p-12 text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-600 rounded-2xl mb-5 shadow-2xl shadow-green-500/30 rotate-3 hover:rotate-0 transition-transform duration-500">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-600 rounded-2xl mb-5 shadow-2xl shadow-green-500/30 hover:scale-105 transition-transform duration-500">
                 <MessageCircle className="w-8 h-8 text-white" />
               </div>
               <h2 className="text-2xl sm:text-4xl font-black text-white mb-3">
