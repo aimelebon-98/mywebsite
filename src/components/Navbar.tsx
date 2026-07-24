@@ -8,6 +8,9 @@ import { useWishlist } from "@/lib/wishlist-context";
 import { useState } from "react";
 import SearchAutocomplete from "@/components/SearchAutocomplete";
 
+const BRAND_RED = "#CA3F2E";
+const BRAND_RED_DARK = "#8B2A1E";
+
 export default function Navbar() {
   const t = useTranslations("nav");
   const tCommon = useTranslations("common");
@@ -19,14 +22,43 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
 
+  // Detect if we're on any blog page (listing, post, or author)
+  const isBlogPage = !!pathname && (pathname === "/blog" || pathname.startsWith("/blog/"));
+
   const switchLocale = (nextLocale: "en" | "fr") => {
     router.replace(pathname, { locale: nextLocale });
     setLangOpen(false);
   };
 
+  // Dynamic classes based on isBlogPage
+  const navBg = isBlogPage ? "" : "bg-white/80 border-gray-100";
+  const navStyle = isBlogPage ? { backgroundColor: BRAND_RED } : undefined;
+
+  const bannerBg = isBlogPage ? "text-white" : "bg-gray-900 text-white";
+  const bannerStyle = isBlogPage ? { backgroundColor: BRAND_RED_DARK } : undefined;
+
+  const logoText = isBlogPage ? "text-white" : "";
+  const linkClass = isBlogPage
+    ? "text-sm font-medium text-white/90 hover:text-white transition"
+    : "text-sm font-medium text-gray-600 hover:text-gray-900 transition";
+
+  const iconColor = isBlogPage ? "text-white" : "text-gray-600";
+  const iconHoverBg = isBlogPage ? "hover:bg-white/10" : "hover:bg-gray-100";
+  const localeText = isBlogPage ? "text-white" : "text-gray-700";
+  const heartClass = isBlogPage
+    ? wishlistCount > 0 ? "text-white fill-white" : "text-white"
+    : wishlistCount > 0 ? "text-gray-900 fill-gray-900" : "text-gray-600";
+
+  const badgeBg = isBlogPage
+    ? "bg-white text-gray-900"
+    : "bg-gray-900 text-white";
+
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100">
-      <div className="bg-gray-900 text-white text-center py-2 text-xs font-medium tracking-wide">
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl border-b transition-colors ${navBg} ${isBlogPage ? "border-transparent" : ""}`}
+      style={navStyle}
+    >
+      <div className={`text-center py-2 text-xs font-medium tracking-wide ${bannerBg}`} style={bannerStyle}>
         {t("freeShipping")} <Link href="/shop" className="underline underline-offset-2">{t("shopNow")}</Link>
       </div>
 
@@ -36,16 +68,21 @@ export default function Navbar() {
             <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-xs">SV</span>
             </div>
-            <span className="text-lg font-bold tracking-tight hidden sm:block">SoleVault</span>
+            <span className={`text-lg font-bold tracking-tight hidden sm:block ${logoText}`}>SoleVault</span>
           </Link>
 
           <div className="hidden lg:flex items-center gap-5">
-            <Link href="/" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">{t("home")}</Link>
-            <Link href="/shop" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">{t("shopAll")}</Link>
-            <Link href="/blog" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">Blog</Link>
-            <Link href="/about" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">{t("about")}</Link>
-            <Link href="/contact" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">{t("contact")}</Link>
-            <Link href="/faq" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">{t("faq")}</Link>
+            <Link href="/" className={linkClass}>{t("home")}</Link>
+            <Link href="/shop" className={linkClass}>{t("shopAll")}</Link>
+            <Link
+              href="/blog"
+              className={isBlogPage ? "text-sm font-bold text-white transition" : linkClass}
+            >
+              Blog
+            </Link>
+            <Link href="/about" className={linkClass}>{t("about")}</Link>
+            <Link href="/contact" className={linkClass}>{t("contact")}</Link>
+            <Link href="/faq" className={linkClass}>{t("faq")}</Link>
           </div>
 
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -53,7 +90,11 @@ export default function Navbar() {
               <SearchAutocomplete
                 placeholder={tCommon("search")}
                 className="w-48 lg:w-56"
-                inputClassName="w-full pl-9 pr-3 py-2 bg-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:bg-white transition placeholder-gray-400"
+                inputClassName={`w-full pl-9 pr-3 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 transition placeholder-gray-400 ${
+                  isBlogPage
+                    ? "bg-white/20 text-white placeholder-white/60 focus:bg-white focus:text-gray-900 focus:ring-white"
+                    : "bg-gray-100 focus:ring-gray-900 focus:bg-white"
+                }`}
               />
             </div>
 
@@ -61,10 +102,10 @@ export default function Navbar() {
               <button
                 onClick={() => setLangOpen(!langOpen)}
                 aria-label="Change language"
-                className="flex items-center gap-1 p-2 rounded-xl hover:bg-gray-100 transition"
+                className={`flex items-center gap-1 p-2 rounded-xl transition ${iconHoverBg}`}
               >
-                <Globe className="w-5 h-5 text-gray-600" />
-                <span className="text-xs font-bold uppercase text-gray-700">{locale}</span>
+                <Globe className={`w-5 h-5 ${iconColor}`} />
+                <span className={`text-xs font-bold uppercase ${localeText}`}>{locale}</span>
               </button>
               {langOpen && (
                 <>
@@ -87,10 +128,10 @@ export default function Navbar() {
               )}
             </div>
 
-            <Link href="/wishlist" aria-label={t("wishlist")} className="relative p-2 rounded-xl hover:bg-gray-100 transition">
-              <Heart className={`w-5 h-5 ${wishlistCount > 0 ? "text-gray-900 fill-gray-900" : "text-gray-600"}`} />
+            <Link href="/wishlist" aria-label={t("wishlist")} className={`relative p-2 rounded-xl transition ${iconHoverBg}`}>
+              <Heart className={`w-5 h-5 ${heartClass}`} />
               {wishlistCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-gray-900 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                <span className={`absolute -top-0.5 -right-0.5 w-5 h-5 text-[10px] font-bold rounded-full flex items-center justify-center ${badgeBg}`}>
                   {wishlistCount > 9 ? "9+" : wishlistCount}
                 </span>
               )}
@@ -99,18 +140,18 @@ export default function Navbar() {
             <button
               onClick={openDrawer}
               aria-label={t("cart")}
-              className="relative p-2 rounded-xl hover:bg-gray-100 transition"
+              className={`relative p-2 rounded-xl transition ${iconHoverBg}`}
             >
-              <ShoppingBag className="w-5 h-5 text-gray-600" />
+              <ShoppingBag className={`w-5 h-5 ${iconColor}`} />
               {totalItems > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-gray-900 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                <span className={`absolute -top-0.5 -right-0.5 w-5 h-5 text-[10px] font-bold rounded-full flex items-center justify-center ${badgeBg}`}>
                   {totalItems > 9 ? "9+" : totalItems}
                 </span>
               )}
             </button>
 
-            <button onClick={() => setMenuOpen(!menuOpen)} className="lg:hidden p-2 rounded-xl hover:bg-gray-100 transition">
-              {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            <button onClick={() => setMenuOpen(!menuOpen)} className={`lg:hidden p-2 rounded-xl transition ${iconHoverBg}`}>
+              {menuOpen ? <X className={`w-5 h-5 ${iconColor}`} /> : <Menu className={`w-5 h-5 ${iconColor}`} />}
             </button>
           </div>
         </div>
