@@ -135,8 +135,8 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
   return (
     <>
       {/* Reading progress bar */}
-      <div className="fixed top-14 lg:top-16 left-0 right-0 h-1 bg-gray-100 z-30">
-        <div className="h-full bg-gray-900 transition-all duration-100" style={{ width: `${progress}%` }} />
+      <div className="fixed top-[88px] lg:top-[96px] left-0 right-0 h-1.5 bg-gray-200/60 z-30 shadow-sm">
+        <div className="h-full transition-all duration-100 shadow-md" style={{ width: `${progress}%`, backgroundColor: "#CA3F2E" }} />
       </div>
 
       <article className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
