@@ -242,13 +242,13 @@ export default function CommentSection({ postId }: Props) {
         <form
           id="comment-form"
           onSubmit={handleSubmit}
-          className="rounded-2xl p-5 lg:p-6 mb-8 border border-gray-300 bg-gray-200"
+          className="rounded-2xl p-5 lg:p-6 mb-8 border border-gray-800 bg-gray-950 text-white"
         >
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-lg">{t.formTitle}</h3>
+            <h3 className="font-bold text-lg text-white">{t.formTitle}</h3>
             {replyTo && (
               <div className="flex items-center gap-2 text-xs">
-                <span className="text-gray-500">{t.replying}</span>
+                <span className="text-gray-400">{t.replying}</span>
                 <span className="font-semibold">{replyTo.authorName}</span>
                 <button type="button" onClick={() => setReplyTo(null)} className="text-red-500 hover:underline">{t.cancel}</button>
               </div>
@@ -257,7 +257,7 @@ export default function CommentSection({ postId }: Props) {
 
           <div className="grid sm:grid-cols-2 gap-3 mb-3">
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">{t.name} *</label>
+              <label className="block text-xs font-semibold text-gray-300 mb-1">{t.name} *</label>
               <input
                 type="text"
                 value={name}
@@ -269,7 +269,7 @@ export default function CommentSection({ postId }: Props) {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">{t.email}</label>
+              <label className="block text-xs font-semibold text-gray-300 mb-1">{t.email}</label>
               <input
                 type="email"
                 value={email}
@@ -282,7 +282,7 @@ export default function CommentSection({ postId }: Props) {
           </div>
 
           <div className="mb-3">
-            <label className="block text-xs font-semibold text-gray-600 mb-1">{t.content} *</label>
+            <label className="block text-xs font-semibold text-gray-300 mb-1">{t.content} *</label>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
@@ -312,7 +312,7 @@ export default function CommentSection({ postId }: Props) {
           >
             <Send className="w-4 h-4" /> {submitting ? t.submitting : t.submit}
           </button>
-          <p className="text-xs text-gray-500 mt-3">{t.pending}.</p>
+          <p className="text-xs text-gray-400 mt-3">{t.pending}.</p>
         </form>
 
         {/* Comments list */}
