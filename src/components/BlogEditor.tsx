@@ -118,9 +118,9 @@ export default function BlogEditor({ value, onChange, placeholder = "Start writi
   const readTime = Math.max(1, Math.round(words / 200));
 
   return (
-    <div className="border border-gray-200 rounded-xl bg-white focus-within:ring-2 focus-within:ring-gray-900 transition relative">
+    <div className="border border-gray-200 rounded-xl bg-white focus-within:ring-2 focus-within:ring-gray-900 transition">
       {/* Toolbar */}
-      <div className="flex items-center gap-0.5 flex-wrap px-2 py-1.5 border-b border-gray-200 bg-gray-50 sticky top-16 lg:top-20 z-20 rounded-t-xl">
+      <div className="flex items-center gap-0.5 flex-wrap px-2 py-1.5 border-b border-gray-200 bg-gray-50 sticky top-16 lg:top-20 z-20 rounded-t-xl backdrop-blur">
         <Btn onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} active={editor.isActive("heading", { level: 1 })} title="Heading 1">
           <Heading1 className="w-4 h-4" />
         </Btn>
@@ -201,7 +201,7 @@ export default function BlogEditor({ value, onChange, placeholder = "Start writi
       </div>
 
       {/* Editor */}
-      <div style={{ minHeight }} className="rounded-b-xl">
+      <div style={{ minHeight }} className="rounded-b-xl overflow-visible">
         <EditorContent editor={editor} />
       </div>
     </div>
