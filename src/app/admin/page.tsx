@@ -13,6 +13,7 @@ import AuthorsManager from "@/components/AuthorsManager";
 import BlogPostsList from "@/components/BlogPostsList";
 import BlogPostForm from "@/components/BlogPostForm";
 import CommentsManager from "@/components/CommentsManager";
+import DashboardBlogStats from "@/components/DashboardBlogStats";
 
 interface Product {
   id: string;
