@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useTranslations, useLocale } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/routing";
@@ -42,6 +42,7 @@ export default function Navbar() {
           <div className="hidden lg:flex items-center gap-5">
             <Link href="/" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">{t("home")}</Link>
             <Link href="/shop" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">{t("shopAll")}</Link>
+            <Link href="/blog" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">Blog</Link>
             <Link href="/about" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">{t("about")}</Link>
             <Link href="/contact" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">{t("contact")}</Link>
             <Link href="/faq" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition">{t("faq")}</Link>
