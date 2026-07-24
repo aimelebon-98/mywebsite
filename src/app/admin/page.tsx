@@ -473,14 +473,17 @@ export default function AdminPage() {
         <nav className="px-3 space-y-1 flex-1 overflow-y-auto pb-4 min-h-0">
           {[
             { id: "dashboard" as Tab, icon: BarChart3, label: "Dashboard", badge: 0 },
-            { id: "products" as Tab, icon: Package, label: "Products", badge: 0 },
+            // --- Products & sales (core business) ---
             { id: "orders" as Tab, icon: ShoppingBag, label: "Orders", badge: notifCounts.orders },
+            { id: "products" as Tab, icon: Package, label: "Products", badge: 0 },
             { id: "add" as Tab, icon: Plus, label: "Add Product", badge: 0 },
             { id: "categories" as Tab, icon: Tag, label: "Categories", badge: 0 },
             { id: "reviews" as Tab, icon: MessageSquare, label: "Reviews", badge: notifCounts.reviews },
+            // --- Content (blog) ---
             { id: "blog" as Tab, icon: BookOpen, label: "Blog Posts", badge: 0 },
             { id: "authors" as Tab, icon: UsersRound, label: "Authors", badge: 0 },
             { id: "comments" as Tab, icon: MessageSquare, label: "Comments", badge: notifCounts.comments },
+            // --- System ---
             { id: "settings" as Tab, icon: Settings, label: "Store Settings", badge: 0 },
             { id: "security" as Tab, icon: Shield, label: "Security", badge: 0 },
           ].map((item) => (
