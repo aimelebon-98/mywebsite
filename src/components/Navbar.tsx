@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useTranslations, useLocale } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/routing";
@@ -22,8 +22,8 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
 
-  // Detect if we're on any blog page (listing, post, or author)
-  const isBlogPage = !!pathname && (pathname === "/blog" || pathname.startsWith("/blog/"));
+  // Apply brand red styling to all pages
+  const isBlogPage = true;
 
   const switchLocale = (nextLocale: "en" | "fr") => {
     router.replace(pathname, { locale: nextLocale });
