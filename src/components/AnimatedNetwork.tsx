@@ -4,20 +4,28 @@ import { useEffect, useRef } from "react";
 
 type Props = {
   className?: string;
-  color?: string;
+  color?: string;         // color for lines (RGB triplet like "17, 24, 39")
+  dotColor?: string;      // optional separate color for dots (RGB triplet). Falls back to `color`.
   density?: number;
   maxDistance?: number;
   influenceRadius?: number;
   attractStrength?: number;
+  dotAlpha?: number;      // 0-1
+  dotSizeMin?: number;
+  dotSizeMax?: number;
 };
 
 export default function AnimatedNetwork({
   className = "",
   color = "17, 24, 39",
+  dotColor,
   density = 70,
   maxDistance = 140,
   influenceRadius = 180,
   attractStrength = 0.6,
+  dotAlpha = 0.85,
+  dotSizeMin = 2,
+  dotSizeMax = 3.5,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number>(0);
@@ -31,6 +39,7 @@ export default function AnimatedNetwork({
     let width = 0;
     let height = 0;
     let dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const usedDotColor = dotColor || color;
 
     type P = { x: number; y: number; ox: number; oy: number; vx: number; vy: number; r: number };
     let particles: P[] = [];
@@ -46,10 +55,11 @@ export default function AnimatedNetwork({
 
       const area = width * height;
       const count = Math.max(20, Math.min(density, Math.floor(area / 14000)));
+      const range = Math.max(0.1, dotSizeMax - dotSizeMin);
       particles = Array.from({ length: count }, () => {
         const x = Math.random() * width;
         const y = Math.random() * height;
-        return { x, y, ox: x, oy: y, vx: 0, vy: 0, r: Math.random() * 1.6 + 0.9 };
+        return { x, y, ox: x, oy: y, vx: 0, vy: 0, r: Math.random() * range + dotSizeMin };
       });
     };
 
@@ -57,9 +67,18 @@ export default function AnimatedNetwork({
 
     const onMove = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
-      mouse.x = e.clientX - rect.left;
-      mouse.y = e.clientY - rect.top;
-      mouse.active = true;
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+      // Only mark active when mouse is actually over the canvas
+      if (mx >= 0 && mx <= width && my >= 0 && my <= height) {
+        mouse.x = mx;
+        mouse.y = my;
+        mouse.active = true;
+      } else {
+        mouse.active = false;
+        mouse.x = -9999;
+        mouse.y = -9999;
+      }
     };
     const onLeave = () => {
       mouse.active = false;
@@ -70,8 +89,8 @@ export default function AnimatedNetwork({
     const draw = () => {
       ctx.clearRect(0, 0, width, height);
 
+      // Update particles + draw dots (always visible)
       for (const p of particles) {
-        // Attraction to mouse when in range
         const dx = mouse.x - p.x;
         const dy = mouse.y - p.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
@@ -81,72 +100,70 @@ export default function AnimatedNetwork({
           p.vx += (dx / (dist || 1)) * force;
           p.vy += (dy / (dist || 1)) * force;
         } else {
-          // Gentle spring back to origin
+          // spring back to origin
           const rx = p.ox - p.x;
           const ry = p.oy - p.y;
           p.vx += rx * 0.008;
           p.vy += ry * 0.008;
         }
 
-        // Damping
         p.vx *= 0.9;
         p.vy *= 0.9;
-
         p.x += p.vx;
         p.y += p.vy;
 
+        // Draw the dot (always visible, brighter)
         ctx.beginPath();
-        ctx.fillStyle = `rgba(${color}, 0.55)`;
+        ctx.fillStyle = `rgba(${usedDotColor}, ${dotAlpha})`;
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         ctx.fill();
+
+        // Subtle glow ring around dot for extra visibility
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(${usedDotColor}, ${dotAlpha * 0.25})`;
+        ctx.lineWidth = 1;
+        ctx.arc(p.x, p.y, p.r + 1.5, 0, Math.PI * 2);
+        ctx.stroke();
       }
 
-      // Lines between nearby particles (only bright near mouse)
-      for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < particles.length; j++) {
+      // Only draw lines when mouse is active in the canvas
+      if (mouse.active) {
+        for (let i = 0; i < particles.length; i++) {
           const a = particles[i];
-          const b = particles[j];
-          const dx = a.x - b.x;
-          const dy = a.y - b.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < maxDistance) {
-            // Boost line alpha if either endpoint is near the mouse
-            let boost = 0;
-            if (mouse.active) {
-              const mAx = a.x - mouse.x, mAy = a.y - mouse.y;
-              const mBx = b.x - mouse.x, mBy = b.y - mouse.y;
-              const dA = Math.sqrt(mAx * mAx + mAy * mAy);
-              const dB = Math.sqrt(mBx * mBx + mBy * mBy);
-              const near = Math.min(dA, dB);
-              if (near < influenceRadius) {
-                boost = (1 - near / influenceRadius) * 0.5;
-              }
-            }
-            const alpha = (1 - dist / maxDistance) * (0.12 + boost);
-            ctx.strokeStyle = `rgba(${color}, ${alpha})`;
-            ctx.lineWidth = 0.7;
-            ctx.beginPath();
-            ctx.moveTo(a.x, a.y);
-            ctx.lineTo(b.x, b.y);
-            ctx.stroke();
-          }
-        }
+          const mAx = a.x - mouse.x;
+          const mAy = a.y - mouse.y;
+          const dA = Math.sqrt(mAx * mAx + mAy * mAy);
 
-        // Line from particle to mouse
-        if (mouse.active) {
-          const p = particles[i];
-          const dxm = p.x - mouse.x;
-          const dym = p.y - mouse.y;
-          const dm = Math.sqrt(dxm * dxm + dym * dym);
-          if (dm < influenceRadius) {
-            const alpha = (1 - dm / influenceRadius) * 0.6;
-            ctx.strokeStyle = `rgba(${color}, ${alpha})`;
-            ctx.lineWidth = 0.9;
-            ctx.beginPath();
-            ctx.moveTo(p.x, p.y);
-            ctx.lineTo(mouse.x, mouse.y);
-            ctx.stroke();
+          // Only connect particles that are near the mouse
+          if (dA >= influenceRadius) continue;
+
+          const nearMouseFactor = 1 - dA / influenceRadius;
+
+          // Draw lines from this near-mouse particle to other nearby particles
+          for (let j = i + 1; j < particles.length; j++) {
+            const b = particles[j];
+            const dx = a.x - b.x;
+            const dy = a.y - b.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < maxDistance) {
+              const alpha = (1 - dist / maxDistance) * (0.35 + nearMouseFactor * 0.5);
+              ctx.strokeStyle = `rgba(${color}, ${alpha})`;
+              ctx.lineWidth = 0.85;
+              ctx.beginPath();
+              ctx.moveTo(a.x, a.y);
+              ctx.lineTo(b.x, b.y);
+              ctx.stroke();
+            }
           }
+
+          // Line from this particle to the mouse
+          const alpha = nearMouseFactor * 0.75;
+          ctx.strokeStyle = `rgba(${color}, ${alpha})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(mouse.x, mouse.y);
+          ctx.stroke();
         }
       }
 
@@ -157,21 +174,25 @@ export default function AnimatedNetwork({
     draw();
 
     window.addEventListener("resize", resize);
+    // Use canvas-level events (more reliable for "inside canvas" detection)
+    canvas.addEventListener("mousemove", onMove);
+    canvas.addEventListener("mouseleave", onLeave);
+    // Also track global mouse for edge cases
     window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseleave", onLeave);
 
     return () => {
       cancelAnimationFrame(rafRef.current);
       window.removeEventListener("resize", resize);
+      canvas.removeEventListener("mousemove", onMove);
+      canvas.removeEventListener("mouseleave", onLeave);
       window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseleave", onLeave);
     };
-  }, [color, density, maxDistance, influenceRadius, attractStrength]);
+  }, [color, dotColor, density, maxDistance, influenceRadius, attractStrength, dotAlpha, dotSizeMin, dotSizeMax]);
 
   return (
     <canvas
       ref={canvasRef}
-      className={`pointer-events-none ${className}`}
+      className={`${className}`}
       aria-hidden="true"
     />
   );
