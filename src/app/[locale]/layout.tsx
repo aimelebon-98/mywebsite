@@ -8,6 +8,7 @@ import { WishlistProvider } from "@/lib/wishlist-context";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import MiniCartDrawer from "@/components/MiniCartDrawer";
 
+import ExitIntentPopup from "@/components/ExitIntentPopup";
 import CookieConsent from "@/components/CookieConsent";
 import StickyPromoBar from "@/components/StickyPromoBar";
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://solevault.com";
@@ -81,6 +82,7 @@ export default async function LocaleLayout({
         </NextIntlClientProvider>
         <StickyPromoBar />
         <CookieConsent />
+        <ExitIntentPopup />
       </body>
     </html>
   );
