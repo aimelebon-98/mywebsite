@@ -52,6 +52,7 @@ export default function ProductDetails({ product, initialReviews = [] }: Product
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [activeTab, setActiveTab] = useState<"description" | "details" | "shipping">("description");
+  const [showFullDesc, setShowFullDesc] = useState(false);
   const [reviews, setReviews] = useState<Review[]>(initialReviews);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewName, setReviewName] = useState("");
@@ -369,7 +370,30 @@ export default function ProductDetails({ product, initialReviews = [] }: Product
                     <p className="text-gray-800 font-medium">{shortDesc}</p>
                   </div>
                 )}
-                <p className="text-gray-600 leading-relaxed text-lg whitespace-pre-line">{longDesc}</p>
+                {/* Collapsible long description - SEO safe (full text in DOM) */}
+                <div className="relative">
+                  <div
+                    className={`text-gray-600 leading-relaxed text-lg whitespace-pre-line overflow-hidden transition-all duration-500 ${
+                      showFullDesc || longDesc.length <= 400 ? "max-h-[10000px]" : "max-h-[220px]"
+                    }`}
+                  >
+                    {longDesc}
+                  </div>
+                  {/* Fade gradient - only when collapsed and long */}
+                  {!showFullDesc && longDesc.length > 400 && (
+                    <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white via-white/90 to-transparent pointer-events-none" />
+                  )}
+                </div>
+                {/* Read more / less button - only if content is long enough */}
+                {longDesc.length > 400 && (
+                  <button
+                    onClick={() => setShowFullDesc(!showFullDesc)}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-gray-900 text-gray-900 rounded-xl text-sm font-bold hover:bg-gray-900 hover:text-white transition group"
+                  >
+                    {showFullDesc ? (locale === "fr" ? "Voir moins" : "Show less") : (locale === "fr" ? "Lire la suite" : "Read more")}
+                    <ChevronDown className={`w-4 h-4 transition-transform ${showFullDesc ? "rotate-180" : ""}`} />
+                  </button>
+                )}
                 {product.brand && (
                   <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
                     <Award className="w-5 h-5 text-gray-400" />
