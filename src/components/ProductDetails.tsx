@@ -1,4 +1,5 @@
 "use client";
+import { trackEvent } from "@/components/AnalyticsTracker";
 import ProductFaqDisplay from "@/components/ProductFaqDisplay";
 
 import { useState, useEffect } from "react";
@@ -53,6 +54,14 @@ export default function ProductDetails({ product, initialReviews = [] }: Product
   const [added, setAdded] = useState(false);
   const [activeTab, setActiveTab] = useState<"description" | "details" | "shipping">("description");
   const [showFullDesc, setShowFullDesc] = useState(false);
+  // Track product view for analytics
+  useEffect(() => {
+    trackEvent({
+      eventType: "product_view",
+      productId: product.id,
+      productName: product.name,
+    });
+  }, [product.id, product.name]);
   const [reviews, setReviews] = useState<Review[]>(initialReviews);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewName, setReviewName] = useState("");

@@ -250,3 +250,21 @@ export const productFaqs = pgTable("product_faqs", {
 export type ProductFaq = typeof productFaqs.$inferSelect;
 export type NewProductFaq = typeof productFaqs.$inferInsert;
 
+export const analyticsEvents = pgTable("analytics_events", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  eventType: text("event_type").notNull(),
+  path: text("path").notNull().default(""),
+  productId: uuid("product_id"),
+  productName: text("product_name"),
+  postId: uuid("post_id"),
+  searchQuery: text("search_query"),
+  referrer: text("referrer").default(""),
+  visitorId: text("visitor_id").notNull().default(""),
+  userAgent: text("user_agent").default(""),
+  metadata: text("metadata").default("{}"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export type AnalyticsEvent = typeof analyticsEvents.$inferSelect;
+export type NewAnalyticsEvent = typeof analyticsEvents.$inferInsert;
+

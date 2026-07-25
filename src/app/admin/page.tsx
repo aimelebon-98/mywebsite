@@ -18,6 +18,7 @@ import ProductForm from "@/components/ProductForm";
 import OrdersManager from "@/components/OrdersManager";
 import DashboardOrderStats from "@/components/DashboardOrderStats";
 import ProductFaqsManager from "@/components/ProductFaqsManager";
+import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 interface Product {
   id: string;
   name: string;
@@ -79,7 +80,7 @@ interface StoreSettings {
   lockoutMinutes: number;
 }
 
-type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments" | "orders" | "product-faqs";
+type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments" | "orders" | "product-faqs" | "analytics";
 
 export default function AdminPage() {
   const [authStep, setAuthStep] = useState<"loading" | "access-code" | "password" | "authenticated">("loading");
@@ -473,6 +474,7 @@ export default function AdminPage() {
         <nav className="px-3 space-y-1 flex-1 overflow-y-auto pb-4 min-h-0">
           {[
             { id: "dashboard" as Tab, icon: BarChart3, label: "Dashboard", badge: 0 },
+            { id: "analytics" as Tab, icon: TrendingUp, label: "Analytics", badge: 0 },
             // --- Products & sales (core business) ---
             { id: "orders" as Tab, icon: ShoppingBag, label: "Orders", badge: notifCounts.orders },
             { id: "products" as Tab, icon: Package, label: "Products", badge: 0 },
@@ -775,6 +777,10 @@ export default function AdminPage() {
             </div>
           )}
 
+
+          {activeTab === "analytics" && (
+            <AnalyticsDashboard />
+          )}
 
           {activeTab === "product-faqs" && (
             <ProductFaqsManager />
