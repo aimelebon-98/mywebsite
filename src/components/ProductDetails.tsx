@@ -606,6 +606,7 @@ export default function ProductDetails({ product, initialReviews = [] }: Product
             <ProductFaqDisplay />
           </aside>
         </div>
+      </div>
     </div>
   );
 }
