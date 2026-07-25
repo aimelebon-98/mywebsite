@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { useLocale } from "next-intl";
-import { X, Copy, Check, Gift, Sparkles, Mail, Clock } from "lucide-react";
 
 const STORAGE_KEY = "solevault_exit_popup_shown";
 const STORAGE_EXPIRES_DAYS = 7;
@@ -12,8 +10,7 @@ const DISCOUNT_PERCENT = 10;
 
 export default function ExitIntentPopup() {
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
-  const locale = useLocale();
-  const isFr = locale === "fr";
+  const [isFr, setIsFr] = useState(false);
   const [show, setShow] = useState(false);
   const [copied, setCopied] = useState(false);
   const [email, setEmail] = useState("");
@@ -21,9 +18,11 @@ export default function ExitIntentPopup() {
   const [subscribed, setSubscribed] = useState(false);
   const [timeLeft, setTimeLeft] = useState(600);
 
-  // Set portal target only on client
   useEffect(() => {
     setPortalTarget(document.body);
+    // Detect locale from URL path
+    const path = window.location.pathname;
+    setIsFr(path.startsWith("/fr"));
   }, []);
 
   useEffect(() => {
@@ -116,7 +115,6 @@ export default function ExitIntentPopup() {
   const mins = Math.floor(timeLeft / 60);
   const secs = timeLeft % 60;
 
-  // ZERO output during SSR/prerender - portal target only exists on client
   if (!portalTarget) return null;
   if (!show) return null;
 
@@ -130,32 +128,43 @@ export default function ExitIntentPopup() {
         onClick={(e) => e.stopPropagation()}
         className="relative bg-white rounded-3xl shadow-2xl overflow-hidden max-w-md w-full exit-slide-up"
       >
+        {/* Close button */}
         <button
           onClick={handleClose}
           className="absolute top-4 right-4 z-10 w-9 h-9 bg-white/90 backdrop-blur rounded-full flex items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-white transition shadow-md"
           aria-label="Close"
         >
-          <X className="w-4 h-4" />
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
         </button>
 
+        {/* Header */}
         <div className="relative overflow-hidden px-8 pt-10 pb-6 text-center" style={{ background: "linear-gradient(135deg, #CA3F2E 0%, #8B2A1E 100%)" }}>
           <div className="absolute -top-8 -right-8 w-32 h-32 bg-white rounded-full blur-3xl opacity-20 pointer-events-none" />
           <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-white rounded-full blur-2xl opacity-10 pointer-events-none" />
 
           {timeLeft > 0 && (
             <div className="absolute top-4 left-4 inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/20 backdrop-blur rounded-full text-white text-[10px] font-bold">
-              <Clock className="w-3 h-3" />
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3">
+                <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+              </svg>
               {String(mins).padStart(2, "0")}:{String(secs).padStart(2, "0")}
             </div>
           )}
 
           <div className="relative">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-white/15 backdrop-blur rounded-2xl mb-4 exit-bounce-slow">
-              <Gift className="w-8 h-8 text-white" />
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 text-white">
+                <polyline points="20 12 20 22 4 22 4 12" /><rect x="2" y="7" width="20" height="5" /><line x1="12" y1="22" x2="12" y2="7" /><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" /><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
+              </svg>
             </div>
 
             <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/15 backdrop-blur rounded-full text-white text-[10px] font-bold uppercase tracking-widest mb-3">
-              <Sparkles className="w-3 h-3" />
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3">
+                <path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4" />
+              </svg>
               {isFr ? "Offre exclusive" : "Exclusive offer"}
             </div>
 
@@ -168,6 +177,7 @@ export default function ExitIntentPopup() {
           </div>
         </div>
 
+        {/* Body */}
         <div className="p-8">
           <div className="text-center mb-6">
             <div className="text-5xl sm:text-6xl font-black text-gray-900 mb-1">
@@ -188,7 +198,9 @@ export default function ExitIntentPopup() {
 
               <form onSubmit={handleSubscribe} className="space-y-3">
                 <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" />
+                  </svg>
                   <input
                     type="email"
                     required
@@ -213,7 +225,9 @@ export default function ExitIntentPopup() {
             <>
               <div className="text-center mb-4">
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs font-bold mb-3">
-                  <Check className="w-3.5 h-3.5" />
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
                   {isFr ? "Inscrit avec succes !" : "Successfully subscribed!"}
                 </div>
                 <p className="text-sm text-gray-600">
@@ -232,7 +246,17 @@ export default function ExitIntentPopup() {
                       copied ? "bg-green-500 text-white" : "bg-gray-900 hover:bg-[#CA3F2E] text-white"
                     }`}
                   >
-                    {copied ? (<><Check className="w-3.5 h-3.5" />{isFr ? "Copie !" : "Copied!"}</>) : (<><Copy className="w-3.5 h-3.5" />{isFr ? "Copier" : "Copy"}</>)}
+                    {copied ? (
+                      <>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5"><polyline points="20 6 9 17 4 12" /></svg>
+                        {isFr ? "Copie !" : "Copied!"}
+                      </>
+                    ) : (
+                      <>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
+                        {isFr ? "Copier" : "Copy"}
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
