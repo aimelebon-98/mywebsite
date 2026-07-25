@@ -42,6 +42,12 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   const toggle = useCallback(async (productId: string) => {
     const vid = getVisitorId();
     const wished = ids.includes(productId);
+    // Analytics: track only when adding (not when removing)
+    if (!wished) {
+      try {
+        trackEvent({ eventType: "wishlist_add", productId });
+      } catch { /* ignore */ }
+    }
     // optimistic update
     setIds(prev => wished ? prev.filter(x => x !== productId) : [...prev, productId]);
     try {
