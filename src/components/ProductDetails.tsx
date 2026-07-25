@@ -1,4 +1,5 @@
-﻿"use client";
+"use client";
+import ProductFaqDisplay from "@/components/ProductFaqDisplay";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
