@@ -103,8 +103,9 @@ export default function AdminPage() {
     } catch { /* ignore */ }
   };
 
-  // On mount: restore active tab from URL hash or localStorage
+  // Restore active tab from URL hash or localStorage - runs after auth completes
   useEffect(() => {
+    if (authStep !== "authenticated") return;
     try {
       const hash = window.location.hash.replace("#", "");
       const stored = localStorage.getItem("sv_admin_tab");
@@ -117,7 +118,7 @@ export default function AdminPage() {
         else setActiveTabRaw(candidate as Tab);
       }
     } catch { /* ignore */ }
-  }, []);
+  }, [authStep]);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [storeSettings, setStoreSettings] = useState<StoreSettings>({
