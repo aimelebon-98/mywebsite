@@ -89,7 +89,35 @@ export default function AdminPage() {
   const [authError, setAuthError] = useState("");
   const [requiresAccessCode, setRequiresAccessCode] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<Tab>("dashboard");
+  const [activeTab, setActiveTabRaw] = useState<Tab>("dashboard");
+
+  // Wrapper: persist tab to URL hash + localStorage on every change
+  const setActiveTab = (tab: Tab) => {
+    setActiveTabRaw(tab);
+    try {
+      localStorage.setItem("sv_admin_tab", tab);
+      // Only persist stable tabs in URL (not the "edit" flow)
+      if (tab !== "edit" && tab !== "blog-edit") {
+        window.history.replaceState(null, "", `#${tab}`);
+      }
+    } catch { /* ignore */ }
+  };
+
+  // On mount: restore active tab from URL hash or localStorage
+  useEffect(() => {
+    try {
+      const hash = window.location.hash.replace("#", "");
+      const stored = localStorage.getItem("sv_admin_tab");
+      const candidate = hash || stored;
+      const validTabs: Tab[] = ["dashboard","products","add","edit","categories","reviews","settings","security","blog","blog-add","blog-edit","authors","comments","orders"];
+      if (candidate && validTabs.includes(candidate as Tab)) {
+        // Skip transient tabs - default to their parent list
+        if (candidate === "edit") setActiveTabRaw("products");
+        else if (candidate === "blog-edit") setActiveTabRaw("blog");
+        else setActiveTabRaw(candidate as Tab);
+      }
+    } catch { /* ignore */ }
+  }, []);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [storeSettings, setStoreSettings] = useState<StoreSettings>({
