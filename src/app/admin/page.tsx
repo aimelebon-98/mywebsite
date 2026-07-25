@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import {
   Package, Plus, Settings, BarChart3, LogOut, Edit, Trash2, Eye, EyeOff, Star, Search, Menu, X, Home,
   Shield, Users, Download, Upload, RefreshCw, Lock, MessageSquare, Key, AlertTriangle, TrendingUp,
-  DollarSign, ShoppingBag, CheckCircle, Clock, Copy, Tag, Globe, ChevronDown, ChevronUp
+  DollarSign, ShoppingBag, CheckCircle, Clock, Copy, Tag, Globe, ChevronDown, ChevronUp, ExternalLink
 } from "lucide-react";
 import Link from "next/link";
 import { BookOpen, UsersRound, PenLine, HelpCircle } from "lucide-react";
