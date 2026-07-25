@@ -17,6 +17,7 @@ import DashboardBlogStats from "@/components/DashboardBlogStats";
 import ProductForm from "@/components/ProductForm";
 import OrdersManager from "@/components/OrdersManager";
 import DashboardOrderStats from "@/components/DashboardOrderStats";
+import ProductFaqsManager from "@/components/ProductFaqsManager";
 interface Product {
   id: string;
   name: string;
@@ -774,6 +775,10 @@ export default function AdminPage() {
             </div>
           )}
 
+
+          {activeTab === "product-faqs" && (
+            <ProductFaqsManager />
+          )}
 
           {activeTab === "settings" && (
             <SettingsForm
