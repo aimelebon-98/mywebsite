@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 type Props = {
   className?: string;
   color?: string;
-  dotColor?: string;
+  dotColor?: string;         // "R, G, B" tuple, or "multi" for random vibrant palette
   density?: number;
   maxDistance?: number;
   influenceRadius?: number;
@@ -15,6 +15,21 @@ type Props = {
   dotSizeMax?: number;
   baseLineAlpha?: number;
 };
+
+// Vibrant palette used when dotColor === "multi"
+// Colors: red, blue, green, navy, amber, purple, teal, pink, orange, cyan
+const MULTI_PALETTE = [
+  "202, 63, 46",   // brand red
+  "37, 99, 235",   // blue
+  "22, 163, 74",   // green
+  "30, 58, 138",   // navy
+  "245, 158, 11",  // amber
+  "147, 51, 234",  // purple
+  "20, 184, 166",  // teal
+  "236, 72, 153",  // pink
+  "234, 88, 12",   // orange
+  "6, 182, 212",   // cyan
+];
 
 export default function AnimatedNetwork({
   className = "",
@@ -41,10 +56,18 @@ export default function AnimatedNetwork({
     let width = 0;
     let height = 0;
     let dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const usedDotColor = dotColor || color;
+    const isMulti = dotColor === "multi";
+    const singleColor = dotColor && !isMulti ? dotColor : color;
 
-    type P = { x: number; y: number; ox: number; oy: number; vx: number; vy: number; r: number };
+    type P = { x: number; y: number; ox: number; oy: number; vx: number; vy: number; r: number; c: string };
     let particles: P[] = [];
+
+    const pickColor = (): string => {
+      if (isMulti) {
+        return MULTI_PALETTE[Math.floor(Math.random() * MULTI_PALETTE.length)];
+      }
+      return singleColor;
+    };
 
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
@@ -61,7 +84,11 @@ export default function AnimatedNetwork({
       particles = Array.from({ length: count }, () => {
         const x = Math.random() * width;
         const y = Math.random() * height;
-        return { x, y, ox: x, oy: y, vx: 0, vy: 0, r: Math.random() * range + dotSizeMin };
+        return {
+          x, y, ox: x, oy: y, vx: 0, vy: 0,
+          r: Math.random() * range + dotSizeMin,
+          c: pickColor(),
+        };
       });
     };
 
@@ -112,21 +139,22 @@ export default function AnimatedNetwork({
         p.x += p.vx;
         p.y += p.vy;
 
-        // Draw the dot (always visible)
+        // Dot fill (uses particle's own color)
         ctx.beginPath();
-        ctx.fillStyle = `rgba(${usedDotColor}, ${dotAlpha})`;
+        ctx.fillStyle = `rgba(${p.c}, ${dotAlpha})`;
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         ctx.fill();
 
-        // Glow ring
+        // Glow ring (matches particle color)
         ctx.beginPath();
-        ctx.strokeStyle = `rgba(${usedDotColor}, ${dotAlpha * 0.25})`;
+        ctx.strokeStyle = `rgba(${p.c}, ${dotAlpha * 0.3})`;
         ctx.lineWidth = 1;
         ctx.arc(p.x, p.y, p.r + 1.5, 0, Math.PI * 2);
         ctx.stroke();
       }
 
-      // Draw connecting lines (always visible, boosted near mouse)
+      // Draw lines (always visible, boosted near mouse)
+      // Lines use the neutral `color` prop, not per-dot colors, for a clean look
       for (let i = 0; i < particles.length; i++) {
         const a = particles[i];
 
@@ -137,10 +165,8 @@ export default function AnimatedNetwork({
           const dist = Math.sqrt(dx * dx + dy * dy);
           if (dist >= maxDistance) continue;
 
-          // Base alpha - always visible
           let alpha = (1 - dist / maxDistance) * baseLineAlpha;
 
-          // Boost near mouse
           if (mouse.active) {
             const mAx = a.x - mouse.x, mAy = a.y - mouse.y;
             const mBx = b.x - mouse.x, mBy = b.y - mouse.y;
@@ -161,7 +187,6 @@ export default function AnimatedNetwork({
           ctx.stroke();
         }
 
-        // Line from particle to mouse (only when near)
         if (mouse.active) {
           const dxm = a.x - mouse.x;
           const dym = a.y - mouse.y;
