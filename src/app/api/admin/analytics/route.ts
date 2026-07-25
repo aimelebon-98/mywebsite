@@ -1,38 +1,62 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { analyticsEvents } from "@/db/schema";
-import { and, gte, sql, desc } from "drizzle-orm";
+import { and, gte, lt, desc } from "drizzle-orm";
+
+type EventRow = typeof analyticsEvents.$inferSelect;
+
+function computeKpis(events: EventRow[]) {
+  return {
+    uniqueVisitors: new Set(events.map(e => e.visitorId)).size,
+    pageViews: events.filter(e => e.eventType === "page_view").length,
+    productViews: events.filter(e => e.eventType === "product_view").length,
+    addToCarts: events.filter(e => e.eventType === "add_to_cart").length,
+    checkoutClicks: events.filter(e => e.eventType === "checkout_click").length,
+    wishlistAdds: events.filter(e => e.eventType === "wishlist_add").length,
+    newsletterSignups: events.filter(e => e.eventType === "newsletter_signup").length,
+    searches: events.filter(e => e.eventType === "search").length,
+    blogViews: events.filter(e => e.eventType === "blog_view").length,
+    totalEvents: events.length,
+  };
+}
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const days = parseInt(searchParams.get("days") || "7");
 
-  const since = new Date();
-  since.setDate(since.getDate() - days);
+  const now = new Date();
+  const currentStart = new Date(now);
+  currentStart.setDate(currentStart.getDate() - days);
+  currentStart.setHours(0, 0, 0, 0);
+
+  const previousStart = new Date(currentStart);
+  previousStart.setDate(previousStart.getDate() - days);
 
   try {
-    const all = await db
+    // Fetch current period
+    const current = await db
       .select()
       .from(analyticsEvents)
-      .where(and(gte(analyticsEvents.createdAt, since)))
+      .where(and(gte(analyticsEvents.createdAt, currentStart)))
       .orderBy(desc(analyticsEvents.createdAt))
       .limit(50000);
 
-    // Aggregate
-    const totalEvents = all.length;
-    const uniqueVisitors = new Set(all.map(e => e.visitorId)).size;
-    const pageViews = all.filter(e => e.eventType === "page_view").length;
-    const productViews = all.filter(e => e.eventType === "product_view").length;
-    const addToCarts = all.filter(e => e.eventType === "add_to_cart").length;
-    const checkoutClicks = all.filter(e => e.eventType === "checkout_click").length;
-    const wishlistAdds = all.filter(e => e.eventType === "wishlist_add").length;
-    const newsletterSignups = all.filter(e => e.eventType === "newsletter_signup").length;
-    const searches = all.filter(e => e.eventType === "search").length;
-    const blogViews = all.filter(e => e.eventType === "blog_view").length;
+    // Fetch previous period (same length window)
+    const previous = await db
+      .select()
+      .from(analyticsEvents)
+      .where(and(
+        gte(analyticsEvents.createdAt, previousStart),
+        lt(analyticsEvents.createdAt, currentStart)
+      ))
+      .limit(50000);
 
-    // Timeline (per day)
+    const kpis = computeKpis(current);
+    const previousKpis = computeKpis(previous);
+
+    // Timeline
     const timeline: Record<string, { visits: number; carts: number; checkouts: number }> = {};
-    all.forEach(e => {
+    current.forEach(e => {
       const day = e.createdAt.toISOString().slice(0, 10);
       if (!timeline[day]) timeline[day] = { visits: 0, carts: 0, checkouts: 0 };
       if (e.eventType === "page_view") timeline[day].visits++;
@@ -42,11 +66,9 @@ export async function GET(req: NextRequest) {
 
     // Top products
     const productMap: Record<string, { name: string; views: number; carts: number; checkouts: number }> = {};
-    all.forEach(e => {
+    current.forEach(e => {
       if (!e.productId || !e.productName) return;
-      if (!productMap[e.productId]) {
-        productMap[e.productId] = { name: e.productName, views: 0, carts: 0, checkouts: 0 };
-      }
+      if (!productMap[e.productId]) productMap[e.productId] = { name: e.productName, views: 0, carts: 0, checkouts: 0 };
       if (e.eventType === "product_view") productMap[e.productId].views++;
       if (e.eventType === "add_to_cart") productMap[e.productId].carts++;
       if (e.eventType === "checkout_click") productMap[e.productId].checkouts++;
@@ -58,7 +80,7 @@ export async function GET(req: NextRequest) {
 
     // Top blog posts
     const postMap: Record<string, { name: string; views: number }> = {};
-    all.forEach(e => {
+    current.forEach(e => {
       if (e.eventType !== "blog_view" || !e.postId) return;
       if (!postMap[e.postId]) postMap[e.postId] = { name: e.productName || "Untitled", views: 0 };
       postMap[e.postId].views++;
@@ -68,9 +90,9 @@ export async function GET(req: NextRequest) {
       .sort((a, b) => b.views - a.views)
       .slice(0, 5);
 
-    // Top search terms
+    // Top searches
     const searchMap: Record<string, number> = {};
-    all.forEach(e => {
+    current.forEach(e => {
       if (e.eventType !== "search" || !e.searchQuery) return;
       const q = e.searchQuery.toLowerCase().trim();
       if (!q) return;
@@ -82,13 +104,14 @@ export async function GET(req: NextRequest) {
       .slice(0, 10);
 
     // Top referrers
+    const host = req.headers.get("host")?.replace(/^www\./, "") || "";
     const referrerMap: Record<string, number> = {};
-    all.forEach(e => {
+    current.forEach(e => {
       if (!e.referrer) return;
       try {
         const url = new URL(e.referrer);
         const domain = url.hostname.replace(/^www\./, "");
-        if (domain.includes(req.headers.get("host")?.replace(/^www\./, "") || "")) return;
+        if (domain.includes(host)) return;
         referrerMap[domain] = (referrerMap[domain] || 0) + 1;
       } catch { /* ignore */ }
     });
@@ -99,7 +122,7 @@ export async function GET(req: NextRequest) {
 
     // Top pages
     const pageMap: Record<string, number> = {};
-    all.forEach(e => {
+    current.forEach(e => {
       if (e.eventType !== "page_view") return;
       pageMap[e.path] = (pageMap[e.path] || 0) + 1;
     });
@@ -108,31 +131,33 @@ export async function GET(req: NextRequest) {
       .sort((a, b) => b.views - a.views)
       .slice(0, 10);
 
-    // Conversion funnel
+    // Funnel
     const funnel = {
-      visitors: uniqueVisitors,
-      productViews,
-      addToCarts,
-      checkoutClicks,
-      cartRate: productViews > 0 ? (addToCarts / productViews * 100) : 0,
-      checkoutRate: addToCarts > 0 ? (checkoutClicks / addToCarts * 100) : 0,
+      visitors: kpis.uniqueVisitors,
+      productViews: kpis.productViews,
+      addToCarts: kpis.addToCarts,
+      checkoutClicks: kpis.checkoutClicks,
+      cartRate: kpis.productViews > 0 ? (kpis.addToCarts / kpis.productViews * 100) : 0,
+      checkoutRate: kpis.addToCarts > 0 ? (kpis.checkoutClicks / kpis.addToCarts * 100) : 0,
     };
+
+    // Compute % changes for each KPI
+    const changes: Record<string, number> = {};
+    (Object.keys(kpis) as Array<keyof typeof kpis>).forEach(k => {
+      const curr = kpis[k];
+      const prev = previousKpis[k];
+      if (prev === 0) changes[k] = curr > 0 ? 100 : 0;
+      else changes[k] = ((curr - prev) / prev) * 100;
+    });
 
     return NextResponse.json({
       ok: true,
       days,
-      kpis: {
-        totalEvents,
-        uniqueVisitors,
-        pageViews,
-        productViews,
-        addToCarts,
-        checkoutClicks,
-        wishlistAdds,
-        newsletterSignups,
-        searches,
-        blogViews,
-      },
+      periodLabel: days === 1 ? "Today" : days === 7 ? "This week" : days === 30 ? "This month" : days === 90 ? "Last 90 days" : `Last ${days} days`,
+      previousLabel: days === 1 ? "Yesterday" : days === 7 ? "Last week" : days === 30 ? "Last month" : `Previous ${days} days`,
+      kpis,
+      previousKpis,
+      changes,
       timeline: Object.entries(timeline)
         .map(([date, data]) => ({ date, ...data }))
         .sort((a, b) => a.date.localeCompare(b.date)),

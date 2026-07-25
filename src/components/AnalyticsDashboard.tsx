@@ -1,23 +1,29 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
-import { BarChart3, Users, Eye, ShoppingCart, MousePointerClick, Heart, Mail, Search, TrendingUp, Download, RefreshCw, ArrowRight, Package, BookOpen, ExternalLink } from "lucide-react";
+import { BarChart3, Users, Eye, ShoppingCart, MousePointerClick, Heart, Mail, Search, TrendingUp, TrendingDown, Minus, Download, RefreshCw, Package, BookOpen, ExternalLink } from "lucide-react";
+
+interface Kpis {
+  totalEvents: number;
+  uniqueVisitors: number;
+  pageViews: number;
+  productViews: number;
+  addToCarts: number;
+  checkoutClicks: number;
+  wishlistAdds: number;
+  newsletterSignups: number;
+  searches: number;
+  blogViews: number;
+}
 
 interface AnalyticsData {
   ok: boolean;
   days: number;
-  kpis: {
-    totalEvents: number;
-    uniqueVisitors: number;
-    pageViews: number;
-    productViews: number;
-    addToCarts: number;
-    checkoutClicks: number;
-    wishlistAdds: number;
-    newsletterSignups: number;
-    searches: number;
-    blogViews: number;
-  };
+  periodLabel: string;
+  previousLabel: string;
+  kpis: Kpis;
+  previousKpis: Kpis;
+  changes: Record<string, number>;
   timeline: Array<{ date: string; visits: number; carts: number; checkouts: number }>;
   topProducts: Array<{ id: string; name: string; views: number; carts: number; checkouts: number }>;
   topPosts: Array<{ id: string; name: string; views: number }>;
@@ -42,6 +48,26 @@ const RANGES = [
   { days: 365, label: "1 year" },
 ];
 
+function ChangeBadge({ change }: { change: number }) {
+  if (!isFinite(change)) return null;
+  const isPositive = change > 0;
+  const isNegative = change < 0;
+  const isZero = change === 0;
+
+  const Icon = isPositive ? TrendingUp : isNegative ? TrendingDown : Minus;
+  const bgColor = isPositive ? "bg-emerald-50" : isNegative ? "bg-red-50" : "bg-gray-100";
+  const textColor = isPositive ? "text-emerald-700" : isNegative ? "text-red-700" : "text-gray-600";
+
+  const display = Math.abs(change) >= 999 ? "999+" : Math.abs(change).toFixed(0);
+
+  return (
+    <div className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] font-bold ${bgColor} ${textColor}`}>
+      <Icon className="w-3 h-3" />
+      {isZero ? "0" : `${display}%`}
+    </div>
+  );
+}
+
 export default function AnalyticsDashboard() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -62,17 +88,15 @@ export default function AnalyticsDashboard() {
   const exportCsv = () => {
     if (!data) return;
     const rows = [
-      ["Metric", "Value"],
-      ["Date Range", `Last ${range} days`],
-      ["Unique Visitors", data.kpis.uniqueVisitors],
-      ["Page Views", data.kpis.pageViews],
-      ["Product Views", data.kpis.productViews],
-      ["Add to Cart", data.kpis.addToCarts],
-      ["Checkout Clicks", data.kpis.checkoutClicks],
-      ["Wishlist Adds", data.kpis.wishlistAdds],
-      ["Newsletter Signups", data.kpis.newsletterSignups],
-      ["Searches", data.kpis.searches],
-      ["Blog Views", data.kpis.blogViews],
+      ["Metric", data.periodLabel, data.previousLabel, "Change %"],
+      ["Unique Visitors", data.kpis.uniqueVisitors, data.previousKpis.uniqueVisitors, data.changes.uniqueVisitors?.toFixed(1) + "%"],
+      ["Page Views", data.kpis.pageViews, data.previousKpis.pageViews, data.changes.pageViews?.toFixed(1) + "%"],
+      ["Product Views", data.kpis.productViews, data.previousKpis.productViews, data.changes.productViews?.toFixed(1) + "%"],
+      ["Add to Cart", data.kpis.addToCarts, data.previousKpis.addToCarts, data.changes.addToCarts?.toFixed(1) + "%"],
+      ["Checkout Clicks", data.kpis.checkoutClicks, data.previousKpis.checkoutClicks, data.changes.checkoutClicks?.toFixed(1) + "%"],
+      ["Wishlist Adds", data.kpis.wishlistAdds, data.previousKpis.wishlistAdds, data.changes.wishlistAdds?.toFixed(1) + "%"],
+      ["Newsletter", data.kpis.newsletterSignups, data.previousKpis.newsletterSignups, data.changes.newsletterSignups?.toFixed(1) + "%"],
+      ["Blog Views", data.kpis.blogViews, data.previousKpis.blogViews, data.changes.blogViews?.toFixed(1) + "%"],
       [],
       ["Top Products", "Views", "Carts", "Checkouts"],
       ...data.topProducts.map(p => [p.name, p.views, p.carts, p.checkouts]),
@@ -113,15 +137,15 @@ export default function AnalyticsDashboard() {
     );
   }
 
-  const kpiCards = [
-    { label: "Unique Visitors", value: data.kpis.uniqueVisitors, icon: Users, color: "bg-blue-500" },
-    { label: "Page Views", value: data.kpis.pageViews, icon: Eye, color: "bg-purple-500" },
-    { label: "Product Views", value: data.kpis.productViews, icon: Package, color: "bg-emerald-500" },
-    { label: "Add to Cart", value: data.kpis.addToCarts, icon: ShoppingCart, color: "bg-amber-500" },
-    { label: "Checkout Clicks", value: data.kpis.checkoutClicks, icon: MousePointerClick, color: "bg-[#CA3F2E]" },
-    { label: "Wishlist Adds", value: data.kpis.wishlistAdds, icon: Heart, color: "bg-pink-500" },
-    { label: "Newsletter", value: data.kpis.newsletterSignups, icon: Mail, color: "bg-indigo-500" },
-    { label: "Blog Views", value: data.kpis.blogViews, icon: BookOpen, color: "bg-cyan-500" },
+  const kpiCards: Array<{ label: string; key: keyof Kpis; icon: typeof Users; color: string }> = [
+    { label: "Unique Visitors", key: "uniqueVisitors", icon: Users, color: "bg-blue-500" },
+    { label: "Page Views", key: "pageViews", icon: Eye, color: "bg-purple-500" },
+    { label: "Product Views", key: "productViews", icon: Package, color: "bg-emerald-500" },
+    { label: "Add to Cart", key: "addToCarts", icon: ShoppingCart, color: "bg-amber-500" },
+    { label: "Checkout Clicks", key: "checkoutClicks", icon: MousePointerClick, color: "bg-[#CA3F2E]" },
+    { label: "Wishlist Adds", key: "wishlistAdds", icon: Heart, color: "bg-pink-500" },
+    { label: "Newsletter", key: "newsletterSignups", icon: Mail, color: "bg-indigo-500" },
+    { label: "Blog Views", key: "blogViews", icon: BookOpen, color: "bg-cyan-500" },
   ];
 
   return (
@@ -134,56 +158,52 @@ export default function AnalyticsDashboard() {
             Analytics Dashboard
           </h2>
           <p className="text-sm text-gray-500 mt-0.5">
-            Real-time insights from your store activity
+            <span className="font-semibold text-gray-700">{data.periodLabel}</span> vs <span className="text-gray-500">{data.previousLabel}</span>
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Date range */}
           <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
             {RANGES.map(r => (
               <button
                 key={r.days}
                 onClick={() => setRange(r.days)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                  range === r.days
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-600 hover:text-gray-900"
+                  range === r.days ? "bg-white text-gray-900 shadow-sm" : "text-gray-600 hover:text-gray-900"
                 }`}
               >
                 {r.label}
               </button>
             ))}
           </div>
-          <button
-            onClick={load}
-            className="p-2 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition"
-            title="Refresh"
-          >
+          <button onClick={load} className="p-2 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition" title="Refresh">
             <RefreshCw className={`w-4 h-4 text-gray-600 ${loading ? "animate-spin" : ""}`} />
           </button>
-          <button
-            onClick={exportCsv}
-            className="inline-flex items-center gap-2 px-3 py-2 bg-gray-900 text-white rounded-xl text-xs font-semibold hover:bg-[#CA3F2E] transition"
-          >
+          <button onClick={exportCsv} className="inline-flex items-center gap-2 px-3 py-2 bg-gray-900 text-white rounded-xl text-xs font-semibold hover:bg-[#CA3F2E] transition">
             <Download className="w-3.5 h-3.5" /> Export CSV
           </button>
         </div>
       </div>
 
-      {/* KPI Grid */}
+      {/* KPI Grid with comparison */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {kpiCards.map(kpi => {
           const Icon = kpi.icon;
+          const value = data.kpis[kpi.key];
+          const prevValue = data.previousKpis[kpi.key];
+          const change = data.changes[kpi.key] || 0;
           return (
-            <div key={kpi.label} className="bg-white border border-gray-200 rounded-2xl p-4 hover:shadow-md transition">
+            <div key={kpi.key} className="bg-white border border-gray-200 rounded-2xl p-4 hover:shadow-md transition">
               <div className="flex items-center justify-between mb-2">
                 <div className={`w-9 h-9 ${kpi.color} rounded-xl flex items-center justify-center`}>
                   <Icon className="w-4 h-4 text-white" />
                 </div>
-                <TrendingUp className="w-3.5 h-3.5 text-gray-300" />
+                <ChangeBadge change={change} />
               </div>
-              <div className="text-2xl font-black text-gray-900">{kpi.value.toLocaleString()}</div>
-              <div className="text-xs text-gray-500 font-medium">{kpi.label}</div>
+              <div className="text-2xl font-black text-gray-900">{value.toLocaleString()}</div>
+              <div className="text-xs text-gray-500 font-medium mb-1">{kpi.label}</div>
+              <div className="text-[10px] text-gray-400">
+                vs <span className="font-semibold">{prevValue.toLocaleString()}</span> {data.previousLabel.toLowerCase()}
+              </div>
             </div>
           );
         })}
@@ -193,7 +213,7 @@ export default function AnalyticsDashboard() {
       <div className="bg-white border border-gray-200 rounded-2xl p-6">
         <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
           <TrendingUp className="w-4 h-4 text-[#CA3F2E]" />
-          Conversion Funnel
+          Conversion Funnel <span className="text-xs font-normal text-gray-400">({data.periodLabel})</span>
         </h3>
         <div className="grid grid-cols-4 gap-2">
           {[
@@ -256,12 +276,11 @@ export default function AnalyticsDashboard() {
         </div>
       )}
 
-      {/* Two column: Top Products + Top Blog */}
+      {/* Top Products + Top Blog */}
       <div className="grid lg:grid-cols-2 gap-4">
         <div className="bg-white border border-gray-200 rounded-2xl p-6">
           <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Package className="w-4 h-4 text-[#CA3F2E]" />
-            Top Products
+            <Package className="w-4 h-4 text-[#CA3F2E]" /> Top Products
           </h3>
           {data.topProducts.length === 0 ? (
             <p className="text-sm text-gray-500 text-center py-8">No product activity yet</p>
@@ -269,14 +288,10 @@ export default function AnalyticsDashboard() {
             <div className="space-y-2">
               {data.topProducts.slice(0, 8).map((p, idx) => (
                 <div key={p.id} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-50">
-                  <div className="w-7 h-7 flex-shrink-0 rounded-lg bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500">
-                    {idx + 1}
-                  </div>
+                  <div className="w-7 h-7 flex-shrink-0 rounded-lg bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500">{idx + 1}</div>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-semibold text-gray-900 truncate">{p.name}</div>
-                    <div className="text-[10px] text-gray-500">
-                      {p.views} views &middot; {p.carts} carts &middot; {p.checkouts} checkouts
-                    </div>
+                    <div className="text-[10px] text-gray-500">{p.views} views &middot; {p.carts} carts &middot; {p.checkouts} checkouts</div>
                   </div>
                 </div>
               ))}
@@ -286,8 +301,7 @@ export default function AnalyticsDashboard() {
 
         <div className="bg-white border border-gray-200 rounded-2xl p-6">
           <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-[#CA3F2E]" />
-            Top Blog Posts
+            <BookOpen className="w-4 h-4 text-[#CA3F2E]" /> Top Blog Posts
           </h3>
           {data.topPosts.length === 0 ? (
             <p className="text-sm text-gray-500 text-center py-8">No blog activity yet</p>
@@ -295,9 +309,7 @@ export default function AnalyticsDashboard() {
             <div className="space-y-2">
               {data.topPosts.map((p, idx) => (
                 <div key={p.id} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-50">
-                  <div className="w-7 h-7 flex-shrink-0 rounded-lg bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500">
-                    {idx + 1}
-                  </div>
+                  <div className="w-7 h-7 flex-shrink-0 rounded-lg bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500">{idx + 1}</div>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-semibold text-gray-900 truncate">{p.name}</div>
                     <div className="text-[10px] text-gray-500">{p.views} views</div>
@@ -309,12 +321,11 @@ export default function AnalyticsDashboard() {
         </div>
       </div>
 
-      {/* Two column: Searches + Referrers */}
+      {/* Searches + Referrers */}
       <div className="grid lg:grid-cols-2 gap-4">
         <div className="bg-white border border-gray-200 rounded-2xl p-6">
           <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Search className="w-4 h-4 text-[#CA3F2E]" />
-            Top Search Terms
+            <Search className="w-4 h-4 text-[#CA3F2E]" /> Top Search Terms
           </h3>
           {data.topSearches.length === 0 ? (
             <p className="text-sm text-gray-500 text-center py-8">No searches yet</p>
@@ -332,8 +343,7 @@ export default function AnalyticsDashboard() {
 
         <div className="bg-white border border-gray-200 rounded-2xl p-6">
           <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <ExternalLink className="w-4 h-4 text-[#CA3F2E]" />
-            Top Referrers
+            <ExternalLink className="w-4 h-4 text-[#CA3F2E]" /> Top Referrers
           </h3>
           {data.topReferrers.length === 0 ? (
             <p className="text-sm text-gray-500 text-center py-8">All direct traffic so far</p>
@@ -353,8 +363,7 @@ export default function AnalyticsDashboard() {
       {/* Top Pages */}
       <div className="bg-white border border-gray-200 rounded-2xl p-6">
         <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-          <Eye className="w-4 h-4 text-[#CA3F2E]" />
-          Top Pages
+          <Eye className="w-4 h-4 text-[#CA3F2E]" /> Top Pages
         </h3>
         {data.topPages.length === 0 ? (
           <p className="text-sm text-gray-500 text-center py-8">No page views yet</p>
@@ -381,9 +390,8 @@ export default function AnalyticsDashboard() {
         )}
       </div>
 
-      {/* Footer note */}
       <p className="text-xs text-gray-400 text-center">
-        Analytics tracked from today onward. Bots are automatically filtered.
+        Comparisons show {data.periodLabel.toLowerCase()} vs {data.previousLabel.toLowerCase()}. Bots filtered automatically.
       </p>
     </div>
   );
