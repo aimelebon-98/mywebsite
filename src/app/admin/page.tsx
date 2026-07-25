@@ -7,7 +7,7 @@ import {
   DollarSign, ShoppingBag, CheckCircle, Clock, Copy, Tag, Globe, ChevronDown, ChevronUp
 } from "lucide-react";
 import Link from "next/link";
-import { BookOpen, UsersRound, PenLine } from "lucide-react";
+import { BookOpen, UsersRound, PenLine, HelpCircle } from "lucide-react";
 import type { BlogPost } from "@/db/schema";
 import AuthorsManager from "@/components/AuthorsManager";
 import BlogPostsList from "@/components/BlogPostsList";
@@ -480,6 +480,7 @@ export default function AdminPage() {
             { id: "add" as Tab, icon: Plus, label: "Add Product", badge: 0 },
             { id: "categories" as Tab, icon: Tag, label: "Categories", badge: 0 },
             { id: "reviews" as Tab, icon: MessageSquare, label: "Reviews", badge: notifCounts.reviews },
+            { id: "product-faqs" as Tab, icon: HelpCircle, label: "Product FAQs", badge: 0 },
             // --- Content (blog) ---
             { id: "blog" as Tab, icon: BookOpen, label: "Blog Posts", badge: 0 },
             { id: "authors" as Tab, icon: UsersRound, label: "Authors", badge: 0 },
@@ -773,6 +774,10 @@ export default function AdminPage() {
                 ))}
               </div>
             </div>
+          )}
+
+          {activeTab === "product-faqs" && (
+            <ProductFaqsManager />
           )}
 
           {activeTab === "settings" && (
