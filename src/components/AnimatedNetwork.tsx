@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 type Props = {
   className?: string;
   color?: string;
-  dotColor?: string;         // "R, G, B" tuple, or "multi" for random vibrant palette
+  dotColor?: string;
   density?: number;
   maxDistance?: number;
   influenceRadius?: number;
@@ -14,10 +14,10 @@ type Props = {
   dotSizeMin?: number;
   dotSizeMax?: number;
   baseLineAlpha?: number;
+  driftSpeed?: number;  // NEW: how fast dots drift like stars
+  twinkle?: boolean;     // NEW: dots gently pulse in brightness
 };
 
-// Vibrant palette used when dotColor === "multi"
-// Colors: red, blue, green, navy, amber, purple, teal, pink, orange, cyan
 const MULTI_PALETTE = [
   "202, 63, 46",   // brand red
   "37, 99, 235",   // blue
@@ -43,6 +43,8 @@ export default function AnimatedNetwork({
   dotSizeMin = 2,
   dotSizeMax = 3.5,
   baseLineAlpha = 0.15,
+  driftSpeed = 0.25,
+  twinkle = true,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number>(0);
@@ -59,13 +61,19 @@ export default function AnimatedNetwork({
     const isMulti = dotColor === "multi";
     const singleColor = dotColor && !isMulti ? dotColor : color;
 
-    type P = { x: number; y: number; ox: number; oy: number; vx: number; vy: number; r: number; c: string };
+    type P = {
+      x: number; y: number;
+      vx: number; vy: number;      // current velocity (from drift + mouse push)
+      dx: number; dy: number;      // baseline drift velocity (constant per particle)
+      r: number;
+      c: string;
+      twinklePhase: number;         // random phase so twinkles are out of sync
+      twinkleSpeed: number;
+    };
     let particles: P[] = [];
 
     const pickColor = (): string => {
-      if (isMulti) {
-        return MULTI_PALETTE[Math.floor(Math.random() * MULTI_PALETTE.length)];
-      }
+      if (isMulti) return MULTI_PALETTE[Math.floor(Math.random() * MULTI_PALETTE.length)];
       return singleColor;
     };
 
@@ -82,12 +90,20 @@ export default function AnimatedNetwork({
       const count = Math.max(20, Math.min(density, Math.floor(area / 14000)));
       const range = Math.max(0.1, dotSizeMax - dotSizeMin);
       particles = Array.from({ length: count }, () => {
-        const x = Math.random() * width;
-        const y = Math.random() * height;
+        // Random direction, gentle speed
+        const angle = Math.random() * Math.PI * 2;
+        const speed = driftSpeed * (0.5 + Math.random());
         return {
-          x, y, ox: x, oy: y, vx: 0, vy: 0,
+          x: Math.random() * width,
+          y: Math.random() * height,
+          vx: 0,
+          vy: 0,
+          dx: Math.cos(angle) * speed,
+          dy: Math.sin(angle) * speed,
           r: Math.random() * range + dotSizeMin,
           c: pickColor(),
+          twinklePhase: Math.random() * Math.PI * 2,
+          twinkleSpeed: 0.02 + Math.random() * 0.03,
         };
       });
     };
@@ -117,8 +133,9 @@ export default function AnimatedNetwork({
     const draw = () => {
       ctx.clearRect(0, 0, width, height);
 
-      // Update particles + draw dots
+      // Update + draw dots (starfield drift)
       for (const p of particles) {
+        // Mouse attraction (temporary push)
         const dx = mouse.x - p.x;
         const dy = mouse.y - p.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
@@ -127,34 +144,42 @@ export default function AnimatedNetwork({
           const force = (1 - dist / influenceRadius) * attractStrength;
           p.vx += (dx / (dist || 1)) * force;
           p.vy += (dy / (dist || 1)) * force;
-        } else {
-          const rx = p.ox - p.x;
-          const ry = p.oy - p.y;
-          p.vx += rx * 0.008;
-          p.vy += ry * 0.008;
         }
 
-        p.vx *= 0.9;
-        p.vy *= 0.9;
-        p.x += p.vx;
-        p.y += p.vy;
+        // Damp the mouse-induced velocity gently
+        p.vx *= 0.92;
+        p.vy *= 0.92;
 
-        // Dot fill (uses particle's own color)
+        // Apply baseline drift (constant) + mouse push (dampened)
+        p.x += p.dx + p.vx;
+        p.y += p.dy + p.vy;
+
+        // Wrap around edges (starfield behavior)
+        if (p.x < -10) p.x = width + 10;
+        if (p.x > width + 10) p.x = -10;
+        if (p.y < -10) p.y = height + 10;
+        if (p.y > height + 10) p.y = -10;
+
+        // Twinkle: sinusoidal brightness modulation
+        p.twinklePhase += p.twinkleSpeed;
+        const twinkleFactor = twinkle ? (0.7 + 0.3 * Math.sin(p.twinklePhase)) : 1;
+        const currentAlpha = dotAlpha * twinkleFactor;
+
+        // Dot fill
         ctx.beginPath();
-        ctx.fillStyle = `rgba(${p.c}, ${dotAlpha})`;
+        ctx.fillStyle = `rgba(${p.c}, ${currentAlpha})`;
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         ctx.fill();
 
-        // Glow ring (matches particle color)
+        // Glow ring
         ctx.beginPath();
-        ctx.strokeStyle = `rgba(${p.c}, ${dotAlpha * 0.3})`;
+        ctx.strokeStyle = `rgba(${p.c}, ${currentAlpha * 0.35})`;
         ctx.lineWidth = 1;
         ctx.arc(p.x, p.y, p.r + 1.5, 0, Math.PI * 2);
         ctx.stroke();
       }
 
-      // Draw lines (always visible, boosted near mouse)
-      // Lines use the neutral `color` prop, not per-dot colors, for a clean look
+      // Draw connecting lines (subtle by default, bright near mouse)
       for (let i = 0; i < particles.length; i++) {
         const a = particles[i];
 
@@ -221,7 +246,7 @@ export default function AnimatedNetwork({
       canvas.removeEventListener("mouseleave", onLeave);
       window.removeEventListener("mousemove", onMove);
     };
-  }, [color, dotColor, density, maxDistance, influenceRadius, attractStrength, dotAlpha, dotSizeMin, dotSizeMax, baseLineAlpha]);
+  }, [color, dotColor, density, maxDistance, influenceRadius, attractStrength, dotAlpha, dotSizeMin, dotSizeMax, baseLineAlpha, driftSpeed, twinkle]);
 
   return (
     <canvas
