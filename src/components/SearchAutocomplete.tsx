@@ -58,12 +58,18 @@ export default function SearchAutocomplete({
         const data = await res.json();
         setSuggestions(data.suggestions || []);
         setShowDropdown(true);
+        // Analytics: track query after user has stopped typing (2+ chars)
+        try {
+          if (query.trim().length >= 2) {
+            trackEvent({ eventType: "search", searchQuery: query.trim() });
+          }
+        } catch { /* ignore */ }
       } catch {
         setSuggestions([]);
       } finally {
         setLoading(false);
       }
-    }, 200);
+    }, 800);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [query]);
 
@@ -90,6 +96,7 @@ export default function SearchAutocomplete({
   };
 
   const handleSelectSuggestion = (s: Suggestion) => {
+    try { trackEvent({ eventType: "search", searchQuery: query.trim() || s.name }); } catch {}
     setQuery(s.name);
     setShowDropdown(false);
     if (s.slug) {
