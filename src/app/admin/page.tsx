@@ -1080,6 +1080,15 @@ function ProductsTab({
                         <button onClick={() => onToggleActive(p.id, p.active)} className="p-2 rounded-lg text-gray-400 hover:bg-gray-100 transition" title={p.active ? "Hide product" : "Show product"}>
                           {p.active ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                         </button>
+                        <a
+                          href={`/en/product/${p.slug || p.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 rounded-lg text-blue-500 hover:bg-blue-50 transition inline-flex items-center justify-center"
+                          title="View live product"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
                         <button onClick={() => onEdit(p)} className="p-2 rounded-lg text-gray-400 hover:bg-gray-100 transition" title="Edit product">
                           <Edit className="w-4 h-4" />
                         </button>
