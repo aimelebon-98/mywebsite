@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { useLocale } from "next-intl";
@@ -12,6 +12,7 @@ const DISCOUNT_PERCENT = 10;
 export default function ExitIntentPopup() {
   const locale = useLocale();
   const isFr = locale === "fr";
+  const [mounted, setMounted] = useState(false);
   const [show, setShow] = useState(false);
   const [copied, setCopied] = useState(false);
   const [email, setEmail] = useState("");
@@ -19,8 +20,12 @@ export default function ExitIntentPopup() {
   const [subscribed, setSubscribed] = useState(false);
   const [timeLeft, setTimeLeft] = useState(600); // 10 min countdown
 
+  // Mount guard - prevents any SSR/prerender issues
+  useEffect(() => { setMounted(true); }, []);
+
   // Check if already shown
   useEffect(() => {
+    if (!mounted) return;
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
@@ -67,7 +72,7 @@ export default function ExitIntentPopup() {
     }, 3000); // Wait 3s after page load
 
     return () => clearTimeout(initTimer);
-  }, []);
+  }, [mounted]);
 
   const trigger = () => {
     setShow(true);
@@ -116,7 +121,7 @@ export default function ExitIntentPopup() {
   const mins = Math.floor(timeLeft / 60);
   const secs = timeLeft % 60;
 
-  if (!show) return null;
+  if (!mounted || !show) return null;
 
   return (
     <div
