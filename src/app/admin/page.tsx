@@ -707,7 +707,7 @@ export default function AdminPage() {
                   if (res.ok) {
                     showNotification("Product created successfully!");
                     fetchProducts();
-                    setActiveTab("products");
+                    // Stay on create page - user can navigate away when ready
                   } else {
                     showNotification("Failed to create product", "error");
                   }
@@ -735,7 +735,7 @@ export default function AdminPage() {
                   if (res.ok) {
                     showNotification("Product updated successfully!");
                     fetchProducts();
-                    setActiveTab("products");
+                    // Stay on edit page
                   } else {
                     showNotification("Failed to update product", "error");
                   }
@@ -856,7 +856,7 @@ export default function AdminPage() {
                   if (res.ok) {
                     showNotification("Post created!");
                     setBlogRefreshKey(k => k + 1);
-                    setActiveTab("blog");
+                    // Stay on create page
                   } else {
                     showNotification("Failed to create post", "error");
                   }
@@ -884,8 +884,7 @@ export default function AdminPage() {
                   if (res.ok) {
                     showNotification("Post updated!");
                     setBlogRefreshKey(k => k + 1);
-                    setEditingPost(null);
-                    setActiveTab("blog");
+                    // Stay on edit page
                   } else {
                     showNotification("Failed to update post", "error");
                   }
