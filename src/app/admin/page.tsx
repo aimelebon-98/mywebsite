@@ -79,7 +79,7 @@ interface StoreSettings {
   lockoutMinutes: number;
 }
 
-type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments" | "orders";
+type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments" | "orders" | "product-faqs";
 
 export default function AdminPage() {
   const [authStep, setAuthStep] = useState<"loading" | "access-code" | "password" | "authenticated">("loading");
