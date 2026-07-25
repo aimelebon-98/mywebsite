@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useLocale } from "next-intl";
 import { X, Copy, Check, Gift, Sparkles, Mail, Clock } from "lucide-react";
 
@@ -10,7 +11,7 @@ const DISCOUNT_CODE = "SAVE10";
 const DISCOUNT_PERCENT = 10;
 
 export default function ExitIntentPopup() {
-  const [mounted, setMounted] = useState(false);
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
   const locale = useLocale();
   const isFr = locale === "fr";
   const [show, setShow] = useState(false);
@@ -20,11 +21,13 @@ export default function ExitIntentPopup() {
   const [subscribed, setSubscribed] = useState(false);
   const [timeLeft, setTimeLeft] = useState(600);
 
-  useEffect(() => { setMounted(true); }, []);
+  // Set portal target only on client
+  useEffect(() => {
+    setPortalTarget(document.body);
+  }, []);
 
   useEffect(() => {
-    if (!mounted) return;
-    if (typeof window === "undefined") return;
+    if (!portalTarget) return;
 
     try {
       const stored = window.localStorage.getItem(STORAGE_KEY);
@@ -76,7 +79,7 @@ export default function ExitIntentPopup() {
       if (mouseLeaveHandler) document.removeEventListener("mouseleave", mouseLeaveHandler);
       if (scrollHandler) window.removeEventListener("scroll", scrollHandler);
     };
-  }, [mounted]);
+  }, [portalTarget]);
 
   useEffect(() => {
     if (!show) return;
@@ -113,19 +116,19 @@ export default function ExitIntentPopup() {
   const mins = Math.floor(timeLeft / 60);
   const secs = timeLeft % 60;
 
-  // CRITICAL: never render anything on server or before mount
-  if (!mounted) return null;
+  // ZERO output during SSR/prerender - portal target only exists on client
+  if (!portalTarget) return null;
   if (!show) return null;
 
-  return (
+  const modal = (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-fade-in"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 exit-fade-in"
       style={{ backgroundColor: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}
       onClick={handleClose}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative bg-white rounded-3xl shadow-2xl overflow-hidden max-w-md w-full animate-slide-up"
+        className="relative bg-white rounded-3xl shadow-2xl overflow-hidden max-w-md w-full exit-slide-up"
       >
         <button
           onClick={handleClose}
@@ -147,7 +150,7 @@ export default function ExitIntentPopup() {
           )}
 
           <div className="relative">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-white/15 backdrop-blur rounded-2xl mb-4 animate-bounce-slow">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-white/15 backdrop-blur rounded-2xl mb-4 exit-bounce-slow">
               <Gift className="w-8 h-8 text-white" />
             </div>
 
@@ -251,14 +254,16 @@ export default function ExitIntentPopup() {
         </div>
       </div>
 
-      <style jsx>{`
-        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slide-up { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
-        @keyframes bounce-slow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-        .animate-fade-in { animation: fade-in 0.3s ease-out; }
-        .animate-slide-up { animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-        .animate-bounce-slow { animation: bounce-slow 2s ease-in-out infinite; }
+      <style>{`
+        @keyframes exit-fade-in-kf { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes exit-slide-up-kf { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes exit-bounce-slow-kf { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        .exit-fade-in { animation: exit-fade-in-kf 0.3s ease-out; }
+        .exit-slide-up { animation: exit-slide-up-kf 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .exit-bounce-slow { animation: exit-bounce-slow-kf 2s ease-in-out infinite; }
       `}</style>
     </div>
   );
+
+  return createPortal(modal, portalTarget);
 }
