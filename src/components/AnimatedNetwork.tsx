@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useRef } from "react";
 
@@ -135,15 +135,38 @@ export default function AnimatedNetwork({
 
       // Update + draw dots (starfield drift)
       for (const p of particles) {
-        // Mouse attraction (temporary push)
+        // Mouse gravity: pull toward cursor, then when very close -> teleport to opposite side
         const dx = mouse.x - p.x;
         const dy = mouse.y - p.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
         if (mouse.active && dist < influenceRadius) {
-          const force = (1 - dist / influenceRadius) * attractStrength;
-          p.vx += (dx / (dist || 1)) * force;
-          p.vy += (dy / (dist || 1)) * force;
+          const ABSORB_RADIUS = Math.max(8, p.r * 3);
+
+          if (dist < ABSORB_RADIUS) {
+            // Absorbed! Teleport to opposite side of screen with fresh drift direction
+            p.x = width - mouse.x + (Math.random() - 0.5) * 200;
+            p.y = height - mouse.y + (Math.random() - 0.5) * 200;
+
+            // Clamp to canvas bounds (with margin)
+            if (p.x < 10) p.x = width - 20;
+            if (p.x > width - 10) p.x = 20;
+            if (p.y < 10) p.y = height - 20;
+            if (p.y > height - 10) p.y = 20;
+
+            // New random drift direction moving AWAY from where mouse is
+            const awayAngle = Math.atan2(p.y - mouse.y, p.x - mouse.x) + (Math.random() - 0.5) * 0.6;
+            const speed = driftSpeed * (0.8 + Math.random() * 0.6);
+            p.dx = Math.cos(awayAngle) * speed;
+            p.dy = Math.sin(awayAngle) * speed;
+            p.vx = p.dx * 8; // initial burst
+            p.vy = p.dy * 8;
+          } else {
+            // Normal attraction pull (getting sucked toward cursor)
+            const force = (1 - dist / influenceRadius) * attractStrength;
+            p.vx += (dx / (dist || 1)) * force;
+            p.vy += (dy / (dist || 1)) * force;
+          }
         }
 
         // Damp the mouse-induced velocity gently
