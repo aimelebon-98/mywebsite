@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
@@ -38,11 +38,18 @@ export default function ExitIntentPopup() {
       }
     } catch { /* ignore */ }
 
+    let hasTriggered = false;
     const trigger = () => {
+      if (hasTriggered) return;
+      hasTriggered = true;
       setShow(true);
       try {
         window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ timestamp: Date.now() }));
       } catch { /* ignore */ }
+      // Remove all listeners immediately after first trigger
+      if (mouseLeaveHandler) document.removeEventListener("mouseleave", mouseLeaveHandler);
+      if (scrollHandler) window.removeEventListener("scroll", scrollHandler);
+      if (fallbackTimer) clearTimeout(fallbackTimer);
     };
 
     let mouseLeaveHandler: ((e: MouseEvent) => void) | null = null;
@@ -86,7 +93,12 @@ export default function ExitIntentPopup() {
     return () => clearInterval(interval);
   }, [show]);
 
-  const handleClose = () => setShow(false);
+  const handleClose = () => {
+    setShow(false);
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ timestamp: Date.now(), dismissed: true }));
+    } catch { /* ignore */ }
+  };
 
   const handleCopy = async () => {
     try {
@@ -107,6 +119,9 @@ export default function ExitIntentPopup() {
         body: JSON.stringify({ email: email.trim() }),
       });
       setSubscribed(true);
+      try {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ timestamp: Date.now(), dismissed: true }));
+      } catch { /* ignore */ }
       setTimeout(handleCopy, 300);
     } catch { /* ignore */ }
     setSubscribing(false);
