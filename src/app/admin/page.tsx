@@ -112,7 +112,7 @@ export default function AdminPage() {
       const hash = typeof window !== "undefined" ? window.location.hash.replace("#", "") : "";
       const stored = typeof window !== "undefined" ? localStorage.getItem("sv_admin_tab") : null;
       const candidate = hash || stored || "";
-      const validTabs: Tab[] = ["dashboard","products","add","edit","categories","reviews","settings","security","blog","blog-add","blog-edit","authors","comments","orders"];
+      const validTabs: Tab[] = ["dashboard","products","add","edit","categories","reviews","settings","security","blog","blog-add","blog-edit","authors","comments","orders","analytics","product-faqs"];
       console.log("[Admin] Restoring tab. hash=" + hash + ", stored=" + stored + ", candidate=" + candidate);
       if (candidate && validTabs.includes(candidate as Tab)) {
         if (candidate === "edit") setActiveTabRaw("products");
