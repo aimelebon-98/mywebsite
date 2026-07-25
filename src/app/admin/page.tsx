@@ -5,9 +5,9 @@ import {
   Package, Plus, Settings, BarChart3, LogOut, Edit, Trash2, Eye, EyeOff, Star, Search, Menu, X, Home,
   Shield, Users, Download, Upload, RefreshCw, Lock, MessageSquare, Key, AlertTriangle, TrendingUp,
   DollarSign, ShoppingBag, CheckCircle, Clock, Copy, Tag, Globe, ChevronDown, ChevronUp
-} , ExternalLinkfrom "lucide-react";
+} from "lucide-react";
 import Link from "next/link";
-import { BookOpen, UsersRound, PenLine, HelpCircle } , ExternalLinkfrom "lucide-react";
+import { BookOpen, UsersRound, PenLine, HelpCircle } from "lucide-react";
 import type { BlogPost } from "@/db/schema";
 import AuthorsManager from "@/components/AuthorsManager";
 import BlogPostsList from "@/components/BlogPostsList";
