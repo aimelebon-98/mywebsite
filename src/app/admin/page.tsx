@@ -471,7 +471,7 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <nav className="px-3 space-y-1 flex-1 overflow-y-auto pb-4 min-h-0">
+        <nav className="admin-scroll px-3 space-y-1 flex-1 overflow-y-auto pb-4 min-h-0">
           {[
             { id: "dashboard" as Tab, icon: BarChart3, label: "Dashboard", badge: 0 },
             { id: "analytics" as Tab, icon: TrendingUp, label: "Analytics", badge: 0 },
