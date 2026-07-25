@@ -104,21 +104,28 @@ export default function AdminPage() {
   };
 
   // Restore active tab from URL hash or localStorage - runs after auth completes
+  const [tabRestored, setTabRestored] = useState(false);
   useEffect(() => {
     if (authStep !== "authenticated") return;
+    if (tabRestored) return; // only run once after auth
     try {
-      const hash = window.location.hash.replace("#", "");
-      const stored = localStorage.getItem("sv_admin_tab");
-      const candidate = hash || stored;
+      const hash = typeof window !== "undefined" ? window.location.hash.replace("#", "") : "";
+      const stored = typeof window !== "undefined" ? localStorage.getItem("sv_admin_tab") : null;
+      const candidate = hash || stored || "";
       const validTabs: Tab[] = ["dashboard","products","add","edit","categories","reviews","settings","security","blog","blog-add","blog-edit","authors","comments","orders"];
+      console.log("[Admin] Restoring tab. hash=" + hash + ", stored=" + stored + ", candidate=" + candidate);
       if (candidate && validTabs.includes(candidate as Tab)) {
-        // Skip transient tabs - default to their parent list
         if (candidate === "edit") setActiveTabRaw("products");
         else if (candidate === "blog-edit") setActiveTabRaw("blog");
         else setActiveTabRaw(candidate as Tab);
+        console.log("[Admin] Set active tab to: " + candidate);
       }
-    } catch { /* ignore */ }
-  }, [authStep]);
+      setTabRestored(true);
+    } catch (e) {
+      console.error("[Admin] Tab restore error:", e);
+      setTabRestored(true);
+    }
+  }, [authStep, tabRestored]);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [storeSettings, setStoreSettings] = useState<StoreSettings>({
