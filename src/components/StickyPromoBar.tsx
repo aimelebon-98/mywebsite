@@ -1,4 +1,5 @@
 "use client";
+import { trackEvent } from "@/components/AnalyticsTracker";
 
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";

@@ -1,4 +1,5 @@
 "use client";
+import { trackEvent } from "@/components/AnalyticsTracker";
 
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -112,6 +113,16 @@ export default function CartPage() {
     message += `*Items: ${totalItems}*\n`;
 
     const phone = whatsappNumber.replace(/\D/g, "");
+    // Analytics: track checkout click
+    try {
+      trackEvent({
+        eventType: "checkout_click",
+        metadata: {
+          itemCount: items.length,
+          totalItems: items.reduce((s, i) => s + (i.quantity || 1), 0),
+        },
+      });
+    } catch { /* ignore */ }
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
     window.open(url, "_blank");
   };

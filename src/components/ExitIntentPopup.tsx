@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { trackEvent } from "@/components/AnalyticsTracker";
 
 const STORAGE_KEY = "solevault_exit_popup_shown";
 const STORAGE_EXPIRES_DAYS = 7;
@@ -118,6 +119,7 @@ export default function ExitIntentPopup() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim() }),
       });
+      try { trackEvent({ eventType: "newsletter_signup", metadata: { source: "exit_intent" } }); } catch {}
       setSubscribed(true);
       try {
         window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ timestamp: Date.now(), dismissed: true }));

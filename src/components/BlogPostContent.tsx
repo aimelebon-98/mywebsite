@@ -1,4 +1,5 @@
-﻿"use client";
+"use client";
+import { trackEvent } from "@/components/AnalyticsTracker";
 
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
@@ -36,7 +37,15 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
 
   useEffect(() => {
     fetch(`/api/blog/${post.slug}?trackView=true`).catch(() => {});
-  }, [post.slug]);
+    // Analytics tracking
+    try {
+      trackEvent({
+        eventType: "blog_view",
+        postId: post.id,
+        productName: post.title,
+      });
+    } catch { /* ignore */ }
+  }, [post.slug, post.id, post.title]);
 
   useEffect(() => {
     const container = document.getElementById("blog-content");

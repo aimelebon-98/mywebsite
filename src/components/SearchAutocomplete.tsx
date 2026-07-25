@@ -1,4 +1,5 @@
-﻿"use client";
+"use client";
+import { trackEvent } from "@/components/AnalyticsTracker";
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -77,6 +78,7 @@ export default function SearchAutocomplete({
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
+    try { if (query && query.trim().length > 1) trackEvent({ eventType: "search", searchQuery: query.trim() }); } catch {}
     e.preventDefault();
     if (!query.trim()) return;
     setShowDropdown(false);

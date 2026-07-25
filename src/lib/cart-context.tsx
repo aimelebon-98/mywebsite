@@ -1,4 +1,5 @@
-﻿"use client";
+"use client";
+import { trackEvent } from "@/components/AnalyticsTracker";
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 
@@ -50,6 +51,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [items, loaded]);
 
   const addItem = useCallback((newItem: CartItem) => {
+    // Analytics: track add to cart
+    try {
+      trackEvent({
+        eventType: "add_to_cart",
+        productId: (newItem as unknown as { productId?: string; id?: string }).productId || (newItem as unknown as { id?: string }).id,
+        productName: (newItem as unknown as { name?: string }).name,
+        metadata: { quantity: (newItem as unknown as { quantity?: number }).quantity || 1 },
+      });
+    } catch { /* ignore */ }
     setItems(prev => {
       const existing = prev.find(
         i => i.id === newItem.id && i.size === newItem.size && i.color === newItem.color

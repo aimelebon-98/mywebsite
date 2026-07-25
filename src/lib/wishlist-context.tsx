@@ -1,4 +1,5 @@
-﻿"use client";
+"use client";
+import { trackEvent } from "@/components/AnalyticsTracker";
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 
