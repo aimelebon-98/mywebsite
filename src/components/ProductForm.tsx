@@ -125,6 +125,9 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
   // Meta
   const [stock, setStock] = useState(product?.stock?.toString() || "0");
   const [featured, setFeatured] = useState(product?.featured || false);
+  const [saleEndsAt, setSaleEndsAt] = useState<string>(
+    product?.saleEndsAt ? new Date(product.saleEndsAt).toISOString().slice(0, 16) : ""
+  );
   const [active, setActive] = useState(product?.active !== false);
   const [material, setMaterial] = useState(product?.material || "");
   const [sku, setSku] = useState(product?.sku || "");
@@ -157,6 +160,7 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
       tagsFr: tagsFr.length > 0 ? tagsFr : null,
       price: parseFloat(price) || 0,
       comparePrice: comparePrice ? parseFloat(comparePrice) : null,
+      saleEndsAt: saleEndsAt ? new Date(saleEndsAt).toISOString() : null,
       category, brand, sizes, colors,
       imageUrl,
       images: [imageUrl, ...extraImages].filter(Boolean),
@@ -462,7 +466,41 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
 
         {/* RIGHT SIDEBAR */}
         <aside className="space-y-3">
-          {/* Publish + Featured */}
+          {/* Sale Ends At */}
+            <div className="col-span-2">
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                Sale Ends At <span className="text-gray-400 normal-case font-normal">(optional - shows countdown timer)</span>
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="datetime-local"
+                  value={saleEndsAt}
+                  onChange={(e) => setSaleEndsAt(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#CA3F2E]"
+                />
+                {saleEndsAt && (
+                  <button
+                    type="button"
+                    onClick={() => setSaleEndsAt("")}
+                    className="px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-lg transition"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+              {saleEndsAt && new Date(saleEndsAt).getTime() > Date.now() && (
+                <p className="text-xs text-emerald-600 mt-1.5 font-medium">
+                  ✓ Countdown will show on this product until {new Date(saleEndsAt).toLocaleString()}
+                </p>
+              )}
+              {saleEndsAt && new Date(saleEndsAt).getTime() <= Date.now() && (
+                <p className="text-xs text-amber-600 mt-1.5 font-medium">
+                  ⚠ This date is in the past. Countdown will not display.
+                </p>
+              )}
+            </div>
+
+            {/* Publish + Featured */}
           <SidebarCard title="Status" icon={Layers} defaultOpen={true}>
             <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-50 transition">
               <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} className="w-4 h-4 rounded" />

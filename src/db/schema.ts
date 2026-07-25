@@ -22,6 +22,7 @@ export const products = pgTable("products", {
   images: text("images").notNull().default("[]"),
   stock: integer("stock").notNull().default(0),
   featured: boolean("featured").notNull().default(false),
+  saleEndsAt: timestamp("sale_ends_at"),
   active: boolean("active").notNull().default(true),
   rating: numeric("rating", { precision: 2, scale: 1 }).notNull().default("0"),
   reviewCount: integer("review_count").notNull().default(0),
@@ -152,6 +153,7 @@ export const blogPosts = pgTable("blog_posts", {
   // Status
   published: boolean("published").notNull().default(false),
   featured: boolean("featured").notNull().default(false),
+  saleEndsAt: timestamp("sale_ends_at"),
   publishedAt: timestamp("published_at"),
   viewCount: integer("view_count").notNull().default(0),
   // SEO
@@ -267,4 +269,5 @@ export const analyticsEvents = pgTable("analytics_events", {
 
 export type AnalyticsEvent = typeof analyticsEvents.$inferSelect;
 export type NewAnalyticsEvent = typeof analyticsEvents.$inferInsert;
+
 

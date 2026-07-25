@@ -1,4 +1,5 @@
 "use client";
+import Countdown from "@/components/Countdown";
 import { trackEvent } from "@/components/AnalyticsTracker";
 import ProductFaqDisplay from "@/components/ProductFaqDisplay";
 
@@ -278,6 +279,13 @@ export default function ProductDetails({ product, initialReviews = [] }: Product
                   </div>
                 )}
               </div>
+
+              {/* Countdown Timer for limited offer */}
+              {product.saleEndsAt && new Date(product.saleEndsAt).getTime() > Date.now() && (
+                <div className="mb-6">
+                  <Countdown endDate={product.saleEndsAt} variant="large" />
+                </div>
+              )}
 
               {/* Short Description */}
               <p className="text-gray-500 leading-relaxed mb-8">{shortDesc}</p>
