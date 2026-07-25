@@ -478,7 +478,7 @@ export default function AdminPage() {
         </div>
       )}
 
-      <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-100 transform transition-transform lg:relative lg:translate-x-0 flex flex-col h-screen lg:h-auto lg:sticky lg:top-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-100 transform transition-transform lg:relative lg:translate-x-0 flex flex-col h-screen lg:sticky lg:top-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
