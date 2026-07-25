@@ -72,65 +72,72 @@ export default async function HomePage() {
     <main className="min-h-screen">
       <Navbar />
 
-      {/* HERO */}
-      <section className="relative pt-20 lg:pt-24 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-100" />
-        <div className="absolute inset-0 opacity-[0.6]">
+      {/* HERO - Redesigned with brand red accents */}
+      <section className="relative pt-20 lg:pt-24 overflow-hidden bg-white">
+        <div className="absolute inset-0 opacity-[0.4]">
           <AnimatedNetwork
             className="absolute inset-0 w-full h-full"
             color="17, 24, 39"
-            density={80}
+            density={60}
             maxDistance={140}
             influenceRadius={190}
             attractStrength={0.65}
           />
         </div>
-        <div className="absolute top-24 -left-20 w-72 h-72 bg-brand-200/40 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-10 right-0 w-96 h-96 bg-gray-200/60 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-28 pointer-events-none">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="absolute top-24 -left-32 w-96 h-96 rounded-full blur-3xl pointer-events-none opacity-30" style={{ backgroundColor: "#CA3F2E" }} />
+        <div className="absolute bottom-10 -right-20 w-96 h-96 rounded-full blur-3xl pointer-events-none opacity-20" style={{ backgroundColor: "#CA3F2E" }} />
+        <div className="absolute top-1/3 right-1/4 w-40 h-40 bg-amber-400 rounded-full blur-3xl pointer-events-none opacity-20" />
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 lg:py-24 pointer-events-none">
+          <div className="grid lg:grid-cols-[1.1fr_1fr] gap-10 lg:gap-16 items-center">
             <div className="animate-fade-in-up pointer-events-auto">
-              <span className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900/95 backdrop-blur text-white text-[11px] font-bold uppercase tracking-[0.2em] rounded-full mb-6 shadow-lg shadow-gray-900/10">
-                <span className="w-1.5 h-1.5 bg-brand-400 rounded-full animate-pulse" />
+              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-[0.2em] mb-6 shadow-lg" style={{ backgroundColor: "#CA3F2E", color: "white" }}>
+                <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
                 {t("badge")}
               </span>
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black leading-[1.02] tracking-tight mb-6">
+
+              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black leading-[1.02] tracking-tight mb-6 text-gray-900">
                 {t("heroTitle1")} <br />
-                <TypingText
-                  words={typingWords}
-                  className="bg-gradient-to-r from-brand-500 to-brand-700 bg-clip-text text-transparent"
-                />
+                <span className="relative inline-block">
+                  <TypingText words={typingWords} className="relative z-10" />
+                  <span className="absolute bottom-1 left-0 right-0 h-3 rounded-full opacity-30 -z-0" style={{ backgroundColor: "#CA3F2E" }} />
+                </span>
               </h1>
-              <p className="text-lg text-gray-600 max-w-md mb-8 leading-relaxed">
+
+              <p className="text-lg text-gray-600 max-w-xl mb-8 leading-relaxed">
                 {t("heroDesc")}
               </p>
-              <div className="flex flex-wrap gap-4">
+
+              <div className="flex flex-wrap gap-3">
                 <Link
                   href={`/${locale}/shop`}
-                  className="group inline-flex items-center gap-2 px-8 py-4 bg-gray-900 text-white rounded-2xl font-semibold hover:bg-gray-800 transition-all shadow-xl shadow-gray-900/25 hover:shadow-2xl hover:shadow-gray-900/30 hover:-translate-y-0.5"
+                  className="group inline-flex items-center gap-2 px-7 py-3.5 text-white rounded-xl font-bold text-sm uppercase tracking-wide transition-all shadow-xl hover:-translate-y-0.5 hover:brightness-110"
+                  style={{ backgroundColor: "#CA3F2E", boxShadow: "0 10px 30px rgba(202, 63, 46, 0.35)" }}
                 >
                   {t("shopNow")}
-                  <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                 </Link>
                 <Link
                   href={`/${locale}/shop?category=sneakers`}
-                  className="inline-flex items-center gap-2 px-8 py-4 bg-white/80 backdrop-blur text-gray-900 rounded-2xl font-semibold border-2 border-gray-200 hover:border-gray-900 hover:bg-white transition-all hover:-translate-y-0.5"
+                  className="inline-flex items-center gap-2 px-7 py-3.5 bg-white/90 backdrop-blur text-gray-900 rounded-xl font-bold text-sm uppercase tracking-wide border-2 border-gray-200 hover:border-gray-900 hover:bg-white transition-all hover:-translate-y-0.5"
                 >
                   {t("exploreSnkrs")}
                 </Link>
               </div>
-              <div className="flex items-center gap-6 mt-10">
+
+              <div className="flex items-center gap-5 mt-10 pt-6 border-t border-gray-100">
                 <div className="flex -space-x-2">
                   {["bg-blue-500","bg-pink-500","bg-green-500","bg-purple-500"].map((c, i) => (
-                    <div key={i} className={`w-8 h-8 ${c} rounded-full border-2 border-white flex items-center justify-center shadow-sm`}>
-                      <span className="text-white text-[10px] font-bold">{["JW","SC","MT","EP"][i]}</span>
+                    <div key={i} className={`w-9 h-9 ${c} rounded-full border-2 border-white flex items-center justify-center shadow-sm`}>
+                      <span className="text-white text-[11px] font-bold">{["JW","SC","MT","EP"][i]}</span>
                     </div>
                   ))}
                 </div>
                 <div>
                   <div className="flex items-center gap-1">
-                    {[1,2,3,4,5].map(i => <Star key={i} className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />)}
+                    {[1,2,3,4,5].map(i => <Star key={i} className="w-4 h-4 text-amber-400 fill-amber-400" />)}
+                    <span className="text-sm font-bold text-gray-900 ml-1">4.9</span>
                   </div>
                   <p className="text-xs text-gray-500 mt-0.5">{t("happyCustomers")}</p>
                 </div>
@@ -139,35 +146,33 @@ export default async function HomePage() {
 
             <div className="relative animate-fade-in-up animation-delay-200 pointer-events-auto">
               <div className="relative aspect-square max-w-lg mx-auto">
-                <div className="absolute inset-0 bg-gradient-to-br from-brand-200 via-brand-100 to-brand-50 rounded-[3rem] rotate-6" />
-                <div className="absolute inset-0 bg-gradient-to-tr from-gray-200 via-gray-100 to-white rounded-[3rem] -rotate-3" />
-                <div className="relative rounded-[3rem] overflow-hidden aspect-square shadow-2xl bg-gradient-to-br from-brand-100 to-brand-50 animate-float-slow">
-                  <img
-                    src="https://images.unsplash.com/photo-1588361861040-ac9b1018f6d5?w=800&q=80"
-                    alt="Featured Shoe"
-                    className="w-full h-full object-cover"
-                    loading="eager"
-                  />
-                </div>
-                <div className="absolute -bottom-3 -left-3 bg-white/95 backdrop-blur rounded-2xl p-3 shadow-xl animate-float">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                      <Truck className="w-4 h-4 text-green-600" />
+                <div className="absolute inset-0 rounded-[3rem] rotate-6" style={{ background: "linear-gradient(135deg, #CA3F2E 0%, #8B2A1E 100%)" }} />
+                <div className="absolute inset-0 bg-gradient-to-tr from-amber-100 via-orange-50 to-white rounded-[3rem] -rotate-3" />
+
+                <div className="relative rounded-[3rem] overflow-hidden aspect-square shadow-2xl bg-white animate-float-slow">
+                  <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=85" alt="Featured shoe" className="w-full h-full object-cover" />
+
+                  <div className="absolute top-6 right-6 bg-white rounded-2xl px-4 py-2.5 shadow-xl">
+                    <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Starting at</div>
+                    <div className="text-xl font-black" style={{ color: "#CA3F2E" }}>$149</div>
+                  </div>
+
+                  <div className="absolute bottom-6 left-6 flex items-center gap-2 bg-white rounded-full pl-2 pr-4 py-2 shadow-xl">
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: "#CA3F2E" }}>
+                      <Star className="w-4 h-4 text-white fill-white" />
                     </div>
-                    <div>
-                      <p className="text-xs font-bold">{t("freeShipping")}</p>
-                      <p className="text-[10px] text-gray-400">{t("freeShippingDesc")}</p>
-                    </div>
+                    <div className="text-xs font-bold text-gray-900">Best Seller</div>
                   </div>
                 </div>
-                <div className="absolute -top-3 -right-3 bg-white/95 backdrop-blur rounded-2xl p-3 shadow-xl animate-float animation-delay-300">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
-                      <Star className="w-4 h-4 text-amber-600 fill-amber-600" />
+
+                <div className="absolute -bottom-4 -left-4 bg-white rounded-2xl p-4 shadow-2xl border border-gray-100 z-10 hidden sm:block animate-float-slow" style={{ animationDelay: "0.5s" }}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: "#CA3F2E15" }}>
+                      <Truck className="w-5 h-5" style={{ color: "#CA3F2E" }} />
                     </div>
                     <div>
-                      <p className="text-xs font-bold">{t("topRated")}</p>
-                      <p className="text-[10px] text-gray-400">{t("topRatedDesc")}</p>
+                      <div className="text-xs text-gray-500">Free shipping</div>
+                      <div className="text-sm font-bold text-gray-900">Over $100</div>
                     </div>
                   </div>
                 </div>
@@ -177,7 +182,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* FEATURES BAR */}
       <section className="bg-gray-900 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
