@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart-context";
 import type { Product, Review } from "@/db/schema";
-import {
+import { ChevronDown,
   ShoppingBag, Heart, Minus, Plus, Check, Star, Truck, Shield, RotateCcw,
   Zap, Package, Ruler, Scale, MessageSquare, Send, Share2, Award, Sparkles, Eye
 } from "lucide-react";
