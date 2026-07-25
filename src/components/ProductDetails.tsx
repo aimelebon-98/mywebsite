@@ -443,9 +443,10 @@ export default function ProductDetails({ product, initialReviews = [] }: Product
         </div>
       </div>
 
-      {/* REVIEWS SECTION */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <section id="reviews" className="mt-16 scroll-mt-28">
+      {/* REVIEWS + FAQ SECTION */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16">
+        <div className="grid lg:grid-cols-[1fr_400px] gap-8 lg:gap-12">
+          <section id="reviews" className="scroll-mt-28 min-w-0">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
             <div>
               <h2 className="text-3xl lg:text-4xl font-black tracking-tight">{t("customerReviews")}</h2>
@@ -599,8 +600,12 @@ export default function ProductDetails({ product, initialReviews = [] }: Product
             </div>
           )}
         </section>
-        <ProductFaqDisplay />
-      </div>
+
+          {/* FAQ Sidebar */}
+          <aside className="min-w-0">
+            <ProductFaqDisplay />
+          </aside>
+        </div>
     </div>
   );
 }
