@@ -23,6 +23,7 @@ type ProductLike = {
   images?: string;
   stock?: number;
   featured?: boolean;
+  saleEndsAt?: string | Date | null;
   active?: boolean;
   material?: string;
   sku?: string;
