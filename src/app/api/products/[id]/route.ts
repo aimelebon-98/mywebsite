@@ -63,6 +63,13 @@ export async function PUT(request: NextRequest, { params }: Params) {
     if (body.images !== undefined) updates.images = JSON.stringify(body.images || []);
     if (body.stock !== undefined) updates.stock = parseInt(String(body.stock));
     if (body.featured !== undefined) updates.featured = Boolean(body.featured);
+    if (body.saleEndsAt !== undefined) {
+      updates.saleEndsAt = body.saleEndsAt ? new Date(body.saleEndsAt) : null;
+      // Auto-feature when active sale
+      if (body.saleEndsAt && new Date(body.saleEndsAt).getTime() > Date.now()) {
+        updates.featured = true;
+      }
+    }
     if (body.active !== undefined) updates.active = Boolean(body.active);
     if (body.material !== undefined) updates.material = body.material;
     if (body.sku !== undefined) updates.sku = body.sku;

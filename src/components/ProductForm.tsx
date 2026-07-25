@@ -476,7 +476,13 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
                 <input
                   type="datetime-local"
                   value={saleEndsAt}
-                  onChange={(e) => setSaleEndsAt(e.target.value)}
+                  onChange={(e) => {
+                    setSaleEndsAt(e.target.value);
+                    // Auto-mark as featured when a valid future date is set
+                    if (e.target.value && new Date(e.target.value).getTime() > Date.now()) {
+                      setFeatured(true);
+                    }
+                  }}
                   className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#CA3F2E]"
                 />
                 {saleEndsAt && (

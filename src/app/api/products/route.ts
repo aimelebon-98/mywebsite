@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       name, description, shortDescription, longDescription,
       nameFr, descriptionFr, shortDescriptionFr, longDescriptionFr, tagsFr,
       price, comparePrice, category, brand, sizes, colors,
-      imageUrl, images, stock, featured, active, material, sku, tags,
+      imageUrl, images, stock, featured, active, material, sku, tags, saleEndsAt,
       seoTitle, metaDescription, focusKeyphrase, ogImage, canonicalUrl, noIndex,
       seoTitleFr, metaDescriptionFr, focusKeyphraseFr,
     } = body;
@@ -85,7 +85,8 @@ export async function POST(request: NextRequest) {
       imageUrl: imageUrl || "",
       images: JSON.stringify(images || []),
       stock: stock || 0,
-      featured: featured || false,
+      featured: (featured || (saleEndsAt && new Date(saleEndsAt).getTime() > Date.now())) || false,
+      saleEndsAt: saleEndsAt ? new Date(saleEndsAt) : null,
       active: active !== false,
       material: material || "",
       sku: sku || "",
