@@ -80,7 +80,7 @@ interface StoreSettings {
   lockoutMinutes: number;
 }
 
-type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments" | "orders" | "product-faqs";
+type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments" | "orders";
 
 export default function AdminPage() {
   const [authStep, setAuthStep] = useState<"loading" | "access-code" | "password" | "authenticated">("loading");
@@ -480,7 +480,6 @@ export default function AdminPage() {
             { id: "add" as Tab, icon: Plus, label: "Add Product", badge: 0 },
             { id: "categories" as Tab, icon: Tag, label: "Categories", badge: 0 },
             { id: "reviews" as Tab, icon: MessageSquare, label: "Reviews", badge: notifCounts.reviews },
-            { id: "product-faqs" as Tab, icon: HelpCircle, label: "Product FAQs", badge: 0 },
             // --- Content (blog) ---
             { id: "blog" as Tab, icon: BookOpen, label: "Blog Posts", badge: 0 },
             { id: "authors" as Tab, icon: UsersRound, label: "Authors", badge: 0 },
@@ -774,10 +773,6 @@ export default function AdminPage() {
                 ))}
               </div>
             </div>
-          )}
-
-          {activeTab === "product-faqs" && (
-            <ProductFaqsManager />
           )}
 
           {activeTab === "settings" && (
