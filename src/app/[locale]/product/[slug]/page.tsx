@@ -266,7 +266,7 @@ export default async function ProductPage({ params }: Props) {
       />
 
       <div className="pt-20 lg:pt-24">
-        <ProductDetails product={product} initialReviews={productReviews} />
+        <ProductDetails product={product} initialReviews={productReviews} relatedProducts={relatedProducts} locale={locale} />
 
         {relatedProducts.length > 0 && (
           <section className="py-14 lg:py-20 bg-gray-50">
