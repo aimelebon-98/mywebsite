@@ -306,23 +306,47 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                   <h3 className="text-sm font-bold uppercase tracking-wider text-gray-700 mb-3">{isFr ? "Completez le look" : "Complete the Look"}</h3>
                   <div className="grid grid-cols-3 gap-3">
                     {relatedProducts.slice(0, 3).map((rp) => (
-                      <Link
-                        key={rp.id}
-                        href={`/${propLocale || locale}/product/${rp.slug || rp.id}`}
-                        className="group block"
-                      >
-                        <div className="aspect-square bg-gray-100 rounded-xl overflow-hidden mb-2 relative">
-                          {rp.imageUrl && (
-                            <img
-                              src={rp.imageUrl}
-                              alt={rp.name}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                          )}
-                        </div>
-                        <div className="text-xs font-semibold text-gray-900 line-clamp-1 group-hover:text-gray-700">{rp.name}</div>
-                        <div className="text-xs font-bold mt-0.5" style={{ color: "#CA3F2E" }}>${parseFloat(rp.price).toFixed(2)}</div>
-                      </Link>
+                      <div key={rp.id} className="group relative">
+                        <Link
+                          href={`/${propLocale || locale}/product/${rp.slug || rp.id}`}
+                          className="block"
+                        >
+                          <div className="aspect-square bg-gray-100 rounded-xl overflow-hidden mb-2 relative">
+                            {rp.imageUrl && (
+                              <img
+                                src={rp.imageUrl}
+                                alt={rp.name}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                            )}
+                          </div>
+                          <div className="text-xs font-semibold text-gray-900 line-clamp-1 group-hover:text-gray-700">{rp.name}</div>
+                          <div className="text-xs font-bold mt-0.5" style={{ color: "#CA3F2E" }}>${parseFloat(rp.price).toFixed(2)}</div>
+                        </Link>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const rSizes: string[] = (() => { try { return JSON.parse(rp.sizes || "[]"); } catch { return []; } })();
+                            const rColors: string[] = (() => { try { return JSON.parse(rp.colors || "[]"); } catch { return []; } })();
+                            addItem({
+                              id: rp.id,
+                              name: rp.name,
+                              price: parseFloat(rp.price),
+                              imageUrl: rp.imageUrl,
+                              size: rSizes[0] || "One Size",
+                              color: rColors[0] || "Default",
+                              quantity: 1,
+                            });
+                          }}
+                          aria-label={`Add ${rp.name} to cart`}
+                          title={isFr ? "Ajouter au panier" : "Add to cart"}
+                          className="absolute top-2 right-2 w-9 h-9 rounded-full text-white flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 hover:scale-110 transition-all"
+                          style={{ backgroundColor: "#CA3F2E" }}
+                        >
+                          <ShoppingBag className="w-4 h-4" />
+                        </button>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -487,7 +511,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
             </div>
 
             {/* RIGHT SIDEBAR - Delivery / Seller / Sales */}
-            <aside className="space-y-4">
+            <aside className="space-y-4 lg:self-start">
               {/* Delivery & Returns card */}
               <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div className="px-5 py-3 border-b border-gray-100">
