@@ -104,11 +104,12 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
             alt={displayName}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
           />
-        {product.saleEndsAt && new Date(product.saleEndsAt).getTime() > Date.now() && (
-          <div className="absolute top-3 left-3 z-10">
-            <Countdown endDate={product.saleEndsAt} variant="compact" />
-          </div>
-        )}
+          {product.saleEndsAt && new Date(product.saleEndsAt).getTime() > Date.now() && (
+            <div className="absolute bottom-0 left-0 right-0 z-10">
+              <Countdown endDate={product.saleEndsAt} variant="banner" />
+            </div>
+          )}
+
 
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
