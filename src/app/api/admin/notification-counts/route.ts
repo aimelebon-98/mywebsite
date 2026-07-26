@@ -1,4 +1,5 @@
-﻿import { NextResponse } from "next/server";
+// v2 - includes newsletter count
+import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { orders, blogComments, reviews, newsletter } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
