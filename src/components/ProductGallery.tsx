@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { ShoppingBag, ChevronLeft, ChevronRight, ZoomIn, X } from "lucide-react";
@@ -97,6 +97,7 @@ export default function ProductGallery({ images, productName }: Props) {
           onClick={() => setZoomOpen(true)}
         >
           <img
+            key={currentImage}
             src={currentImage}
             alt={`${productName} - image ${activeIdx + 1}`}
             className={`w-full h-full object-cover transition-transform duration-500 ${loaded[activeIdx] ? "opacity-100" : "opacity-0"}`}
@@ -106,6 +107,13 @@ export default function ProductGallery({ images, productName }: Props) {
                 : undefined
             }
             onLoad={() => setLoaded(l => ({ ...l, [activeIdx]: true }))}
+            onError={() => setLoaded(l => ({ ...l, [activeIdx]: true }))}
+            ref={(el) => {
+              // Handle cached images: if already loaded by the time ref attaches, mark loaded manually
+              if (el && el.complete && el.naturalWidth > 0) {
+                setLoaded(l => l[activeIdx] ? l : { ...l, [activeIdx]: true });
+              }
+            }}
             loading={activeIdx === 0 ? "eager" : "lazy"}
             decoding="async"
           />
