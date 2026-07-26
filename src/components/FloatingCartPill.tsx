@@ -26,16 +26,19 @@ export default function FloatingCartPill() {
     }
   }, [lastAddedAt]);
 
-  // Hide if not on shop/product OR cart is empty
   if (!isShopOrProduct || totalItems === 0) return null;
 
   return (
     <button
       onClick={openDrawer}
       aria-label={`Open cart (${totalItems} items)`}
-      className="fixed right-4 top-1/2 -translate-y-1/2 z-40 group"
+      className="fixed top-1/2 -translate-y-1/2 z-40 group"
+      style={{
+        // Position further right - align with product grid right edge (approx max-w-7xl / 2 + padding)
+        // 50vw center - offset to right side of container
+        right: "max(1rem, calc((100vw - 1280px) / 2 + 1rem))",
+      }}
     >
-      {/* Pulse ring on new add */}
       {pulse && (
         <span
           className="absolute inset-0 rounded-full animate-ping opacity-40"
@@ -52,7 +55,6 @@ export default function FloatingCartPill() {
       >
         <ShoppingBag className="w-6 h-6" />
 
-        {/* Item count badge */}
         <span
           className="absolute -top-1 -right-1 min-w-[22px] h-[22px] px-1.5 bg-white rounded-full text-[11px] font-black flex items-center justify-center shadow-md border-2 border-white"
           style={{ color: BRAND_RED }}
@@ -61,9 +63,8 @@ export default function FloatingCartPill() {
         </span>
       </div>
 
-      {/* Tooltip on hover */}
       <span className="absolute right-full mr-3 top-1/2 -translate-y-1/2 whitespace-nowrap bg-gray-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition pointer-events-none">
-        Open cart
+        View cart
       </span>
     </button>
   );
