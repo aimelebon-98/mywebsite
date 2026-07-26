@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -12,10 +12,11 @@ export default function FloatingCartPill() {
   const { totalItems, openDrawer, lastAddedAt } = useCart();
   const [pulse, setPulse] = useState(false);
 
-  // Only show on shop and product pages
+  // Only show on shop pages (product pages already have a sticky mini cart)
   const isShopOrProduct =
     pathname !== null &&
-    (pathname.includes("/shop") || pathname.includes("/product/"));
+    pathname.includes("/shop") &&
+    !pathname.includes("/product/");
 
   // Trigger pulse animation on new add
   useEffect(() => {
