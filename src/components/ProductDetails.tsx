@@ -5,6 +5,7 @@ import ProductFaqDisplay from "@/components/ProductFaqDisplay";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart-context";
+import { useWishlist } from "@/lib/wishlist-context";
 import type { Product, Review } from "@/db/schema";
 import { ChevronDown,
   ShoppingBag, Heart, Minus, Plus, Check, Star, Truck, Shield, RotateCcw,
@@ -43,6 +44,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
   const t = useTranslations("productDetails");
   const locale = useLocale();
   const { addItem } = useCart();
+  const { toggle: toggleWishlist, isWished } = useWishlist();
   const router = useRouter();
   const price = parseFloat(product.price);
   const comparePrice = product.comparePrice ? parseFloat(product.comparePrice) : null;
@@ -71,7 +73,6 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
   const [reviewComment, setReviewComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewSuccess, setReviewSuccess] = useState(false);
-  const [wishlist, setWishlist] = useState(false);
   const REVIEWS_PER_PAGE = 2;
   const [visibleReviews, setVisibleReviews] = useState(REVIEWS_PER_PAGE);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -221,8 +222,8 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
 
                 {/* Action buttons */}
                 <div className="absolute top-4 right-4 flex flex-col gap-2 z-10 pointer-events-auto">
-                  <button onClick={() => setWishlist(!wishlist)} className={`w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-all ${wishlist ? "bg-red-500 text-white scale-110" : "bg-white/90 backdrop-blur text-gray-700 hover:bg-white"}`}>
-                    <Heart className={`w-5 h-5 ${wishlist ? "fill-white" : ""}`} />
+                  <button onClick={() => toggleWishlist(product.id)} className={`w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-all ${isWished(product.id) ? "bg-red-500 text-white scale-110" : "bg-white/90 backdrop-blur text-gray-700 hover:bg-white"}`}>
+                    <Heart className={`w-5 h-5 ${isWished(product.id) ? "fill-white" : ""}`} />
                   </button>
                   <button onClick={handleShare} className="w-10 h-10 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-lg text-gray-700 hover:bg-white transition">
                     <Share2 className="w-4 h-4" />
