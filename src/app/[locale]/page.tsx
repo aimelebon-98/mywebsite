@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import HomeProducts from "@/components/HomeProducts";
 import HomeBlogSection from "@/components/HomeBlogSection";
+import TrustBadges from "@/components/TrustBadges";
 import AnimatedNetwork from "@/components/AnimatedNetwork";
 import TypingText from "@/components/TypingText";
 import { ArrowRight, Truck, Shield, RotateCcw, Headphones, Star } from "lucide-react";
@@ -225,6 +226,7 @@ export default async function HomePage() {
 
       <HomeProducts />
 
+        <TrustBadges variant="full" />
         <HomeBlogSection />
 
         <Footer />

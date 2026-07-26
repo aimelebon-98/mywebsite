@@ -9,6 +9,7 @@ import { useWishlist } from "@/lib/wishlist-context";
 import { useState } from "react";
 import ProductImage from "./ProductImage";
 import Countdown from "./Countdown";
+import StockBadge from "./StockBadge";
 import QuickViewModal from "./QuickViewModal";
 import { useTranslations, useLocale } from "next-intl";
 import { getProductName } from "@/lib/product-i18n";
@@ -110,6 +111,9 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
           <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
+            {typeof product.stock === "number" && product.stock > 0 && product.stock <= 10 && (
+              <StockBadge stock={product.stock} variant="compact" />
+            )}
             {badge && (
               <span className={`px-2.5 py-1 text-white text-[10px] font-bold rounded-full shadow-sm ${
                 badge === "HOT"     ? "bg-red-500"    :

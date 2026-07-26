@@ -1,4 +1,6 @@
 "use client";
+import TrustBadges from "@/components/TrustBadges";
+import StockBadge from "@/components/StockBadge";
 import { trackEvent } from "@/components/AnalyticsTracker";
 import ProductFaqDisplay from "@/components/ProductFaqDisplay";
 
@@ -388,6 +390,13 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                 )}
               </div>
 
+              {/* Stock urgency badge */}
+              {typeof product.stock === "number" && product.stock > 0 && product.stock <= 10 && (
+                <div className="mb-4">
+                  <StockBadge stock={product.stock} variant="large" />
+                </div>
+              )}
+
               {/* Short Description */}
               <p className="text-gray-500 leading-relaxed mb-8">{shortDesc}</p>
 
@@ -685,7 +694,12 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
         </div>
       </div>
 
-      {/* TABS */}
+      {/* Trust badges row */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+          <TrustBadges variant="row" />
+        </div>
+
+        {/* TABS */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mt-12 bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="border-b border-gray-100 bg-gray-50/50">

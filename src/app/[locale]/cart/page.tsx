@@ -1,4 +1,5 @@
 "use client";
+import TrustBadges from "@/components/TrustBadges";
 import { trackEvent } from "@/components/AnalyticsTracker";
 
 import Navbar from "@/components/Navbar";
@@ -310,7 +311,11 @@ export default function CartPage() {
                     </div>
                   </div>
 
-                  {/* WhatsApp Checkout */}
+                  <div className="mb-4">
+              <TrustBadges variant="compact" />
+            </div>
+
+            {/* WhatsApp Checkout */}
                   <button
                     onClick={handleWhatsAppCheckout}
                     className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-green-500 text-white rounded-2xl font-semibold text-lg hover:bg-green-600 transition"

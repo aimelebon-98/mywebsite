@@ -494,3 +494,11 @@ div.tiptap-editor {
   60% { transform: translateY(-50%) rotate(-4deg); }
   80% { transform: translateY(-50%) rotate(4deg); }
 }
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.02); }
+}
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
+}
