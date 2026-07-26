@@ -166,7 +166,7 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
 
         <div className="space-y-1">
           <p className="text-[10px] text-gray-400 font-medium tracking-wide">{product.brand || product.category}</p>
-          <h3 className="font-semibold text-sm text-gray-900 group-hover:text-brand-600 transition line-clamp-2 leading-tight">{displayName}</h3>
+          <h3 className="font-semibold text-sm text-gray-900 group-hover:text-brand-600 transition line-clamp-2 leading-tight min-h-[2.5rem]">{displayName}</h3>
 
           {colors.length > 0 && (
             <div className="flex items-center gap-1 pt-0.5">
