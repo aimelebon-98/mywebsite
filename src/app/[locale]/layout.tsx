@@ -90,6 +90,7 @@ export default async function LocaleLayout({
         <CookieConsent />
         <PageViewTracker />
         <ExitIntentPopup />
+        <SpeedInsights />
       </body>
     </html>
   );
