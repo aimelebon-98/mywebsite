@@ -520,7 +520,6 @@ export default function AdminPage() {
             { id: "categories" as Tab, icon: Tag, label: "Categories", badge: 0 },
             { id: "reviews" as Tab, icon: MessageSquare, label: "Reviews", badge: notifCounts.reviews },
             { id: "product-faqs" as Tab, icon: HelpCircle, label: "Product FAQs", badge: 0 },
-            { id: "bundles" as Tab, icon: Gift, label: "Bundle Deals", badge: 0 },
             // --- Content (blog) ---
             { id: "blog" as Tab, icon: BookOpen, label: "Blog Posts", badge: 0 },
             { id: "authors" as Tab, icon: UsersRound, label: "Authors", badge: 0 },
