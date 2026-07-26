@@ -7,6 +7,7 @@ import { CartProvider } from "@/lib/cart-context";
 import { WishlistProvider } from "@/lib/wishlist-context";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import MiniCartDrawer from "@/components/MiniCartDrawer";
+import FloatingCartPill from "@/components/FloatingCartPill";
 
 import ExitIntentPopup from "@/components/ExitIntentPopup";
 import PageViewTracker from "@/components/AnalyticsTracker";
@@ -77,6 +78,7 @@ export default async function LocaleLayout({
             <WishlistProvider>
               {children}
               <MiniCartDrawer />
+              <FloatingCartPill />
               <WhatsAppButton />
             </WishlistProvider>
           </CartProvider>
