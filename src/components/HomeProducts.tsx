@@ -200,8 +200,8 @@ export default function HomeProducts() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                   {limitedTime.map((product) => (
                     <Link key={product.id} href={`/${locale}/product/${product.slug || product.id}`} className="group bg-white/10 backdrop-blur rounded-xl p-3 hover:bg-white/20 transition">
-                      <div className="aspect-square rounded-lg overflow-hidden mb-2 bg-white/5">
-                        <ProductImage src={product.imageUrl || ""} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                      <div className="relative aspect-square rounded-lg overflow-hidden mb-2 bg-white/5">
+                        <ProductImage src={product.imageUrl || ""} alt={product.name} sizes="200px" className="object-cover group-hover:scale-105 transition-transform" />
                       </div>
                       <p className="text-xs font-semibold text-white truncate">{product.name}</p>
                       <div className="flex items-center gap-1.5 mt-1">
@@ -321,8 +321,8 @@ export default function HomeProducts() {
                 <div className="hidden lg:flex justify-center">
                   <div className="grid grid-cols-2 gap-3">
                     {allProducts.slice(0, 4).map((p, i) => (
-                      <div key={p.id} className={`w-36 h-36 rounded-2xl overflow-hidden bg-gray-700 ${i % 2 === 1 ? "translate-y-6" : ""}`}>
-                        <ProductImage src={p.imageUrl || ""} alt={p.name} className="w-full h-full object-cover" />
+                      <div key={p.id} className={`relative w-36 h-36 rounded-2xl overflow-hidden bg-gray-700 ${i % 2 === 1 ? "translate-y-6" : ""}`}>
+                        <ProductImage src={p.imageUrl || ""} alt={p.name} sizes="144px" className="object-cover" />
                       </div>
                     ))}
                   </div>
