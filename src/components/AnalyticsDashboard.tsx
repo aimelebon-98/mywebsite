@@ -326,34 +326,117 @@ export default function AnalyticsDashboard() {
         </div>
       </div>
 
-      {/* Timeline Chart */}
-      {data.timeline.length > 0 && (
-        <div className="bg-white border border-gray-200 rounded-2xl p-6">
-          <h3 className="font-bold text-gray-900 mb-4">Activity Over Time</h3>
-          <div className="flex items-end gap-1 h-40">
-            {data.timeline.map(t => {
-              const h = (t.visits / maxVisits * 100) || 0;
-              return (
-                <div key={t.date} className="flex-1 flex flex-col items-center gap-1 group relative">
-                  <div className="w-full flex flex-col items-center gap-0.5">
-                    <div className="w-full bg-[#CA3F2E] rounded-t transition-all opacity-60 group-hover:opacity-100" style={{ height: `${(t.checkouts / maxVisits * 100) || 0}%`, minHeight: t.checkouts > 0 ? "2px" : "0" }} title={`Checkouts: ${t.checkouts}`} />
-                    <div className="w-full bg-amber-500 opacity-60 group-hover:opacity-100 transition-all" style={{ height: `${(t.carts / maxVisits * 100) || 0}%`, minHeight: t.carts > 0 ? "2px" : "0" }} title={`Carts: ${t.carts}`} />
-                    <div className="w-full bg-blue-500 opacity-60 group-hover:opacity-100 rounded-b transition-all" style={{ height: `${h}%`, minHeight: t.visits > 0 ? "2px" : "0" }} title={`Visits: ${t.visits}`} />
-                  </div>
-                  <div className="opacity-0 group-hover:opacity-100 absolute -top-14 bg-gray-900 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap z-10 transition">
-                    {t.date}: {t.visits}v / {t.carts}c / {t.checkouts}co
-                  </div>
+      {/* Timeline Chart - proper stacked bars */}
+      {data.timeline.length > 0 && (() => {
+        // Calculate max STACKED value (visits + carts + checkouts per day) for accurate scaling
+        const maxStacked = Math.max(1, ...data.timeline.map(t => t.visits + t.carts + t.checkouts));
+        const CHART_HEIGHT = 240;
+        return (
+          <div className="bg-white border border-gray-200 rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-gray-900">Activity Over Time</h3>
+              <div className="text-xs text-gray-500">{data.timeline.length} day{data.timeline.length > 1 ? "s" : ""}</div>
+            </div>
+
+            {/* Y axis + chart area */}
+            <div className="relative flex" style={{ height: `${CHART_HEIGHT}px` }}>
+              {/* Y-axis labels */}
+              <div className="w-10 flex flex-col justify-between text-[10px] text-gray-400 py-1 text-right pr-2">
+                <span>{maxStacked}</span>
+                <span>{Math.round(maxStacked * 0.75)}</span>
+                <span>{Math.round(maxStacked * 0.5)}</span>
+                <span>{Math.round(maxStacked * 0.25)}</span>
+                <span>0</span>
+              </div>
+
+              {/* Chart area */}
+              <div className="relative flex-1">
+                {/* Horizontal grid lines */}
+                <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
+                  {[0, 1, 2, 3, 4].map(i => (
+                    <div key={i} className="border-t border-gray-100 w-full" />
+                  ))}
                 </div>
-              );
-            })}
+
+                {/* Bars */}
+                <div className="relative flex items-end gap-1 sm:gap-2 h-full">
+                  {data.timeline.map(t => {
+                    const totalDay = t.visits + t.carts + t.checkouts;
+                    const totalPct = (totalDay / maxStacked) * 100;
+                    const visitsPct = totalDay > 0 ? (t.visits / totalDay) * totalPct : 0;
+                    const cartsPct = totalDay > 0 ? (t.carts / totalDay) * totalPct : 0;
+                    const checkoutsPct = totalDay > 0 ? (t.checkouts / totalDay) * totalPct : 0;
+                    return (
+                      <div key={t.date} className="flex-1 h-full flex flex-col justify-end group relative min-w-0">
+                        {/* Tooltip on hover */}
+                        <div className="opacity-0 group-hover:opacity-100 absolute -top-2 left-1/2 -translate-x-1/2 -translate-y-full bg-gray-900 text-white text-[11px] px-3 py-2 rounded-lg whitespace-nowrap z-20 transition shadow-lg pointer-events-none">
+                          <div className="font-bold mb-1">{t.date}</div>
+                          <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-blue-500" />Visits: <span className="font-bold">{t.visits}</span></div>
+                          <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-amber-500" />Carts: <span className="font-bold">{t.carts}</span></div>
+                          <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-[#CA3F2E]" />Checkouts: <span className="font-bold">{t.checkouts}</span></div>
+                        </div>
+
+                        {/* Stacked bar */}
+                        <div className="w-full flex flex-col justify-end rounded-t overflow-hidden group-hover:opacity-100 transition-all duration-200" style={{ height: "100%" }}>
+                          {/* Checkouts on TOP */}
+                          {t.checkouts > 0 && (
+                            <div className="w-full bg-gradient-to-b from-[#CA3F2E] to-[#8B2A1E] hover:brightness-110 transition" style={{ height: `${checkoutsPct}%`, minHeight: "3px" }} />
+                          )}
+                          {/* Carts middle */}
+                          {t.carts > 0 && (
+                            <div className="w-full bg-gradient-to-b from-amber-400 to-amber-500 hover:brightness-110 transition" style={{ height: `${cartsPct}%`, minHeight: "3px" }} />
+                          )}
+                          {/* Visits bottom */}
+                          {t.visits > 0 && (
+                            <div className="w-full bg-gradient-to-b from-blue-400 to-blue-500 hover:brightness-110 transition rounded-b" style={{ height: `${visitsPct}%`, minHeight: "3px" }} />
+                          )}
+                          {/* Empty state - subtle placeholder */}
+                          {totalDay === 0 && (
+                            <div className="w-full bg-gray-100 rounded-t" style={{ height: "4px" }} />
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* X-axis dates */}
+            <div className="ml-10 mt-2 flex items-center gap-1 sm:gap-2">
+              {data.timeline.map((t, i) => {
+                const showLabel = data.timeline.length <= 14 || i % Math.ceil(data.timeline.length / 10) === 0;
+                const date = new Date(t.date);
+                const label = date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+                return (
+                  <div key={t.date} className="flex-1 text-center min-w-0">
+                    {showLabel && <span className="text-[10px] text-gray-500 truncate">{label}</span>}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Legend */}
+            <div className="flex items-center gap-5 mt-4 pt-4 border-t border-gray-100 text-xs">
+              <span className="flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded bg-gradient-to-b from-blue-400 to-blue-500" />
+                <span className="text-gray-700 font-semibold">Visits</span>
+                <span className="text-gray-400">({data.timeline.reduce((s, t) => s + t.visits, 0)})</span>
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded bg-gradient-to-b from-amber-400 to-amber-500" />
+                <span className="text-gray-700 font-semibold">Carts</span>
+                <span className="text-gray-400">({data.timeline.reduce((s, t) => s + t.carts, 0)})</span>
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded bg-gradient-to-b from-[#CA3F2E] to-[#8B2A1E]" />
+                <span className="text-gray-700 font-semibold">Checkouts</span>
+                <span className="text-gray-400">({data.timeline.reduce((s, t) => s + t.checkouts, 0)})</span>
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-4 mt-4 text-xs text-gray-500">
-            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-blue-500" /> Visits</span>
-            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-amber-500" /> Carts</span>
-            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-[#CA3F2E]" /> Checkouts</span>
-          </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Top Products + Top Blog */}
       <div className="grid lg:grid-cols-2 gap-4">
