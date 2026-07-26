@@ -1,9 +1,11 @@
 import Link from "next/link";
+import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import HomeProducts from "@/components/HomeProducts";
 import HomeBlogSection from "@/components/HomeBlogSection";
-import AnimatedNetwork from "@/components/AnimatedNetwork";
+import dynamic from "next/dynamic";
+const AnimatedNetwork = dynamic(() => import("@/components/AnimatedNetwork"), { ssr: false, loading: () => null });
 import TypingText from "@/components/TypingText";
 import { ArrowRight, Truck, Shield, RotateCcw, Headphones, Star } from "lucide-react";
 import { getTranslations, getLocale } from "next-intl/server";
@@ -142,11 +144,14 @@ export default async function HomePage() {
                 <div className="absolute inset-0 bg-gradient-to-br from-brand-200 via-brand-100 to-brand-50 rounded-[3rem] rotate-6" />
                 <div className="absolute inset-0 bg-gradient-to-tr from-gray-200 via-gray-100 to-white rounded-[3rem] -rotate-3" />
                 <div className="relative rounded-[3rem] overflow-hidden aspect-square shadow-2xl bg-gradient-to-br from-brand-100 to-brand-50 animate-float-slow">
-                  <img
+                  <Image
                     src="https://images.unsplash.com/photo-1588361861040-ac9b1018f6d5?w=800&q=80"
                     alt="Featured Shoe"
-                    className="w-full h-full object-cover"
-                    loading="eager"
+                    fill
+                    priority
+                    fetchPriority="high"
+                    sizes="(max-width: 640px) 90vw, (max-width: 1024px) 50vw, 500px"
+                    className="object-cover"
                   />
                 </div>
                 <div className="absolute -bottom-3 -left-3 bg-white/95 backdrop-blur rounded-2xl p-3 shadow-xl animate-float">
@@ -211,7 +216,7 @@ export default async function HomePage() {
                   href={`/${locale}/shop?category=${cat.slug}`}
                   className="group relative overflow-hidden rounded-2xl aspect-square hover:-translate-y-1 transition-all duration-300 shadow-sm"
                 >
-                  <img src={cat.img} alt={cat.name} loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                  <Image src={cat.img} alt={cat.name} fill sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 200px" className="object-cover group-hover:scale-110 transition-transform duration-500" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-4">
                     <h3 className="font-bold text-white text-sm">{cat.name}</h3>
