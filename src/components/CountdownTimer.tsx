@@ -6,24 +6,37 @@ export default function CountdownTimer() {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
-    // Set countdown to 3 days from now
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() + 3);
-    endDate.setHours(23, 59, 59, 0);
+    const STORAGE_KEY = "solevault-countdown-end";
+    const DURATION_DAYS = 3;
 
-    const stored = localStorage.getItem("solevault-countdown-end");
-    const target = stored ? new Date(stored) : endDate;
-    if (!stored) {
-      localStorage.setItem("solevault-countdown-end", endDate.toISOString());
-    }
+    // Get target end date. If none, or if it has already passed, create a new 3-day window.
+    const getOrCreateTarget = (): Date => {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const storedDate = new Date(stored);
+        if (storedDate.getTime() > Date.now()) {
+          return storedDate;
+        }
+      }
+      // Create new target: DURATION_DAYS from now at 23:59:59
+      const newEnd = new Date();
+      newEnd.setDate(newEnd.getDate() + DURATION_DAYS);
+      newEnd.setHours(23, 59, 59, 0);
+      localStorage.setItem(STORAGE_KEY, newEnd.toISOString());
+      return newEnd;
+    };
+
+    let target = getOrCreateTarget();
 
     const update = () => {
-      const now = new Date().getTime();
+      const now = Date.now();
       const distance = target.getTime() - now;
 
-      if (distance < 0) {
-        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-        return;
+      if (distance <= 0) {
+        // Timer expired -> reset to a fresh 3-day countdown
+        localStorage.removeItem(STORAGE_KEY);
+        target = getOrCreateTarget();
+        return; // next tick will render the new value
       }
 
       setTimeLeft({
