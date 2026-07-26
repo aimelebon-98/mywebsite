@@ -1,16 +1,24 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { ShoppingBag } from "lucide-react";
 
 interface ProductImageProps {
   src: string;
   alt: string;
   className?: string;
-  fill?: boolean;
+  priority?: boolean;
+  sizes?: string;
 }
 
-export default function ProductImage({ src, alt, className = "" }: ProductImageProps) {
+export default function ProductImage({
+  src,
+  alt,
+  className = "",
+  priority = false,
+  sizes = "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px",
+}: ProductImageProps) {
   const [status, setStatus] = useState<"loading" | "loaded" | "error">("loading");
 
   if (!src) {
@@ -35,20 +43,16 @@ export default function ProductImage({ src, alt, className = "" }: ProductImageP
       {status === "loading" && (
         <div className={`absolute inset-0 bg-gray-100 animate-pulse ${className}`} />
       )}
-      <img
+      <Image
         key={src}
         src={src}
         alt={alt}
-        loading="lazy"
-        decoding="async"
+        fill
+        sizes={sizes}
+        priority={priority}
+        loading={priority ? "eager" : "lazy"}
         onLoad={() => setStatus("loaded")}
         onError={() => setStatus("error")}
-        ref={(el) => {
-          // Cached-image fix: if image already loaded before ref attaches, mark loaded manually
-          if (el && el.complete && el.naturalWidth > 0 && status === "loading") {
-            setStatus("loaded");
-          }
-        }}
         className={`${className} ${status === "loading" ? "opacity-0" : "opacity-100"} transition-opacity duration-300`}
       />
     </>
