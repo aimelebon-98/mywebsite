@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect } from "react";
 import Link from "next/link";
@@ -28,7 +28,7 @@ export default function MiniCartDrawer() {
 
   return (
     <div
-      className="fixed top-1/2 -translate-y-1/2 right-24 z-50 w-[380px] max-w-[calc(100vw-2rem)] animate-slide-in-left"
+      className="fixed top-1/2 -translate-y-1/2 right-24 z-50 w-[380px] max-w-[calc(100vw-2rem)] animate-cart-pop"
       aria-label={t("yourCart")}
       role="dialog"
     >
@@ -57,7 +57,7 @@ export default function MiniCartDrawer() {
             <div className="flex items-center gap-2 mb-1.5">
               <Truck className="w-3.5 h-3.5 text-gray-600 flex-shrink-0" />
               {qualifiesFreeShipping ? (
-                <p className="text-[11px] font-semibold text-green-600">{t("freeShippingQualified")}</p>
+                <p className="text-[11px] font-bold" style={{ color: "#CA3F2E" }}>{t("freeShippingQualified")}</p>
               ) : (
                 <p className="text-[11px] text-gray-700">
                   {t("freeShippingProgress", { amount: `$${remaining.toFixed(2)}` })}
@@ -66,8 +66,12 @@ export default function MiniCartDrawer() {
             </div>
             <div className="h-1 bg-gray-200 rounded-full overflow-hidden">
               <div
-                className={`h-full transition-all duration-500 ${qualifiesFreeShipping ? "bg-green-500" : "bg-brand-600"}`}
-                style={{ width: `${progress}%` }}
+                className="h-full transition-all duration-500 rounded-full"
+                style={{
+                  width: `${progress}%`,
+                  backgroundColor: qualifiesFreeShipping ? "#CA3F2E" : "#CA3F2E",
+                  boxShadow: qualifiesFreeShipping ? "0 0 12px rgba(202, 63, 46, 0.6)" : "none"
+                }}
               />
             </div>
           </div>
