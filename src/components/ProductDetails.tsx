@@ -45,6 +45,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
   const locale = useLocale();
   const { addItem } = useCart();
   const { toggle: toggleWishlist, isWished } = useWishlist();
+  const isFr = locale === "fr";
   const router = useRouter();
   const price = parseFloat(product.price);
   const comparePrice = product.comparePrice ? parseFloat(product.comparePrice) : null;
@@ -248,7 +249,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
 
               {/* Share buttons */}
               <div className="mt-6 flex items-center gap-3 flex-wrap">
-                <span className="text-xs font-bold uppercase tracking-wider text-gray-500">Share:</span>
+                <span className="text-xs font-bold uppercase tracking-wider text-gray-500">{isFr ? "Partager :" : "Share:"}</span>
                 <a
                   href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(product.name)}`}
                   target="_blank" rel="noopener noreferrer"
@@ -295,14 +296,14 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                   })}
                 </div>
                 <div className="text-xs text-gray-700 flex-1">
-                  <span className="font-bold" style={{ color: "#CA3F2E" }}>{Math.floor(Math.random() * 15 + 5)} people</span> bought this in the last 24 hours
+                  <span className="font-bold" style={{ color: "#CA3F2E" }}>{Math.floor(Math.random() * 15 + 5)} {isFr ? "personnes" : "people"}</span> {isFr ? "ont achete ceci ces dernieres 24h" : "bought this in the last 24 hours"}
                 </div>
               </div>
 
               {/* Complete the Look */}
               {relatedProducts.length > 0 && (
                 <div className="mt-8">
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-gray-700 mb-3">Complete the Look</h3>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-gray-700 mb-3">{isFr ? "Completez le look" : "Complete the Look"}</h3>
                   <div className="grid grid-cols-3 gap-3">
                     {relatedProducts.slice(0, 3).map((rp) => (
                       <Link
@@ -414,29 +415,29 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                 <div className="flex items-center gap-2 px-3 py-2.5 bg-gray-50 rounded-xl">
                   <Truck className="w-4 h-4 flex-shrink-0" style={{ color: "#CA3F2E" }} />
                   <div className="min-w-0">
-                    <div className="text-[11px] font-bold text-gray-900 leading-tight">Free Shipping</div>
-                    <div className="text-[10px] text-gray-500 leading-tight">Over $100</div>
+                    <div className="text-[11px] font-bold text-gray-900 leading-tight">{isFr ? "Livraison gratuite" : "Free Shipping"}</div>
+                    <div className="text-[10px] text-gray-500 leading-tight">{isFr ? "Plus de 100$" : "Over $100"}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 px-3 py-2.5 bg-gray-50 rounded-xl">
                   <Shield className="w-4 h-4 flex-shrink-0" style={{ color: "#CA3F2E" }} />
                   <div className="min-w-0">
-                    <div className="text-[11px] font-bold text-gray-900 leading-tight">Secure Checkout</div>
-                    <div className="text-[10px] text-gray-500 leading-tight">SSL encrypted</div>
+                    <div className="text-[11px] font-bold text-gray-900 leading-tight">{isFr ? "Paiement securise" : "Secure Checkout"}</div>
+                    <div className="text-[10px] text-gray-500 leading-tight">{isFr ? "Crypte SSL" : "SSL encrypted"}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 px-3 py-2.5 bg-gray-50 rounded-xl">
                   <RotateCcw className="w-4 h-4 flex-shrink-0" style={{ color: "#CA3F2E" }} />
                   <div className="min-w-0">
-                    <div className="text-[11px] font-bold text-gray-900 leading-tight">Easy Returns</div>
-                    <div className="text-[10px] text-gray-500 leading-tight">30 days</div>
+                    <div className="text-[11px] font-bold text-gray-900 leading-tight">{isFr ? "Retours faciles" : "Easy Returns"}</div>
+                    <div className="text-[10px] text-gray-500 leading-tight">{isFr ? "30 jours" : "30 days"}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 px-3 py-2.5 bg-gray-50 rounded-xl">
                   <Award className="w-4 h-4 flex-shrink-0" style={{ color: "#CA3F2E" }} />
                   <div className="min-w-0">
-                    <div className="text-[11px] font-bold text-gray-900 leading-tight">100% Authentic</div>
-                    <div className="text-[10px] text-gray-500 leading-tight">Guaranteed</div>
+                    <div className="text-[11px] font-bold text-gray-900 leading-tight">{isFr ? "100% Authentique" : "100% Authentic"}</div>
+                    <div className="text-[10px] text-gray-500 leading-tight">{isFr ? "Garanti" : "Guaranteed"}</div>
                   </div>
                 </div>
               </div>
@@ -446,13 +447,13 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                 <Truck className="w-5 h-5 flex-shrink-0" style={{ color: "#CA3F2E" }} />
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-bold text-gray-900">
-                    Free shipping - Arrives <span style={{ color: "#CA3F2E" }}>{(() => {
+                    {isFr ? "Livraison gratuite - Arrive " : "Free shipping - Arrives "}<span style={{ color: "#CA3F2E" }}>{(() => {
                       const d = new Date();
                       d.setDate(d.getDate() + 5);
-                      return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+                      return d.toLocaleDateString(isFr ? "fr-FR" : "en-US", { weekday: "short", month: "short", day: "numeric" });
                     })()}</span>
                   </div>
-                  <div className="text-[11px] text-gray-500">Order in the next 24h for guaranteed delivery</div>
+                  <div className="text-[11px] text-gray-500">{isFr ? "Commandez dans les 24h pour une livraison garantie" : "Order in the next 24h for guaranteed delivery"}</div>
                 </div>
               </div>
 
@@ -490,7 +491,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               {/* Delivery & Returns card */}
               <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div className="px-5 py-3 border-b border-gray-100">
-                  <h3 className="font-bold text-base">Delivery &amp; Returns</h3>
+                  <h3 className="font-bold text-base">{isFr ? "Livraison & Retours" : "Delivery & Returns"}</h3>
                 </div>
                 <div className="p-5 space-y-4">
                   <div className="flex gap-3">
@@ -498,13 +499,13 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                       <Truck className="w-4 h-4" style={{ color: "#CA3F2E" }} />
                     </div>
                     <div className="min-w-0">
-                      <div className="text-sm font-bold text-gray-900">Delivery</div>
-                      <div className="text-xs text-gray-500 mt-0.5">Estimated 3-5 business days</div>
+                      <div className="text-sm font-bold text-gray-900">{isFr ? "Livraison" : "Delivery"}</div>
+                      <div className="text-xs text-gray-500 mt-0.5">{isFr ? "Estimee 3-5 jours ouvres" : "Estimated 3-5 business days"}</div>
                       <div className="text-xs text-gray-700 mt-2">
-                        <span className="font-semibold">Free shipping</span> on orders over $100.
+                        <span className="font-semibold">{isFr ? "Livraison gratuite" : "Free shipping"}</span> {isFr ? "pour les commandes de plus de 100$." : "on orders over $100."}
                       </div>
                       <div className="text-xs text-gray-500 mt-1">
-                        Order in the next 24h for fastest delivery.
+                        {isFr ? "Commandez dans les 24h pour la livraison la plus rapide." : "Order in the next 24h for fastest delivery."}
                       </div>
                     </div>
                   </div>
@@ -514,13 +515,13 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                       <RotateCcw className="w-4 h-4" style={{ color: "#CA3F2E" }} />
                     </div>
                     <div className="min-w-0">
-                      <div className="text-sm font-bold text-gray-900">Return Policy</div>
-                      <div className="text-xs font-semibold mt-0.5" style={{ color: "#CA3F2E" }}>30-Day Free Returns</div>
+                      <div className="text-sm font-bold text-gray-900">{isFr ? "Politique de retour" : "Return Policy"}</div>
+                      <div className="text-xs font-semibold mt-0.5" style={{ color: "#CA3F2E" }}>{isFr ? "Retours gratuits 30 jours" : "30-Day Free Returns"}</div>
                       <div className="text-xs text-gray-500 mt-1">
-                        Not satisfied? Return unworn items within 30 days for a full refund.
+                        {isFr ? "Pas satisfait ? Retournez les articles non portes sous 30 jours pour un remboursement complet." : "Not satisfied? Return unworn items within 30 days for a full refund."}
                       </div>
                       <Link href={`/${locale}/returns`} className="text-xs font-semibold text-gray-900 underline hover:text-gray-700 mt-1 inline-block">
-                        Read return policy
+                        {isFr ? "Lire la politique de retour" : "Read return policy"}
                       </Link>
                     </div>
                   </div>
@@ -530,9 +531,9 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                       <Shield className="w-4 h-4" style={{ color: "#CA3F2E" }} />
                     </div>
                     <div className="min-w-0">
-                      <div className="text-sm font-bold text-gray-900">Authenticity Guarantee</div>
+                      <div className="text-sm font-bold text-gray-900">{isFr ? "Garantie d'authenticite" : "Authenticity Guarantee"}</div>
                       <div className="text-xs text-gray-500 mt-0.5">
-                        Every product is 100% authentic and inspected before shipping.
+                        {isFr ? "Chaque produit est 100% authentique et inspecte avant l'envoi." : "Every product is 100% authentic and inspected before shipping."}
                       </div>
                     </div>
                   </div>
@@ -542,9 +543,9 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               {/* Seller Information card */}
               <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
-                  <h3 className="font-bold text-base">Seller Information</h3>
+                  <h3 className="font-bold text-base">{isFr ? "Informations vendeur" : "Seller Information"}</h3>
                   <Link href={`/${locale}/shop`} className="text-xs font-bold px-3 py-1 rounded-lg border border-gray-300 hover:border-gray-900 hover:bg-gray-50 transition" style={{ color: "#CA3F2E" }}>
-                    View Store
+                    {isFr ? "Voir la boutique" : "View Store"}
                   </Link>
                 </div>
                 <div className="p-5">
@@ -556,7 +557,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                       <div className="text-sm font-bold text-gray-900">SoleVault</div>
                       <div className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
                         <span className="inline-block w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-                        Verified premium seller
+                        {isFr ? "Vendeur premium verifie" : "Verified premium seller"}
                       </div>
                     </div>
                   </div>
@@ -564,7 +565,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                   {/* Number of Sales */}
                   <div className="bg-gray-50 rounded-xl p-3 mb-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium text-gray-600">Number of Sales</span>
+                      <span className="text-xs font-medium text-gray-600">{isFr ? "Nombre de ventes" : "Number of Sales"}</span>
                       <span className="text-sm font-black text-gray-900">
                         {(() => {
                           // Simulate realistic sales count based on product age + rating
@@ -579,7 +580,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
 
                   <div className="bg-gray-50 rounded-xl p-3">
                     <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-xs font-medium text-gray-600">Fulfillment Rate</span>
+                      <span className="text-xs font-medium text-gray-600">{isFr ? "Taux d'execution" : "Fulfillment Rate"}</span>
                       <span className="text-xs font-bold text-green-600">98%</span>
                     </div>
                     <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
@@ -589,7 +590,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
 
                   <div className="flex items-center gap-2 mt-4 text-xs text-gray-500">
                     <Award className="w-3.5 h-3.5" style={{ color: "#CA3F2E" }} />
-                    <span>2+ years selling premium footwear</span>
+                    <span>{isFr ? "2+ annees de vente de chaussures premium" : "2+ years selling premium footwear"}</span>
                   </div>
                 </div>
               </div>
@@ -617,14 +618,14 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                       disabled={added}
                       className={`w-full py-2.5 rounded-xl text-sm font-bold border-2 transition-all ${added ? "bg-green-500 text-white border-green-500" : "bg-white border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white"}`}
                     >
-                      {added ? <><Check className="w-4 h-4 inline" /> Added</> : "Add to Cart"}
+                      {added ? <><Check className="w-4 h-4 inline" /> {isFr ? "Ajoute" : "Added"}</> : (isFr ? "Ajouter au panier" : "Add to Cart")}
                     </button>
                     <button
                       onClick={handleBuyNow}
                       className="w-full py-2.5 text-white rounded-xl text-sm font-bold hover:brightness-110 transition-all"
                       style={{ backgroundColor: "#CA3F2E", boxShadow: "0 4px 14px rgba(202, 63, 46, 0.35)" }}
                     >
-                      Buy Now
+                      {isFr ? "Acheter maintenant" : "Buy Now"}
                     </button>
                   </div>
                 </div>
@@ -655,7 +656,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
             className={`px-5 py-3 rounded-xl text-white font-bold text-xs uppercase tracking-wide transition-all active:scale-95 flex-shrink-0 ${added ? "bg-green-500" : ""}`}
             style={!added ? { backgroundColor: "#CA3F2E", boxShadow: "0 4px 14px rgba(202, 63, 46, 0.35)" } : undefined}
           >
-            {added ? <><Check className="w-4 h-4 inline" /> Added</> : "Add to Cart"}
+            {added ? <><Check className="w-4 h-4 inline" /> {isFr ? "Ajoute" : "Added"}</> : (isFr ? "Ajouter au panier" : "Add to Cart")}
           </button>
         </div>
       </div>
