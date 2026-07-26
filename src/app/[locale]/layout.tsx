@@ -1,6 +1,18 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { Inter } from "next/font/google";
+import dynamic from "next/dynamic";
+import { NextIntlClientProvider, hasLocale } from "next-intl";
+import { notFound } from "next/navigation";
+import { routing } from "@/i18n/routing";
+import { CartProvider } from "@/lib/cart-context";
+import { WishlistProvider } from "@/lib/wishlist-context";
+import MiniCartDrawer from "@/components/MiniCartDrawer";
+import FloatingCartPill from "@/components/FloatingCartPill";
+import PageViewTracker from "@/components/AnalyticsTracker";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
+// Self-hosted Inter font (eliminates render-blocking Google Fonts request)
 const inter = Inter({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800", "900"],
@@ -8,22 +20,14 @@ const inter = Inter({
   variable: "--font-inter",
   preload: true,
 });
-import type { ReactNode } from "react";
-import { NextIntlClientProvider, hasLocale } from "next-intl";
-import { notFound } from "next/navigation";
-import { routing } from "@/i18n/routing";
-import { CartProvider } from "@/lib/cart-context";
-import { WishlistProvider } from "@/lib/wishlist-context";
-import WhatsAppButton from "@/components/WhatsAppButton";
-import MiniCartDrawer from "@/components/MiniCartDrawer";
-import FloatingCartPill from "@/components/FloatingCartPill";
-import InactivityCartReminder from "@/components/InactivityCartReminder";
 
-import ExitIntentPopup from "@/components/ExitIntentPopup";
-import PageViewTracker from "@/components/AnalyticsTracker";
-import CookieConsent from "@/components/CookieConsent";
-import StickyPromoBar from "@/components/StickyPromoBar";
-import { SpeedInsights } from "@vercel/speed-insights/next";
+// Lazy-load non-critical UI (huge FCP/LCP win - loaded AFTER first paint)
+const WhatsAppButton = dynamic(() => import("@/components/WhatsAppButton"));
+const InactivityCartReminder = dynamic(() => import("@/components/InactivityCartReminder"));
+const ExitIntentPopup = dynamic(() => import("@/components/ExitIntentPopup"));
+const CookieConsent = dynamic(() => import("@/components/CookieConsent"));
+const StickyPromoBar = dynamic(() => import("@/components/StickyPromoBar"));
+
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://solevault.com";
 
 export const metadata: Metadata = {
@@ -75,9 +79,8 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} className={inter.variable}>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+        <link rel="preconnect" href="https://images.unsplash.com" />
+        <link rel="dns-prefetch" href="https://images.unsplash.com" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
