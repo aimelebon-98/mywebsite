@@ -88,7 +88,7 @@ export default async function HomePage() {
         </div>
         <div className="absolute bottom-10 right-0 w-96 h-96 bg-gray-200/60 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-28 pointer-events-none">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-16 pointer-events-none">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="animate-fade-in-up pointer-events-auto">
               <span className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900/95 backdrop-blur text-white text-[11px] font-bold uppercase tracking-[0.2em] rounded-full mb-6 shadow-lg shadow-gray-900/10">
@@ -198,7 +198,7 @@ export default async function HomePage() {
 
       {/* CATEGORIES */}
       {categories.length > 0 && (
-        <section className="py-14 lg:py-20 bg-gray-50">
+        <section className="py-8 lg:py-12 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <h2 className="text-3xl lg:text-4xl font-bold mb-3">{t("shopByCategory")}</h2>

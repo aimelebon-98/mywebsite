@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import type { Product } from "@/db/schema";
@@ -58,7 +58,7 @@ export default function HomeProducts() {
 
   if (loading) {
     return (
-      <div className="py-20">
+      <div className="py-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
             {[...Array(8)].map((_, i) => (
@@ -79,7 +79,7 @@ export default function HomeProducts() {
   // Setup prompt (only shown when English has no products - means DB is empty)
   if (!hasProducts && !isFr) {
     return (
-      <section className="py-12">
+      <section className="py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl p-8 lg:p-12 text-center border border-gray-200">
             <div className="w-16 h-16 bg-gray-900 rounded-2xl flex items-center justify-center mx-auto mb-6">
@@ -103,7 +103,7 @@ export default function HomeProducts() {
   // French empty state - clean, informative
   if (!hasProducts && isFr) {
     return (
-      <section className="py-20">
+      <section className="py-8">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl p-10 lg:p-14 text-center border border-blue-100">
             <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
@@ -129,7 +129,7 @@ export default function HomeProducts() {
     <>
       {/* HOT DEALS */}
       {hotDeals.length > 0 && (
-        <section className="py-14 lg:py-20">
+        <section className="py-8 lg:py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-3">
@@ -152,7 +152,7 @@ export default function HomeProducts() {
 
       {/* FEATURED PRODUCTS */}
       {featured.length > 0 && (
-        <section className="py-14 lg:py-20 bg-gray-50">
+        <section className="py-8 lg:py-12 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-3">
@@ -179,13 +179,13 @@ export default function HomeProducts() {
 
       {/* LIMITED TIME OFFER */}
       {limitedTime.length > 0 && (
-        <section className="py-14 lg:py-20">
+        <section className="py-8 lg:py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-900 via-purple-800 to-indigo-900 text-white">
               <div className="absolute top-0 right-0 w-80 h-80 bg-pink-500/20 rounded-full blur-3xl" />
               <div className="absolute bottom-0 left-0 w-60 h-60 bg-blue-500/20 rounded-full blur-3xl" />
               <div className="absolute inset-0 animate-shimmer pointer-events-none" />
-              <div className="relative px-6 py-10 lg:px-12 lg:py-14">
+              <div className="relative px-6 py-8 lg:px-10 lg:py-10">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8">
                   <div>
                     <div className="flex items-center gap-2 mb-3">
@@ -221,7 +221,7 @@ export default function HomeProducts() {
 
       {/* NEW ARRIVALS */}
       {newArrivals.length > 0 && (
-        <section className="py-14 lg:py-20 bg-gray-50">
+        <section className="py-8 lg:py-12 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-3">
@@ -244,7 +244,7 @@ export default function HomeProducts() {
 
       {/* ON SALE NOW */}
       {onSale.length > 0 && (
-        <section className="py-14 lg:py-20">
+        <section className="py-8 lg:py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-3">
@@ -267,7 +267,7 @@ export default function HomeProducts() {
 
       {/* TOP RATED */}
       {topRated.length > 0 && (
-        <section className="py-14 lg:py-20 bg-gray-50">
+        <section className="py-8 lg:py-12 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-3">
@@ -299,7 +299,7 @@ export default function HomeProducts() {
       <RecentlyViewed />
 
       {/* CTA BANNER */}
-      <section className="py-14 lg:py-20">
+      <section className="py-8 lg:py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-gray-900 to-gray-800 text-white p-10 lg:p-20">
             <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/20 rounded-full blur-3xl" />

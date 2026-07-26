@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import Image from "next/image";
 import { db } from "@/db";
 import { blogPosts, authors, type BlogPost, type Author } from "@/db/schema";
@@ -50,7 +50,7 @@ export default async function HomeBlogSection() {
   if (posts.length === 0) return null;
 
   return (
-    <section className="py-14 lg:py-20 bg-white">
+    <section className="py-8 lg:py-12 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex items-end justify-between mb-8 lg:mb-12">
