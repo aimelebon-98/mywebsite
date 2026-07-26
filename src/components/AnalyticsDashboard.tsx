@@ -326,11 +326,66 @@ export default function AnalyticsDashboard() {
         </div>
       </div>
 
-      {/* Timeline Chart - proper stacked bars */}
+      {/* Timeline Chart - Smooth SVG line chart */}
       {data.timeline.length > 0 && (() => {
-        // Calculate max STACKED value (visits + carts + checkouts per day) for accurate scaling
-        const maxStacked = Math.max(1, ...data.timeline.map(t => t.visits + t.carts + t.checkouts));
-        const CHART_HEIGHT = 240;
+        const CHART_W = 800;
+        const CHART_H = 240;
+        const PAD_L = 40;
+        const PAD_R = 20;
+        const PAD_T = 20;
+        const PAD_B = 30;
+        const innerW = CHART_W - PAD_L - PAD_R;
+        const innerH = CHART_H - PAD_T - PAD_B;
+        const n = data.timeline.length;
+
+        const maxVal = Math.max(1,
+          ...data.timeline.map(t => Math.max(t.visits, t.carts, t.checkouts))
+        );
+
+        // Convert data point to SVG coordinate
+        const xAt = (i: number) => PAD_L + (n === 1 ? innerW / 2 : (i / (n - 1)) * innerW);
+        const yAt = (v: number) => PAD_T + innerH - (v / maxVal) * innerH;
+
+        // Cardinal spline / Catmull-Rom for smooth curves
+        function buildSmoothPath(values: number[]): string {
+          if (values.length === 0) return "";
+          if (values.length === 1) return `M ${xAt(0)} ${yAt(values[0])}`;
+
+          let path = `M ${xAt(0)} ${yAt(values[0])}`;
+          for (let i = 0; i < values.length - 1; i++) {
+            const x0 = xAt(Math.max(0, i - 1));
+            const y0 = yAt(values[Math.max(0, i - 1)]);
+            const x1 = xAt(i);
+            const y1 = yAt(values[i]);
+            const x2 = xAt(i + 1);
+            const y2 = yAt(values[i + 1]);
+            const x3 = xAt(Math.min(values.length - 1, i + 2));
+            const y3 = yAt(values[Math.min(values.length - 1, i + 2)]);
+
+            const cp1x = x1 + (x2 - x0) / 6;
+            const cp1y = y1 + (y2 - y0) / 6;
+            const cp2x = x2 - (x3 - x1) / 6;
+            const cp2y = y2 - (y3 - y1) / 6;
+
+            path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${x2} ${y2}`;
+          }
+          return path;
+        }
+
+        function buildAreaPath(values: number[]): string {
+          const linePath = buildSmoothPath(values);
+          if (!linePath) return "";
+          return `${linePath} L ${xAt(n - 1)} ${PAD_T + innerH} L ${xAt(0)} ${PAD_T + innerH} Z`;
+        }
+
+        const visitsPath = buildSmoothPath(data.timeline.map(t => t.visits));
+        const cartsPath = buildSmoothPath(data.timeline.map(t => t.carts));
+        const checkoutsPath = buildSmoothPath(data.timeline.map(t => t.checkouts));
+        const visitsArea = buildAreaPath(data.timeline.map(t => t.visits));
+
+        const yTicks = 4;
+        const yLabels = Array.from({ length: yTicks + 1 }, (_, i) => Math.round((maxVal * (yTicks - i)) / yTicks));
+
         return (
           <div className="bg-white border border-gray-200 rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4">
@@ -338,98 +393,93 @@ export default function AnalyticsDashboard() {
               <div className="text-xs text-gray-500">{data.timeline.length} day{data.timeline.length > 1 ? "s" : ""}</div>
             </div>
 
-            {/* Y axis + chart area */}
-            <div className="relative flex" style={{ height: `${CHART_HEIGHT}px` }}>
-              {/* Y-axis labels */}
-              <div className="w-10 flex flex-col justify-between text-[10px] text-gray-400 py-1 text-right pr-2">
-                <span>{maxStacked}</span>
-                <span>{Math.round(maxStacked * 0.75)}</span>
-                <span>{Math.round(maxStacked * 0.5)}</span>
-                <span>{Math.round(maxStacked * 0.25)}</span>
-                <span>0</span>
-              </div>
+            <div className="relative w-full overflow-x-auto">
+              <svg viewBox={`0 0 ${CHART_W} ${CHART_H}`} className="w-full h-auto" style={{ minHeight: `${CHART_H}px`, minWidth: n > 14 ? `${n * 50}px` : "auto" }}>
+                <defs>
+                  <linearGradient id="visitsGrad" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.35" />
+                    <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
 
-              {/* Chart area */}
-              <div className="relative flex-1">
-                {/* Horizontal grid lines */}
-                <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
-                  {[0, 1, 2, 3, 4].map(i => (
-                    <div key={i} className="border-t border-gray-100 w-full" />
-                  ))}
-                </div>
+                {/* Horizontal grid lines + Y-axis labels */}
+                {yLabels.map((label, i) => {
+                  const y = PAD_T + (i / yTicks) * innerH;
+                  return (
+                    <g key={i}>
+                      <line x1={PAD_L} y1={y} x2={CHART_W - PAD_R} y2={y} stroke="#f1f5f9" strokeWidth="1" />
+                      <text x={PAD_L - 6} y={y + 3} textAnchor="end" fontSize="10" fill="#94a3b8">{label}</text>
+                    </g>
+                  );
+                })}
 
-                {/* Bars */}
-                <div className="relative flex items-end gap-1 sm:gap-2 h-full">
-                  {data.timeline.map(t => {
-                    const totalDay = t.visits + t.carts + t.checkouts;
-                    const totalPct = (totalDay / maxStacked) * 100;
-                    const visitsPct = totalDay > 0 ? (t.visits / totalDay) * totalPct : 0;
-                    const cartsPct = totalDay > 0 ? (t.carts / totalDay) * totalPct : 0;
-                    const checkoutsPct = totalDay > 0 ? (t.checkouts / totalDay) * totalPct : 0;
-                    return (
-                      <div key={t.date} className="flex-1 h-full flex flex-col justify-end group relative min-w-0">
-                        {/* Tooltip on hover */}
-                        <div className="opacity-0 group-hover:opacity-100 absolute -top-2 left-1/2 -translate-x-1/2 -translate-y-full bg-gray-900 text-white text-[11px] px-3 py-2 rounded-lg whitespace-nowrap z-20 transition shadow-lg pointer-events-none">
-                          <div className="font-bold mb-1">{t.date}</div>
-                          <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-blue-500" />Visits: <span className="font-bold">{t.visits}</span></div>
-                          <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-amber-500" />Carts: <span className="font-bold">{t.carts}</span></div>
-                          <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-[#CA3F2E]" />Checkouts: <span className="font-bold">{t.checkouts}</span></div>
-                        </div>
+                {/* Visits area fill */}
+                {visitsArea && <path d={visitsArea} fill="url(#visitsGrad)" />}
 
-                        {/* Stacked bar */}
-                        <div className="w-full flex flex-col justify-end rounded-t overflow-hidden group-hover:opacity-100 transition-all duration-200" style={{ height: "100%" }}>
-                          {/* Checkouts on TOP */}
-                          {t.checkouts > 0 && (
-                            <div className="w-full bg-gradient-to-b from-[#CA3F2E] to-[#8B2A1E] hover:brightness-110 transition" style={{ height: `${checkoutsPct}%`, minHeight: "3px" }} />
-                          )}
-                          {/* Carts middle */}
-                          {t.carts > 0 && (
-                            <div className="w-full bg-gradient-to-b from-amber-400 to-amber-500 hover:brightness-110 transition" style={{ height: `${cartsPct}%`, minHeight: "3px" }} />
-                          )}
-                          {/* Visits bottom */}
-                          {t.visits > 0 && (
-                            <div className="w-full bg-gradient-to-b from-blue-400 to-blue-500 hover:brightness-110 transition rounded-b" style={{ height: `${visitsPct}%`, minHeight: "3px" }} />
-                          )}
-                          {/* Empty state - subtle placeholder */}
-                          {totalDay === 0 && (
-                            <div className="w-full bg-gray-100 rounded-t" style={{ height: "4px" }} />
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+                {/* Lines */}
+                {visitsPath && (
+                  <path d={visitsPath} fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                )}
+                {cartsPath && (
+                  <path d={cartsPath} fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                )}
+                {checkoutsPath && (
+                  <path d={checkoutsPath} fill="none" stroke="#CA3F2E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                )}
+
+                {/* Data points + hover tooltips */}
+                {data.timeline.map((t, i) => {
+                  const x = xAt(i);
+                  const dateLabel = new Date(t.date).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+                  const showLabel = n <= 14 || i % Math.ceil(n / 10) === 0;
+                  return (
+                    <g key={t.date} className="group">
+                      {/* Invisible hover zone */}
+                      <rect x={x - 20} y={PAD_T} width="40" height={innerH} fill="transparent" className="cursor-pointer" />
+
+                      {/* Hover vertical line */}
+                      <line x1={x} y1={PAD_T} x2={x} y2={PAD_T + innerH} stroke="#e5e7eb" strokeWidth="1" strokeDasharray="3,3" className="opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+
+                      {/* Points */}
+                      <circle cx={x} cy={yAt(t.visits)} r="3" fill="#3b82f6" className="opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                      <circle cx={x} cy={yAt(t.carts)} r="3" fill="#f59e0b" className="opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                      <circle cx={x} cy={yAt(t.checkouts)} r="3" fill="#CA3F2E" className="opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+
+                      {/* Tooltip */}
+                      <g className="opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                        <rect x={x + 8} y={PAD_T + 4} width="110" height="70" rx="6" fill="#111827" />
+                        <text x={x + 16} y={PAD_T + 20} fontSize="10" fill="#fff" fontWeight="700">{dateLabel}</text>
+                        <circle cx={x + 18} cy={PAD_T + 32} r="3" fill="#3b82f6" />
+                        <text x={x + 26} y={PAD_T + 35} fontSize="10" fill="#e5e7eb">Visits: {t.visits}</text>
+                        <circle cx={x + 18} cy={PAD_T + 47} r="3" fill="#f59e0b" />
+                        <text x={x + 26} y={PAD_T + 50} fontSize="10" fill="#e5e7eb">Carts: {t.carts}</text>
+                        <circle cx={x + 18} cy={PAD_T + 62} r="3" fill="#CA3F2E" />
+                        <text x={x + 26} y={PAD_T + 65} fontSize="10" fill="#e5e7eb">Checkouts: {t.checkouts}</text>
+                      </g>
+
+                      {/* X-axis date label */}
+                      {showLabel && (
+                        <text x={x} y={CHART_H - 8} textAnchor="middle" fontSize="10" fill="#94a3b8">{dateLabel}</text>
+                      )}
+                    </g>
+                  );
+                })}
+              </svg>
             </div>
 
-            {/* X-axis dates */}
-            <div className="ml-10 mt-2 flex items-center gap-1 sm:gap-2">
-              {data.timeline.map((t, i) => {
-                const showLabel = data.timeline.length <= 14 || i % Math.ceil(data.timeline.length / 10) === 0;
-                const date = new Date(t.date);
-                const label = date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
-                return (
-                  <div key={t.date} className="flex-1 text-center min-w-0">
-                    {showLabel && <span className="text-[10px] text-gray-500 truncate">{label}</span>}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Legend */}
             <div className="flex items-center gap-5 mt-4 pt-4 border-t border-gray-100 text-xs">
               <span className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded bg-gradient-to-b from-blue-400 to-blue-500" />
+                <span className="w-3 h-3 rounded-full bg-blue-500" />
                 <span className="text-gray-700 font-semibold">Visits</span>
                 <span className="text-gray-400">({data.timeline.reduce((s, t) => s + t.visits, 0)})</span>
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded bg-gradient-to-b from-amber-400 to-amber-500" />
+                <span className="w-3 h-3 rounded-full bg-amber-500" />
                 <span className="text-gray-700 font-semibold">Carts</span>
                 <span className="text-gray-400">({data.timeline.reduce((s, t) => s + t.carts, 0)})</span>
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded bg-gradient-to-b from-[#CA3F2E] to-[#8B2A1E]" />
+                <span className="w-3 h-3 rounded-full bg-[#CA3F2E]" />
                 <span className="text-gray-700 font-semibold">Checkouts</span>
                 <span className="text-gray-400">({data.timeline.reduce((s, t) => s + t.checkouts, 0)})</span>
               </span>
