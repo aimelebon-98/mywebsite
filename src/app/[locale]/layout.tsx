@@ -14,6 +14,7 @@ import ExitIntentPopup from "@/components/ExitIntentPopup";
 import PageViewTracker from "@/components/AnalyticsTracker";
 import CookieConsent from "@/components/CookieConsent";
 import StickyPromoBar from "@/components/StickyPromoBar";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://solevault.com";
 
 export const metadata: Metadata = {
