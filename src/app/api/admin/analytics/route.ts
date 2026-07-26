@@ -40,7 +40,6 @@ export async function GET(req: NextRequest) {
         .limit(15);
 
       return NextResponse.json({
-      totalSubscribers,
         ok: true,
         live: true,
         activeVisitors,
