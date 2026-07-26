@@ -486,7 +486,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
             </div>
 
             {/* RIGHT SIDEBAR - Delivery / Seller / Sales */}
-            <aside className="space-y-4">
+            <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
               {/* Delivery & Returns card */}
               <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div className="px-5 py-3 border-b border-gray-100">
@@ -595,7 +595,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               </div>
 
               {/* Sticky Add-to-Cart mini card */}
-              <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden lg:sticky lg:top-24 shadow-md">
+              <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-md">
                 <div className="p-4">
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-14 h-14 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
