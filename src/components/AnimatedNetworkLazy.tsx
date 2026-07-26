@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 
 const AnimatedNetwork = dynamic(() => import("@/components/AnimatedNetwork"), {
@@ -18,5 +19,28 @@ type Props = {
 };
 
 export default function AnimatedNetworkLazy(props: Props) {
+  const [shouldLoad, setShouldLoad] = useState(false);
+
+  useEffect(() => {
+    // Wait for the browser to be idle before starting the canvas animation
+    // This prevents blocking the main thread during initial paint
+    const startWhenIdle = () => setShouldLoad(true);
+
+    if ("requestIdleCallback" in window) {
+      const id = (window as unknown as { requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => number }).requestIdleCallback(startWhenIdle, { timeout: 2000 });
+      return () => {
+        if ("cancelIdleCallback" in window) {
+          (window as unknown as { cancelIdleCallback: (id: number) => void }).cancelIdleCallback(id);
+        }
+      };
+    } else {
+      // Fallback: wait 1.5s after mount
+      const t = setTimeout(startWhenIdle, 1500);
+      return () => clearTimeout(t);
+    }
+  }, []);
+
+  if (!shouldLoad) return null;
+
   return <AnimatedNetwork {...props} />;
 }

@@ -15,10 +15,12 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 // Self-hosted Inter font (eliminates render-blocking Google Fonts request)
 const inter = Inter({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  weight: ["400", "500", "600", "700", "800", "900"],
   display: "swap",
   variable: "--font-inter",
   preload: true,
+  adjustFontFallback: true,
+  fallback: ["system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"],
 });
 
 // Lazy-load non-critical UI (huge FCP/LCP win - loaded AFTER first paint)
