@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import {
   Package, Plus, Settings, BarChart3, LogOut, Edit, Trash2, Eye, EyeOff, Star, Search, Menu, X, Home,
   Shield, Users, Download, Upload, RefreshCw, Lock, MessageSquare, Key, AlertTriangle, TrendingUp,
-  DollarSign, ShoppingBag, CheckCircle, Clock, Copy, Tag, Globe, ChevronDown, ChevronUp, ExternalLink
+  DollarSign, ShoppingBag, CheckCircle, Clock, Copy, Tag, Globe, ChevronDown, ChevronUp, ExternalLink,
+  Mail
 } from "lucide-react";
 import Link from "next/link";
 import { BookOpen, UsersRound, PenLine, HelpCircle } from "lucide-react";
@@ -80,7 +81,7 @@ interface StoreSettings {
   lockoutMinutes: number;
 }
 
-type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments" | "orders" | "product-faqs" | "analytics";
+type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments" | "orders" | "product-faqs" | "analytics" | "newsletter";
 
 export default function AdminPage() {
   const [authStep, setAuthStep] = useState<"loading" | "access-code" | "password" | "authenticated">("loading");
@@ -112,7 +113,7 @@ export default function AdminPage() {
       const hash = typeof window !== "undefined" ? window.location.hash.replace("#", "") : "";
       const stored = typeof window !== "undefined" ? localStorage.getItem("sv_admin_tab") : null;
       const candidate = hash || stored || "";
-      const validTabs: Tab[] = ["dashboard","products","add","edit","categories","reviews","settings","security","blog","blog-add","blog-edit","authors","comments","orders","analytics","product-faqs"];
+      const validTabs: Tab[] = ["dashboard","products","add","edit","categories","reviews","settings","security","blog","blog-add","blog-edit","authors","comments","orders","analytics","product-faqs","newsletter"];
       console.log("[Admin] Restoring tab. hash=" + hash + ", stored=" + stored + ", candidate=" + candidate);
       if (candidate && validTabs.includes(candidate as Tab)) {
         if (candidate === "edit") setActiveTabRaw("products");
@@ -522,6 +523,8 @@ export default function AdminPage() {
             { id: "blog" as Tab, icon: BookOpen, label: "Blog Posts", badge: 0 },
             { id: "authors" as Tab, icon: UsersRound, label: "Authors", badge: 0 },
             { id: "comments" as Tab, icon: MessageSquare, label: "Comments", badge: notifCounts.comments },
+            // --- Marketing ---
+            { id: "newsletter" as Tab, icon: Mail, label: "Newsletter", badge: 0 },
             // --- System ---
             { id: "settings" as Tab, icon: Settings, label: "Store Settings", badge: 0 },
             { id: "security" as Tab, icon: Shield, label: "Security", badge: 0 },
@@ -573,7 +576,7 @@ export default function AdminPage() {
               <Menu className="w-5 h-5" />
             </button>
             <h1 className="text-lg font-bold capitalize">
-              {activeTab === "add" ? "Add Product" : activeTab === "edit" ? "Edit Product" : activeTab === "blog-add" ? "New Blog Post" : activeTab === "blog-edit" ? "Edit Blog Post" : activeTab === "blog" ? "Blog Posts" : activeTab}
+              {activeTab === "add" ? "Add Product" : activeTab === "edit" ? "Edit Product" : activeTab === "blog-add" ? "New Blog Post" : activeTab === "blog-edit" ? "Edit Blog Post" : activeTab === "blog" ? "Blog Posts" : activeTab === "newsletter" ? "Newsletter Subscribers" : activeTab}
             </h1>
           </div>
           <div className="flex items-center gap-2">
@@ -672,6 +675,9 @@ export default function AdminPage() {
                     <button onClick={handleExportProducts} className="w-full flex items-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-200 transition">
                       <Download className="w-4 h-4" /> Export CSV
                     </button>
+                    <button onClick={() => setActiveTab("newsletter")} className="w-full flex items-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-200 transition">
+                      <Mail className="w-4 h-4" /> View Subscribers
+                    </button>
                   </div>
                 </div>
               </div>
@@ -745,7 +751,6 @@ export default function AdminPage() {
                   if (res.ok) {
                     showNotification("Product created successfully!");
                     fetchProducts();
-                    // Stay on create page - user can navigate away when ready
                   } else {
                     showNotification("Failed to create product", "error");
                   }
@@ -773,7 +778,6 @@ export default function AdminPage() {
                   if (res.ok) {
                     showNotification("Product updated successfully!");
                     fetchProducts();
-                    // Stay on edit page
                   } else {
                     showNotification("Failed to update product", "error");
                   }
@@ -813,13 +817,16 @@ export default function AdminPage() {
             </div>
           )}
 
-
           {activeTab === "analytics" && (
             <AnalyticsDashboard />
           )}
 
           {activeTab === "product-faqs" && (
             <ProductFaqsManager />
+          )}
+
+          {activeTab === "newsletter" && (
+            <NewsletterTab onNotify={showNotification} />
           )}
 
           {activeTab === "settings" && (
@@ -898,7 +905,6 @@ export default function AdminPage() {
                   if (res.ok) {
                     showNotification("Post created!");
                     setBlogRefreshKey(k => k + 1);
-                    // Stay on create page
                   } else {
                     showNotification("Failed to create post", "error");
                   }
@@ -926,7 +932,6 @@ export default function AdminPage() {
                   if (res.ok) {
                     showNotification("Post updated!");
                     setBlogRefreshKey(k => k + 1);
-                    // Stay on edit page
                   } else {
                     showNotification("Failed to update post", "error");
                   }
@@ -955,6 +960,219 @@ export default function AdminPage() {
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/50 z-30 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
+    </div>
+  );
+}
+
+// ============================================================
+// NEWSLETTER TAB
+// ============================================================
+interface Subscriber {
+  id: number;
+  email: string;
+}
+
+function NewsletterTab({ onNotify }: { onNotify: (msg: string, type?: "success" | "error") => void }) {
+  const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  const fetchSubscribers = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/newsletter/admin");
+      if (res.ok) {
+        const data = await res.json();
+        setSubscribers(Array.isArray(data) ? data : []);
+      } else {
+        onNotify("Failed to load subscribers", "error");
+      }
+    } catch {
+      onNotify("Failed to load subscribers", "error");
+    }
+    setLoading(false);
+  }, [onNotify]);
+
+  useEffect(() => {
+    fetchSubscribers();
+  }, [fetchSubscribers]);
+
+  const handleDelete = async (id: number, email: string) => {
+    if (!confirm(`Remove "${email}" from newsletter list?`)) return;
+    setDeletingId(id);
+    try {
+      const res = await fetch("/api/newsletter/admin", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      if (res.ok) {
+        onNotify("Subscriber removed");
+        setSubscribers(prev => prev.filter(s => s.id !== id));
+      } else {
+        onNotify("Failed to remove subscriber", "error");
+      }
+    } catch {
+      onNotify("Failed to remove subscriber", "error");
+    }
+    setDeletingId(null);
+  };
+
+  const handleExportCSV = () => {
+    const csv = [
+      ["ID", "Email"].join(","),
+      ...subscribers.map(s => [s.id, s.email].join(","))
+    ].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `newsletter-subscribers-${new Date().toISOString().split("T")[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    onNotify("Subscribers exported as CSV");
+  };
+
+  const filtered = subscribers.filter(s =>
+    s.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <div className="space-y-6 max-w-4xl">
+      {/* Stats row */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <div className="bg-white rounded-2xl border border-gray-100 p-5">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-9 h-9 bg-red-50 rounded-xl flex items-center justify-center">
+              <Mail className="w-5 h-5" style={{ color: "#CA3F2E" }} />
+            </div>
+            <span className="text-sm text-gray-500">Total Subscribers</span>
+          </div>
+          <p className="text-3xl font-bold">{subscribers.length}</p>
+        </div>
+        <div className="bg-white rounded-2xl border border-gray-100 p-5">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-9 h-9 bg-green-50 rounded-xl flex items-center justify-center">
+              <CheckCircle className="w-5 h-5 text-green-600" />
+            </div>
+            <span className="text-sm text-gray-500">Showing</span>
+          </div>
+          <p className="text-3xl font-bold">{filtered.length}</p>
+        </div>
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 col-span-2 sm:col-span-1">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-9 h-9 bg-gray-100 rounded-xl flex items-center justify-center">
+              <Download className="w-5 h-5 text-gray-600" />
+            </div>
+            <span className="text-sm text-gray-500">Export</span>
+          </div>
+          <button
+            onClick={handleExportCSV}
+            disabled={subscribers.length === 0}
+            className="w-full py-2 bg-gray-900 text-white rounded-xl text-sm font-semibold hover:bg-gray-800 transition disabled:opacity-40"
+          >
+            Download CSV
+          </button>
+        </div>
+      </div>
+
+      {/* Search + refresh bar */}
+      <div className="flex gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
+          />
+        </div>
+        <button
+          onClick={fetchSubscribers}
+          className="p-3 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition"
+          title="Refresh"
+        >
+          <RefreshCw className="w-4 h-4 text-gray-500" />
+        </button>
+      </div>
+
+      {/* Table */}
+      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        {loading ? (
+          <div className="flex items-center justify-center py-16">
+            <RefreshCw className="w-6 h-6 animate-spin text-gray-400" />
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-16">
+            <Mail className="w-12 h-12 text-gray-200 mx-auto mb-3" />
+            <p className="text-gray-500 font-medium">
+              {searchTerm ? "No subscribers match your search" : "No subscribers yet"}
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
+              {searchTerm ? "Try a different search term" : "Subscribers will appear here when someone signs up"}
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 border-b border-gray-100">
+                <tr>
+                  <th className="text-left px-6 py-3 font-semibold text-gray-600">#</th>
+                  <th className="text-left px-6 py-3 font-semibold text-gray-600">Email Address</th>
+                  <th className="text-right px-6 py-3 font-semibold text-gray-600">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((sub, index) => (
+                  <tr key={sub.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition">
+                    <td className="px-6 py-4 text-gray-400 text-xs">{index + 1}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                          style={{ backgroundColor: "#CA3F2E" }}>
+                          {sub.email.charAt(0).toUpperCase()}
+                        </div>
+                        <span className="font-medium">{sub.email}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-end gap-2">
+                        <a
+                          href={`mailto:${sub.email}`}
+                          className="p-2 rounded-lg text-blue-500 hover:bg-blue-50 transition"
+                          title="Send email"
+                        >
+                          <Mail className="w-4 h-4" />
+                        </a>
+                        <button
+                          onClick={() => handleDelete(sub.id, sub.email)}
+                          disabled={deletingId === sub.id}
+                          className="p-2 rounded-lg text-red-400 hover:bg-red-50 transition disabled:opacity-40"
+                          title="Remove subscriber"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-800">
+        <p className="font-semibold mb-1">About Newsletter Subscribers</p>
+        <ul className="list-disc list-inside space-y-1 text-xs">
+          <li>Emails are collected when visitors subscribe via the homepage or promo bar</li>
+          <li>Click the mail icon next to any email to open your email client</li>
+          <li>Use "Download CSV" to export all emails for use in Mailchimp, Brevo, etc.</li>
+          <li>Removing a subscriber is permanent and cannot be undone</li>
+        </ul>
+      </div>
     </div>
   );
 }
