@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
       });
     } catch (error) {
       return NextResponse.json({
-      totalSubscribers, ok: false, error: String(error) }, { status: 500 });
+      ok: false, error: String(error) }, { status: 500 });
     }
   }
 
@@ -222,6 +222,6 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     return NextResponse.json({
-      totalSubscribers, ok: false, error: String(error) }, { status: 500 });
+      ok: false, error: String(error) }, { status: 500 });
   }
 }
