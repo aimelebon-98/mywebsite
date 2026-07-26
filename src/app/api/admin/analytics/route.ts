@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { analyticsEvents } from "@/db/schema";
 import { and, gte, lt, desc } from "drizzle-orm";
@@ -23,6 +23,40 @@ function computeKpis(events: EventRow[]) {
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const days = parseInt(searchParams.get("days") || "7");
+  const live = searchParams.get("live");
+  if (live === "1") {
+    try {
+      const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000);
+      const active = await db
+        .select()
+        .from(analyticsEvents)
+        .where(gte(analyticsEvents.createdAt, fiveMinAgo));
+      const activeVisitors = new Set(active.map(e => e.visitorId)).size;
+
+      const recent = await db
+        .select()
+        .from(analyticsEvents)
+        .orderBy(desc(analyticsEvents.createdAt))
+        .limit(15);
+
+      return NextResponse.json({
+        ok: true,
+        live: true,
+        activeVisitors,
+        recentEvents: recent.map(e => ({
+          eventType: e.eventType,
+          path: e.path,
+          productName: e.productName,
+          searchQuery: e.searchQuery,
+          createdAt: e.createdAt,
+          visitorId: e.visitorId.slice(0, 10),
+        })),
+      });
+    } catch (error) {
+      return NextResponse.json({ ok: false, error: String(error) }, { status: 500 });
+    }
+  }
+
 
   const now = new Date();
   const currentStart = new Date(now);

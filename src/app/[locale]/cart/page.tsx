@@ -1,5 +1,8 @@
 "use client";
+import BundleBanner from "@/components/BundleBanner";
 import TrustBadges from "@/components/TrustBadges";
+import { findApplicableBundle, calcDiscount, type Bundle } from "@/lib/bundles";
+import { Gift } from "lucide-react";
 import { trackEvent } from "@/components/AnalyticsTracker";
 
 import Navbar from "@/components/Navbar";
@@ -17,7 +20,11 @@ export default function CartPage() {
   const locale = useLocale();
 
   const { items, removeItem, updateQuantity, clearCart, totalPrice, totalItems } = useCart();
+  const appliedBundle = findApplicableBundle(items.map(i => ({ quantity: i.quantity })), bundles);
+  const discountAmount = calcDiscount(totalPrice, appliedBundle);
+  const finalTotal = totalPrice - discountAmount;
   const [whatsappNumber, setWhatsappNumber] = useState("");
+  const [bundles, setBundles] = useState<Bundle[]>([]);
   const [currency, setCurrency] = useState("$");
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
@@ -31,6 +38,8 @@ export default function CartPage() {
       .then(r => r.json())
       .then(data => {
         if (data.whatsappNumber) setWhatsappNumber(data.whatsappNumber);
+
+    fetch("/api/bundles").then(r => r.json()).then(setBundles).catch(() => {});
         if (data.currency) setCurrency(data.currency);
       })
       .catch(() => {});
@@ -78,7 +87,9 @@ export default function CartPage() {
             subtotal: it.price * it.quantity,
           })),
           subtotal: totalPrice,
-          total: totalPrice,
+          discountAmount,
+          bundleName: appliedBundle?.name || null,
+          total: finalTotal,
           currency,
           locale,
         }),
@@ -110,7 +121,11 @@ export default function CartPage() {
     });
 
     message += `-----------------------------\n`;
-    message += `*Total: ${currency}${totalPrice.toFixed(2)}*\n`;
+    if (appliedBundle) {
+      message += `Subtotal: ${currency}${totalPrice.toFixed(2)}\n`;
+      message += `Bundle Discount (${appliedBundle.name}): -${currency}${discountAmount.toFixed(2)}\n`;
+    }
+    message += `*Total: ${currency}${finalTotal.toFixed(2)}*\n`;
     message += `*Items: ${totalItems}*\n`;
 
     const phone = whatsappNumber.replace(/\D/g, "");
@@ -311,7 +326,8 @@ export default function CartPage() {
                     </div>
                   </div>
 
-                  <div className="mb-4">
+                  <BundleBanner bundle={appliedBundle} bundles={bundles} currentItemCount={totalItems} discountAmount={discountAmount} currency={currency} />
+            <div className="mb-4">
               <TrustBadges variant="compact" />
             </div>
 

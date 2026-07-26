@@ -20,6 +20,7 @@ import OrdersManager from "@/components/OrdersManager";
 import DashboardOrderStats from "@/components/DashboardOrderStats";
 import ProductFaqsManager from "@/components/ProductFaqsManager";
 import AnalyticsDashboard from "@/components/AnalyticsDashboard";
+import BundlesManager from "@/components/BundlesManager";
 interface Product {
   id: string;
   name: string;
@@ -81,7 +82,7 @@ interface StoreSettings {
   lockoutMinutes: number;
 }
 
-type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments" | "orders" | "product-faqs" | "analytics" | "newsletter";
+type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments" | "orders" | "product-faqs" | "analytics" | "newsletter" | "bundles";
 
 export default function AdminPage() {
   const [authStep, setAuthStep] = useState<"loading" | "access-code" | "password" | "authenticated">("loading");
@@ -519,6 +520,7 @@ export default function AdminPage() {
             { id: "categories" as Tab, icon: Tag, label: "Categories", badge: 0 },
             { id: "reviews" as Tab, icon: MessageSquare, label: "Reviews", badge: notifCounts.reviews },
             { id: "product-faqs" as Tab, icon: HelpCircle, label: "Product FAQs", badge: 0 },
+            { id: "bundles" as Tab, icon: Gift, label: "Bundle Deals", badge: 0 },
             // --- Content (blog) ---
             { id: "blog" as Tab, icon: BookOpen, label: "Blog Posts", badge: 0 },
             { id: "authors" as Tab, icon: UsersRound, label: "Authors", badge: 0 },
@@ -819,6 +821,10 @@ export default function AdminPage() {
 
           {activeTab === "analytics" && (
             <AnalyticsDashboard />
+          )}
+
+          {activeTab === "bundles" && (
+            <BundlesManager />
           )}
 
           {activeTab === "product-faqs" && (

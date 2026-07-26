@@ -1,4 +1,4 @@
-import { pgTable, text, numeric, integer, boolean, timestamp, uuid } from "drizzle-orm/pg-core";
+﻿import { pgTable, text, numeric, integer, boolean, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const products = pgTable("products", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -269,4 +269,20 @@ export const analyticsEvents = pgTable("analytics_events", {
 export type AnalyticsEvent = typeof analyticsEvents.$inferSelect;
 export type NewAnalyticsEvent = typeof analyticsEvents.$inferInsert;
 
+export const bundles = pgTable("bundles", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  nameFr: text("name_fr"),
+  description: text("description").default(""),
+  descriptionFr: text("description_fr"),
+  minItems: integer("min_items").notNull().default(2),
+  discountPercent: integer("discount_percent").notNull().default(10),
+  category: text("category").default(""),
+  active: boolean("active").notNull().default(true),
+  priority: integer("priority").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export type Bundle = typeof bundles.$inferSelect;
+export type NewBundle = typeof bundles.$inferInsert;
 

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { BarChart3, Users, Eye, ShoppingCart, MousePointerClick, Heart, Mail, Search, TrendingUp, TrendingDown, Minus, Download, RefreshCw, Package, BookOpen, ExternalLink } from "lucide-react";
@@ -72,6 +72,8 @@ export default function AnalyticsDashboard() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState(7);
+  const [liveMode, setLiveMode] = useState(false);
+  const [liveData, setLiveData] = useState<{ activeVisitors: number; recentEvents: Array<{ eventType: string; path: string; productName?: string | null; searchQuery?: string | null; createdAt: string; visitorId: string }> } | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -84,6 +86,20 @@ export default function AnalyticsDashboard() {
   };
 
   useEffect(() => { load(); }, [range]);
+
+  useEffect(() => {
+    if (!liveMode) return;
+    const fetchLive = async () => {
+      try {
+        const res = await fetch("/api/admin/analytics?live=1");
+        const j = await res.json();
+        if (j.ok) setLiveData(j);
+      } catch { /* ignore */ }
+    };
+    fetchLive();
+    const interval = setInterval(fetchLive, 10000);
+    return () => clearInterval(interval);
+  }, [liveMode]);
 
   const exportCsv = () => {
     if (!data) return;
@@ -175,6 +191,16 @@ export default function AnalyticsDashboard() {
               </button>
             ))}
           </div>
+          <button
+            onClick={() => setLiveMode(!liveMode)}
+            className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition ${liveMode ? "bg-emerald-500 text-white shadow-md" : "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"}`}
+          >
+            <span className="relative flex h-2 w-2">
+              {liveMode && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />}
+              <span className={`relative inline-flex rounded-full h-2 w-2 ${liveMode ? "bg-white" : "bg-gray-400"}`} />
+            </span>
+            {liveMode ? "LIVE" : "Go Live"}
+          </button>
           <button onClick={load} className="p-2 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition" title="Refresh">
             <RefreshCw className={`w-4 h-4 text-gray-600 ${loading ? "animate-spin" : ""}`} />
           </button>
@@ -208,6 +234,59 @@ export default function AnalyticsDashboard() {
           );
         })}
       </div>
+
+      {/* Live Activity Feed - only shown when live mode is ON */}
+      {liveMode && liveData && (
+        <div className="bg-gradient-to-br from-gray-950 to-gray-900 rounded-2xl p-6 text-white shadow-xl">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
+              </span>
+              <h3 className="font-black text-lg">LIVE</h3>
+            </div>
+            <div className="text-right">
+              <div className="text-3xl font-black">{liveData.activeVisitors}</div>
+              <div className="text-xs text-gray-400">active now (last 5 min)</div>
+            </div>
+          </div>
+          <div className="space-y-1 max-h-64 overflow-y-auto pr-2">
+            {liveData.recentEvents.length === 0 ? (
+              <p className="text-sm text-gray-500 text-center py-4">No activity yet. Refreshing every 10s...</p>
+            ) : (
+              liveData.recentEvents.map((e, i) => {
+                const time = new Date(e.createdAt);
+                const secAgo = Math.max(0, Math.floor((Date.now() - time.getTime()) / 1000));
+                const ago = secAgo < 60 ? `${secAgo}s ago` : `${Math.floor(secAgo / 60)}m ago`;
+                const labelMap: Record<string, string> = {
+                  page_view: "viewed",
+                  product_view: "viewed product",
+                  add_to_cart: "added to cart",
+                  checkout_click: "clicked checkout",
+                  wishlist_add: "added to wishlist",
+                  newsletter_signup: "subscribed",
+                  search: "searched",
+                  blog_view: "read blog",
+                };
+                const label = labelMap[e.eventType] || e.eventType;
+                const target = e.productName || e.searchQuery || e.path;
+                return (
+                  <div key={i} className="flex items-center gap-3 py-2 border-b border-white/5 last:border-0 text-sm">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <span className="text-gray-400">Visitor {e.visitorId}</span>
+                      <span className="text-white mx-1">{label}</span>
+                      {target && <span className="text-emerald-400 font-mono text-xs truncate">{target}</span>}
+                    </div>
+                    <div className="text-xs text-gray-500 flex-shrink-0">{ago}</div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Conversion Funnel */}
       <div className="bg-white border border-gray-200 rounded-2xl p-6">
