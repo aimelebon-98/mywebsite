@@ -4,7 +4,7 @@ import StockBadge from "@/components/StockBadge";
 import { trackEvent } from "@/components/AnalyticsTracker";
 import ProductFaqDisplay from "@/components/ProductFaqDisplay";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart-context";
 import { useWishlist } from "@/lib/wishlist-context";
@@ -60,6 +60,29 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [activeTab, setActiveTab] = useState<"description" | "details" | "shipping">("description");
+
+  // Sticky mini cart boundary: hide once user scrolls past the tabs section
+  const stickyCardRef = useRef<HTMLDivElement | null>(null);
+  const tabsEndRef = useRef<HTMLDivElement | null>(null);
+  const [stickyVisible, setStickyVisible] = useState(true);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!tabsEndRef.current || !stickyCardRef.current) return;
+      const boundaryTop = tabsEndRef.current.getBoundingClientRect().top;
+      const cardHeight = stickyCardRef.current.getBoundingClientRect().height;
+      // Hide the mini cart once the tabs section end passes above the card's fixed position (top-24 = 96px)
+      const shouldShow = boundaryTop > 96 + cardHeight;
+      setStickyVisible(shouldShow);
+    };
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+    };
+  }, []);
   const [showFullDesc, setShowFullDesc] = useState(false);
   // Track product view for analytics
   useEffect(() => {
@@ -628,8 +651,8 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                 </div>
               </div>
 
-              {/* Sticky Add-to-Cart mini card */}
-              <div className="lg:sticky lg:top-24 bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-md">
+              {/* Sticky Add-to-Cart mini card - bounded to end of Description tabs */}
+              <div ref={stickyCardRef} className="lg:sticky lg:top-24 bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-md transition-opacity duration-200" style={{ opacity: stickyVisible ? 1 : 0, pointerEvents: stickyVisible ? "auto" : "none" }}>
                 <div className="p-4">
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-14 h-14 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
@@ -817,6 +840,9 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
           </div>
         </div>
       </div>
+
+      {/* Boundary marker: sticky mini cart hides after this point */}
+      <div ref={tabsEndRef} aria-hidden="true" />
 
       {/* REVIEWS + FAQ SECTION */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16">
