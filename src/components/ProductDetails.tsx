@@ -83,7 +83,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
       const placeholderRect = stickyPlaceholderRef.current.getBoundingClientRect();
       const boundaryTop = tabsEndRef.current.getBoundingClientRect().top;
       const cardHeight = stickyCardRef.current.getBoundingClientRect().height;
-      const OFFSET_TOP = 96; // matches top-24
+      const OFFSET_TOP = 128; // matches top-32
 
       // Store dimensions before switching to fixed
       if (!stickyIsFixed && placeholderRect.width > 0) {
@@ -680,7 +680,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               {/* Placeholder to reserve space in the aside so layout does not jump */}
               <div ref={stickyPlaceholderRef} className="hidden lg:block" style={{ height: stickyIsFixed ? stickyCardHeight : "auto" }}>
               {/* Sticky Add-to-Cart mini card - fixed positioning bounded to end of Description tabs */}
-              <div ref={stickyCardRef} className={`bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-md transition-opacity duration-200 ${stickyIsFixed ? "lg:fixed lg:top-24" : ""}`} style={{ opacity: stickyVisible ? 1 : 0, pointerEvents: stickyVisible ? "auto" : "none", width: stickyIsFixed ? stickyCardWidth : "auto", zIndex: stickyIsFixed ? 30 : "auto" }}>
+              <div ref={stickyCardRef} className={`bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-md transition-opacity duration-200 ${stickyIsFixed ? "lg:fixed lg:top-32" : ""}`} style={{ opacity: stickyVisible ? 1 : 0, pointerEvents: stickyVisible ? "auto" : "none", width: stickyIsFixed ? stickyCardWidth : "auto", zIndex: stickyIsFixed ? 30 : "auto" }}>
                 <div className="p-4">
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-14 h-14 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
