@@ -61,20 +61,46 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
   const [added, setAdded] = useState(false);
   const [activeTab, setActiveTab] = useState<"description" | "details" | "shipping">("description");
 
-  // Sticky mini cart boundary: hide once user scrolls past the tabs section
+  // Sticky mini cart: switches to fixed positioning when scrolled past, hides at tabs end
   const stickyCardRef = useRef<HTMLDivElement | null>(null);
+  const stickyPlaceholderRef = useRef<HTMLDivElement | null>(null);
   const tabsEndRef = useRef<HTMLDivElement | null>(null);
   const [stickyVisible, setStickyVisible] = useState(true);
+  const [stickyIsFixed, setStickyIsFixed] = useState(false);
+  const [stickyCardWidth, setStickyCardWidth] = useState<number | "auto">("auto");
+  const [stickyCardHeight, setStickyCardHeight] = useState<number>(0);
 
   useEffect(() => {
     const handleScroll = () => {
-      if (!tabsEndRef.current || !stickyCardRef.current) return;
+      if (!tabsEndRef.current || !stickyCardRef.current || !stickyPlaceholderRef.current) return;
+      // Only run on desktop
+      if (window.innerWidth < 1024) {
+        setStickyIsFixed(false);
+        setStickyVisible(true);
+        return;
+      }
+
+      const placeholderRect = stickyPlaceholderRef.current.getBoundingClientRect();
       const boundaryTop = tabsEndRef.current.getBoundingClientRect().top;
       const cardHeight = stickyCardRef.current.getBoundingClientRect().height;
-      // Hide the mini cart once the tabs section end passes above the card's fixed position (top-24 = 96px)
-      const shouldShow = boundaryTop > 96 + cardHeight;
+      const OFFSET_TOP = 96; // matches top-24
+
+      // Store dimensions before switching to fixed
+      if (!stickyIsFixed && placeholderRect.width > 0) {
+        setStickyCardWidth(placeholderRect.width);
+        setStickyCardHeight(cardHeight);
+      }
+
+      // Should the card become fixed? When placeholder top would go above OFFSET_TOP
+      const shouldBeFixed = placeholderRect.top <= OFFSET_TOP;
+
+      // Should the card be visible? Only if tabs section end is still below the fixed card position
+      const shouldShow = boundaryTop > OFFSET_TOP + cardHeight;
+
+      setStickyIsFixed(shouldBeFixed && shouldShow);
       setStickyVisible(shouldShow);
     };
+
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener("resize", handleScroll);
@@ -82,7 +108,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleScroll);
     };
-  }, []);
+  }, [stickyIsFixed]);
   const [showFullDesc, setShowFullDesc] = useState(false);
   // Track product view for analytics
   useEffect(() => {
@@ -651,8 +677,10 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                 </div>
               </div>
 
-              {/* Sticky Add-to-Cart mini card - bounded to end of Description tabs */}
-              <div ref={stickyCardRef} className="lg:sticky lg:top-24 bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-md transition-opacity duration-200" style={{ opacity: stickyVisible ? 1 : 0, pointerEvents: stickyVisible ? "auto" : "none" }}>
+              {/* Placeholder to reserve space in the aside so layout does not jump */}
+              <div ref={stickyPlaceholderRef} className="hidden lg:block" style={{ height: stickyIsFixed ? stickyCardHeight : "auto" }}>
+              {/* Sticky Add-to-Cart mini card - fixed positioning bounded to end of Description tabs */}
+              <div ref={stickyCardRef} className={`bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-md transition-opacity duration-200 ${stickyIsFixed ? "lg:fixed lg:top-24" : ""}`} style={{ opacity: stickyVisible ? 1 : 0, pointerEvents: stickyVisible ? "auto" : "none", width: stickyIsFixed ? stickyCardWidth : "auto", zIndex: stickyIsFixed ? 30 : "auto" }}>
                 <div className="p-4">
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-14 h-14 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
@@ -685,6 +713,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                     </button>
                   </div>
                 </div>
+              </div>
               </div>
             </aside>
           </div>
