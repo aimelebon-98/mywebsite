@@ -20,11 +20,11 @@ export default function CartPage() {
   const locale = useLocale();
 
   const { items, removeItem, updateQuantity, clearCart, totalPrice, totalItems } = useCart();
+  const [whatsappNumber, setWhatsappNumber] = useState("");
+  const [bundles, setBundles] = useState<Bundle[]>([]);
   const appliedBundle = findApplicableBundle(items.map(i => ({ quantity: i.quantity })), bundles);
   const discountAmount = calcDiscount(totalPrice, appliedBundle);
   const finalTotal = totalPrice - discountAmount;
-  const [whatsappNumber, setWhatsappNumber] = useState("");
-  const [bundles, setBundles] = useState<Bundle[]>([]);
   const [currency, setCurrency] = useState("$");
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
