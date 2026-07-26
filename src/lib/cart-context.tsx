@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { trackEvent } from "@/components/AnalyticsTracker";
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
@@ -13,6 +13,8 @@ export interface CartItem {
   quantity: number;
 }
 
+type DrawerMode = "closed" | "zoom" | "normal";
+
 interface CartContextType {
   items: CartItem[];
   addItem: (item: CartItem) => void;
@@ -23,7 +25,8 @@ interface CartContextType {
   totalQuantity: number;
   totalPrice: number;
   drawerOpen: boolean;
-  openDrawer: () => void;
+  drawerMode: DrawerMode;
+  openDrawer: () => void;   // manual open (normal slide-in)
   closeDrawer: () => void;
   lastAddedAt: number;
 }
@@ -33,7 +36,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [loaded, setLoaded] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerMode, setDrawerMode] = useState<DrawerMode>("closed");
   const [lastAddedAt, setLastAddedAt] = useState(0);
 
   useEffect(() => {
@@ -50,8 +53,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [items, loaded]);
 
+  // Auto-close drawer 30 seconds after last add (only if opened via zoom mode)
+  useEffect(() => {
+    if (drawerMode !== "zoom") return;
+    const timer = setTimeout(() => {
+      setDrawerMode("closed");
+    }, 30000);
+    return () => clearTimeout(timer);
+  }, [drawerMode, lastAddedAt]);
+
   const addItem = useCallback((newItem: CartItem) => {
-    // Analytics: track add to cart
     try {
       trackEvent({
         eventType: "add_to_cart",
@@ -60,6 +71,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         metadata: { quantity: (newItem as unknown as { quantity?: number }).quantity || 1 },
       });
     } catch { /* ignore */ }
+
     setItems(prev => {
       const existing = prev.find(
         i => i.id === newItem.id && i.size === newItem.size && i.color === newItem.color
@@ -74,7 +86,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return [...prev, newItem];
     });
     setLastAddedAt(Date.now());
-    setDrawerOpen(true);
+    // Trigger zoom-in drawer on every add
+    setDrawerMode("zoom");
   }, []);
 
   const removeItem = useCallback((id: string, size: string, color: string) => {
@@ -96,18 +109,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const clearCart = useCallback(() => setItems([]), []);
-  const openDrawer = useCallback(() => setDrawerOpen(true), []);
-  const closeDrawer = useCallback(() => setDrawerOpen(false), []);
+  const openDrawer = useCallback(() => setDrawerMode("normal"), []);
+  const closeDrawer = useCallback(() => setDrawerMode("closed"), []);
 
   const totalItems = items.length;
   const totalQuantity = items.reduce((sum, i) => sum + i.quantity, 0);
   const totalPrice = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
+  const drawerOpen = drawerMode !== "closed";
+
   return (
     <CartContext.Provider value={{
       items, addItem, removeItem, updateQuantity, clearCart,
       totalItems, totalQuantity, totalPrice,
-      drawerOpen, openDrawer, closeDrawer, lastAddedAt
+      drawerOpen, drawerMode, openDrawer, closeDrawer, lastAddedAt
     }}>
       {children}
     </CartContext.Provider>
