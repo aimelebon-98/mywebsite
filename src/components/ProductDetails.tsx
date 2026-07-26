@@ -1,5 +1,4 @@
 "use client";
-import TrustBadges from "@/components/TrustBadges";
 import StockBadge from "@/components/StockBadge";
 import { trackEvent } from "@/components/AnalyticsTracker";
 import ProductFaqDisplay from "@/components/ProductFaqDisplay";
@@ -745,12 +744,6 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
           </button>
         </div>
       </div>
-
-      {/* Trust badges row */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-          <TrustBadges variant="row" />
-        </div>
-
         {/* TABS */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mt-12 bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">

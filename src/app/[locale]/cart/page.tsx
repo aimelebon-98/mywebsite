@@ -1,6 +1,5 @@
 "use client";
 import BundleBanner from "@/components/BundleBanner";
-import TrustBadges from "@/components/TrustBadges";
 import { findApplicableBundle, calcDiscount, type Bundle } from "@/lib/bundles";
 import { Gift } from "lucide-react";
 import { trackEvent } from "@/components/AnalyticsTracker";
@@ -327,10 +326,6 @@ export default function CartPage() {
                   </div>
 
                   <BundleBanner bundle={appliedBundle} bundles={bundles} currentItemCount={totalItems} discountAmount={discountAmount} currency={currency} />
-            <div className="mb-4">
-              <TrustBadges variant="compact" />
-            </div>
-
             {/* WhatsApp Checkout */}
                   <button
                     onClick={handleWhatsAppCheckout}
