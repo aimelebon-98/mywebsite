@@ -1,4 +1,8 @@
 @import "tailwindcss";
+/* Use self-hosted Inter font via next/font */
+html {
+  font-family: var(--font-inter), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
 
 @theme {
   --color-brand-50: #fdf4f3;
