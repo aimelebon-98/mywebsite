@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { trackEvent } from "@/components/AnalyticsTracker";
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
@@ -53,15 +53,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [items, loaded]);
 
-  // Auto-close drawer 30 seconds after last add (only if opened via zoom mode)
-  useEffect(() => {
-    if (drawerMode !== "zoom") return;
-    const timer = setTimeout(() => {
-      setDrawerMode("closed");
-    }, 30000);
-    return () => clearTimeout(timer);
-  }, [drawerMode, lastAddedAt]);
-
   const addItem = useCallback((newItem: CartItem) => {
     try {
       trackEvent({
@@ -86,8 +77,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return [...prev, newItem];
     });
     setLastAddedAt(Date.now());
-    // Trigger zoom-in drawer on every add
-    setDrawerMode("zoom");
+    // Do NOT auto-open the drawer - just let the badge/pill pulse to acknowledge
   }, []);
 
   const removeItem = useCallback((id: string, size: string, color: string) => {

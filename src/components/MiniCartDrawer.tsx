@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect } from "react";
 import Link from "next/link";
@@ -12,7 +12,12 @@ const FREE_SHIPPING_THRESHOLD = 100;
 export default function MiniCartDrawer() {
   const t = useTranslations("cart");
   const locale = useLocale();
-  const { items, drawerOpen, closeDrawer, updateQuantity, removeItem, totalPrice, totalQuantity } = useCart();
+  const { items, drawerOpen, closeDrawer: rawCloseDrawer, updateQuantity, removeItem, totalPrice, totalQuantity } = useCart();
+
+  const closeDrawer = () => {
+    try { localStorage.setItem("sv_cart_last_manual_close", Date.now().toString()); } catch { /* ignore */ }
+    rawCloseDrawer();
+  };
 
   useEffect(() => {
     if (drawerOpen) {
