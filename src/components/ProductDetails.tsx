@@ -325,6 +325,53 @@ export default function ProductDetails({ product, initialReviews = [] }: Product
                 </div>
               </div>
 
+              {/* Trust Row - free shipping, secure, returns, authentic */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+                <div className="flex items-center gap-2 px-3 py-2.5 bg-gray-50 rounded-xl">
+                  <Truck className="w-4 h-4 flex-shrink-0" style={{ color: "#CA3F2E" }} />
+                  <div className="min-w-0">
+                    <div className="text-[11px] font-bold text-gray-900 leading-tight">Free Shipping</div>
+                    <div className="text-[10px] text-gray-500 leading-tight">Over $100</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 px-3 py-2.5 bg-gray-50 rounded-xl">
+                  <Shield className="w-4 h-4 flex-shrink-0" style={{ color: "#CA3F2E" }} />
+                  <div className="min-w-0">
+                    <div className="text-[11px] font-bold text-gray-900 leading-tight">Secure Checkout</div>
+                    <div className="text-[10px] text-gray-500 leading-tight">SSL encrypted</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 px-3 py-2.5 bg-gray-50 rounded-xl">
+                  <RotateCcw className="w-4 h-4 flex-shrink-0" style={{ color: "#CA3F2E" }} />
+                  <div className="min-w-0">
+                    <div className="text-[11px] font-bold text-gray-900 leading-tight">Easy Returns</div>
+                    <div className="text-[10px] text-gray-500 leading-tight">30 days</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 px-3 py-2.5 bg-gray-50 rounded-xl">
+                  <Award className="w-4 h-4 flex-shrink-0" style={{ color: "#CA3F2E" }} />
+                  <div className="min-w-0">
+                    <div className="text-[11px] font-bold text-gray-900 leading-tight">100% Authentic</div>
+                    <div className="text-[10px] text-gray-500 leading-tight">Guaranteed</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Delivery estimate */}
+              <div className="flex items-center gap-2 mb-5 px-4 py-3 rounded-xl border border-gray-200 bg-gradient-to-r from-white to-gray-50">
+                <Truck className="w-5 h-5 flex-shrink-0" style={{ color: "#CA3F2E" }} />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-bold text-gray-900">
+                    Free shipping - Arrives <span style={{ color: "#CA3F2E" }}>{(() => {
+                      const d = new Date();
+                      d.setDate(d.getDate() + 5);
+                      return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+                    })()}</span>
+                  </div>
+                  <div className="text-[11px] text-gray-500">Order in the next 24h for guaranteed delivery</div>
+                </div>
+              </div>
+
               {/* Action Buttons */}
               <div className="space-y-3">
                 <div className="flex gap-3">
@@ -354,6 +401,32 @@ export default function ProductDetails({ product, initialReviews = [] }: Product
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* STICKY MOBILE BOTTOM BAR */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-2xl lg:hidden pb-safe">
+        <div className="px-4 py-3 flex items-center gap-3">
+          <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-gray-100 overflow-hidden">
+            {product.imageUrl && <img src={product.imageUrl} alt="" className="w-full h-full object-cover" />}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-xs font-semibold text-gray-900 truncate">{product.name}</div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-base font-black" style={{ color: "#CA3F2E" }}>${price.toFixed(2)}</span>
+              {comparePrice && comparePrice > price && (
+                <span className="text-xs text-gray-400 line-through">${comparePrice.toFixed(2)}</span>
+              )}
+            </div>
+          </div>
+          <button
+            onClick={handleAddToCart}
+            disabled={added}
+            className={`px-5 py-3 rounded-xl text-white font-bold text-xs uppercase tracking-wide transition-all active:scale-95 flex-shrink-0 ${added ? "bg-green-500" : ""}`}
+            style={!added ? { backgroundColor: "#CA3F2E", boxShadow: "0 4px 14px rgba(202, 63, 46, 0.35)" } : undefined}
+          >
+            {added ? <><Check className="w-4 h-4 inline" /> Added</> : "Add to Cart"}
+          </button>
         </div>
       </div>
 
