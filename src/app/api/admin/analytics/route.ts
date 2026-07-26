@@ -26,6 +26,13 @@ export async function GET(req: NextRequest) {
   const live = searchParams.get("live");
   if (live === "1") {
     try {
+      // Get total subscribers count
+      let totalSubscribers = 0;
+      try {
+        const [total] = await db.select({ c: sql<number>`count(*)` }).from(newsletter);
+        totalSubscribers = Number(total?.c || 0);
+      } catch { /* newsletter table might not exist */ }
+
       const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000);
       const active = await db
         .select()
@@ -40,7 +47,7 @@ export async function GET(req: NextRequest) {
         .limit(15);
 
       return NextResponse.json({
-      totalSubscribers,
+        totalSubscribers,
         ok: true,
         live: true,
         activeVisitors,
@@ -54,8 +61,7 @@ export async function GET(req: NextRequest) {
         })),
       });
     } catch (error) {
-      return NextResponse.json({
-      totalSubscribers, ok: false, error: String(error) }, { status: 500 });
+      return NextResponse.json({ ok: false, error: String(error) }, { status: 500 });
     }
   }
 
@@ -221,7 +227,6 @@ export async function GET(req: NextRequest) {
       funnel,
     });
   } catch (error) {
-    return NextResponse.json({
-      totalSubscribers, ok: false, error: String(error) }, { status: 500 });
+    return NextResponse.json({ ok: false, error: String(error) }, { status: 500 });
   }
 }
