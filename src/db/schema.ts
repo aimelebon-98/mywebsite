@@ -153,7 +153,6 @@ export const blogPosts = pgTable("blog_posts", {
   // Status
   published: boolean("published").notNull().default(false),
   featured: boolean("featured").notNull().default(false),
-  saleEndsAt: timestamp("sale_ends_at"),
   publishedAt: timestamp("published_at"),
   viewCount: integer("view_count").notNull().default(0),
   // SEO
