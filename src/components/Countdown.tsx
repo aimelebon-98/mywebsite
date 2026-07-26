@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { Clock } from "lucide-react";
@@ -6,7 +6,7 @@ import { useLocale } from "next-intl";
 
 interface CountdownProps {
   endDate: Date | string;
-  variant?: "compact" | "banner" | "large";
+  variant?: "compact" | "banner" | "large" | "inline";
   className?: string;
 }
 
@@ -55,6 +55,18 @@ export default function Countdown({ endDate, variant = "banner", className = "" 
   }
 
   // COMPACT - pill badge (kept for backward compat)
+  if (variant === "inline") {
+    return (
+      <>
+        <Clock className="w-3.5 h-3.5 text-[#CA3F2E] animate-pulse" />
+        <span className="tabular-nums tracking-wide">
+          {isFr ? "Fin dans" : "Ends in"} {time.days > 0 ? `${time.days}${isFr ? "j" : "d"} ` : ""}
+          {pad(time.hours)}:{pad(time.mins)}:{pad(time.secs)}
+        </span>
+      </>
+    );
+  }
+
   if (variant === "compact") {
     return (
       <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider text-white shadow-md ${className}`}
