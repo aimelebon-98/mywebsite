@@ -232,6 +232,7 @@ export default function Footer() {
             <Link href="/privacy#cookies" className="hover:text-white transition">Cookies</Link>
           </div>
         </div>
+        </div>
       </div>
     </footer>
   );
