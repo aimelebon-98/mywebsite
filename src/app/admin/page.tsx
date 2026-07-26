@@ -148,7 +148,7 @@ export default function AdminPage() {
   const [productFilter, setProductFilter] = useState<"all" | "active" | "inactive" | "featured" | "lowStock" | "outOfStock" | "highStock">("all");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notification, setNotification] = useState("");
-  const [notifCounts, setNotifCounts] = useState<{ orders: number; comments: number; reviews: number }>({ orders: 0, comments: 0, reviews: 0 });
+  const [notifCounts, setNotifCounts] = useState<{ orders: number; comments: number; reviews: number; newsletter: number }>({ orders: 0, comments: 0, reviews: 0, newsletter: 0 });
   const [notificationType, setNotificationType] = useState<"success" | "error">("success");
 
   const showNotification = (msg: string, type: "success" | "error" = "success") => {
@@ -222,7 +222,7 @@ export default function AdminPage() {
     if (authStep !== "authenticated") return;
     const fetchCounts = () => {
       fetch("/api/admin/notification-counts")
-        .then(r => r.ok ? r.json() : { orders: 0, comments: 0, reviews: 0 })
+        .then(r => r.ok ? r.json() : { orders: 0, comments: 0, reviews: 0, newsletter: 0 })
         .then(setNotifCounts)
         .catch(() => {});
     };
@@ -525,7 +525,7 @@ export default function AdminPage() {
             { id: "authors" as Tab, icon: UsersRound, label: "Authors", badge: 0 },
             { id: "comments" as Tab, icon: MessageSquare, label: "Comments", badge: notifCounts.comments },
             // --- Marketing ---
-            { id: "newsletter" as Tab, icon: Mail, label: "Newsletter", badge: 0 },
+            { id: "newsletter" as Tab, icon: Mail, label: "Newsletter", badge: notifCounts.newsletter },
             // --- System ---
             { id: "settings" as Tab, icon: Settings, label: "Store Settings", badge: 0 },
             { id: "security" as Tab, icon: Shield, label: "Security", badge: 0 },

@@ -1,31 +1,38 @@
 ﻿import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { orders, blogComments, reviews } from "@/db/schema";
-import { eq, gte } from "drizzle-orm";
-import { requireAdmin } from "@/lib/admin-auth";
+import { orders, blogComments, reviews, newsletter } from "@/db/schema";
+import { eq, sql } from "drizzle-orm";
 
 export async function GET() {
-  const unauth = await requireAdmin();
-  if (unauth) return unauth;
+  let orderCount = 0;
+  let commentCount = 0;
+  let reviewCount = 0;
+  let newsletterCount = 0;
 
   try {
-    // Pending orders
-    const pendingOrders = await db.select().from(orders).where(eq(orders.status, "pending"));
+    const [r] = await db.select({ count: sql<number>`count(*)` }).from(orders).where(eq(orders.status, "pending"));
+    orderCount = Number(r?.count || 0);
+  } catch { /* ignore */ }
 
-    // Pending comments (unapproved)
-    const pendingComments = await db.select().from(blogComments).where(eq(blogComments.approved, false));
+  try {
+    const [r] = await db.select({ count: sql<number>`count(*)` }).from(blogComments).where(eq(blogComments.approved, false));
+    commentCount = Number(r?.count || 0);
+  } catch { /* ignore */ }
 
-    // Reviews from last 7 days (treated as "new")
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    const recentReviews = await db.select().from(reviews).where(gte(reviews.createdAt, sevenDaysAgo));
+  try {
+    const [r] = await db.select({ count: sql<number>`count(*)` }).from(reviews);
+    reviewCount = Number(r?.count || 0);
+  } catch { /* ignore */ }
 
-    return NextResponse.json({
-      orders: pendingOrders.length,
-      comments: pendingComments.length,
-      reviews: recentReviews.length,
-    });
-  } catch (error) {
-    console.error("Error fetching notification counts:", error);
-    return NextResponse.json({ orders: 0, comments: 0, reviews: 0 });
-  }
+  try {
+    const [r] = await db.select({ count: sql<number>`count(*)` }).from(newsletter);
+    newsletterCount = Number(r?.count || 0);
+  } catch { /* ignore */ }
+
+  return NextResponse.json({
+    orders: orderCount,
+    comments: commentCount,
+    reviews: reviewCount,
+    newsletter: newsletterCount,
+  });
 }

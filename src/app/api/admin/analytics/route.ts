@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { analyticsEvents } from "@/db/schema";
-import { and, gte, lt, desc } from "drizzle-orm";
+import { analyticsEvents, newsletter } from "@/db/schema";
+import { and, gte, lt, desc, sql } from "drizzle-orm";
 
 type EventRow = typeof analyticsEvents.$inferSelect;
 
@@ -40,6 +40,7 @@ export async function GET(req: NextRequest) {
         .limit(15);
 
       return NextResponse.json({
+      totalSubscribers,
         ok: true,
         live: true,
         activeVisitors,
@@ -53,7 +54,8 @@ export async function GET(req: NextRequest) {
         })),
       });
     } catch (error) {
-      return NextResponse.json({ ok: false, error: String(error) }, { status: 500 });
+      return NextResponse.json({
+      totalSubscribers, ok: false, error: String(error) }, { status: 500 });
     }
   }
 
@@ -175,6 +177,21 @@ export async function GET(req: NextRequest) {
       checkoutRate: kpis.addToCarts > 0 ? (kpis.checkoutClicks / kpis.addToCarts * 100) : 0,
     };
 
+    // Real subscriber counts (from newsletter table, not analytics events)
+    let currentSubs = 0;
+    let previousSubs = 0;
+    let totalSubscribers = 0;
+    try {
+      const [total] = await db.select({ c: sql<number>`count(*)` }).from(newsletter);
+      totalSubscribers = Number(total?.c || 0);
+      const [curr] = await db.select({ c: sql<number>`count(*)` }).from(newsletter).where(gte(newsletter.createdAt, currentStart));
+      currentSubs = Number(curr?.c || 0);
+      const [prev] = await db.select({ c: sql<number>`count(*)` }).from(newsletter).where(and(gte(newsletter.createdAt, previousStart), lt(newsletter.createdAt, currentStart)));
+      previousSubs = Number(prev?.c || 0);
+    } catch { /* newsletter table might lack createdAt */ }
+
+    kpis.newsletterSignups = currentSubs;
+    previousKpis.newsletterSignups = previousSubs;
     // Compute % changes for each KPI
     const changes: Record<string, number> = {};
     (Object.keys(kpis) as Array<keyof typeof kpis>).forEach(k => {
@@ -185,6 +202,7 @@ export async function GET(req: NextRequest) {
     });
 
     return NextResponse.json({
+      totalSubscribers,
       ok: true,
       days,
       periodLabel: days === 1 ? "Today" : days === 7 ? "This week" : days === 30 ? "This month" : days === 90 ? "Last 90 days" : `Last ${days} days`,
@@ -203,6 +221,7 @@ export async function GET(req: NextRequest) {
       funnel,
     });
   } catch (error) {
-    return NextResponse.json({ ok: false, error: String(error) }, { status: 500 });
+    return NextResponse.json({
+      totalSubscribers, ok: false, error: String(error) }, { status: 500 });
   }
 }
