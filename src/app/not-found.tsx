@@ -135,7 +135,7 @@ export default function NotFound() {
         </div>
       </header>
 
-      <section className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 lg:py-16 flex-1">
+      <section className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-4 lg:py-8 flex-1">
         <div className="grid lg:grid-cols-[1fr_500px] gap-8 lg:gap-12 items-center">
           {/* LEFT: hero */}
           <div className="text-center lg:text-left">
