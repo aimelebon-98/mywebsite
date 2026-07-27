@@ -133,11 +133,11 @@ export default function NotFound() {
         </div>
       </header>
 
-      <section className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-4 lg:py-8 flex-1">
-        <div className="grid lg:grid-cols-[1fr_500px] gap-8 lg:gap-12 items-center">
+      <section className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-4 lg:pt-6 pb-8 flex-1">
+        <div className="grid lg:grid-cols-[1fr_600px] gap-8 lg:gap-12 items-start">
           {/* LEFT: hero */}
           <div className="text-center lg:text-left">
-            <div className="mb-4">
+            <div className="mb-2 -mt-2 lg:-mt-4">
               <h1 className="text-8xl sm:text-9xl lg:text-[160px] font-black leading-none tracking-tighter bg-gradient-to-br from-[#CA3F2E] to-[#8B2A1E] bg-clip-text text-transparent">
                 404
               </h1>
@@ -227,7 +227,7 @@ export default function NotFound() {
                 </h3>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 {categories.slice(0, 6).map(cat => {
                   const bgImg = fallbackImages[cat.slug];
                   return (
