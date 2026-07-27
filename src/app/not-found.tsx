@@ -2,23 +2,13 @@
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { Home, ArrowRight, Search, ShoppingBag, ArrowLeft } from "lucide-react";
+import { Home, ArrowRight, Search, ArrowLeft, Sparkles, Zap, Award, Wind, Footprints, Mountain } from "lucide-react";
 
 interface Category {
   id: string;
   slug: string;
   nameEn: string;
   nameFr?: string;
-  imageUrl?: string;
-}
-
-interface Product {
-  id: string;
-  name: string;
-  slug: string;
-  imageUrl: string;
-  price: string;
 }
 
 interface Suggestion {
@@ -26,6 +16,18 @@ interface Suggestion {
   name: string;
   slug?: string;
 }
+
+// Icon + color per category slug
+const CAT_STYLES: Record<string, { icon: React.ElementType; gradient: string }> = {
+  sneakers:  { icon: Zap,        gradient: "from-blue-500 to-blue-700" },
+  running:   { icon: Wind,       gradient: "from-emerald-500 to-emerald-700" },
+  formal:    { icon: Award,      gradient: "from-gray-700 to-gray-900" },
+  boots:     { icon: Mountain,   gradient: "from-amber-600 to-amber-800" },
+  sandals:   { icon: Sparkles,   gradient: "from-pink-500 to-rose-600" },
+  casual:    { icon: Footprints, gradient: "from-purple-500 to-purple-700" },
+};
+
+const DEFAULT_STYLE = { icon: Footprints, gradient: "from-gray-500 to-gray-700" };
 
 export default function NotFound() {
   const [locale, setLocale] = useState("en");
@@ -35,7 +37,6 @@ export default function NotFound() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -48,13 +49,8 @@ export default function NotFound() {
       .then(r => r.ok ? r.json() : [])
       .then(data => setCategories(Array.isArray(data) ? data.slice(0, 6) : []))
       .catch(() => {});
-    fetch("/api/products?featured=true&limit=4")
-      .then(r => r.ok ? r.json() : [])
-      .then(data => setProducts(Array.isArray(data) ? data.slice(0, 4) : []))
-      .catch(() => {});
   }, []);
 
-  // Debounced search suggestions
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (!search || search.trim().length < 1) {
@@ -62,13 +58,13 @@ export default function NotFound() {
       setShowDropdown(false);
       return;
     }
+    setShowDropdown(true); // show dropdown immediately (with loading state)
     debounceRef.current = setTimeout(async () => {
       setLoading(true);
       try {
         const res = await fetch(`/api/search-suggestions?q=${encodeURIComponent(search.trim())}`);
         const data = await res.json();
         setSuggestions(data.suggestions || []);
-        setShowDropdown(true);
       } catch {
         setSuggestions([]);
       } finally {
@@ -78,7 +74,6 @@ export default function NotFound() {
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [search]);
 
-  // Click outside to close dropdown
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
@@ -124,7 +119,6 @@ export default function NotFound() {
 
   return (
     <main className="min-h-screen bg-white flex flex-col">
-      {/* Header */}
       <header className="border-b border-gray-100 sticky top-0 bg-white/95 backdrop-blur z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href={`/${locale}`} className="flex items-center gap-2">
@@ -141,10 +135,9 @@ export default function NotFound() {
         </div>
       </header>
 
-      {/* HERO + CATEGORIES SIDE-BY-SIDE */}
-      <section className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+      <section className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 lg:py-16 flex-1">
         <div className="grid lg:grid-cols-[1fr_500px] gap-8 lg:gap-12 items-center">
-          {/* LEFT: 404 hero */}
+          {/* LEFT: hero */}
           <div className="text-center lg:text-left">
             <div className="mb-4">
               <h1 className="text-8xl sm:text-9xl lg:text-[160px] font-black leading-none tracking-tighter bg-gradient-to-br from-[#CA3F2E] to-[#8B2A1E] bg-clip-text text-transparent">
@@ -161,7 +154,7 @@ export default function NotFound() {
                 : "This page doesn't exist. Continue exploring below."}
             </p>
 
-            {/* Search with autocomplete */}
+            {/* Search */}
             <div ref={wrapperRef} className="relative max-w-xl mb-4 lg:mx-0 mx-auto">
               <form onSubmit={handleSearch}>
                 <div className="relative">
@@ -186,15 +179,16 @@ export default function NotFound() {
               </form>
 
               {/* Suggestions dropdown */}
-              {showDropdown && (suggestions.length > 0 || loading) && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-xl z-50 overflow-hidden max-h-80 overflow-y-auto">
-                  {loading && suggestions.length === 0 ? (
-                    <div className="px-4 py-3 text-sm text-gray-400">
+              {showDropdown && search.trim().length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-xl z-50 overflow-hidden max-h-80 overflow-y-auto text-left">
+                  {loading ? (
+                    <div className="px-4 py-4 text-sm text-gray-500 flex items-center gap-2">
+                      <div className="w-3 h-3 border-2 border-gray-300 border-t-[#CA3F2E] rounded-full animate-spin" />
                       {isFr ? "Recherche..." : "Searching..."}
                     </div>
                   ) : suggestions.length === 0 ? (
-                    <div className="px-4 py-3 text-sm text-gray-400">
-                      {isFr ? "Aucun resultat" : "No results"}
+                    <div className="px-4 py-4 text-sm text-gray-500">
+                      {isFr ? `Aucun produit pour "${search}"` : `No products for "${search}"`}
                     </div>
                   ) : (
                     <ul>
@@ -206,7 +200,7 @@ export default function NotFound() {
                             className="w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 text-gray-700 hover:bg-gray-50 transition"
                           >
                             <Search className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                            <span className="truncate">{s.name}</span>
+                            <span className="truncate font-medium">{s.name}</span>
                           </button>
                         </li>
                       ))}
@@ -225,7 +219,7 @@ export default function NotFound() {
             </button>
           </div>
 
-          {/* RIGHT: Categories grid 2x3 */}
+          {/* RIGHT: Categories 2x3 with gradient icons */}
           {categories.length > 0 && (
             <div>
               <div className="text-center lg:text-left mb-5">
@@ -238,37 +232,48 @@ export default function NotFound() {
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                {categories.slice(0, 6).map(cat => (
-                  <Link
-                    key={cat.id}
-                    href={`/${locale}/shop?category=${cat.slug}`}
-                    className="group relative aspect-square rounded-2xl overflow-hidden bg-gray-100 border border-gray-200 hover:border-gray-900 hover:shadow-lg transition-all"
-                  >
-                    {cat.imageUrl ? (
-                      <Image
-                        src={cat.imageUrl}
-                        alt={getCategoryName(cat)}
-                        fill
-                        className="object-cover group-hover:scale-110 transition-transform duration-500"
-                        sizes="(max-width: 1024px) 50vw, 250px"
+                {categories.slice(0, 6).map(cat => {
+                  const style = CAT_STYLES[cat.slug] || DEFAULT_STYLE;
+                  const Icon = style.icon;
+                  return (
+                    <Link
+                      key={cat.id}
+                      href={`/${locale}/shop?category=${cat.slug}`}
+                      className="group relative aspect-square rounded-2xl overflow-hidden border border-gray-200 hover:border-transparent hover:shadow-xl transition-all hover:-translate-y-0.5"
+                    >
+                      {/* Gradient background */}
+                      <div className={`absolute inset-0 bg-gradient-to-br ${style.gradient}`} />
+
+                      {/* Decorative pattern overlay */}
+                      <div
+                        className="absolute inset-0 opacity-10"
+                        style={{
+                          backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)",
+                          backgroundSize: "20px 20px",
+                        }}
                       />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                        <ShoppingBag className="w-8 h-8 text-gray-300" />
+
+                      {/* Icon */}
+                      <div className="absolute top-4 right-4 w-10 h-10 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
+                        <Icon className="w-5 h-5 text-white" />
                       </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 p-3">
-                      <div className="text-white font-black text-sm sm:text-base capitalize truncate">
-                        {getCategoryName(cat)}
+
+                      {/* Big background icon */}
+                      <Icon className="absolute -bottom-4 -right-4 w-24 h-24 text-white/10 group-hover:text-white/20 transition" />
+
+                      {/* Label */}
+                      <div className="absolute bottom-0 left-0 right-0 p-4">
+                        <div className="text-white font-black text-base capitalize truncate">
+                          {getCategoryName(cat)}
+                        </div>
+                        <div className="flex items-center gap-1 text-white/80 text-[10px] font-bold uppercase tracking-wider mt-1 group-hover:text-white transition">
+                          {isFr ? "Voir" : "Shop"}
+                          <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition" />
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1 text-white/80 text-[10px] font-bold uppercase tracking-wider mt-0.5 group-hover:text-white transition">
-                        {isFr ? "Voir" : "Shop"}
-                        <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition" />
-                      </div>
-                    </div>
-                  </Link>
-                ))}
+                    </Link>
+                  );
+                })}
               </div>
 
               <div className="text-center lg:text-left mt-5">
@@ -285,51 +290,6 @@ export default function NotFound() {
         </div>
       </section>
 
-      {/* FEATURED PRODUCTS */}
-      {products.length > 0 && (
-        <section className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10 border-t border-gray-100">
-          <div className="text-center mb-8">
-            <div className="inline-block text-xs font-bold text-[#CA3F2E] uppercase tracking-widest mb-2">
-              {isFr ? "Populaires" : "Popular"}
-            </div>
-            <h3 className="text-2xl sm:text-3xl font-black text-gray-900">
-              {isFr ? "Peut-etre pour vous" : "You might like these"}
-            </h3>
-          </div>
-
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {products.map(p => (
-              <Link
-                key={p.id}
-                href={`/${locale}/product/${p.slug}`}
-                className="group bg-white border border-gray-200 hover:border-gray-300 hover:shadow-lg rounded-2xl overflow-hidden transition-all hover:-translate-y-1"
-              >
-                <div className="relative aspect-square bg-gray-100">
-                  {p.imageUrl && (
-                    <Image
-                      src={p.imageUrl}
-                      alt={p.name}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                      sizes="(max-width: 640px) 50vw, 25vw"
-                    />
-                  )}
-                </div>
-                <div className="p-3">
-                  <h4 className="font-bold text-sm text-gray-900 truncate group-hover:text-[#CA3F2E] transition">
-                    {p.name}
-                  </h4>
-                  <div className="text-sm font-black text-gray-900 mt-1">
-                    ${parseFloat(p.price).toFixed(2)}
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Footer */}
       <footer className="mt-auto py-8 border-t border-gray-100 text-center text-xs text-gray-500">
         <div className="max-w-7xl mx-auto px-4">
           &copy; {new Date().getFullYear()} SoleVault. {isFr ? "Tous droits reserves." : "All rights reserved."}
