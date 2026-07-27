@@ -416,7 +416,12 @@ export default function AnalyticsDashboard() {
         // Cardinal spline / Catmull-Rom for smooth curves
         function buildSmoothPath(values: number[]): string {
           if (values.length === 0) return "";
-          if (values.length === 1) return `M ${xAt(0)} ${yAt(values[0])}`;
+          // Single point - draw a tiny visible horizontal line so it renders
+          if (values.length === 1) {
+            const x = xAt(0);
+            const y = yAt(values[0]);
+            return `M ${x - 2} ${y} L ${x + 2} ${y}`;
+          }
 
           let path = `M ${xAt(0)} ${yAt(values[0])}`;
           for (let i = 0; i < values.length - 1; i++) {
@@ -508,9 +513,9 @@ export default function AnalyticsDashboard() {
                       <line x1={x} y1={PAD_T} x2={x} y2={PAD_T + innerH} stroke="#e5e7eb" strokeWidth="1" strokeDasharray="3,3" className="opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
 
                       {/* Points */}
-                      <circle cx={x} cy={yAt(t.visits)} r="3" fill="#3b82f6" className="opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                      <circle cx={x} cy={yAt(t.carts)} r="3" fill="#f59e0b" className="opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                      <circle cx={x} cy={yAt(t.checkouts)} r="3" fill="#CA3F2E" className="opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                      <circle cx={x} cy={yAt(t.visits)} r={n <= 2 ? 5 : 3} fill="#3b82f6" className={`${n <= 2 ? "opacity-100" : "opacity-0 group-hover:opacity-100"} transition-opacity pointer-events-none`} />
+                      <circle cx={x} cy={yAt(t.carts)} r={n <= 2 ? 5 : 3} fill="#f59e0b" className={`${n <= 2 ? "opacity-100" : "opacity-0 group-hover:opacity-100"} transition-opacity pointer-events-none`} />
+                      <circle cx={x} cy={yAt(t.checkouts)} r={n <= 2 ? 5 : 3} fill="#CA3F2E" className={`${n <= 2 ? "opacity-100" : "opacity-0 group-hover:opacity-100"} transition-opacity pointer-events-none`} />
 
                       {/* Tooltip */}
                       <g className="opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
