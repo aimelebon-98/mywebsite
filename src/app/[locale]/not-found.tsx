@@ -2,19 +2,49 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Home, ShoppingBag, BookOpen, MessageCircle, Search, ArrowRight, Compass } from "lucide-react";
+import Image from "next/image";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import { Home, ArrowRight, Search, ShoppingBag } from "lucide-react";
+
+interface Category {
+  id: string;
+  slug: string;
+  nameEn: string;
+  nameFr?: string;
+  imageUrl?: string;
+}
+
+interface Product {
+  id: string;
+  name: string;
+  slug: string;
+  imageUrl: string;
+  price: string;
+}
 
 export default function NotFound() {
   const [locale, setLocale] = useState("en");
-  const [search, setSearch] = useState("");
   const [mounted, setMounted] = useState(false);
+  const [search, setSearch] = useState("");
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     setMounted(true);
-    if (typeof window !== "undefined") {
-      const path = window.location.pathname;
-      if (path.startsWith("/fr")) setLocale("fr");
+    if (typeof window !== "undefined" && window.location.pathname.startsWith("/fr")) {
+      setLocale("fr");
     }
+    // Fetch categories
+    fetch("/api/categories")
+      .then(r => r.json())
+      .then(data => setCategories(Array.isArray(data) ? data.slice(0, 6) : []))
+      .catch(() => {});
+    // Fetch featured products
+    fetch("/api/products?featured=true&limit=4")
+      .then(r => r.json())
+      .then(data => setProducts(Array.isArray(data) ? data.slice(0, 4) : []))
+      .catch(() => {});
   }, []);
 
   const isFr = locale === "fr";
@@ -25,15 +55,9 @@ export default function NotFound() {
     window.location.href = `/${locale}/shop?search=${encodeURIComponent(search.trim())}`;
   };
 
-  const quickLinks = [
-    { icon: Home, title: isFr ? "Accueil" : "Home", desc: isFr ? "Retour a la page d'accueil" : "Back to homepage", href: `/${locale}`, color: "from-blue-500 to-blue-600" },
-    { icon: ShoppingBag, title: isFr ? "Boutique" : "Shop", desc: isFr ? "Parcourir tous les produits" : "Browse all products", href: `/${locale}/shop`, color: "from-[#CA3F2E] to-[#8B2A1E]" },
-    { icon: BookOpen, title: "Blog", desc: isFr ? "Nos derniers articles" : "Our latest articles", href: `/${locale}/blog`, color: "from-purple-500 to-purple-600" },
-    { icon: MessageCircle, title: "Contact", desc: isFr ? "Besoin d'aide ?" : "Need help?", href: `/${locale}/contact`, color: "from-emerald-500 to-emerald-600" },
-  ];
+  const getCategoryName = (c: Category) => isFr && c.nameFr ? c.nameFr : c.nameEn;
 
   if (!mounted) {
-    // Show minimal fallback during SSR
     return (
       <main className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
@@ -46,47 +70,31 @@ export default function NotFound() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-white flex flex-col">
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#CA3F2E]/5 rounded-full blur-3xl animate-pulse-slow" />
-        <div className="absolute top-1/2 -right-40 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: "1s" }} />
-        <div className="absolute bottom-0 left-1/3 w-72 h-72 bg-purple-500/5 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: "2s" }} />
-      </div>
+    <main className="min-h-screen bg-white">
+      <Navbar />
 
-      <div
-        className="fixed inset-0 opacity-[0.02] pointer-events-none"
-        style={{
-          backgroundImage: "linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)",
-          backgroundSize: "40px 40px",
-        }}
-      />
-
-      <div className="relative flex-1 flex flex-col items-center justify-center px-4 py-16 sm:py-24">
-        <div className="max-w-4xl w-full text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-red-50 border border-red-100 rounded-full text-xs font-bold text-red-700 mb-8">
-            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-            {isFr ? "Page introuvable" : "Page Not Found"}
-          </div>
-
-          <div className="relative mb-6">
-            <h1 className="text-[120px] sm:text-[180px] lg:text-[220px] font-black leading-none tracking-tighter select-none">
-              <span className="bg-gradient-to-br from-[#CA3F2E] via-[#8B2A1E] to-gray-900 bg-clip-text text-transparent">404</span>
+      <div className="pt-20 lg:pt-24">
+        {/* HERO */}
+        <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20 text-center">
+          {/* 404 number */}
+          <div className="mb-6">
+            <h1 className="text-8xl sm:text-9xl lg:text-[160px] font-black leading-none tracking-tighter bg-gradient-to-br from-[#CA3F2E] to-[#8B2A1E] bg-clip-text text-transparent">
+              404
             </h1>
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 sm:w-28 sm:h-28 opacity-10 pointer-events-none">
-              <Compass className="w-full h-full text-gray-900 animate-spin-slow" />
-            </div>
           </div>
 
+          {/* Title */}
           <h2 className="text-2xl sm:text-4xl font-black text-gray-900 mb-3 tracking-tight">
-            {isFr ? "Oups ! Vous vous etes egare" : "Oops! You got lost"}
+            {isFr ? "Page introuvable" : "Page Not Found"}
           </h2>
-          <p className="text-gray-600 text-base sm:text-lg max-w-xl mx-auto mb-10 leading-relaxed">
+          <p className="text-gray-600 text-base sm:text-lg max-w-xl mx-auto mb-8 leading-relaxed">
             {isFr
-              ? "La page que vous cherchez n'existe pas ou a ete deplacee. Essayons de vous remettre sur les rails."
-              : "The page you're looking for doesn't exist or has been moved. Let's get you back on track."}
+              ? "Cette page n'existe pas. Continuez votre exploration ci-dessous."
+              : "This page doesn't exist. Continue exploring below."}
           </p>
 
-          <form onSubmit={handleSearch} className="max-w-lg mx-auto mb-12">
+          {/* Search bar */}
+          <form onSubmit={handleSearch} className="max-w-xl mx-auto mb-6">
             <div className="relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
@@ -94,7 +102,7 @@ export default function NotFound() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={isFr ? "Rechercher un produit..." : "Search for a product..."}
-                className="w-full pl-11 pr-32 py-4 bg-white border-2 border-gray-200 rounded-2xl text-sm text-gray-900 shadow-sm focus:outline-none focus:border-[#CA3F2E] transition"
+                className="w-full pl-11 pr-32 py-3.5 bg-white border-2 border-gray-200 rounded-2xl text-sm text-gray-900 shadow-sm focus:outline-none focus:border-[#CA3F2E] transition"
               />
               <button
                 type="submit"
@@ -106,44 +114,123 @@ export default function NotFound() {
             </div>
           </form>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 max-w-3xl mx-auto">
-            {quickLinks.map((link, i) => {
-              const Icon = link.icon;
-              return (
+          {/* Home button */}
+          <Link
+            href={`/${locale}`}
+            className="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-gray-200 hover:border-gray-900 text-gray-900 rounded-xl text-sm font-bold transition group"
+          >
+            <Home className="w-4 h-4 group-hover:-translate-x-0.5 transition" />
+            {isFr ? "Retour a l'accueil" : "Back to Home"}
+          </Link>
+        </section>
+
+        {/* SHOP CATEGORIES */}
+        {categories.length > 0 && (
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-gray-100">
+            <div className="text-center mb-8">
+              <div className="inline-block text-xs font-bold text-[#CA3F2E] uppercase tracking-widest mb-2">
+                {isFr ? "Nos categories" : "Our Categories"}
+              </div>
+              <h3 className="text-2xl sm:text-3xl font-black text-gray-900">
+                {isFr ? "Parcourir la boutique" : "Browse the Shop"}
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+              {categories.map(cat => (
                 <Link
-                  key={i}
-                  href={link.href}
-                  className="group relative bg-white border-2 border-gray-200 hover:border-transparent rounded-2xl p-5 transition-all hover:shadow-xl hover:-translate-y-1 overflow-hidden"
+                  key={cat.id}
+                  href={`/${locale}/shop?category=${cat.slug}`}
+                  className="group relative aspect-square rounded-2xl overflow-hidden bg-gray-100 border border-gray-200 hover:border-gray-900 hover:shadow-lg transition-all"
                 >
-                  <div className={`absolute inset-0 bg-gradient-to-br ${link.color} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-                  <div className="relative">
-                    <div className={`inline-flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br ${link.color} mb-3 group-hover:bg-white/20 transition-all`}>
-                      <Icon className="w-5 h-5 text-white" />
+                  {cat.imageUrl ? (
+                    <Image
+                      src={cat.imageUrl}
+                      alt={getCategoryName(cat)}
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-500"
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                      <ShoppingBag className="w-8 h-8 text-gray-300" />
                     </div>
-                    <div className="font-black text-sm text-gray-900 group-hover:text-white transition mb-0.5">{link.title}</div>
-                    <div className="text-[11px] text-gray-500 group-hover:text-white/90 transition leading-relaxed">{link.desc}</div>
-                    <div className="mt-3 inline-flex items-center gap-1 text-[11px] font-bold text-gray-400 group-hover:text-white transition">
-                      {isFr ? "Aller" : "Go"}
+                  )}
+                  {/* Dark gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+
+                  {/* Label */}
+                  <div className="absolute bottom-0 left-0 right-0 p-3">
+                    <div className="text-white font-black text-sm sm:text-base capitalize truncate">
+                      {getCategoryName(cat)}
+                    </div>
+                    <div className="flex items-center gap-1 text-white/80 text-[10px] font-bold uppercase tracking-wider mt-0.5 group-hover:text-white transition">
+                      {isFr ? "Voir" : "Shop"}
                       <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition" />
                     </div>
                   </div>
                 </Link>
-              );
-            })}
-          </div>
+              ))}
+            </div>
 
-          <p className="text-xs text-gray-400 mt-12">
-            {isFr ? "Erreur 404 - La page demandee n'a pas ete trouvee" : "Error 404 - The requested page could not be found"}
-          </p>
-        </div>
+            <div className="text-center mt-8">
+              <Link
+                href={`/${locale}/shop`}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 hover:bg-[#CA3F2E] text-white rounded-xl text-sm font-bold transition group"
+              >
+                {isFr ? "Voir toute la boutique" : "View Full Shop"}
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition" />
+              </Link>
+            </div>
+          </section>
+        )}
+
+        {/* FEATURED PRODUCTS */}
+        {products.length > 0 && (
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-gray-100 mb-12">
+            <div className="text-center mb-8">
+              <div className="inline-block text-xs font-bold text-[#CA3F2E] uppercase tracking-widest mb-2">
+                {isFr ? "Populaires" : "Popular"}
+              </div>
+              <h3 className="text-2xl sm:text-3xl font-black text-gray-900">
+                {isFr ? "Peut-etre pour vous" : "You might like these"}
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {products.map(p => (
+                <Link
+                  key={p.id}
+                  href={`/${locale}/product/${p.slug}`}
+                  className="group bg-white border border-gray-200 hover:border-gray-300 hover:shadow-lg rounded-2xl overflow-hidden transition-all hover:-translate-y-1"
+                >
+                  <div className="relative aspect-square bg-gray-100">
+                    {p.imageUrl && (
+                      <Image
+                        src={p.imageUrl}
+                        alt={p.name}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        sizes="(max-width: 640px) 50vw, 25vw"
+                      />
+                    )}
+                  </div>
+                  <div className="p-3">
+                    <h4 className="font-bold text-sm text-gray-900 truncate group-hover:text-[#CA3F2E] transition">
+                      {p.name}
+                    </h4>
+                    <div className="text-sm font-black text-gray-900 mt-1">
+                      ${parseFloat(p.price).toFixed(2)}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
 
-      <style jsx>{`
-        @keyframes pulse-slow { 0%, 100% { opacity: 0.5; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.05); } }
-        @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .animate-pulse-slow { animation: pulse-slow 4s ease-in-out infinite; }
-        .animate-spin-slow { animation: spin-slow 20s linear infinite; }
-      `}</style>
+      <Footer />
     </main>
   );
 }
