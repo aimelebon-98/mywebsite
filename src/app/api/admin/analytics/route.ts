@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
 
   const now = new Date();
   const currentStart = new Date(now);
-  currentStart.setDate(currentStart.getDate() - days);
+  currentStart.setDate(currentStart.getDate() - (days - 1));
   currentStart.setHours(0, 0, 0, 0);
 
   const previousStart = new Date(currentStart);
