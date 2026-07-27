@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
-import { Home, ArrowRight, Search, ArrowLeft, Sparkles, Zap, Award, Wind, Footprints, Mountain } from "lucide-react";
+import { Home, ArrowRight, Search, ArrowLeft, Package } from "lucide-react";
 
 interface Category {
   id: string;
@@ -17,17 +17,15 @@ interface Suggestion {
   slug?: string;
 }
 
-// Icon + color per category slug
-const CAT_STYLES: Record<string, { icon: React.ElementType; gradient: string }> = {
-  sneakers:  { icon: Zap,        gradient: "from-blue-500 to-blue-700" },
-  running:   { icon: Wind,       gradient: "from-emerald-500 to-emerald-700" },
-  formal:    { icon: Award,      gradient: "from-gray-700 to-gray-900" },
-  boots:     { icon: Mountain,   gradient: "from-amber-600 to-amber-800" },
-  sandals:   { icon: Sparkles,   gradient: "from-pink-500 to-rose-600" },
-  casual:    { icon: Footprints, gradient: "from-purple-500 to-purple-700" },
+// Same Unsplash images as CategoryShowcase for consistency
+const fallbackImages: Record<string, string> = {
+  sneakers: "https://images.unsplash.com/photo-1552346154-21d32810aba3?w=400&q=80",
+  running:  "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=400&q=80",
+  formal:   "https://images.unsplash.com/photo-1614252369475-531eba835eb1?w=400&q=80",
+  boots:    "https://images.unsplash.com/photo-1520639888713-7851133b1ed0?w=400&q=80",
+  sandals:  "https://images.unsplash.com/photo-1603487742131-4160ec999306?w=400&q=80",
+  casual:   "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=400&q=80",
 };
-
-const DEFAULT_STYLE = { icon: Footprints, gradient: "from-gray-500 to-gray-700" };
 
 export default function NotFound() {
   const [locale, setLocale] = useState("en");
@@ -58,7 +56,7 @@ export default function NotFound() {
       setShowDropdown(false);
       return;
     }
-    setShowDropdown(true); // show dropdown immediately (with loading state)
+    setShowDropdown(true);
     debounceRef.current = setTimeout(async () => {
       setLoading(true);
       try {
@@ -154,7 +152,6 @@ export default function NotFound() {
                 : "This page doesn't exist. Continue exploring below."}
             </p>
 
-            {/* Search */}
             <div ref={wrapperRef} className="relative max-w-xl mb-4 lg:mx-0 mx-auto">
               <form onSubmit={handleSearch}>
                 <div className="relative">
@@ -178,7 +175,6 @@ export default function NotFound() {
                 </div>
               </form>
 
-              {/* Suggestions dropdown */}
               {showDropdown && search.trim().length > 0 && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-xl z-50 overflow-hidden max-h-80 overflow-y-auto text-left">
                   {loading ? (
@@ -219,7 +215,7 @@ export default function NotFound() {
             </button>
           </div>
 
-          {/* RIGHT: Categories 2x3 with gradient icons */}
+          {/* RIGHT: Categories - shop page style */}
           {categories.length > 0 && (
             <div>
               <div className="text-center lg:text-left mb-5">
@@ -233,43 +229,36 @@ export default function NotFound() {
 
               <div className="grid grid-cols-2 gap-3">
                 {categories.slice(0, 6).map(cat => {
-                  const style = CAT_STYLES[cat.slug] || DEFAULT_STYLE;
-                  const Icon = style.icon;
+                  const bgImg = fallbackImages[cat.slug];
                   return (
                     <Link
                       key={cat.id}
                       href={`/${locale}/shop?category=${cat.slug}`}
-                      className="group relative aspect-square rounded-2xl overflow-hidden border border-gray-200 hover:border-transparent hover:shadow-xl transition-all hover:-translate-y-0.5"
+                      className="group relative aspect-square rounded-2xl overflow-hidden border-2 border-white/70 hover:border-white shadow-[0_4px_20px_-2px_rgba(0,0,0,0.15)] hover:shadow-2xl hover:scale-105 transition-all duration-300"
+                      style={{
+                        backgroundImage: bgImg ? `url(${bgImg})` : undefined,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                        backgroundColor: "#f3f4f6",
+                      }}
                     >
-                      {/* Gradient background */}
-                      <div className={`absolute inset-0 bg-gradient-to-br ${style.gradient}`} />
+                      {/* Inner white glow ring */}
+                      <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/30 pointer-events-none" />
 
-                      {/* Decorative pattern overlay */}
-                      <div
-                        className="absolute inset-0 opacity-10"
-                        style={{
-                          backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)",
-                          backgroundSize: "20px 20px",
-                        }}
-                      />
+                      {/* Dark overlay gradient */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
-                      {/* Icon */}
-                      <div className="absolute top-4 right-4 w-10 h-10 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
-                        <Icon className="w-5 h-5 text-white" />
-                      </div>
-
-                      {/* Big background icon */}
-                      <Icon className="absolute -bottom-4 -right-4 w-24 h-24 text-white/10 group-hover:text-white/20 transition" />
+                      {!bgImg && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <Package className="w-10 h-10 text-gray-400" />
+                        </div>
+                      )}
 
                       {/* Label */}
-                      <div className="absolute bottom-0 left-0 right-0 p-4">
-                        <div className="text-white font-black text-base capitalize truncate">
+                      <div className="absolute bottom-3 left-3 right-3">
+                        <p className="text-white font-bold text-sm sm:text-base drop-shadow-lg capitalize">
                           {getCategoryName(cat)}
-                        </div>
-                        <div className="flex items-center gap-1 text-white/80 text-[10px] font-bold uppercase tracking-wider mt-1 group-hover:text-white transition">
-                          {isFr ? "Voir" : "Shop"}
-                          <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition" />
-                        </div>
+                        </p>
                       </div>
                     </Link>
                   );
