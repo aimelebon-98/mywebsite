@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BarChart3, Users, Eye, ShoppingCart, MousePointerClick, Heart, Mail, Search, TrendingUp, TrendingDown, Minus, Download, RefreshCw, Package, BookOpen, ExternalLink } from "lucide-react";
+import { markAsInternalUser, unmarkInternalUser, resetVisitorId, checkInternalStatus } from "@/components/AnalyticsTracker";
+import { BarChart3, Users, Eye, ShoppingCart, MousePointerClick, Heart, Mail, Search, TrendingUp, TrendingDown, Minus, Download, RefreshCw, Package, BookOpen, ExternalLink , UserX, Trash2, ShieldCheck } from "lucide-react";
 
 interface Kpis {
   totalEvents: number;
@@ -73,6 +74,7 @@ export default function AnalyticsDashboard() {
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState(7);
   const [liveMode, setLiveMode] = useState(false);
+  const [isInternal, setIsInternal] = useState(false);
   const [liveData, setLiveData] = useState<{ activeVisitors: number; recentEvents: Array<{ eventType: string; path: string; productName?: string | null; searchQuery?: string | null; createdAt: string; visitorId: string }> } | null>(null);
 
   const load = async () => {
@@ -86,6 +88,8 @@ export default function AnalyticsDashboard() {
   };
 
   useEffect(() => { load(); }, [range]);
+
+  useEffect(() => { setIsInternal(checkInternalStatus()); }, []);
 
   useEffect(() => {
     if (!liveMode) return;
@@ -207,6 +211,69 @@ export default function AnalyticsDashboard() {
           <button onClick={exportCsv} className="inline-flex items-center gap-2 px-3 py-2 bg-gray-900 text-white rounded-xl text-xs font-semibold hover:bg-[#CA3F2E] transition">
             <Download className="w-3.5 h-3.5" /> Export CSV
           </button>
+        </div>
+      </div>
+
+      {/* Admin Analytics Controls */}
+      <div className="bg-gradient-to-br from-amber-50 to-white border-2 border-amber-200 rounded-2xl p-4">
+        <div className="flex items-start gap-3">
+          <div className="w-9 h-9 flex-shrink-0 rounded-xl bg-amber-100 flex items-center justify-center">
+            <ShieldCheck className="w-4 h-4 text-amber-700" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h4 className="font-bold text-sm text-gray-900 mb-1">Admin Analytics Controls</h4>
+            <p className="text-xs text-gray-600 mb-3 leading-relaxed">
+              {isInternal
+                ? "You are marked as an internal user - your visits will NOT be tracked."
+                : "Your browser is being counted as a regular visitor. Mark yourself as internal to exclude your own activity from stats."}
+            </p>
+            <div className="flex items-center gap-2 flex-wrap">
+              {!isInternal ? (
+                <button
+                  onClick={() => { markAsInternalUser(); setIsInternal(true); }}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-bold transition"
+                >
+                  <UserX className="w-3.5 h-3.5" /> Mark me as internal
+                </button>
+              ) : (
+                <button
+                  onClick={() => { unmarkInternalUser(); setIsInternal(false); }}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg text-xs font-bold transition"
+                >
+                  Unmark internal
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  if (confirm("Reset your visitor ID? You will start counting as a new visitor.")) {
+                    resetVisitorId();
+                    alert("Visitor ID reset. Refresh public pages to start fresh.");
+                  }
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg text-xs font-bold transition"
+              >
+                Reset my visitor ID
+              </button>
+              <button
+                onClick={async () => {
+                  if (!confirm("DELETE ALL analytics data? This cannot be undone. Use to clear test data.")) return;
+                  try {
+                    const res = await fetch("/api/admin/analytics-control?mode=all", { method: "DELETE" });
+                    const j = await res.json();
+                    if (j.ok) {
+                      alert("All analytics data cleared!");
+                      load();
+                    } else {
+                      alert("Failed: " + j.error);
+                    }
+                  } catch { alert("Failed to clear"); }
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-xs font-bold transition ml-auto"
+              >
+                <Trash2 className="w-3.5 h-3.5" /> Clear all analytics
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
