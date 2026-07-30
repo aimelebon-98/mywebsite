@@ -8,7 +8,7 @@ import { useCart } from "@/lib/cart-context";
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 
-const FREE_SHIPPING_THRESHOLD = 100;
+const FREE_SHIPPING_THRESHOLD = 1000;
 
 export default function MiniCartDrawer() {
   const t = useTranslations("cart");
