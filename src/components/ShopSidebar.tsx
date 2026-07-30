@@ -1,4 +1,5 @@
-﻿"use client";
+"use client";
+import { useCurrency } from "@/lib/currency-context";
 
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -25,6 +26,7 @@ const PRICE_STEP = 10;
 
 export default function ShopSidebar(props: ShopSidebarProps) {
   const { category, search, sort, minPrice, maxPrice, brand, rating, onSale, brands } = props;
+  const { format: fmtPrice } = useCurrency();
   const t = useTranslations("shop");
   const tc = useTranslations("common");
   const locale = useLocale();
@@ -155,7 +157,7 @@ export default function ShopSidebar(props: ShopSidebarProps) {
             <div className="flex items-center justify-between text-xs">
               <span className="text-gray-500">Range</span>
               <span className="font-semibold text-gray-900">
-                ${sliderMin} - ${sliderMax}{sliderMax >= PRICE_CEILING ? "+" : ""}
+                {fmtPrice(sliderMin)} - {fmtPrice(sliderMax)}{sliderMax >= PRICE_CEILING ? "+" : ""}
               </span>
             </div>
 
@@ -176,7 +178,7 @@ export default function ShopSidebar(props: ShopSidebarProps) {
                 type="number"
                 value={localMinPrice}
                 onChange={(e) => handleInputMinChange(e.target.value)}
-                placeholder={t("priceMin")}
+                placeholder={`${t("priceMin")} (${fmtPrice(0).replace(/[0-9,.\s]/g, "").trim()})`}
                 className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
               />
               <span className="text-gray-300">-</span>
@@ -184,7 +186,7 @@ export default function ShopSidebar(props: ShopSidebarProps) {
                 type="number"
                 value={localMaxPrice}
                 onChange={(e) => handleInputMaxChange(e.target.value)}
-                placeholder={t("priceMax")}
+                placeholder={`${t("priceMax")} (${fmtPrice(0).replace(/[0-9,.\s]/g, "").trim()})`}
                 className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
               />
             </div>
@@ -198,13 +200,13 @@ export default function ShopSidebar(props: ShopSidebarProps) {
 
             <div className="grid grid-cols-1 gap-1.5">
               {[
-                { label: t("under100"), min: "", max: "100" },
-                { label: t("100to200"), min: "100", max: "200" },
-                { label: t("200to300"), min: "200", max: "300" },
-                { label: t("over300"),  min: "300", max: "" },
+                { label: `${t("under")} ${fmtPrice(100)}`,           min: "",    max: "100" },
+                { label: `${fmtPrice(100)} - ${fmtPrice(200)}`,       min: "100", max: "200" },
+                { label: `${fmtPrice(200)} - ${fmtPrice(300)}`,       min: "200", max: "300" },
+                { label: `${fmtPrice(300)}+`,                          min: "300", max: ""    },
               ].map((r) => (
                 <button
-                  key={r.label}
+                  key={r.min + "-" + r.max}
                   onClick={() => router.push(buildUrl({ minPrice: r.min, maxPrice: r.max }))}
                   className={`px-3 py-2 text-xs rounded-lg border transition text-left ${
                     minPrice === r.min && maxPrice === r.max
