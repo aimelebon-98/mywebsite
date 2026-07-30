@@ -50,6 +50,14 @@ export const metadata: Metadata = {
     images: [{ url: "/images/hero-shoe.jpg", width: 1200, height: 630, alt: "NewDealZone" }],
   },
   robots: { index: true, follow: true },
+  alternates: {
+    canonical: siteUrl,
+    languages: {
+      "en": `${siteUrl}/en`,
+      "fr": `${siteUrl}/fr`,
+      "x-default": `${siteUrl}/en`,
+    },
+  },
 };
 
 export function generateStaticParams() {
