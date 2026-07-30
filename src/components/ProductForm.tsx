@@ -584,7 +584,7 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
           <SidebarCard title="SEO" icon={Search} defaultOpen={false}>
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
               <div className="text-[10px] font-semibold text-gray-500 uppercase mb-1.5">Google Preview</div>
-              <div className="text-[10px] text-gray-600 truncate">mywebsite-inky-gamma.vercel.app &rsaquo; product &rsaquo; {name ? name.toLowerCase().replace(/\s+/g,"-").slice(0,30) : "slug"}</div>
+              <div className="text-[10px] text-gray-600 truncate">newdealzone.com &rsaquo; product &rsaquo; {name ? name.toLowerCase().replace(/\s+/g,"-").slice(0,30) : "slug"}</div>
               <div className="text-[#1a0dab] text-sm leading-tight my-1" style={{fontFamily:"arial,sans-serif"}}>
                 {(seoTitle || name || "SEO title").slice(0, 60)}
               </div>

@@ -10,7 +10,7 @@ import { getLocale } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://mywebsite-inky-gamma.vercel.app";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://newdealzone.com";
 
 interface Props {
   params: Promise<{ slug: string; locale: string }>;

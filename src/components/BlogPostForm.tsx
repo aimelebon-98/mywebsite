@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import type { BlogPost, Author } from "@/db/schema";
@@ -373,7 +373,7 @@ export default function BlogPostForm({ post, onSave, onCancel, loading }: Props)
             {/* Google preview */}
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
               <div className="text-[10px] font-semibold text-gray-500 uppercase mb-1.5">Google Preview</div>
-              <div className="text-[10px] text-gray-600 truncate">mywebsite-inky-gamma.vercel.app &rsaquo; blog &rsaquo; {slug || (title ? title.toLowerCase().replace(/\s+/g,"-").slice(0,30) : "post")}</div>
+              <div className="text-[10px] text-gray-600 truncate">newdealzone.com &rsaquo; blog &rsaquo; {slug || (title ? title.toLowerCase().replace(/\s+/g,"-").slice(0,30) : "post")}</div>
               <div className="text-[#1a0dab] text-sm leading-tight font-normal my-1" style={{fontFamily:"arial,sans-serif"}}>
                 {(seoTitle || title || "Your post SEO title").slice(0, 60)}
               </div>

@@ -1,9 +1,9 @@
-﻿import type { MetadataRoute } from "next";
+import type { MetadataRoute } from "next";
 import { db } from "@/db";
 import { products, blogPosts, authors } from "@/db/schema";
 import { eq, isNotNull, and } from "drizzle-orm";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://mywebsite-inky-gamma.vercel.app";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://newdealzone.com";
 
 export const revalidate = 3600;
 
