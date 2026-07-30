@@ -106,7 +106,6 @@ export default function Navbar() {
                 aria-label="Change language"
                 className={`flex items-center gap-1 p-2 rounded-xl transition ${iconHoverBg}`}
               >
-                <CurrencySelector compact={isBlogPage} className="mr-1" />
               <Globe className={`w-5 h-5 ${iconColor}`} />
                 <span className={`text-xs font-bold uppercase ${localeText}`}>{locale}</span>
               </button>

@@ -82,10 +82,10 @@ export default function MiniCartDrawer() {
             <div className="flex items-center gap-2 mb-2">
               <Truck className="w-4 h-4 text-gray-600" />
               {qualifiesFreeShipping ? (
-                <p className="text-xs font-bold" style={{ color: "#CA3F2E" }}>{t("freeShippingQualified")}</p>
+                <p className="text-xs font-bold" style={{ color: "#10b981" }}>{t("freeShippingQualified")}</p>
               ) : (
                 <p className="text-xs text-gray-700">
-                  {t("freeShippingProgress", { amount: `{formatPrice(remaining)}` })}
+                  {t("freeShippingProgress", { amount: formatPrice(remaining) })}
                 </p>
               )}
             </div>
@@ -94,8 +94,8 @@ export default function MiniCartDrawer() {
                 className="h-full transition-all duration-500 rounded-full"
                 style={{
                   width: `${progress}%`,
-                  backgroundColor: "#CA3F2E",
-                  boxShadow: qualifiesFreeShipping ? "0 0 12px rgba(202, 63, 46, 0.6)" : "none"
+                  backgroundColor: qualifiesFreeShipping ? "#10b981" : "#CA3F2E",
+                  boxShadow: qualifiesFreeShipping ? "0 0 12px rgba(16, 185, 129, 0.5)" : "none"
                 }}
               />
             </div>
