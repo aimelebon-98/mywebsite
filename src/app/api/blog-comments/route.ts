@@ -65,9 +65,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid content length" }, { status: 400 });
     }
 
-    // Get IP for spam prevention
-    const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
-               request.headers.get("x-real-ip") || "";
 
     const result = await db.insert(blogComments).values({
       postId,
