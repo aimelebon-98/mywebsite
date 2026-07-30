@@ -10,7 +10,7 @@ import { getLocale } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://newdealzone.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.newdealzone.com";
 
 interface Props {
   params: Promise<{ slug: string; locale: string }>;

@@ -9,7 +9,7 @@ import { getLocale } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://newdealzone.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.newdealzone.com";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();

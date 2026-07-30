@@ -3,7 +3,7 @@ import { db } from "@/db";
 import { products, blogPosts, authors } from "@/db/schema";
 import { eq, isNotNull, and } from "drizzle-orm";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://newdealzone.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.newdealzone.com";
 
 export const revalidate = 3600;
 

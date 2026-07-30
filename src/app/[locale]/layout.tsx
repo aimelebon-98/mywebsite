@@ -31,7 +31,7 @@ const ExitIntentPopup = dynamic(() => import("@/components/ExitIntentPopup"));
 const CookieConsent = dynamic(() => import("@/components/CookieConsent"));
 const StickyPromoBar = dynamic(() => import("@/components/StickyPromoBar"));
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://newdealzone.com";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.newdealzone.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
