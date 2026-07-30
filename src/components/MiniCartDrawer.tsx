@@ -1,4 +1,5 @@
 "use client";
+import { useCurrency } from "@/lib/currency-context";
 
 import { useEffect } from "react";
 import Link from "next/link";
@@ -13,6 +14,7 @@ export default function MiniCartDrawer() {
   const t = useTranslations("cart");
   const locale = useLocale();
   const { items, drawerOpen, closeDrawer: rawCloseDrawer, updateQuantity, removeItem, totalPrice, totalQuantity } = useCart();
+  const { format: formatPrice } = useCurrency();
 
   const closeDrawer = () => {
     try { localStorage.setItem("sv_cart_last_manual_close", Date.now().toString()); } catch { /* ignore */ }
@@ -83,7 +85,7 @@ export default function MiniCartDrawer() {
                 <p className="text-xs font-bold" style={{ color: "#CA3F2E" }}>{t("freeShippingQualified")}</p>
               ) : (
                 <p className="text-xs text-gray-700">
-                  {t("freeShippingProgress", { amount: `$${remaining.toFixed(2)}` })}
+                  {t("freeShippingProgress", { amount: `{formatPrice(remaining)}` })}
                 </p>
               )}
             </div>
@@ -174,7 +176,7 @@ export default function MiniCartDrawer() {
                         </button>
                       </div>
                       <span className="text-sm font-bold text-gray-900">
-                        ${(item.price * item.quantity).toFixed(2)}
+                        {formatPrice((item.price * item.quantity))}
                       </span>
                     </div>
                   </div>
@@ -189,7 +191,7 @@ export default function MiniCartDrawer() {
           <div className="border-t border-gray-100 p-5 space-y-3 bg-white">
             <div className="flex justify-between items-baseline">
               <span className="text-sm text-gray-600">{t("subtotal")}</span>
-              <span className="text-xl font-bold text-gray-900">${totalPrice.toFixed(2)}</span>
+              <span className="text-xl font-bold text-gray-900">{formatPrice(totalPrice)}</span>
             </div>
             <p className="text-[11px] text-gray-400 -mt-2">{t("subtotalNote")}</p>
 

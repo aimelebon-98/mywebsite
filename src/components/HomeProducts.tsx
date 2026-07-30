@@ -1,4 +1,5 @@
 "use client";
+import { useCurrency } from "@/lib/currency-context";
 
 import { useEffect, useState } from "react";
 import type { Product } from "@/db/schema";
@@ -32,7 +33,9 @@ export default function HomeProducts() {
   const isFr = locale === "fr";
 
   const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const { format: formatPrice } = useCurrency();
   const [loading, setLoading] = useState(true);
+  const { format: formatPrice } = useCurrency();
 
   useEffect(() => {
     const url = isFr ? "/api/products?locale=fr" : "/api/products";
@@ -205,9 +208,9 @@ export default function HomeProducts() {
                       </div>
                       <p className="text-xs font-semibold text-white truncate">{product.name}</p>
                       <div className="flex items-center gap-1.5 mt-1">
-                        <span className="text-sm font-bold text-white">${parseFloat(product.price).toFixed(2)}</span>
+                        <span className="text-sm font-bold text-white">{formatPrice(parseFloat(product.price))}</span>
                         {product.comparePrice && (
-                          <span className="text-xs text-purple-300 line-through">${parseFloat(product.comparePrice).toFixed(2)}</span>
+                          <span className="text-xs text-purple-300 line-through">{formatPrice(parseFloat(product.comparePrice))}</span>
                         )}
                       </div>
                     </Link>

@@ -1,4 +1,5 @@
 "use client";
+import { useCurrency } from "@/lib/currency-context";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -22,6 +23,7 @@ export default function QuickViewModal({ product, open, onClose }: QuickViewModa
   const locale = useLocale();
   const router = useRouter();
   const { addItem } = useCart();
+  const { format: formatPrice } = useCurrency();
   const { isWished, toggle } = useWishlist();
   const wished = isWished(product.id);
 
@@ -159,10 +161,10 @@ export default function QuickViewModal({ product, open, onClose }: QuickViewModa
           </div>
 
           <div className="flex items-baseline gap-2 mb-4">
-            <span className="text-2xl font-bold text-gray-900">${price.toFixed(2)}</span>
+            <span className="text-2xl font-bold text-gray-900">{formatPrice(price)}</span>
             {comparePrice && (
               <>
-                <span className="text-sm text-gray-400 line-through">${comparePrice.toFixed(2)}</span>
+                <span className="text-sm text-gray-400 line-through">{formatPrice(comparePrice)}</span>
                 <span className="text-xs font-bold text-red-500">-{discount}%</span>
               </>
             )}
