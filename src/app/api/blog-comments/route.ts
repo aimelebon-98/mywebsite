@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     const ip = getClientIp(request.headers);
     const spamReason = validateSubmission({
       honeypot: body.honeypot,
-      timestamp: body.timestamp,
+      timestamp: typeof body.timestamp === "number" ? body.timestamp : undefined,
       referer: request.headers.get("referer"),
       host: request.headers.get("host"),
       minSecondsToSubmit: 3,
