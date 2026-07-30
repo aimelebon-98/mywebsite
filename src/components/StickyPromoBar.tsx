@@ -17,6 +17,7 @@ export default function StickyPromoBar() {
   const [visible, setVisible] = useState(false);
   const [allowed, setAllowed] = useState(false);
   const [email, setEmail] = useState("");
+  const [formOpenTime] = useState(() => Date.now());
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const pathname = usePathname();
   const isFr = pathname?.startsWith("/fr");
@@ -103,7 +104,7 @@ export default function StickyPromoBar() {
       const res = await fetch("/api/newsletter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: email.trim(), honeypot: "", timestamp: formOpenTime }),
       });
       if (res.ok) {
         setStatus("success");

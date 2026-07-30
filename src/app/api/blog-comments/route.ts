@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { blogComments } from "@/db/schema";
 import { eq, and, desc, asc } from "drizzle-orm";
+import { validateSubmission, checkRateLimit, getClientIp } from "@/lib/anti-spam";
 import { requireAdmin, verifyAdmin } from "@/lib/admin-auth";
 
 export async function GET(request: NextRequest) {
@@ -38,6 +39,21 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    const ip = getClientIp(request.headers);
+    const spamReason = validateSubmission({
+      honeypot: body.honeypot,
+      timestamp: body.timestamp,
+      referer: request.headers.get("referer"),
+      host: request.headers.get("host"),
+      minSecondsToSubmit: 3,
+    });
+    if (spamReason) {
+      console.log(`[Comments] Blocked ${spamReason} from ${ip}`);
+      return NextResponse.json({ success: true, message: "Comment received" });
+    }
+    if (!checkRateLimit(`comment:${ip}`, 5, 3600)) {
+      return NextResponse.json({ success: true, message: "Comment received" });
+    }
     const { postId, parentId, authorName, authorEmail, content } = body;
 
     if (!postId || !authorName || !content) {

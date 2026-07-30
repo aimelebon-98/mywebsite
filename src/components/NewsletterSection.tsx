@@ -5,6 +5,7 @@ import { Mail, Check, ArrowRight, Sparkles } from "lucide-react";
 
 export default function NewsletterSection() {
   const [email, setEmail] = useState("");
+  const [formOpenTime] = useState(() => Date.now());
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -15,7 +16,7 @@ export default function NewsletterSection() {
       const res = await fetch("/api/newsletter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: email.trim(), honeypot: "", timestamp: formOpenTime }),
       });
       if (res.ok) {
         setStatus("success");

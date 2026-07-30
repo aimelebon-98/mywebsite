@@ -1,7 +1,8 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { reviews, products, adminSessions } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
+import { validateSubmission, checkRateLimit, getClientIp } from "@/lib/anti-spam";
 import { cookies } from "next/headers";
 
 async function verifyAdmin(): Promise<boolean> {
@@ -78,6 +79,21 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await parseBody(request);
+    const ip = getClientIp(request.headers);
+    const spamReason = validateSubmission({
+      honeypot: body.honeypot,
+      timestamp: body.timestamp,
+      referer: request.headers.get("referer"),
+      host: request.headers.get("host"),
+      minSecondsToSubmit: 3,
+    });
+    if (spamReason) {
+      console.log(`[Reviews] Blocked ${spamReason} from ${ip}`);
+      return NextResponse.json({ success: true, message: "Review submitted" });
+    }
+    if (!checkRateLimit(`review:${ip}`, 3, 3600)) {
+      return NextResponse.json({ success: true, message: "Review submitted" });
+    }
     const productId = body.productId as string | undefined;
     const customerName = body.customerName as string | undefined;
     const rating = body.rating as number | string | undefined;

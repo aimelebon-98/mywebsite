@@ -15,6 +15,7 @@ export default function ExitIntentPopup() {
   const [show, setShow] = useState(false);
   const [copied, setCopied] = useState(false);
   const [email, setEmail] = useState("");
+  const [formOpenTime] = useState(() => Date.now());
   const [subscribing, setSubscribing] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
   const [timeLeft, setTimeLeft] = useState(600);
@@ -117,7 +118,7 @@ export default function ExitIntentPopup() {
       await fetch("/api/newsletter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
+        body: JSON.stringify({ email: email.trim(), honeypot: "", timestamp: formOpenTime }),
       });
       try { trackEvent({ eventType: "newsletter_signup", metadata: { source: "exit_intent" } }); } catch {}
       setSubscribed(true);
