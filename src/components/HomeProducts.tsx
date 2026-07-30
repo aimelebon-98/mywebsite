@@ -35,7 +35,6 @@ export default function HomeProducts() {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const { format: formatPrice } = useCurrency();
   const [loading, setLoading] = useState(true);
-  const { format: formatPrice } = useCurrency();
 
   useEffect(() => {
     const url = isFr ? "/api/products?locale=fr" : "/api/products";
