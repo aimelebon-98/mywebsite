@@ -1,9 +1,9 @@
-﻿import type { ReactNode } from "react";
+import type { ReactNode } from "react";
 import { CartProvider } from "@/lib/cart-context";
 import { WishlistProvider } from "@/lib/wishlist-context";
 
 export const metadata = {
-  title: "Admin | SoleVault",
+  title: "Admin | NewDealZone",
   description: "Admin dashboard",
   robots: { index: false, follow: false },
 };

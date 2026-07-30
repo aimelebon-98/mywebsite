@@ -237,7 +237,7 @@ function AuthorForm({
           </div>
           <div>
             <label className="block text-sm font-medium mb-1.5">Email</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="john@solevault.com" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition" />
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="john@newdealzone.com" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition" />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1.5">Role (English)</label>

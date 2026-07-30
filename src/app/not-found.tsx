@@ -121,7 +121,7 @@ export default function NotFound() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href={`/${locale}`} className="flex items-center gap-2">
             <div className="w-9 h-9 rounded-lg bg-gray-900 flex items-center justify-center text-white font-black text-sm">SV</div>
-            <span className="font-black text-lg text-gray-900">SoleVault</span>
+            <span className="font-black text-lg text-gray-900">NewDealZone</span>
           </Link>
           <Link
             href={`/${locale}`}
@@ -281,7 +281,7 @@ export default function NotFound() {
 
       <footer className="mt-auto py-8 border-t border-gray-100 text-center text-xs text-gray-500">
         <div className="max-w-7xl mx-auto px-4">
-          &copy; {new Date().getFullYear()} SoleVault. {isFr ? "Tous droits reserves." : "All rights reserved."}
+          &copy; {new Date().getFullYear()} NewDealZone. {isFr ? "Tous droits reserves." : "All rights reserved."}
         </div>
       </footer>
     </main>

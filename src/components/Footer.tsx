@@ -102,7 +102,7 @@ export default function Footer() {
               <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center">
                 <span className="text-gray-900 font-bold text-sm">SV</span>
               </div>
-              <span className="text-xl font-bold text-white tracking-tight">SoleVault</span>
+              <span className="text-xl font-bold text-white tracking-tight">NewDealZone</span>
             </div>
             <p className="text-sm leading-relaxed mb-4">{t("tagline")}</p>
             <div className="flex items-center gap-3">
@@ -225,7 +225,7 @@ export default function Footer() {
 
           {/* Copyright + legal links */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm">&copy; {new Date().getFullYear()} SoleVault. {t("copyright")}</p>
+          <p className="text-sm">&copy; {new Date().getFullYear()} NewDealZone. {t("copyright")}</p>
           <div className="flex items-center gap-4 text-xs text-gray-500">
             <Link href="/privacy" className="hover:text-white transition">Privacy Policy</Link>
             <Link href="/terms" className="hover:text-white transition">Terms of Service</Link>

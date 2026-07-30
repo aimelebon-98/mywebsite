@@ -235,7 +235,7 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
                     </div>
                   </>
                 ) : (
-                  <div className="text-sm font-bold">SoleVault</div>
+                  <div className="text-sm font-bold">NewDealZone</div>
                 )}
               </div>
 

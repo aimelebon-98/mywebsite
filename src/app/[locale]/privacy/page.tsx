@@ -1,12 +1,12 @@
-﻿import Navbar from "@/components/Navbar";
+import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import LegalPageLayout from "@/components/LegalPageLayout";
 import { getLocale } from "next-intl/server";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy - SoleVault",
-  description: "Learn how SoleVault collects, uses, and protects your personal information.",
+  title: "Privacy Policy - NewDealZone",
+  description: "Learn how NewDealZone collects, uses, and protects your personal information.",
   robots: { index: true, follow: true },
 };
 
@@ -20,7 +20,7 @@ export default async function PrivacyPage() {
       title: "1. Introduction",
       content: (
         <>
-          <p>SoleVault (&quot;we&quot;, &quot;us&quot;, &quot;our&quot;) respects your privacy and is committed to protecting your personal data. This Privacy Policy explains how we collect, use, and safeguard information when you visit <strong>[YOUR WEBSITE URL]</strong> or make a purchase from us.</p>
+          <p>NewDealZone (&quot;we&quot;, &quot;us&quot;, &quot;our&quot;) respects your privacy and is committed to protecting your personal data. This Privacy Policy explains how we collect, use, and safeguard information when you visit <strong>[YOUR WEBSITE URL]</strong> or make a purchase from us.</p>
           <p>By using our website, you agree to the terms of this policy.</p>
         </>
       ),
@@ -147,7 +147,7 @@ export default async function PrivacyPage() {
       title: "1. Introduction",
       content: (
         <>
-          <p>SoleVault (&laquo; nous &raquo;) respecte votre vie privee et s&apos;engage a proteger vos donnees personnelles. Cette Politique de Confidentialite explique comment nous collectons, utilisons et protegeons vos informations lorsque vous visitez <strong>[VOTRE URL]</strong> ou effectuez un achat.</p>
+          <p>NewDealZone (&laquo; nous &raquo;) respecte votre vie privee et s&apos;engage a proteger vos donnees personnelles. Cette Politique de Confidentialite explique comment nous collectons, utilisons et protegeons vos informations lorsque vous visitez <strong>[VOTRE URL]</strong> ou effectuez un achat.</p>
           <p>En utilisant notre site, vous acceptez les termes de cette politique.</p>
         </>
       ),

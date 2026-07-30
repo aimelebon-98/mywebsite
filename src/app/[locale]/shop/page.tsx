@@ -1,4 +1,4 @@
-﻿import { db } from "@/db";
+import { db } from "@/db";
 import { products, categories as categoriesTable, type Product } from "@/db/schema";
 import { eq, desc, asc, and, ilike, gte, lte, gt, isNotNull, or, inArray } from "drizzle-orm";
 import type { Metadata } from "next";
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   title: "Shop All Products",
   description: "Browse our full collection of premium sneakers, running shoes, boots, formal shoes, sandals and casual shoes. Free shipping on orders over $100.",
   openGraph: {
-    title: "Shop All Products - SoleVault",
+    title: "Shop All Products - NewDealZone",
     description: "Browse our full collection of premium footwear. 50+ styles available.",
   },
 };

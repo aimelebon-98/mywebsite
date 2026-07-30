@@ -102,7 +102,7 @@ export default function CartPage() {
       // Don't block WhatsApp - still send message
     }
 
-    let message = `*New Order from SoleVault*\n\n`;
+    let message = `*New Order from NewDealZone*\n\n`;
     if (orderNumber) {
       message += `*Order:* ${orderNumber}\n`;
     }

@@ -9,7 +9,7 @@ export async function GET() {
     if (result.length === 0) {
       const newSettings = await db.insert(settings).values({
         id: 1,
-        storeName: "SoleVault",
+        storeName: "NewDealZone",
         whatsappNumber: "",
         currency: "$",
         adminPassword: "admin123",
@@ -50,7 +50,7 @@ export async function PUT(request: NextRequest) {
     if (existing.length === 0) {
       const newSettings = await db.insert(settings).values({
         id: 1,
-        storeName: storeName || "SoleVault",
+        storeName: storeName || "NewDealZone",
         whatsappNumber: whatsappNumber || "",
         currency: currency || "$",
         adminPassword: adminPassword || "admin123",

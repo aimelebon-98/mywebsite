@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
 
@@ -92,7 +92,7 @@ export async function POST() {
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS settings (
         id INTEGER PRIMARY KEY DEFAULT 1,
-        store_name TEXT NOT NULL DEFAULT 'SoleVault',
+        store_name TEXT NOT NULL DEFAULT 'NewDealZone',
         whatsapp_number TEXT NOT NULL DEFAULT '',
         currency TEXT NOT NULL DEFAULT '$',
         admin_password TEXT NOT NULL DEFAULT 'admin123',

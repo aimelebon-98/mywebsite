@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
 import { authors } from "@/db/schema";
@@ -73,12 +73,12 @@ export async function GET() {
     let defaultAuthor = null;
     if (existing.length === 0) {
       const inserted = await db.insert(authors).values({
-        name: "SoleVault Team",
+        name: "NewDealZone Team",
         slug: "solevault-team",
-        avatar: "https://ui-avatars.com/api/?name=SoleVault+Team&background=111827&color=fff&bold=true&size=200",
-        email: "team@solevault.com",
-        bio: "The SoleVault editorial team - your source for premium footwear insights, style guides, and sneaker culture.",
-        bioFr: "L'equipe editoriale SoleVault - votre source pour les conseils sur les chaussures premium, les guides de style et la culture sneaker.",
+        avatar: "https://ui-avatars.com/api/?name=NewDealZone+Team&background=111827&color=fff&bold=true&size=200",
+        email: "team@newdealzone.com",
+        bio: "The NewDealZone editorial team - your source for premium footwear insights, style guides, and sneaker culture.",
+        bioFr: "L'equipe editoriale NewDealZone - votre source pour les conseils sur les chaussures premium, les guides de style et la culture sneaker.",
         role: "Editorial Team",
         roleFr: "Equipe editoriale",
         active: true,

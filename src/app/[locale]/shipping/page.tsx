@@ -1,12 +1,12 @@
-﻿import Navbar from "@/components/Navbar";
+import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import LegalPageLayout from "@/components/LegalPageLayout";
 import { getLocale } from "next-intl/server";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Shipping Policy - SoleVault",
-  description: "Shipping fees, delivery times, and available regions for SoleVault orders.",
+  title: "Shipping Policy - NewDealZone",
+  description: "Shipping fees, delivery times, and available regions for NewDealZone orders.",
   robots: { index: true, follow: true },
 };
 

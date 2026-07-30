@@ -19,9 +19,9 @@ type FAQ = {
 const FAQS: FAQ[] = [
   {
     category: "orders",
-    q: "How do I place an order on SoleVault?",
+    q: "How do I place an order on NewDealZone?",
     a: "Browse our shop, select your size and color, then click BUY NOW or add the item to your cart. When you are ready, go to your cart, fill in your name, phone number, and delivery address, then click Checkout via WhatsApp. You will be redirected to WhatsApp where our team will confirm your order and payment details.",
-    qFr: "Comment passer une commande sur SoleVault?",
+    qFr: "Comment passer une commande sur NewDealZone?",
     aFr: "Parcourez notre boutique, sélectionnez votre taille et couleur, puis cliquez sur ACHETER ou ajoutez l'article au panier. Quand vous êtes prêt, allez au panier, remplissez votre nom, numéro de téléphone et adresse de livraison, puis cliquez sur Commander via WhatsApp. Vous serez redirigé vers WhatsApp où notre équipe confirmera votre commande et les détails de paiement.",
   },
   {

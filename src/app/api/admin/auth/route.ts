@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { settings, loginAttempts, adminSessions } from "@/db/schema";
 import { eq, and, gte } from "drizzle-orm";
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     if (result.length === 0) {
       await db.insert(settings).values({
         id: 1,
-        storeName: "SoleVault",
+        storeName: "NewDealZone",
         whatsappNumber: "",
         currency: "$",
         adminPassword: "admin123",

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
@@ -14,9 +14,9 @@ export default function WhatsAppButton() {
 
   const t = isFr
     ? {
-        supportName: "SoleVault Support",
+        supportName: "NewDealZone Support",
         replies: "Repond generalement rapidement",
-        welcome: "Bonjour ! Bienvenue chez SoleVault. Comment pouvons-nous vous aider aujourd'hui ?",
+        welcome: "Bonjour ! Bienvenue chez NewDealZone. Comment pouvons-nous vous aider aujourd'hui ?",
         justNow: "A l'instant",
         placeholder: "Ecrivez un message...",
         needHelp: "Besoin d'aide ?",
@@ -30,9 +30,9 @@ export default function WhatsAppButton() {
         ],
       }
     : {
-        supportName: "SoleVault Support",
+        supportName: "NewDealZone Support",
         replies: "Usually replies instantly",
-        welcome: "Hey there! Welcome to SoleVault. How can we help you today?",
+        welcome: "Hey there! Welcome to NewDealZone. How can we help you today?",
         justNow: "Just now",
         placeholder: "Type a message...",
         needHelp: "Need help?",

@@ -158,7 +158,7 @@ export default function BlogListingClient({ posts, authors, locale }: Props) {
           {/* Title with gradient text */}
           <h1 className="text-4xl lg:text-6xl font-black tracking-tight mb-3 text-white hero-fade-in hero-delay-1">
             {isFr ? "Le Blog " : "The "}
-            <span className="hero-gradient-text">SoleVault</span>
+            <span className="hero-gradient-text">NewDealZone</span>
             {!isFr && " Blog"}
           </h1>
 
@@ -428,7 +428,7 @@ export default function BlogListingClient({ posts, authors, locale }: Props) {
                               </div>
                             </>
                           ) : (
-                            <span className="text-xs text-gray-400">SoleVault</span>
+                            <span className="text-xs text-gray-400">NewDealZone</span>
                           )}
                         </div>
                         <div className="text-xs text-gray-500 flex items-center gap-1 flex-shrink-0">

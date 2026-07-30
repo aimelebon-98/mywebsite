@@ -30,23 +30,23 @@ const ExitIntentPopup = dynamic(() => import("@/components/ExitIntentPopup"));
 const CookieConsent = dynamic(() => import("@/components/CookieConsent"));
 const StickyPromoBar = dynamic(() => import("@/components/StickyPromoBar"));
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://solevault.com";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://newdealzone.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "SoleVault - Premium Footwear | Sneakers, Boots, Formal Shoes",
-    template: "%s | SoleVault",
+    default: "NewDealZone - Premium Footwear | Sneakers, Boots, Formal Shoes",
+    template: "%s | NewDealZone",
   },
-  description: "Discover premium shoes for every occasion at SoleVault. Shop sneakers, running shoes, boots, formal shoes, sandals and more. Free shipping on orders over $100.",
-  keywords: ["shoes", "sneakers", "boots", "running shoes", "formal shoes", "footwear", "SoleVault"],
-  authors: [{ name: "SoleVault" }],
+  description: "Discover premium shoes for every occasion at NewDealZone. Shop sneakers, running shoes, boots, formal shoes, sandals and more. Free shipping on orders over $100.",
+  keywords: ["shoes", "sneakers", "boots", "running shoes", "formal shoes", "footwear", "NewDealZone"],
+  authors: [{ name: "NewDealZone" }],
   openGraph: {
     type: "website",
-    siteName: "SoleVault",
-    title: "SoleVault - Premium Footwear",
+    siteName: "NewDealZone",
+    title: "NewDealZone - Premium Footwear",
     description: "Discover premium shoes for every occasion.",
-    images: [{ url: "/images/hero-shoe.jpg", width: 1200, height: 630, alt: "SoleVault" }],
+    images: [{ url: "/images/hero-shoe.jpg", width: 1200, height: 630, alt: "NewDealZone" }],
   },
   robots: { index: true, follow: true },
 };
@@ -72,7 +72,7 @@ export default async function LocaleLayout({
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Store",
-    name: "SoleVault",
+    name: "NewDealZone",
     description: "Premium footwear for every occasion",
     url: siteUrl,
     priceRange: "$$",

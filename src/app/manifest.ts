@@ -1,9 +1,9 @@
-﻿import type { MetadataRoute } from "next";
+import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "SoleVault - Premium Footwear",
-    short_name: "SoleVault",
+    name: "NewDealZone - Premium Footwear",
+    short_name: "NewDealZone",
     description: "Shop premium sneakers, running shoes, boots, formal shoes, sandals and casual footwear.",
     start_url: "/",
     display: "standalone",

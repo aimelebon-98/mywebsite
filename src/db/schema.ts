@@ -1,4 +1,4 @@
-﻿import { pgTable, text, numeric, integer, boolean, timestamp, uuid } from "drizzle-orm/pg-core";
+import { pgTable, text, numeric, integer, boolean, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const products = pgTable("products", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -74,7 +74,7 @@ export const newsletter = pgTable("newsletter", {
 
 export const settings = pgTable("settings", {
   id: integer("id").primaryKey().default(1),
-  storeName: text("store_name").notNull().default("SoleVault"),
+  storeName: text("store_name").notNull().default("NewDealZone"),
   whatsappNumber: text("whatsapp_number").notNull().default(""),
   currency: text("currency").notNull().default("$"),
   adminPassword: text("admin_password").notNull().default("admin123"),

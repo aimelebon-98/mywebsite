@@ -1,12 +1,12 @@
-﻿import Navbar from "@/components/Navbar";
+import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import LegalPageLayout from "@/components/LegalPageLayout";
 import { getLocale } from "next-intl/server";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Returns & Refunds - SoleVault",
-  description: "Our returns and refunds policy for SoleVault orders.",
+  title: "Returns & Refunds - NewDealZone",
+  description: "Our returns and refunds policy for NewDealZone orders.",
   robots: { index: true, follow: true },
 };
 

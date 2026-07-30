@@ -69,7 +69,7 @@ export default function Navbar() {
             <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-xs">SV</span>
             </div>
-            <span className={`text-lg font-bold tracking-tight hidden sm:block ${logoText}`}>SoleVault</span>
+            <span className={`text-lg font-bold tracking-tight hidden sm:block ${logoText}`}>NewDealZone</span>
           </Link>
 
           <div className="hidden lg:flex items-center gap-5">

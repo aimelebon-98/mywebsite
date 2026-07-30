@@ -35,13 +35,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const isFr = locale === "fr";
   try {
     const res = await db.select().from(authors).where(eq(authors.slug, slug));
-    if (res.length === 0) return { title: "Author Not Found - SoleVault" };
+    if (res.length === 0) return { title: "Author Not Found - NewDealZone" };
     const a = res[0];
     const bio = isFr ? (a.bioFr || a.bio) : a.bio;
 
     return {
-      title: `${a.name} - SoleVault Blog`,
-      description: bio || `Read articles by ${a.name} on SoleVault Blog.`,
+      title: `${a.name} - NewDealZone Blog`,
+      description: bio || `Read articles by ${a.name} on NewDealZone Blog.`,
       alternates: {
         canonical: `${SITE_URL}/${locale}/blog/author/${slug}`,
         languages: {
@@ -50,7 +50,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         },
       },
       openGraph: {
-        title: `${a.name} - SoleVault Blog`,
+        title: `${a.name} - NewDealZone Blog`,
         description: bio,
         url: `${SITE_URL}/${locale}/blog/author/${slug}`,
         images: a.avatar ? [{ url: a.avatar, width: 400, height: 400, alt: a.name }] : [],
@@ -58,7 +58,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       },
     };
   } catch {
-    return { title: "Author - SoleVault" };
+    return { title: "Author - NewDealZone" };
   }
 }
 

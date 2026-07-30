@@ -64,7 +64,7 @@ export default function AboutPage() {
             <div className="aspect-square rounded-3xl overflow-hidden bg-gray-100">
               <img
                 src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=80"
-                alt="SoleVault shoes"
+                alt="NewDealZone shoes"
                 className="w-full h-full object-cover"
               />
             </div>

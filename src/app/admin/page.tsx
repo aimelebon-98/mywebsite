@@ -131,7 +131,7 @@ export default function AdminPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [storeSettings, setStoreSettings] = useState<StoreSettings>({
-    storeName: "SoleVault",
+    storeName: "NewDealZone",
     whatsappNumber: "",
     currency: "$",
     adminPassword: "",

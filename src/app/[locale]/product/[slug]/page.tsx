@@ -15,7 +15,7 @@ import { getTranslations, getLocale } from "next-intl/server";
 export const dynamic = "force-dynamic";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://mywebsite-inky-gamma.vercel.app";
-const SITE_NAME = "SoleVault";
+const SITE_NAME = "NewDealZone";
 
 interface Props {
   params: Promise<{ slug: string; locale: string }>;
@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     let result = await db.select().from(products).where(eq(products.slug, slug));
     if (result.length === 0) result = await db.select().from(products).where(eq(products.id, slug));
-    if (result.length === 0) return { title: "Product Not Found - SoleVault" };
+    if (result.length === 0) return { title: "Product Not Found - NewDealZone" };
 
     const raw = result[0];
     const product = localizeProduct(raw, isFr);
@@ -120,7 +120,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     return metadata;
   } catch {
-    return { title: "Product - SoleVault" };
+    return { title: "Product - NewDealZone" };
   }
 }
 

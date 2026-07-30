@@ -1,12 +1,12 @@
-﻿import Navbar from "@/components/Navbar";
+import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import LegalPageLayout from "@/components/LegalPageLayout";
 import { getLocale } from "next-intl/server";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Terms of Service - SoleVault",
-  description: "The terms and conditions governing your use of SoleVault.",
+  title: "Terms of Service - NewDealZone",
+  description: "The terms and conditions governing your use of NewDealZone.",
   robots: { index: true, follow: true },
 };
 
@@ -19,7 +19,7 @@ export default async function TermsPage() {
       id: "acceptance",
       title: "1. Acceptance of Terms",
       content: (
-        <p>By accessing or using SoleVault (&quot;the Service&quot;), you agree to be bound by these Terms of Service. If you disagree with any part of these terms, you may not access the Service.</p>
+        <p>By accessing or using NewDealZone (&quot;the Service&quot;), you agree to be bound by these Terms of Service. If you disagree with any part of these terms, you may not access the Service.</p>
       ),
     },
     {
@@ -67,7 +67,7 @@ export default async function TermsPage() {
       id: "ip",
       title: "6. Intellectual Property",
       content: (
-        <p>All content on this site (logos, product descriptions, images, code) is the property of SoleVault or its licensors and is protected by copyright and trademark laws. You may not reproduce, distribute, or use our content without written permission.</p>
+        <p>All content on this site (logos, product descriptions, images, code) is the property of NewDealZone or its licensors and is protected by copyright and trademark laws. You may not reproduce, distribute, or use our content without written permission.</p>
       ),
     },
     {
@@ -81,7 +81,7 @@ export default async function TermsPage() {
       id: "liability",
       title: "8. Limitation of Liability",
       content: (
-        <p>To the fullest extent permitted by law, SoleVault shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the Service. Our total liability shall not exceed the amount paid by you for the specific product in question.</p>
+        <p>To the fullest extent permitted by law, NewDealZone shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the Service. Our total liability shall not exceed the amount paid by you for the specific product in question.</p>
       ),
     },
     {
@@ -112,7 +112,7 @@ export default async function TermsPage() {
       id: "acceptance",
       title: "1. Acceptation des conditions",
       content: (
-        <p>En accedant ou en utilisant SoleVault (&laquo; le Service &raquo;), vous acceptez d&apos;etre lie par ces Conditions Generales. Si vous n&apos;etes pas d&apos;accord avec l&apos;un de ces termes, vous ne pouvez pas utiliser le Service.</p>
+        <p>En accedant ou en utilisant NewDealZone (&laquo; le Service &raquo;), vous acceptez d&apos;etre lie par ces Conditions Generales. Si vous n&apos;etes pas d&apos;accord avec l&apos;un de ces termes, vous ne pouvez pas utiliser le Service.</p>
       ),
     },
     {
@@ -160,7 +160,7 @@ export default async function TermsPage() {
       id: "ip",
       title: "6. Propriete intellectuelle",
       content: (
-        <p>Tout le contenu de ce site (logos, descriptions, images, code) est la propriete de SoleVault et protege par le droit d&apos;auteur. Vous ne pouvez pas le reproduire ou l&apos;utiliser sans autorisation ecrite.</p>
+        <p>Tout le contenu de ce site (logos, descriptions, images, code) est la propriete de NewDealZone et protege par le droit d&apos;auteur. Vous ne pouvez pas le reproduire ou l&apos;utiliser sans autorisation ecrite.</p>
       ),
     },
     {
@@ -174,7 +174,7 @@ export default async function TermsPage() {
       id: "liability",
       title: "8. Limitation de responsabilite",
       content: (
-        <p>Dans la mesure permise par la loi, SoleVault ne sera pas responsable des dommages indirects, accessoires ou consecutifs. Notre responsabilite totale ne depassera pas le montant paye pour le produit concerne.</p>
+        <p>Dans la mesure permise par la loi, NewDealZone ne sera pas responsable des dommages indirects, accessoires ou consecutifs. Notre responsabilite totale ne depassera pas le montant paye pour le produit concerne.</p>
       ),
     },
     {
@@ -206,7 +206,7 @@ export default async function TermsPage() {
       <div className="pt-20 lg:pt-24">
         <LegalPageLayout
           title={isFr ? "Conditions generales" : "Terms of Service"}
-          subtitle={isFr ? "Les regles qui regissent votre utilisation de SoleVault." : "The rules governing your use of SoleVault."}
+          subtitle={isFr ? "Les regles qui regissent votre utilisation de NewDealZone." : "The rules governing your use of NewDealZone."}
           lastUpdated="January 1, 2026"
           sections={isFr ? frSections : enSections}
         />

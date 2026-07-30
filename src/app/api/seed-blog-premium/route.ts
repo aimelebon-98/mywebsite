@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { blogPosts, authors } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -82,7 +82,7 @@ const CONTENT_EN = `
 <p>A $200 sneaker you wear 200 times costs $1 per wear. A $50 sneaker you wear 20 times before it falls apart? $2.50 per wear. Premium is often the cheaper long-term choice.</p>
 
 <h2>Ready to Feel the Difference?</h2>
-<p>At <strong>SoleVault</strong>, we curate sneakers built with the craftsmanship you just read about. Every shoe we stock is chosen for materials, construction, and comfort that lasts.</p>
+<p>At <strong>NewDealZone</strong>, we curate sneakers built with the craftsmanship you just read about. Every shoe we stock is chosen for materials, construction, and comfort that lasts.</p>
 `.trim();
 
 const CONTENT_FR = `
@@ -149,7 +149,7 @@ const CONTENT_FR = `
 <p>Une sneaker a 200$ portee 200 fois coute 1$ par port. Une sneaker a 50$ portee 20 fois? 2,50$ par port. Le premium est souvent le choix le moins cher a long terme.</p>
 
 <h2>Pret a Sentir la Difference?</h2>
-<p>Chez <strong>SoleVault</strong>, nous selectionnons des sneakers construites avec l artisanat que vous venez de decouvrir.</p>
+<p>Chez <strong>NewDealZone</strong>, nous selectionnons des sneakers construites avec l artisanat que vous venez de decouvrir.</p>
 `.trim();
 
 export async function GET() {
@@ -160,12 +160,12 @@ export async function GET() {
       authorId = existingAuthor[0].id;
     } else {
       const newAuthor = await db.insert(authors).values({
-        name: "SoleVault Editorial",
+        name: "NewDealZone Editorial",
         slug: AUTHOR_SLUG,
         avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80",
-        email: "editorial@solevault.com",
-        bio: "The SoleVault editorial team writes about sneaker culture, craftsmanship, and everything that makes footwear worth talking about.",
-        bioFr: "L equipe editoriale de SoleVault ecrit sur la culture sneaker, l artisanat et tout ce qui rend les chaussures dignes d attention.",
+        email: "editorial@newdealzone.com",
+        bio: "The NewDealZone editorial team writes about sneaker culture, craftsmanship, and everything that makes footwear worth talking about.",
+        bioFr: "L equipe editoriale de NewDealZone ecrit sur la culture sneaker, l artisanat et tout ce qui rend les chaussures dignes d attention.",
         role: "Editorial Team",
         roleFr: "Equipe editoriale",
         active: true,
@@ -193,11 +193,11 @@ export async function GET() {
       published: true,
       featured: true,
       publishedAt: new Date(),
-      seoTitle: "How Premium Sneakers Are Made: A Behind-the-Scenes Guide | SoleVault",
+      seoTitle: "How Premium Sneakers Are Made: A Behind-the-Scenes Guide | NewDealZone",
       metaDescription: "Discover the 60+ step process behind premium sneaker manufacturing: from design and materials to hand-stitching, sole engineering, and quality control.",
       focusKeyphrase: "how premium sneakers are made",
       ogImage: "https://images.unsplash.com/photo-1552346154-21d32810aba3?w=1200&q=630",
-      seoTitleFr: "Comment Sont Fabriquees les Sneakers Premium: Guide des Coulisses | SoleVault",
+      seoTitleFr: "Comment Sont Fabriquees les Sneakers Premium: Guide des Coulisses | NewDealZone",
       metaDescriptionFr: "Decouvrez le processus de plus de 60 etapes derriere la fabrication des sneakers premium.",
       focusKeyphraseFr: "comment sont fabriquees les sneakers premium",
       updatedAt: new Date(),

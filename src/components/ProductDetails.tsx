@@ -211,7 +211,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
 
   const specs = [
     { label: t("specCategory"), value: product.category },
-    { label: t("specBrand"),    value: product.brand || "SoleVault" },
+    { label: t("specBrand"),    value: product.brand || "NewDealZone" },
     { label: t("specSizes"),    value: sizes.join(", ") || t("specOneSize") },
     { label: t("specColors"),   value: colors.join(", ") || t("specDefault") },
     { label: t("specMaterial"), value: product.material || t("specMaterialDefault") },
@@ -635,7 +635,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                       SV
                     </div>
                     <div className="min-w-0">
-                      <div className="text-sm font-bold text-gray-900">SoleVault</div>
+                      <div className="text-sm font-bold text-gray-900">NewDealZone</div>
                       <div className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
                         <span className="inline-block w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
                         {isFr ? "Vendeur premium verifie" : "Verified premium seller"}

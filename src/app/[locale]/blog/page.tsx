@@ -15,7 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
   const isFr = locale === "fr";
 
-  const title = isFr ? "Blog - Conseils, guides et actualites - SoleVault" : "Blog - Style tips, guides & sneaker news - SoleVault";
+  const title = isFr ? "Blog - Conseils, guides et actualites - NewDealZone" : "Blog - Style tips, guides & sneaker news - NewDealZone";
   const description = isFr
     ? "Decouvrez nos conseils de style, tests de produits, guides d'achat et actualites du monde des sneakers premium."
     : "Discover our style tips, product reviews, buying guides, and news from the world of premium sneakers and footwear.";
@@ -35,7 +35,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title,
       description,
       url: `${SITE_URL}/${locale}/blog`,
-      siteName: "SoleVault",
+      siteName: "NewDealZone",
       locale: isFr ? "fr_FR" : "en_US",
       type: "website",
     },
@@ -79,7 +79,7 @@ export default async function BlogPage() {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Blog",
-    name: isFr ? "Blog SoleVault" : "SoleVault Blog",
+    name: isFr ? "Blog NewDealZone" : "NewDealZone Blog",
     url: `${SITE_URL}/${locale}/blog`,
     blogPost: posts.slice(0, 10).map(p => ({
       "@type": "BlogPosting",

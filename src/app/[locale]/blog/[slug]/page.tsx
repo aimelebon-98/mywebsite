@@ -37,15 +37,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       result = await db.select().from(blogPosts).where(eq(blogPosts.id, slug));
     }
     if (result.length === 0 || !result[0].published) {
-      return { title: isFr ? "Article introuvable - SoleVault" : "Article Not Found - SoleVault" };
+      return { title: isFr ? "Article introuvable - NewDealZone" : "Article Not Found - NewDealZone" };
     }
 
     const raw = result[0];
     const post = localizePost(raw, isFr);
 
     const seoTitle = isFr
-      ? (raw.seoTitleFr || raw.seoTitle || `${post.title} - SoleVault Blog`)
-      : (raw.seoTitle || `${post.title} - SoleVault Blog`);
+      ? (raw.seoTitleFr || raw.seoTitle || `${post.title} - NewDealZone Blog`)
+      : (raw.seoTitle || `${post.title} - NewDealZone Blog`);
 
     const metaDescription = isFr
       ? (raw.metaDescriptionFr || raw.metaDescription || post.excerpt || post.content.replace(/<[^>]*>/g, "").slice(0, 155))
@@ -63,7 +63,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const metadata: Metadata = {
       title: seoTitle,
       description: metaDescription,
-      keywords: [focusKp, ...tagArr, "SoleVault", "blog"].filter(Boolean).join(", "),
+      keywords: [focusKp, ...tagArr, "NewDealZone", "blog"].filter(Boolean).join(", "),
       alternates: {
         canonical,
         languages: {
@@ -76,7 +76,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         title: seoTitle,
         description: metaDescription,
         url: postUrl,
-        siteName: "SoleVault",
+        siteName: "NewDealZone",
         locale: isFr ? "fr_FR" : "en_US",
         type: "article",
         publishedTime: post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined,
@@ -98,7 +98,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     return metadata;
   } catch {
-    return { title: "Blog - SoleVault" };
+    return { title: "Blog - NewDealZone" };
   }
 }
 
@@ -165,11 +165,11 @@ export default async function BlogPostPage({ params }: Props) {
       image: author.avatar || undefined,
     } : {
       "@type": "Organization",
-      name: "SoleVault",
+      name: "NewDealZone",
     },
     publisher: {
       "@type": "Organization",
-      name: "SoleVault",
+      name: "NewDealZone",
       logo: {
         "@type": "ImageObject",
         url: `${SITE_URL}/favicon.ico`,
