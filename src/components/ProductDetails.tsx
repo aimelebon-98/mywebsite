@@ -1,4 +1,5 @@
 "use client";
+import { useCurrency } from "@/lib/currency-context";
 import StockBadge from "@/components/StockBadge";
 import { trackEvent } from "@/components/AnalyticsTracker";
 import ProductFaqDisplay from "@/components/ProductFaqDisplay";
@@ -58,6 +59,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
   const [selectedColor, setSelectedColor] = useState(colors[0] || "");
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
+  const { format: formatPrice } = useCurrency();
   const [activeTab, setActiveTab] = useState<"description" | "details" | "shipping">("description");
 
   // Sticky mini cart: switches to fixed positioning when scrolled past, hides at tabs end
@@ -427,10 +429,10 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
 
               {/* Price */}
               <div className="flex items-end gap-3 mb-6 p-4 bg-gradient-to-r from-gray-50 to-transparent rounded-2xl -ml-4 pl-4">
-                <span className="text-4xl font-black text-gray-900">${price.toFixed(2)}</span>
+                <span className="text-4xl font-black text-gray-900">{formatPrice(price)}</span>
                 {comparePrice && (
                   <div className="flex items-center gap-2 pb-1">
-                    <span className="text-lg text-gray-400 line-through">${comparePrice.toFixed(2)}</span>
+                    <span className="text-lg text-gray-400 line-through">{formatPrice(comparePrice)}</span>
                     <span className="px-2.5 py-1 bg-red-500 text-white text-xs font-bold rounded-lg">
                       {t("saveAmount", { amount: (comparePrice - price).toFixed(2) })}
                     </span>
@@ -688,9 +690,9 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-bold text-gray-900 line-clamp-2 leading-tight">{product.name}</div>
                       <div className="flex items-baseline gap-2 mt-1">
-                        <span className="text-lg font-black" style={{ color: "#CA3F2E" }}>${price.toFixed(2)}</span>
+                        <span className="text-lg font-black" style={{ color: "#CA3F2E" }}>{formatPrice(price)}</span>
                         {comparePrice && comparePrice > price && (
-                          <span className="text-xs text-gray-400 line-through">${comparePrice.toFixed(2)}</span>
+                          <span className="text-xs text-gray-400 line-through">{formatPrice(comparePrice)}</span>
                         )}
                       </div>
                     </div>
@@ -728,9 +730,9 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
           <div className="flex-1 min-w-0">
             <div className="text-xs font-semibold text-gray-900 truncate">{product.name}</div>
             <div className="flex items-baseline gap-2">
-              <span className="text-base font-black" style={{ color: "#CA3F2E" }}>${price.toFixed(2)}</span>
+              <span className="text-base font-black" style={{ color: "#CA3F2E" }}>{formatPrice(price)}</span>
               {comparePrice && comparePrice > price && (
-                <span className="text-xs text-gray-400 line-through">${comparePrice.toFixed(2)}</span>
+                <span className="text-xs text-gray-400 line-through">{formatPrice(comparePrice)}</span>
               )}
             </div>
           </div>

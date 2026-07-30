@@ -1,4 +1,5 @@
 "use client";
+import CurrencySelector from "./CurrencySelector";
 
 import { useTranslations, useLocale } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/routing";
@@ -105,7 +106,8 @@ export default function Navbar() {
                 aria-label="Change language"
                 className={`flex items-center gap-1 p-2 rounded-xl transition ${iconHoverBg}`}
               >
-                <Globe className={`w-5 h-5 ${iconColor}`} />
+                <CurrencySelector compact={isBlogPage} className="mr-1" />
+              <Globe className={`w-5 h-5 ${iconColor}`} />
                 <span className={`text-xs font-bold uppercase ${localeText}`}>{locale}</span>
               </button>
               {langOpen && (

@@ -1,4 +1,5 @@
 "use client";
+import { useCurrency } from "@/lib/currency-context";
 import BundleBanner from "@/components/BundleBanner";
 import { findApplicableBundle, calcDiscount, type Bundle } from "@/lib/bundles";
 import { Gift } from "lucide-react";
@@ -19,6 +20,7 @@ export default function CartPage() {
   const locale = useLocale();
 
   const { items, removeItem, updateQuantity, clearCart, totalPrice, totalItems } = useCart();
+  const { currency: userCurrency, format: formatPrice, convert } = useCurrency();
   const [whatsappNumber, setWhatsappNumber] = useState("");
   const [bundles, setBundles] = useState<Bundle[]>([]);
   const appliedBundle = findApplicableBundle(items.map(i => ({ quantity: i.quantity })), bundles);
@@ -115,16 +117,16 @@ export default function CartPage() {
     items.forEach((item, i) => {
       message += `${i + 1}. *${item.name}*\n`;
       message += `   Size: ${item.size} | Color: ${item.color}\n`;
-      message += `   Qty: ${item.quantity} x ${currency}${item.price.toFixed(2)}\n`;
-      message += `   Subtotal: ${currency}${(item.price * item.quantity).toFixed(2)}\n\n`;
+      message += `   Qty: ${item.quantity} x {formatPrice(item.price)}\n`;
+      message += `   Subtotal: {formatPrice((item.price * item.quantity))}\n\n`;
     });
 
     message += `-----------------------------\n`;
     if (appliedBundle) {
-      message += `Subtotal: ${currency}${totalPrice.toFixed(2)}\n`;
-      message += `Bundle Discount (${appliedBundle.name}): -${currency}${discountAmount.toFixed(2)}\n`;
+      message += `Subtotal: {formatPrice(totalPrice)}\n`;
+      message += `Bundle Discount (${appliedBundle.name}): -{formatPrice(discountAmount)}\n`;
     }
-    message += `*Total: ${currency}${finalTotal.toFixed(2)}*\n`;
+    message += `*Total: {formatPrice(finalTotal)}*\n`;
     message += `*Items: ${totalItems}*\n`;
 
     const phone = whatsappNumber.replace(/\D/g, "");

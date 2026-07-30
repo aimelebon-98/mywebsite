@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Heart, Star, ShoppingBag, Zap, Eye } from "lucide-react";
 import type { Product } from "@/db/schema";
 import { useCart } from "@/lib/cart-context";
+import { useCurrency } from "@/lib/currency-context";
 import { useWishlist } from "@/lib/wishlist-context";
 import { useState } from "react";
 import ProductImage from "./ProductImage";
@@ -32,6 +33,7 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
   const reviewCount = product.reviewCount ?? 0;
   const displayStars = rating > 0 ? Math.round(rating) : 5;
   const { addItem } = useCart();
+  const { format: formatPrice } = useCurrency();
   const { isWished, toggle } = useWishlist();
   const router = useRouter();
   const [addedToCart, setAddedToCart] = useState(false);
@@ -205,9 +207,9 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-base font-bold">${price.toFixed(2)}</span>
+            <span className="text-base font-bold">{formatPrice(price)}</span>
             {comparePrice && (
-              <span className="text-xs text-gray-400 line-through">${comparePrice.toFixed(2)}</span>
+              <span className="text-xs text-gray-400 line-through">{formatPrice(comparePrice)}</span>
             )}
           </div>
         </div>
