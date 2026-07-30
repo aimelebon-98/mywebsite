@@ -100,6 +100,8 @@ export default function Navbar() {
               />
             </div>
 
+            <CurrencySelector compact={isBlogPage} />
+
             <div className="relative">
               <button
                 onClick={() => setLangOpen(!langOpen)}
