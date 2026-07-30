@@ -11,10 +11,15 @@ interface Props {
   className?: string;
 }
 
-// SVG flag components (rendered inline like language dropdown)
-function Flag({ code, size = 20 }: { code: CurrencyCode; size?: number }) {
+// SVG flag components
+function Flag({ code, xofCountry, size = 20 }: { code: CurrencyCode; xofCountry?: string; size?: number }) {
   const h = Math.round(size * 0.7);
   const props = { width: size, height: h, className: "rounded-sm flex-shrink-0", xmlns: "http://www.w3.org/2000/svg" };
+
+  // Special case: XOF uses visitor's country flag
+  if (code === "XOF" && xofCountry) {
+    return <XofFlag country={xofCountry} svgProps={props} />;
+  }
 
   switch (code) {
     case "USD":
@@ -74,13 +79,8 @@ function Flag({ code, size = 20 }: { code: CurrencyCode; size?: number }) {
         </svg>
       );
     case "XOF":
-      return (
-        <svg {...props} viewBox="0 0 3 2">
-          <rect width="1" height="2" x="0" fill="#009E60" />
-          <rect width="1" height="2" x="1" fill="#FCD116" />
-          <rect width="1" height="2" x="2" fill="#CE1126" />
-        </svg>
-      );
+      // Fallback: use Senegal flag (largest XOF economy) if no visitor country
+      return <XofFlag country="SN" svgProps={props} />;
     case "KES":
       return (
         <svg {...props} viewBox="0 0 60 42">
@@ -106,8 +106,93 @@ function Flag({ code, size = 20 }: { code: CurrencyCode; size?: number }) {
   }
 }
 
+// XOF country-specific flags
+type SvgProps = { width: number; height: number; className: string; xmlns: string };
+function XofFlag({ country, svgProps }: { country: string; svgProps: SvgProps }) {
+  switch (country.toUpperCase()) {
+    case "TG": // Togo
+      return (
+        <svg {...svgProps} viewBox="0 0 60 42">
+          <rect width="60" height="42" fill="#FFCE00" />
+          <rect y="8.4" width="60" height="8.4" fill="#006A4E" />
+          <rect y="25.2" width="60" height="8.4" fill="#006A4E" />
+          <rect width="24" height="25.2" fill="#D21034" />
+          <polygon points="12,7 13.5,11.5 18.5,11.5 14.5,14.5 16,19 12,16 8,19 9.5,14.5 5.5,11.5 10.5,11.5" fill="#fff" />
+        </svg>
+      );
+    case "CI": // Cote d'Ivoire
+      return (
+        <svg {...svgProps} viewBox="0 0 3 2">
+          <rect x="0" width="1" height="2" fill="#F77F00" />
+          <rect x="1" width="1" height="2" fill="#fff" />
+          <rect x="2" width="1" height="2" fill="#009E60" />
+        </svg>
+      );
+    case "SN": // Senegal
+      return (
+        <svg {...svgProps} viewBox="0 0 60 42">
+          <rect width="20" height="42" fill="#00853F" />
+          <rect x="20" width="20" height="42" fill="#FDEF42" />
+          <rect x="40" width="20" height="42" fill="#E31B23" />
+          <polygon points="30,17 31,20 34,20 31.5,22 32.5,25 30,23 27.5,25 28.5,22 26,20 29,20" fill="#00853F" />
+        </svg>
+      );
+    case "BF": // Burkina Faso
+      return (
+        <svg {...svgProps} viewBox="0 0 60 42">
+          <rect width="60" height="21" fill="#EF2B2D" />
+          <rect y="21" width="60" height="21" fill="#009E49" />
+          <polygon points="30,15 31.5,19.5 36,19.5 32,22 34,26.5 30,24 26,26.5 28,22 24,19.5 28.5,19.5" fill="#FCD116" />
+        </svg>
+      );
+    case "BJ": // Benin
+      return (
+        <svg {...svgProps} viewBox="0 0 60 42">
+          <rect width="20" height="42" fill="#009543" />
+          <rect x="20" width="40" height="21" fill="#FCD116" />
+          <rect x="20" y="21" width="40" height="21" fill="#E8112D" />
+        </svg>
+      );
+    case "ML": // Mali
+      return (
+        <svg {...svgProps} viewBox="0 0 3 2">
+          <rect x="0" width="1" height="2" fill="#14B53A" />
+          <rect x="1" width="1" height="2" fill="#FCD116" />
+          <rect x="2" width="1" height="2" fill="#CE1126" />
+        </svg>
+      );
+    case "NE": // Niger
+      return (
+        <svg {...svgProps} viewBox="0 0 60 42">
+          <rect width="60" height="14" fill="#E05206" />
+          <rect y="14" width="60" height="14" fill="#fff" />
+          <rect y="28" width="60" height="14" fill="#0DB02B" />
+          <circle cx="30" cy="21" r="4" fill="#E05206" />
+        </svg>
+      );
+    case "GW": // Guinea-Bissau
+      return (
+        <svg {...svgProps} viewBox="0 0 60 42">
+          <rect width="60" height="21" fill="#FCD116" />
+          <rect y="21" width="60" height="21" fill="#009E49" />
+          <rect width="24" height="42" fill="#CE1126" />
+          <polygon points="12,15 13.5,19.5 18.5,19.5 14.5,22.5 16,27 12,24 8,27 9.5,22.5 5.5,19.5 10.5,19.5" fill="#000" />
+        </svg>
+      );
+    default:
+      // Generic West African / neutral (green/yellow/red pan-African)
+      return (
+        <svg {...svgProps} viewBox="0 0 3 2">
+          <rect x="0" width="1" height="2" fill="#009E60" />
+          <rect x="1" width="1" height="2" fill="#FCD116" />
+          <rect x="2" width="1" height="2" fill="#CE1126" />
+        </svg>
+      );
+  }
+}
+
 export default function CurrencySelector({ compact = false, className = "" }: Props) {
-  const { currency, setCurrency } = useCurrency();
+  const { currency, setCurrency, visitorCountry } = useCurrency();
   const locale = useLocale();
   const isFr = locale === "fr";
   const [open, setOpen] = useState(false);
@@ -134,7 +219,7 @@ export default function CurrencySelector({ compact = false, className = "" }: Pr
             : "px-2 py-2 text-sm font-semibold hover:bg-gray-100 rounded-xl"
         }`}
       >
-        <Flag code={currency} size={20} />
+        <Flag code={currency} xofCountry={visitorCountry} size={20} />
         <span className="font-bold">{current.code}</span>
         <ChevronDown className={`w-3 h-3 transition ${open ? "rotate-180" : ""}`} />
       </button>
@@ -160,7 +245,7 @@ export default function CurrencySelector({ compact = false, className = "" }: Pr
                       isActive ? "bg-[#CA3F2E]/5" : "hover:bg-gray-50"
                     }`}
                   >
-                    <Flag code={code} size={22} />
+                    <Flag code={code} xofCountry={visitorCountry} size={22} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className={`text-sm font-bold ${isActive ? "text-[#CA3F2E]" : "text-gray-900"}`}>

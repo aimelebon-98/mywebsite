@@ -10,11 +10,13 @@ interface CurrencyContextType {
   format: (usdAmount: number) => string;
   convert: (usdAmount: number) => number;
   autoDetected: boolean;
+  visitorCountry: string;
   loading: boolean;
 }
 
 const STORAGE_KEY = "ndz_currency";
 const RATES_KEY = "ndz_exchange_rates";
+const COUNTRY_KEY = "ndz_visitor_country";
 
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
 
@@ -22,34 +24,43 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   const [currency, setCurrencyState] = useState<CurrencyCode>("USD");
   const [rates, setRates] = useState<Record<string, number>>({});
   const [autoDetected, setAutoDetected] = useState(false);
+  const [visitorCountry, setVisitorCountry] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
-  // Load stored currency preference OR auto-detect
   useEffect(() => {
     const init = async () => {
       try {
+        // Try cached country first
+        try {
+          const cachedCountry = localStorage.getItem(COUNTRY_KEY);
+          if (cachedCountry) setVisitorCountry(cachedCountry);
+        } catch { /* ignore */ }
+
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored && stored in CURRENCIES) {
           setCurrencyState(stored as CurrencyCode);
-        } else {
-          // Auto-detect via IP
-          try {
-            const res = await fetch("/api/geo-currency");
-            const data = await res.json();
-            if (data.currency && data.currency in CURRENCIES) {
-              setCurrencyState(data.currency);
-              setAutoDetected(true);
-              localStorage.setItem(STORAGE_KEY, data.currency);
-            }
-          } catch { /* fallback USD */ }
         }
+
+        // Always fetch country (fresh), but only set currency if user hasn't chosen one
+        try {
+          const res = await fetch("/api/geo-currency");
+          const data = await res.json();
+          if (data.country) {
+            setVisitorCountry(data.country);
+            try { localStorage.setItem(COUNTRY_KEY, data.country); } catch { /* ignore */ }
+          }
+          if (!stored && data.currency && data.currency in CURRENCIES) {
+            setCurrencyState(data.currency);
+            setAutoDetected(true);
+            try { localStorage.setItem(STORAGE_KEY, data.currency); } catch { /* ignore */ }
+          }
+        } catch { /* fallback USD */ }
       } catch { /* fallback USD */ }
       setLoading(false);
     };
     init();
   }, []);
 
-  // Load rates - use cached if fresh (<12h), else fetch
   useEffect(() => {
     const loadRates = async () => {
       try {
@@ -64,7 +75,6 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
         }
       } catch { /* ignore */ }
 
-      // Fetch fresh
       try {
         const res = await fetch("/api/exchange-rates");
         const data = await res.json();
@@ -93,7 +103,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   }, [currency, rates]);
 
   return (
-    <CurrencyContext.Provider value={{ currency, setCurrency, rates, format, convert, autoDetected, loading }}>
+    <CurrencyContext.Provider value={{ currency, setCurrency, rates, format, convert, autoDetected, visitorCountry, loading }}>
       {children}
     </CurrencyContext.Provider>
   );
@@ -105,5 +115,4 @@ export function useCurrency() {
   return ctx;
 }
 
-// Utility - export for non-hook usage
 export { COUNTRY_TO_CURRENCY };

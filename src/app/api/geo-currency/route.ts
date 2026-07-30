@@ -3,7 +3,6 @@ import { COUNTRY_TO_CURRENCY } from "@/lib/currency";
 
 export async function GET(req: NextRequest) {
   try {
-    // Vercel adds country header automatically
     const country = req.headers.get("x-vercel-ip-country") || "";
     let currency = "USD";
 
