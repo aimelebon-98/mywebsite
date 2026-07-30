@@ -20,8 +20,8 @@ export default async function ShippingPage() {
       title: "1. Available Regions",
       content: (
         <>
-          <p>We currently ship to: <strong>[LIST YOUR REGIONS - e.g., Worldwide, North America, EU]</strong>.</p>
-          <p>If your country is not listed at checkout, please contact us at <strong>[YOUR EMAIL]</strong> for a custom quote.</p>
+          <p>We currently ship to: <strong>West Africa (Nigeria, Ghana, Benin, Togo, Ivory Coast) and worldwide on request</strong>.</p>
+          <p>If your country is not listed at checkout, please contact us at <strong>support@newdealzone.com</strong> for a custom quote.</p>
         </>
       ),
     },
@@ -32,10 +32,10 @@ export default async function ShippingPage() {
         <>
           <p>Estimated delivery times after order processing:</p>
           <ul className="list-disc pl-6 space-y-2">
-            <li><strong>Domestic (standard):</strong> [X-Y] business days</li>
-            <li><strong>Domestic (express):</strong> [X-Y] business days</li>
-            <li><strong>International (standard):</strong> [X-Y] business days</li>
-            <li><strong>International (express):</strong> [X-Y] business days</li>
+            <li><strong>Domestic (standard):</strong> 3-7 business days</li>
+            <li><strong>Domestic (express):</strong>  1-3 business days</li>
+            <li><strong>International (standard):</strong>  7-14 business days</li>
+            <li><strong>International (express):</strong>  1-3 business days</li>
           </ul>
           <p>Orders are typically processed within <strong>1-2 business days</strong>. You will receive a tracking number as soon as your order ships.</p>
         </>
@@ -47,7 +47,7 @@ export default async function ShippingPage() {
       content: (
         <>
           <p>Shipping fees are calculated at checkout based on your location and order weight.</p>
-          <p><strong>Free shipping</strong> is available on orders over <strong>[$X]</strong> to <strong>[YOUR REGION]</strong>.</p>
+          <p><strong>Free shipping</strong> is available on orders over <strong>[$X]</strong> to <strong>West Africa</strong>.</p>
         </>
       ),
     },
@@ -71,7 +71,7 @@ export default async function ShippingPage() {
       content: (
         <>
           <p>While we do everything possible to ensure timely delivery, delays may occur due to weather, customs, or carrier issues. We are not responsible for delays caused by the shipping carrier.</p>
-          <p>If your package appears lost (not delivered <strong>[X days]</strong> after the estimated date), contact us immediately at <strong>[YOUR EMAIL]</strong>.</p>
+          <p>If your package appears lost (not delivered <strong>14 days</strong> after the estimated date), contact us immediately at <strong>support@newdealzone.com</strong>.</p>
         </>
       ),
     },
@@ -90,8 +90,8 @@ export default async function ShippingPage() {
       title: "1. Zones de livraison",
       content: (
         <>
-          <p>Nous livrons actuellement dans : <strong>[LISTE DES ZONES]</strong>.</p>
-          <p>Si votre pays n&apos;est pas propose au moment du paiement, contactez-nous a <strong>[VOTRE EMAIL]</strong> pour un devis personnalise.</p>
+          <p>Nous livrons actuellement dans : <strong>Afrique de l'Ouest (Nigeria, Ghana, Benin, Togo, Cote d'Ivoire) et monde sur demande</strong>.</p>
+          <p>Si votre pays n&apos;est pas propose au moment du paiement, contactez-nous a <strong>support@newdealzone.com</strong> pour un devis personnalise.</p>
         </>
       ),
     },
@@ -102,10 +102,10 @@ export default async function ShippingPage() {
         <>
           <p>Delais estimes apres traitement de la commande :</p>
           <ul className="list-disc pl-6 space-y-2">
-            <li><strong>National (standard) :</strong> [X-Y] jours ouvrables</li>
-            <li><strong>National (express) :</strong> [X-Y] jours ouvrables</li>
-            <li><strong>International (standard) :</strong> [X-Y] jours ouvrables</li>
-            <li><strong>International (express) :</strong> [X-Y] jours ouvrables</li>
+            <li><strong>National (standard) :</strong> 3-7 jours ouvrables</li>
+            <li><strong>National (express) :</strong>  1-3 jours ouvrables</li>
+            <li><strong>International (standard) :</strong>  7-14 jours ouvrables</li>
+            <li><strong>International (express) :</strong>  1-3 jours ouvrables</li>
           </ul>
           <p>Les commandes sont traitees sous <strong>1-2 jours ouvrables</strong>. Vous recevrez un numero de suivi des l&apos;expedition.</p>
         </>
@@ -117,7 +117,7 @@ export default async function ShippingPage() {
       content: (
         <>
           <p>Les frais sont calcules au moment du paiement selon votre localisation et le poids.</p>
-          <p><strong>Livraison gratuite</strong> pour les commandes de plus de <strong>[X EUR]</strong> vers <strong>[VOTRE ZONE]</strong>.</p>
+          <p><strong>Livraison gratuite</strong> pour les commandes de plus de <strong></strong> vers <strong>Afrique de l'Ouest</strong>.</p>
         </>
       ),
     },
@@ -141,7 +141,7 @@ export default async function ShippingPage() {
       content: (
         <>
           <p>Malgre tous nos efforts, des retards peuvent survenir. Nous ne sommes pas responsables des retards causes par le transporteur.</p>
-          <p>Si votre colis semble perdu (non livre <strong>[X jours]</strong> apres la date estimee), contactez-nous immediatement.</p>
+          <p>Si votre colis semble perdu (non livre <strong>14 jours</strong> apres la date estimee), contactez-nous immediatement.</p>
         </>
       ),
     },

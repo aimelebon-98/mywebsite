@@ -44,7 +44,7 @@ export default async function TermsPage() {
       content: (
         <>
           <p>All orders are subject to acceptance and availability. We reserve the right to refuse or cancel any order at our discretion.</p>
-          <p>Prices are listed in <strong>[YOUR CURRENCY]</strong> and are subject to change without notice. Applicable taxes and shipping fees will be added at checkout.</p>
+          <p>Prices are listed in <strong>USD</strong> and are subject to change without notice. Applicable taxes and shipping fees will be added at checkout.</p>
           <p>Payment must be completed at the time of purchase using one of our accepted methods.</p>
         </>
       ),
@@ -74,7 +74,7 @@ export default async function TermsPage() {
       id: "warranty",
       title: "7. Product Warranty",
       content: (
-        <p>Our products come with a warranty against manufacturing defects for a period of <strong>[X months]</strong> from the date of purchase. This warranty does not cover normal wear and tear, misuse, or damage caused by the customer.</p>
+        <p>Our products come with a warranty against manufacturing defects for a period of <strong>6 months</strong> from the date of purchase. This warranty does not cover normal wear and tear, misuse, or damage caused by the customer.</p>
       ),
     },
     {
@@ -88,7 +88,7 @@ export default async function TermsPage() {
       id: "governing",
       title: "9. Governing Law",
       content: (
-        <p>These Terms are governed by the laws of <strong>[YOUR COUNTRY/STATE]</strong>. Any disputes will be resolved in the courts of <strong>[YOUR JURISDICTION]</strong>.</p>
+        <p>These Terms are governed by the laws of <strong>Nigeria</strong>. Any disputes will be resolved in the courts of <strong>Nigeria</strong>.</p>
       ),
     },
     {
@@ -102,7 +102,7 @@ export default async function TermsPage() {
       id: "contact",
       title: "11. Contact",
       content: (
-        <p>Questions about these Terms? Contact us at <strong>[YOUR EMAIL]</strong>.</p>
+        <p>Questions about these Terms? Contact us at <strong>support@newdealzone.com</strong>.</p>
       ),
     },
   ];
@@ -137,7 +137,7 @@ export default async function TermsPage() {
       content: (
         <>
           <p>Toutes les commandes sont soumises a acceptation et disponibilite. Nous nous reservons le droit de refuser ou d&apos;annuler toute commande.</p>
-          <p>Les prix sont en <strong>[VOTRE DEVISE]</strong> et peuvent changer sans preavis. Les taxes et frais de livraison sont ajoutes au moment du paiement.</p>
+          <p>Les prix sont en <strong>USD</strong> et peuvent changer sans preavis. Les taxes et frais de livraison sont ajoutes au moment du paiement.</p>
           <p>Le paiement doit etre complete au moment de l&apos;achat avec l&apos;une de nos methodes acceptees.</p>
         </>
       ),
@@ -167,7 +167,7 @@ export default async function TermsPage() {
       id: "warranty",
       title: "7. Garantie produit",
       content: (
-        <p>Nos produits sont garantis contre les defauts de fabrication pendant <strong>[X mois]</strong>. Cette garantie ne couvre pas l&apos;usure normale, la mauvaise utilisation ou les dommages causes par le client.</p>
+        <p>Nos produits sont garantis contre les defauts de fabrication pendant <strong>6 mois</strong>. Cette garantie ne couvre pas l&apos;usure normale, la mauvaise utilisation ou les dommages causes par le client.</p>
       ),
     },
     {
@@ -181,7 +181,7 @@ export default async function TermsPage() {
       id: "governing",
       title: "9. Droit applicable",
       content: (
-        <p>Ces Conditions sont regies par le droit de <strong>[VOTRE PAYS]</strong>. Tout litige sera resolu devant les tribunaux de <strong>[VOTRE JURIDICTION]</strong>.</p>
+        <p>Ces Conditions sont regies par le droit de <strong>Nigeria</strong>. Tout litige sera resolu devant les tribunaux de <strong>Nigeria</strong>.</p>
       ),
     },
     {
@@ -195,7 +195,7 @@ export default async function TermsPage() {
       id: "contact",
       title: "11. Contact",
       content: (
-        <p>Questions ? Contactez-nous a <strong>[VOTRE EMAIL]</strong>.</p>
+        <p>Questions ? Contactez-nous a <strong>support@newdealzone.com</strong>.</p>
       ),
     },
   ];

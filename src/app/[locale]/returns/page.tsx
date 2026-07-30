@@ -19,7 +19,7 @@ export default async function ReturnsPage() {
       id: "window",
       title: "1. Return Window",
       content: (
-        <p>You may return most items within <strong>[X days]</strong> of receiving your order for a full refund or exchange. Items must be unworn, unwashed, and in their original packaging with all tags attached.</p>
+        <p>You may return most items within <strong>14 days</strong> of receiving your order for a full refund or exchange. Items must be unworn, unwashed, and in their original packaging with all tags attached.</p>
       ),
     },
     {
@@ -44,11 +44,11 @@ export default async function ReturnsPage() {
         <>
           <p>To initiate a return:</p>
           <ol className="list-decimal pl-6 space-y-2">
-            <li>Contact us at <strong>[YOUR EMAIL]</strong> with your order number and reason for return.</li>
+            <li>Contact us at <strong>support@newdealzone.com</strong> with your order number and reason for return.</li>
             <li>We&apos;ll send you a return shipping label and instructions.</li>
             <li>Pack the item securely in its original packaging.</li>
             <li>Drop off the package at the designated carrier location.</li>
-            <li>Once we receive and inspect the return, we&apos;ll process your refund within <strong>[X business days]</strong>.</li>
+            <li>Once we receive and inspect the return, we&apos;ll process your refund within <strong>3-5 business days</strong>.</li>
           </ol>
         </>
       ),
@@ -71,14 +71,14 @@ export default async function ReturnsPage() {
       id: "exchanges",
       title: "5. Exchanges",
       content: (
-        <p>Need a different size or color? We&apos;re happy to exchange your item within the return window. Contact us at <strong>[YOUR EMAIL]</strong> and we&apos;ll guide you through the process. Exchanges are subject to product availability.</p>
+        <p>Need a different size or color? We&apos;re happy to exchange your item within the return window. Contact us at <strong>support@newdealzone.com</strong> and we&apos;ll guide you through the process. Exchanges are subject to product availability.</p>
       ),
     },
     {
       id: "damaged",
       title: "6. Damaged or Defective Items",
       content: (
-        <p>If your item arrives damaged or defective, contact us within <strong>[X days]</strong> of receipt with photos of the damage. We&apos;ll offer a full refund, replacement, or store credit at no cost to you.</p>
+        <p>If your item arrives damaged or defective, contact us within <strong>14 days</strong> of receipt with photos of the damage. We&apos;ll offer a full refund, replacement, or store credit at no cost to you.</p>
       ),
     },
     {
@@ -98,7 +98,7 @@ export default async function ReturnsPage() {
       id: "contact",
       title: "8. Contact",
       content: (
-        <p>Questions about a return? Reach out to <strong>[YOUR EMAIL]</strong> and we&apos;ll be happy to help.</p>
+        <p>Questions about a return? Reach out to <strong>support@newdealzone.com</strong> and we&apos;ll be happy to help.</p>
       ),
     },
   ];
@@ -108,7 +108,7 @@ export default async function ReturnsPage() {
       id: "window",
       title: "1. Delai de retour",
       content: (
-        <p>Vous pouvez retourner la plupart des articles dans les <strong>[X jours]</strong> suivant la reception de votre commande pour un remboursement ou un echange. Les articles doivent etre non portes, non laves et dans leur emballage d&apos;origine avec toutes les etiquettes.</p>
+        <p>Vous pouvez retourner la plupart des articles dans les <strong>14 jours</strong> suivant la reception de votre commande pour un remboursement ou un echange. Les articles doivent etre non portes, non laves et dans leur emballage d&apos;origine avec toutes les etiquettes.</p>
       ),
     },
     {
@@ -133,11 +133,11 @@ export default async function ReturnsPage() {
         <>
           <p>Pour initier un retour :</p>
           <ol className="list-decimal pl-6 space-y-2">
-            <li>Contactez-nous a <strong>[VOTRE EMAIL]</strong> avec votre numero de commande.</li>
+            <li>Contactez-nous a <strong>support@newdealzone.com</strong> avec votre numero de commande.</li>
             <li>Nous vous enverrons une etiquette de retour et les instructions.</li>
             <li>Emballez l&apos;article dans son emballage d&apos;origine.</li>
             <li>Deposez le colis au point de collecte designe.</li>
-            <li>Apres reception et inspection, nous traiterons votre remboursement sous <strong>[X jours ouvrables]</strong>.</li>
+            <li>Apres reception et inspection, nous traiterons votre remboursement sous <strong>3-5 jours ouvrables</strong>.</li>
           </ol>
         </>
       ),
@@ -160,14 +160,14 @@ export default async function ReturnsPage() {
       id: "exchanges",
       title: "5. Echanges",
       content: (
-        <p>Besoin d&apos;une autre taille ou couleur ? Contactez-nous a <strong>[VOTRE EMAIL]</strong>. Les echanges sont soumis a la disponibilite des stocks.</p>
+        <p>Besoin d&apos;une autre taille ou couleur ? Contactez-nous a <strong>support@newdealzone.com</strong>. Les echanges sont soumis a la disponibilite des stocks.</p>
       ),
     },
     {
       id: "damaged",
       title: "6. Articles endommages ou defectueux",
       content: (
-        <p>Si votre article arrive endommage ou defectueux, contactez-nous dans les <strong>[X jours]</strong> suivant la reception avec des photos. Nous vous offrirons un remboursement complet, un remplacement ou un avoir.</p>
+        <p>Si votre article arrive endommage ou defectueux, contactez-nous dans les <strong>14 jours</strong> suivant la reception avec des photos. Nous vous offrirons un remboursement complet, un remplacement ou un avoir.</p>
       ),
     },
     {
@@ -187,7 +187,7 @@ export default async function ReturnsPage() {
       id: "contact",
       title: "8. Contact",
       content: (
-        <p>Questions sur un retour ? Contactez <strong>[VOTRE EMAIL]</strong>.</p>
+        <p>Questions sur un retour ? Contactez <strong>support@newdealzone.com</strong>.</p>
       ),
     },
   ];

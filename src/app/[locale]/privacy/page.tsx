@@ -20,7 +20,7 @@ export default async function PrivacyPage() {
       title: "1. Introduction",
       content: (
         <>
-          <p>NewDealZone (&quot;we&quot;, &quot;us&quot;, &quot;our&quot;) respects your privacy and is committed to protecting your personal data. This Privacy Policy explains how we collect, use, and safeguard information when you visit <strong>[YOUR WEBSITE URL]</strong> or make a purchase from us.</p>
+          <p>NewDealZone (&quot;we&quot;, &quot;us&quot;, &quot;our&quot;) respects your privacy and is committed to protecting your personal data. This Privacy Policy explains how we collect, use, and safeguard information when you visit <strong>newdealzone.com</strong> or make a purchase from us.</p>
           <p>By using our website, you agree to the terms of this policy.</p>
         </>
       ),
@@ -100,7 +100,7 @@ export default async function PrivacyPage() {
             <li>Withdraw consent at any time</li>
             <li>Lodge a complaint with a data protection authority</li>
           </ul>
-          <p>To exercise these rights, contact us at <strong>[YOUR EMAIL]</strong>.</p>
+          <p>To exercise these rights, contact us at <strong>support@newdealzone.com</strong>.</p>
         </>
       ),
     },
@@ -115,7 +115,7 @@ export default async function PrivacyPage() {
       id: "retention",
       title: "8. Data Retention",
       content: (
-        <p>We retain personal data only as long as necessary for the purposes described in this policy or as required by law. Order records are typically kept for <strong>[X years]</strong> for accounting and warranty purposes.</p>
+        <p>We retain personal data only as long as necessary for the purposes described in this policy or as required by law. Order records are typically kept for <strong>2 years</strong> for accounting and warranty purposes.</p>
       ),
     },
     {
@@ -132,9 +132,9 @@ export default async function PrivacyPage() {
         <>
           <p>For any questions about this Privacy Policy, contact:</p>
           <ul className="list-none pl-0 space-y-1">
-            <li><strong>Company:</strong> [YOUR COMPANY NAME]</li>
-            <li><strong>Email:</strong> [YOUR EMAIL]</li>
-            <li><strong>Address:</strong> [YOUR BUSINESS ADDRESS]</li>
+            <li><strong>Company:</strong> NewDealZone</li>
+            <li><strong>Email:</strong> support@newdealzone.com</li>
+            <li><strong>Address:</strong> Lagos, Nigeria</li>
           </ul>
         </>
       ),
@@ -147,7 +147,7 @@ export default async function PrivacyPage() {
       title: "1. Introduction",
       content: (
         <>
-          <p>NewDealZone (&laquo; nous &raquo;) respecte votre vie privee et s&apos;engage a proteger vos donnees personnelles. Cette Politique de Confidentialite explique comment nous collectons, utilisons et protegeons vos informations lorsque vous visitez <strong>[VOTRE URL]</strong> ou effectuez un achat.</p>
+          <p>NewDealZone (&laquo; nous &raquo;) respecte votre vie privee et s&apos;engage a proteger vos donnees personnelles. Cette Politique de Confidentialite explique comment nous collectons, utilisons et protegeons vos informations lorsque vous visitez <strong>newdealzone.com</strong> ou effectuez un achat.</p>
           <p>En utilisant notre site, vous acceptez les termes de cette politique.</p>
         </>
       ),
@@ -226,7 +226,7 @@ export default async function PrivacyPage() {
             <li>Retirer votre consentement a tout moment</li>
             <li>Deposer une plainte aupres d&apos;une autorite de controle (CNIL en France)</li>
           </ul>
-          <p>Pour exercer ces droits, contactez-nous a <strong>[VOTRE EMAIL]</strong>.</p>
+          <p>Pour exercer ces droits, contactez-nous a <strong>support@newdealzone.com</strong>.</p>
         </>
       ),
     },
@@ -241,7 +241,7 @@ export default async function PrivacyPage() {
       id: "retention",
       title: "8. Conservation des donnees",
       content: (
-        <p>Nous conservons vos donnees uniquement le temps necessaire aux finalites decrites ou requises par la loi. Les commandes sont generalement conservees <strong>[X annees]</strong>.</p>
+        <p>Nous conservons vos donnees uniquement le temps necessaire aux finalites decrites ou requises par la loi. Les commandes sont generalement conservees <strong>2 annees</strong>.</p>
       ),
     },
     {
@@ -258,9 +258,9 @@ export default async function PrivacyPage() {
         <>
           <p>Pour toute question, contactez :</p>
           <ul className="list-none pl-0 space-y-1">
-            <li><strong>Societe :</strong> [NOM DE LA SOCIETE]</li>
-            <li><strong>Email :</strong> [VOTRE EMAIL]</li>
-            <li><strong>Adresse :</strong> [VOTRE ADRESSE]</li>
+            <li><strong>Societe :</strong> NewDealZone</li>
+            <li><strong>Email :</strong> support@newdealzone.com</li>
+            <li><strong>Adresse :</strong> Lagos, Nigeria</li>
           </ul>
         </>
       ),
