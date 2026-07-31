@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
       if (locale === "fr") {
         conditions.push(
           or(
-            ilike(blogPosts.titleFr, slugFr, `%${search}%`),
+            ilike(blogPosts.titleFr, `%${search}%`),
             ilike(blogPosts.excerptFr, `%${search}%`)
           )!
         );
