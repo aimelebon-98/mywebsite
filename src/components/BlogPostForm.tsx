@@ -63,9 +63,7 @@ export default function BlogPostForm({ post, onSave, onCancel, loading }: Props)
   const [slugFr, setSlugFr] = useState(post?.slugFr || "");
   const [excerpt, setExcerpt] = useState(post?.excerpt || "");
   const [content, setContent] = useState(post?.content || "");
-  const [coverImage,
-      coverImageAlt: coverImageAlt || null,
-      coverImageAltFr: coverImageAltFr || null, setCoverImage] = useState(post?.coverImage || "");
+  const [coverImage, setCoverImage] = useState(post?.coverImage || "");
   const [coverImageAlt, setCoverImageAlt] = useState(post?.coverImageAlt || "");
   const [coverImageAltFr, setCoverImageAltFr] = useState(post?.coverImageAltFr || "");
   const [category, setCategory] = useState(post?.category || "style-tips");

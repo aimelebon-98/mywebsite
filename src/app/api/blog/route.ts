@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
       category, tags, authorId,
       published, featured,
       seoTitle, metaDescription, focusKeyphrase, ogImage, canonicalUrl, noIndex,
-      seoTitleFr, slugFr, metaDescriptionFr, focusKeyphraseFr,
+      seoTitleFr, metaDescriptionFr, focusKeyphraseFr,
     } = body;
 
     if (!title) return NextResponse.json({ error: "Title is required" }, { status: 400 });
