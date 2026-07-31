@@ -103,7 +103,7 @@ export default function Navbar() {
               />
             </div>
 
-            <CurrencySelector compact={isBlogPage} />
+            <CurrencySelector compact={isBlogPage} dark={isBlogPage} />
 
             <div className="relative">
               <button

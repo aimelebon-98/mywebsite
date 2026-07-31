@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown, Check } from "lucide-react";
@@ -9,6 +9,7 @@ import { useLocale } from "next-intl";
 interface Props {
   compact?: boolean;
   className?: string;
+  dark?: boolean;
 }
 
 // SVG flag components
@@ -191,7 +192,7 @@ function XofFlag({ country, svgProps }: { country: string; svgProps: SvgProps })
   }
 }
 
-export default function CurrencySelector({ compact = false, className = "" }: Props) {
+export default function CurrencySelector({ compact = false, className = "", dark = false }: Props) {
   const { currency, setCurrency, visitorCountry } = useCurrency();
   const locale = useLocale();
   const isFr = locale === "fr";
@@ -216,12 +217,14 @@ export default function CurrencySelector({ compact = false, className = "" }: Pr
         className={`inline-flex items-center gap-1.5 transition ${
           compact
             ? "px-2 py-1 text-xs hover:bg-white/10 rounded-lg"
-            : "px-2 py-2 text-sm font-semibold hover:bg-gray-100 rounded-xl"
+            : dark
+              ? "px-2 py-2 text-sm font-semibold text-white hover:bg-white/10 rounded-xl"
+              : "px-2 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-xl"
         }`}
       >
         <Flag code={currency} xofCountry={visitorCountry} size={20} />
-        <span className="font-bold">{current.code}</span>
-        <ChevronDown className={`w-3 h-3 transition ${open ? "rotate-180" : ""}`} />
+        <span className={`font-bold ${dark ? "text-white" : ""}`}>{current.code}</span>
+        <ChevronDown className={`w-3 h-3 transition ${open ? "rotate-180" : ""} ${dark ? "text-white" : ""}`} />
       </button>
 
       {open && (
