@@ -27,7 +27,7 @@ export default function CartPage() {
   const appliedBundle = findApplicableBundle(items.map(i => ({ quantity: i.quantity })), bundles);
   const discountAmount = calcDiscount(totalPrice, appliedBundle);
   const finalTotal = totalPrice - discountAmount;
-  const shippingInfo = computeShipping(visitorCountry, totalPrice, currencyRates);
+  const shippingInfo = computeShipping(userCurrency);
   const shippingUsd = shippingInfo.hasLocalRate && shippingInfo.amountLocal && shippingInfo.localCurrency
     ? shippingInfo.amountLocal / (currencyRates[shippingInfo.localCurrency] || 1)
     : 0;

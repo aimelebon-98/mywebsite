@@ -1,5 +1,5 @@
-// Smart shipping calculator based on visitor country
-// Nigeria & Togo: flat local rate | Others: quote via WhatsApp
+﻿// Smart shipping calculator based on visitor's selected currency
+// Nigeria (NGN) & Togo (XOF/FCFA): flat local rate | Others: quote via WhatsApp
 
 import type { CurrencyCode } from "@/lib/currency";
 
@@ -12,37 +12,33 @@ export interface ShippingResult {
   labelKey?: string;
 }
 
-// Local shipping rates (flat, no free threshold)
-const LOCAL_RATES: Record<string, { rate: number; currency: CurrencyCode }> = {
-  NG: { rate: 3500, currency: "NGN" },  // Nigeria - flat 3500 NGN
-  TG: { rate: 1000, currency: "XOF" },  // Togo - flat 1000 FCFA
+// Local shipping rates per currency (flat, no free threshold)
+const LOCAL_RATES: Partial<Record<CurrencyCode, number>> = {
+  NGN: 3500,   // Nigeria - flat 3500 NGN
+  XOF: 1000,   // Togo/CFA - flat 1000 FCFA
 };
 
 /**
- * Compute shipping cost for a visitor
- * @param visitorCountry - ISO country code (e.g. "NG", "TG", "US")
- * @param subtotalUsd - Cart subtotal in USD
- * @param rates - Currency conversion rates (USD -> other)
+ * Compute shipping based on visitor's SELECTED currency
+ * If currency is NGN or XOF, apply local flat rate
+ * Otherwise: quote via WhatsApp
+ *
+ * @param currentCurrency - The currency user is viewing prices in
  */
-export function computeShipping(
-  visitorCountry: string,
-  _subtotalUsd: number,
-  _rates: Record<string, number>
-): ShippingResult {
-  const country = (visitorCountry || "").toUpperCase();
-  const local = LOCAL_RATES[country];
+export function computeShipping(currentCurrency: CurrencyCode): ShippingResult {
+  const rate = LOCAL_RATES[currentCurrency];
 
-  if (local) {
+  if (rate !== undefined) {
+    const symbol = currentCurrency === "XOF" ? "FCFA" : currentCurrency;
     return {
       hasLocalRate: true,
-      amountLocal: local.rate,
-      localCurrency: local.currency,
+      amountLocal: rate,
+      localCurrency: currentCurrency,
       isFree: false,
-      label: `${local.rate.toLocaleString()} ${local.currency === "XOF" ? "FCFA" : local.currency}`,
+      label: `${rate.toLocaleString()} ${symbol}`,
     };
   }
 
-  // No local rate = quote via WhatsApp
   return {
     hasLocalRate: false,
     amountLocal: null,
