@@ -1,5 +1,6 @@
 "use client";
 import CurrencySelector from "./CurrencySelector";
+import { useCurrency } from "@/lib/currency-context";
 
 import { useTranslations, useLocale } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/routing";
@@ -19,6 +20,8 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { totalItems, openDrawer } = useCart();
+  const { format: fmtPrice } = useCurrency();
+  const isFr = locale === "fr";
   const { count: wishlistCount } = useWishlist();
   const [menuOpen, setMenuOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
@@ -61,7 +64,7 @@ export default function Navbar() {
       style={navStyle}
     >
       <div className={`text-center py-2 text-xs font-medium tracking-wide ${bannerBg}`} style={bannerStyle}>
-        {t("freeShipping")} <Link href="/shop" className="underline underline-offset-2">{t("shopNow")}</Link>
+        <span>{isFr ? `LIVRAISON GRATUITE pour les commandes de plus de ${fmtPrice(1000)}` : `FREE SHIPPING on orders over ${fmtPrice(1000)}`}</span> - <Link href="/shop" className="underline underline-offset-2">{t("shopNow")}</Link>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
