@@ -86,7 +86,7 @@ interface StoreSettings {
 type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments" | "orders" | "product-faqs" | "analytics" | "newsletter" | "bundles";
 
 export default function AdminPage() {
-  const [authStep, setAuthStep] = useState<"loading" | "access-code" | "password" | "authenticated">("loading");
+  const [authStep, setAuthStep] = useState<"loading" | "verify" | "access-code" | "password" | "authenticated">("loading");
   const [accessCode, setAccessCode] = useState("");
   const [password, setPassword] = useState("");
   const [turnstileToken, setTurnstileToken] = useState("");
@@ -179,9 +179,9 @@ export default function AdminPage() {
           if (data.valid) { setAuthStep("authenticated"); return; }
         }
 
-        setAuthStep(config.requiresAccessCode ? "access-code" : "password");
+        setAuthStep("verify");
       } catch {
-        setAuthStep("password");
+        setAuthStep("verify");
       }
     };
     checkAuth();
@@ -285,8 +285,9 @@ export default function AdminPage() {
         body: JSON.stringify({ action: "logout" }),
       });
     } catch {/* ignore */}
-    setAuthStep(requiresAccessCode ? "access-code" : "password");
+    setAuthStep("verify");
     setPassword("");
+    setTurnstileToken("");
     setAccessCode("");
   };
 
@@ -378,6 +379,48 @@ export default function AdminPage() {
     );
   }
 
+  if (authStep === "verify") {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="w-full max-w-sm">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-gray-900 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Shield className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold">Security Verification</h1>
+            <p className="text-gray-500 text-sm mt-1">Please verify you are human to continue</p>
+          </div>
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            <div className="mb-4 flex justify-center">
+              <Turnstile
+                onVerify={(token) => setTurnstileToken(token)}
+                onExpire={() => setTurnstileToken("")}
+                onError={() => setTurnstileToken("")}
+                theme="light"
+              />
+            </div>
+            {authError && <p className="text-red-500 text-sm mb-4 text-center">{authError}</p>}
+            <button
+              onClick={() => {
+                if (!turnstileToken) return;
+                setAuthError("");
+                setAuthStep(requiresAccessCode ? "access-code" : "password");
+              }}
+              disabled={!turnstileToken}
+              className="w-full py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {turnstileToken ? "Continue" : "Waiting for verification..."}
+            </button>
+          </div>
+          <p className="text-center text-xs text-gray-400 mt-4">Protected by Cloudflare Turnstile</p>
+          <div className="text-center mt-4">
+            <Link href="/" className="text-sm text-gray-500 hover:text-gray-900 transition">Back to Store</Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (authStep === "access-code") {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
@@ -439,21 +482,9 @@ export default function AdminPage() {
               className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
             />
             {authError && <p className="text-red-500 text-sm mb-4">{authError}</p>}
-
-            {/* Cloudflare Turnstile - invisible verification */}
-            <div className="mb-4 flex justify-center">
-              <Turnstile
-                onVerify={(token) => setTurnstileToken(token)}
-                onExpire={() => setTurnstileToken("")}
-                onError={() => setTurnstileToken("")}
-                theme="light"
-              />
-            </div>
-
             <button
               onClick={handleLogin}
-              disabled={!turnstileToken}
-              className="w-full py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition"
             >
               Sign In
             </button>
