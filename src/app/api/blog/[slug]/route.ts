@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { blogPosts } from "@/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql , or} from "drizzle-orm";
 import { generateSlug } from "@/lib/slug";
 import { requireAdmin } from "@/lib/admin-auth";
 
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest, { params }: Params) {
     const { searchParams } = new URL(request.url);
     const trackView = searchParams.get("trackView") === "true";
 
-    let result = await db.select().from(blogPosts).where(eq(blogPosts.slug, slug));
+    let result = await db.select().from(blogPosts).where(or(eq(blogPosts.slug, slug), eq(blogPosts.slugFr, slug)));
     if (result.length === 0) {
       try {
         result = await db.select().from(blogPosts).where(eq(blogPosts.id, slug));
@@ -59,6 +59,8 @@ export async function PUT(request: NextRequest, { params }: Params) {
       updates.readTime = calcReadTime(body.content);
     }
     if (body.coverImage !== undefined) updates.coverImage = body.coverImage;
+    if (body.coverImageAlt !== undefined) updates.coverImageAlt = body.coverImageAlt;
+    if (body.coverImageAltFr !== undefined) updates.coverImageAltFr = body.coverImageAltFr;
     if (body.titleFr !== undefined) updates.titleFr = body.titleFr || null;
     if (body.excerptFr !== undefined) updates.excerptFr = body.excerptFr || null;
     if (body.contentFr !== undefined) updates.contentFr = body.contentFr || null;

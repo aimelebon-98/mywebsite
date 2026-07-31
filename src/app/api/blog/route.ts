@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
       if (locale === "fr") {
         conditions.push(
           or(
-            ilike(blogPosts.titleFr, `%${search}%`),
+            ilike(blogPosts.titleFr, slugFr, `%${search}%`),
             ilike(blogPosts.excerptFr, `%${search}%`)
           )!
         );
@@ -73,11 +73,12 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const {
       title, excerpt, content, coverImage,
-      titleFr, excerptFr, contentFr, tagsFr,
+      coverImageAlt, coverImageAltFr,
+      titleFr, slugFr, excerptFr, contentFr, tagsFr,
       category, tags, authorId,
       published, featured,
       seoTitle, metaDescription, focusKeyphrase, ogImage, canonicalUrl, noIndex,
-      seoTitleFr, metaDescriptionFr, focusKeyphraseFr,
+      seoTitleFr, slugFr, metaDescriptionFr, focusKeyphraseFr,
     } = body;
 
     if (!title) return NextResponse.json({ error: "Title is required" }, { status: 400 });
@@ -92,7 +93,10 @@ export async function POST(request: NextRequest) {
       excerpt: excerpt || "",
       content: content || "",
       coverImage: coverImage || "",
+      coverImageAlt: coverImageAlt || "",
+      coverImageAltFr: coverImageAltFr || "",
       titleFr: titleFr || null,
+      slugFr: slugFr || null,
       excerptFr: excerptFr || null,
       contentFr: contentFr || null,
       tagsFr: tagsFr ? JSON.stringify(Array.isArray(tagsFr) ? tagsFr : []) : null,

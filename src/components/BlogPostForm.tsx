@@ -60,9 +60,14 @@ export default function BlogPostForm({ post, onSave, onCancel, loading }: Props)
   // English
   const [title, setTitle] = useState(post?.title || "");
   const [slug, setSlug] = useState(post?.slug || "");
+  const [slugFr, setSlugFr] = useState(post?.slugFr || "");
   const [excerpt, setExcerpt] = useState(post?.excerpt || "");
   const [content, setContent] = useState(post?.content || "");
-  const [coverImage, setCoverImage] = useState(post?.coverImage || "");
+  const [coverImage,
+      coverImageAlt: coverImageAlt || null,
+      coverImageAltFr: coverImageAltFr || null, setCoverImage] = useState(post?.coverImage || "");
+  const [coverImageAlt, setCoverImageAlt] = useState(post?.coverImageAlt || "");
+  const [coverImageAltFr, setCoverImageAltFr] = useState(post?.coverImageAltFr || "");
   const [category, setCategory] = useState(post?.category || "style-tips");
   const [tagsStr, setTagsStr] = useState(() => {
     try { return post?.tags ? (JSON.parse(post.tags) as string[]).join(", ") : ""; } catch { return ""; }
@@ -112,6 +117,8 @@ export default function BlogPostForm({ post, onSave, onCancel, loading }: Props)
       excerpt,
       content,
       coverImage,
+      coverImageAlt: coverImageAlt || null,
+      coverImageAltFr: coverImageAltFr || null,
       category,
       tags,
       authorId: authorId || null,

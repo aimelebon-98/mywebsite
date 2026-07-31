@@ -267,7 +267,7 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
               <div className="relative aspect-[16/9] rounded-2xl overflow-hidden bg-gray-100 mb-10 shadow-xl group">
                 <Image
                   src={post.coverImage}
-                  alt={post.title}
+                  alt={(isFr ? post.coverImageAltFr : post.coverImageAlt) || post.title}
                   fill
                   className="object-cover group-hover:scale-[1.02] transition-transform duration-700"
                   sizes="(max-width: 1024px) 100vw, 800px"

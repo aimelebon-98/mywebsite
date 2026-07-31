@@ -137,9 +137,12 @@ export const blogPosts = pgTable("blog_posts", {
   id: uuid("id").defaultRandom().primaryKey(),
   slug: text("slug").notNull().unique(),
   title: text("title").notNull(),
+  slugFr: text("slug_fr"),
   excerpt: text("excerpt").notNull().default(""),
   content: text("content").notNull().default(""),
   coverImage: text("cover_image").notNull().default(""),
+  coverImageAlt: text("cover_image_alt").default(""),
+  coverImageAltFr: text("cover_image_alt_fr").default(""),
   // French
   titleFr: text("title_fr"),
   excerptFr: text("excerpt_fr"),
