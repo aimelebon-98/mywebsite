@@ -19,6 +19,7 @@ import ProductForm from "@/components/ProductForm";
 import OrdersManager from "@/components/OrdersManager";
 import DashboardOrderStats from "@/components/DashboardOrderStats";
 import ProductFaqsManager from "@/components/ProductFaqsManager";
+import Turnstile from "@/components/Turnstile";
 import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 import BundlesManager from "@/components/BundlesManager";
 interface Product {
@@ -88,6 +89,7 @@ export default function AdminPage() {
   const [authStep, setAuthStep] = useState<"loading" | "access-code" | "password" | "authenticated">("loading");
   const [accessCode, setAccessCode] = useState("");
   const [password, setPassword] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState("");
   const [authError, setAuthError] = useState("");
   const [requiresAccessCode, setRequiresAccessCode] = useState(false);
 
@@ -258,7 +260,8 @@ export default function AdminPage() {
         body: JSON.stringify({
           action: "login",
           password,
-          accessCode: requiresAccessCode ? accessCode : undefined
+          accessCode: requiresAccessCode ? accessCode : undefined,
+          turnstileToken,
         }),
       });
       const data = await res.json();
@@ -267,6 +270,7 @@ export default function AdminPage() {
         setAuthError("");
       } else {
         setAuthError(data.error || "Invalid password");
+        setTurnstileToken("");
       }
     } catch {
       setAuthError("Authentication failed");

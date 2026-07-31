@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifyTurnstile } from "@/lib/turnstile";
 import { db } from "@/db";
 import { settings, loginAttempts, adminSessions } from "@/db/schema";
 import { eq, and, gte } from "drizzle-orm";
@@ -28,7 +29,19 @@ function isWhitelisted(ip: string): boolean {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { password, accessCode, action } = body;
+    const { password, accessCode, action, turnstileToken } = body;
+
+    // Cloudflare Turnstile check - only for login attempts, skip whitelisted IPs
+    if (action === "login") {
+      const ip2 = request.headers.get("x-forwarded-for")?.split(",")[0].trim() || "";
+      const isWhitelistedForTurnstile = (process.env.ADMIN_WHITELIST_IPS || "").split(",").map(s => s.trim()).includes(ip2);
+      if (!isWhitelistedForTurnstile) {
+        const turnstileOk = await verifyTurnstile(turnstileToken || "", ip2);
+        if (!turnstileOk) {
+          return NextResponse.json({ error: "Human verification failed. Please try again." }, { status: 403 });
+        }
+      }
+    }
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() || "unknown";
     const userAgent = request.headers.get("user-agent") || "unknown";
     const whitelisted = isWhitelisted(ip);
