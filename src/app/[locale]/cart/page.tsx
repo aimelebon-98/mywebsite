@@ -117,16 +117,16 @@ export default function CartPage() {
     items.forEach((item, i) => {
       message += `${i + 1}. *${item.name}*\n`;
       message += `   Size: ${item.size} | Color: ${item.color}\n`;
-      message += `   Qty: ${item.quantity} x {formatPrice(item.price)}\n`;
-      message += `   Subtotal: {formatPrice((item.price * item.quantity))}\n\n`;
+      message += `   Qty: ${item.quantity} x ${formatPrice(item.price)}\n`;
+      message += `   Subtotal: ${formatPrice(item.price * item.quantity)}\n\n`;
     });
 
     message += `-----------------------------\n`;
     if (appliedBundle) {
-      message += `Subtotal: {formatPrice(totalPrice)}\n`;
-      message += `Bundle Discount (${appliedBundle.name}): -{formatPrice(discountAmount)}\n`;
+      message += `Subtotal: ${formatPrice(totalPrice)}\n`;
+      message += `Bundle Discount (${appliedBundle.name}): -${formatPrice(discountAmount)}\n`;
     }
-    message += `*Total: {formatPrice(finalTotal)}*\n`;
+    message += `*Total: ${formatPrice(finalTotal)}*\n`;
     message += `*Items: ${totalItems}*\n`;
 
     const phone = whatsappNumber.replace(/\D/g, "");
@@ -201,7 +201,7 @@ export default function CartPage() {
                       <p className="text-sm text-gray-500 mt-1">
                         {t("size")}: {item.size} - {t("color")}: {item.color}
                       </p>
-                      <p className="text-lg font-bold mt-2">{currency}{item.price.toFixed(2)}</p>
+                      <p className="text-lg font-bold mt-2">{formatPrice(item.price)}</p>
 
                       <div className="flex items-center justify-between mt-3">
                         <div className="inline-flex items-center border border-gray-300 rounded-lg">
@@ -246,7 +246,7 @@ export default function CartPage() {
                   <div className="space-y-3 mb-6">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-500">{t("subtotal")} ({totalItems} {totalItems === 1 ? t("item") : t("items")})</span>
-                      <span className="font-semibold">{currency}{totalPrice.toFixed(2)}</span>
+                      <span className="font-semibold">{formatPrice(totalPrice)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-500">{t("shipping")}</span>
@@ -254,7 +254,7 @@ export default function CartPage() {
                     </div>
                     <div className="border-t border-gray-200 pt-3 flex justify-between">
                       <span className="font-bold text-lg">{t("total")}</span>
-                      <span className="font-bold text-lg">{currency}{totalPrice.toFixed(2)}</span>
+                      <span className="font-bold text-lg">{formatPrice(totalPrice)}</span>
                     </div>
                   </div>
 
