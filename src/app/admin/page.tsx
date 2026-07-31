@@ -439,9 +439,21 @@ export default function AdminPage() {
               className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
             />
             {authError && <p className="text-red-500 text-sm mb-4">{authError}</p>}
+
+            {/* Cloudflare Turnstile - invisible verification */}
+            <div className="mb-4 flex justify-center">
+              <Turnstile
+                onVerify={(token) => setTurnstileToken(token)}
+                onExpire={() => setTurnstileToken("")}
+                onError={() => setTurnstileToken("")}
+                theme="light"
+              />
+            </div>
+
             <button
               onClick={handleLogin}
-              className="w-full py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition"
+              disabled={!turnstileToken}
+              className="w-full py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Sign In
             </button>
