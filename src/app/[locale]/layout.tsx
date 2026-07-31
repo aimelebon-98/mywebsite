@@ -50,6 +50,9 @@ export const metadata: Metadata = {
     images: [{ url: "/images/hero-shoe.jpg", width: 1200, height: 630, alt: "NewDealZone" }],
   },
   robots: { index: true, follow: true },
+  verification: {
+    google: "JY5IqgH1P44E4yJsMaRCsPWYfixVcPNFrILitMmKzmg",
+  },
   alternates: {
     canonical: siteUrl,
     languages: {
