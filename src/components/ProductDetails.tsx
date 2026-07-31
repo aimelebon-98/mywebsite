@@ -373,7 +373,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                             )}
                           </div>
                           <div className="text-xs font-semibold text-gray-900 line-clamp-1 group-hover:text-gray-700">{rp.name}</div>
-                          <div className="text-xs font-bold mt-0.5" style={{ color: "#CA3F2E" }}>${parseFloat(rp.price).toFixed(2)}</div>
+                          <div className="text-xs font-bold mt-0.5" style={{ color: "#CA3F2E" }}>{formatPrice(parseFloat(rp.price))}</div>
                         </Link>
                         <button
                           onClick={(e) => {
@@ -499,7 +499,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                   <Truck className="w-4 h-4 flex-shrink-0" style={{ color: "#CA3F2E" }} />
                   <div className="min-w-0">
                     <div className="text-[11px] font-bold text-gray-900 leading-tight">{isFr ? "Livraison gratuite" : "Free Shipping"}</div>
-                    <div className="text-[10px] text-gray-500 leading-tight">{isFr ? "Plus de 100$" : "Over $100"}</div>
+                    <div className="text-[10px] text-gray-500 leading-tight">{isFr ? `Plus de ${formatPrice(1000)}` : `Over ${formatPrice(1000)}`}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 px-3 py-2.5 bg-gray-50 rounded-xl">
@@ -585,7 +585,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                       <div className="text-sm font-bold text-gray-900">{isFr ? "Livraison" : "Delivery"}</div>
                       <div className="text-xs text-gray-500 mt-0.5">{isFr ? "Estimee 3-5 jours ouvres" : "Estimated 3-5 business days"}</div>
                       <div className="text-xs text-gray-700 mt-2">
-                        <span className="font-semibold">{isFr ? "Livraison gratuite" : "Free shipping"}</span> {isFr ? "pour les commandes de plus de 100$." : "on orders over $100."}
+                        <span className="font-semibold">{isFr ? "Livraison gratuite" : "Free shipping"}</span> {isFr ? `pour les commandes de plus de ${formatPrice(1000)}.` : `on orders over ${formatPrice(1000)}.`}
                       </div>
                       <div className="text-xs text-gray-500 mt-1">
                         {isFr ? "Commandez dans les 24h pour la livraison la plus rapide." : "Order in the next 24h for fastest delivery."}
