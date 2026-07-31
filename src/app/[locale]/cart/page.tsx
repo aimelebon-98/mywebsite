@@ -1,5 +1,6 @@
 "use client";
 import { useCurrency } from "@/lib/currency-context";
+import { computeShipping } from "@/lib/shipping";
 import BundleBanner from "@/components/BundleBanner";
 import { findApplicableBundle, calcDiscount, type Bundle } from "@/lib/bundles";
 import { Gift } from "lucide-react";
@@ -20,7 +21,12 @@ export default function CartPage() {
   const locale = useLocale();
 
   const { items, removeItem, updateQuantity, clearCart, totalPrice, totalItems } = useCart();
-  const { currency: userCurrency, format: formatPrice, convert } = useCurrency();
+  const { currency: userCurrency, format: formatPrice, convert, visitorCountry, rates: currencyRates } = useCurrency();
+  const shippingInfo = computeShipping(visitorCountry, totalPrice, currencyRates);
+  const shippingUsd = shippingInfo.hasLocalRate && shippingInfo.amountLocal && shippingInfo.localCurrency
+    ? shippingInfo.amountLocal / (currencyRates[shippingInfo.localCurrency] || 1)
+    : 0;
+  const grandTotal = finalTotal + shippingUsd;
   const [whatsappNumber, setWhatsappNumber] = useState("");
   const [bundles, setBundles] = useState<Bundle[]>([]);
   const appliedBundle = findApplicableBundle(items.map(i => ({ quantity: i.quantity })), bundles);
@@ -126,7 +132,13 @@ export default function CartPage() {
       message += `Subtotal: ${formatPrice(totalPrice)}\n`;
       message += `Bundle Discount (${appliedBundle.name}): -${formatPrice(discountAmount)}\n`;
     }
-    message += `*Total: ${formatPrice(finalTotal)}*\n`;
+    if (shippingInfo.hasLocalRate) {
+      message += `Shipping: ${shippingInfo.label}\n`;
+      message += `*Total: ${formatPrice(grandTotal)}*\n`;
+    } else {
+      message += `Shipping: To be calculated based on your address\n`;
+      message += `*Subtotal: ${formatPrice(finalTotal)}* (+ shipping to be added)\n`;
+    }
     message += `*Items: ${totalItems}*\n`;
 
     const phone = whatsappNumber.replace(/\D/g, "");
@@ -248,19 +260,24 @@ export default function CartPage() {
                       <span className="text-gray-500">{t("subtotal")} ({totalItems} {totalItems === 1 ? t("item") : t("items")})</span>
                       <span className="font-semibold">{formatPrice(totalPrice)}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between text-sm items-start">
                       <span className="text-gray-500">{t("shipping")}</span>
-                      {totalPrice >= 1000 ? (
-                        <span className="text-green-600 font-semibold">{t("free")}</span>
+                      {shippingInfo.hasLocalRate ? (
+                        <span className="font-semibold text-right">{shippingInfo.label}</span>
                       ) : (
-                        <span className="text-gray-500 text-xs">
-                          {formatPrice(1000 - totalPrice)} {t("moreForFree") || "more for FREE"}
+                        <span className="text-gray-500 text-xs italic text-right max-w-[200px]">
+                          {t("shippingQuote")}
                         </span>
                       )}
                     </div>
-                    <div className="border-t border-gray-200 pt-3 flex justify-between">
+                    <div className="border-t border-gray-200 pt-3 flex justify-between items-baseline">
                       <span className="font-bold text-lg">{t("total")}</span>
-                      <span className="font-bold text-lg">{formatPrice(totalPrice)}</span>
+                      <div className="text-right">
+                        <span className="font-bold text-lg">{formatPrice(grandTotal)}</span>
+                        {!shippingInfo.hasLocalRate && (
+                          <div className="text-[10px] text-gray-400 font-normal">{t("plusShipping")}</div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
