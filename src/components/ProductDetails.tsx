@@ -434,7 +434,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                   <div className="flex items-center gap-2 pb-1">
                     <span className="text-lg text-gray-400 line-through">{formatPrice(comparePrice)}</span>
                     <span className="px-2.5 py-1 bg-red-500 text-white text-xs font-bold rounded-lg">
-                      {t("saveAmount", { amount: (comparePrice - price).toFixed(2) })}
+                      {t("saveAmount", { amount: formatPrice(comparePrice - price) })}
                     </span>
                   </div>
                 )}
