@@ -95,17 +95,8 @@ export async function GET() {
     }
 
     const existingPost = await db.select().from(blogPosts).where(eq(blogPosts.slug, POST_SLUG_EN));
-    if (existingPost.length > 0) {
-      return NextResponse.json({
-        ok: true,
-        message: "Post already exists",
-        slug: POST_SLUG_EN,
-        id: existingPost[0].id,
-        skipped: true,
-      });
-    }
 
-    const [post] = await db.insert(blogPosts).values({
+    const postValues = {
       slug: POST_SLUG_EN,
       slugFr: POST_SLUG_FR,
       title: "How to Start a Profitable Computer Accessories Business in Nigeria",
@@ -134,7 +125,22 @@ export async function GET() {
       seoTitleFr: "Comment Demarrer une Entreprise d'Accessoires Informatiques",
       metaDescriptionFr: "Guide complet pour demarrer une entreprise rentable d'accessoires informatiques. Capital, competences, marketing et conseils.",
       focusKeyphraseFr: "entreprise d'accessoires informatiques",
-    }).returning();
+    };
+
+    if (existingPost.length > 0) {
+      const [updated] = await db.update(blogPosts).set(postValues).where(eq(blogPosts.slug, POST_SLUG_EN)).returning();
+      return NextResponse.json({
+        ok: true,
+        message: "Existing post updated with all fields (image, alt, French version)",
+        id: updated.id,
+        urls: {
+          en: `/en/blog/${POST_SLUG_EN}`,
+          fr: `/fr/blog/${POST_SLUG_FR}`,
+        },
+      });
+    }
+
+    const [post] = await db.insert(blogPosts).values(postValues).returning();
 
     return NextResponse.json({
       ok: true,
