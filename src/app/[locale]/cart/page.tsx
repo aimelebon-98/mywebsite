@@ -22,16 +22,16 @@ export default function CartPage() {
 
   const { items, removeItem, updateQuantity, clearCart, totalPrice, totalItems } = useCart();
   const { currency: userCurrency, format: formatPrice, convert, visitorCountry, rates: currencyRates } = useCurrency();
-  const shippingInfo = computeShipping(visitorCountry, totalPrice, currencyRates);
-  const shippingUsd = shippingInfo.hasLocalRate && shippingInfo.amountLocal && shippingInfo.localCurrency
-    ? shippingInfo.amountLocal / (currencyRates[shippingInfo.localCurrency] || 1)
-    : 0;
-  const grandTotal = finalTotal + shippingUsd;
   const [whatsappNumber, setWhatsappNumber] = useState("");
   const [bundles, setBundles] = useState<Bundle[]>([]);
   const appliedBundle = findApplicableBundle(items.map(i => ({ quantity: i.quantity })), bundles);
   const discountAmount = calcDiscount(totalPrice, appliedBundle);
   const finalTotal = totalPrice - discountAmount;
+  const shippingInfo = computeShipping(visitorCountry, totalPrice, currencyRates);
+  const shippingUsd = shippingInfo.hasLocalRate && shippingInfo.amountLocal && shippingInfo.localCurrency
+    ? shippingInfo.amountLocal / (currencyRates[shippingInfo.localCurrency] || 1)
+    : 0;
+  const grandTotal = finalTotal + shippingUsd;
   const [currency, setCurrency] = useState("$");
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
