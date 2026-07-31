@@ -5,7 +5,6 @@ import { getLocale } from "next-intl/server";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  robots: { index: false, follow: true },
   title: "Terms of Service - NewDealZone",
   description: "The terms and conditions governing your use of NewDealZone.",
   robots: { index: true, follow: true },
