@@ -384,33 +384,31 @@ export default function AdminPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-gray-900 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Shield className="w-8 h-8 text-white" />
+            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 transition-all duration-500 ${turnstileToken ? "bg-green-500 scale-110" : "bg-gray-900"}`}>
+              {turnstileToken ? <CheckCircle className="w-8 h-8 text-white" /> : <Shield className="w-8 h-8 text-white" />}
             </div>
-            <h1 className="text-2xl font-bold">Security Verification</h1>
-            <p className="text-gray-500 text-sm mt-1">Please verify you are human to continue</p>
+            <h1 className="text-2xl font-bold">{turnstileToken ? "Verified!" : "Security Verification"}</h1>
+            <p className="text-gray-500 text-sm mt-1">
+              {turnstileToken ? "Redirecting..." : "Verifying you are human..."}
+            </p>
           </div>
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <div className="mb-4 flex justify-center">
+            <div className={`flex justify-center transition-opacity duration-300 ${turnstileToken ? "opacity-50 pointer-events-none" : ""}`}>
               <Turnstile
-                onVerify={(token) => setTurnstileToken(token)}
+                onVerify={(token) => {
+                  setTurnstileToken(token);
+                  setAuthError("");
+                  // Auto-advance after 800ms to show success state briefly
+                  setTimeout(() => {
+                    setAuthStep(requiresAccessCode ? "access-code" : "password");
+                  }, 800);
+                }}
                 onExpire={() => setTurnstileToken("")}
                 onError={() => setTurnstileToken("")}
                 theme="light"
               />
             </div>
-            {authError && <p className="text-red-500 text-sm mb-4 text-center">{authError}</p>}
-            <button
-              onClick={() => {
-                if (!turnstileToken) return;
-                setAuthError("");
-                setAuthStep(requiresAccessCode ? "access-code" : "password");
-              }}
-              disabled={!turnstileToken}
-              className="w-full py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {turnstileToken ? "Continue" : "Waiting for verification..."}
-            </button>
+            {authError && <p className="text-red-500 text-sm mt-4 text-center">{authError}</p>}
           </div>
           <p className="text-center text-xs text-gray-400 mt-4">Protected by Cloudflare Turnstile</p>
           <div className="text-center mt-4">
