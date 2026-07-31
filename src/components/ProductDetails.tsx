@@ -513,7 +513,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                   <RotateCcw className="w-4 h-4 flex-shrink-0" style={{ color: "#CA3F2E" }} />
                   <div className="min-w-0">
                     <div className="text-[11px] font-bold text-gray-900 leading-tight">{isFr ? "Retours faciles" : "Easy Returns"}</div>
-                    <div className="text-[10px] text-gray-500 leading-tight">{isFr ? "30 jours" : "30 days"}</div>
+                    <div className="text-[10px] text-gray-500 leading-tight">{isFr ? "14 jours" : "14 days"}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 px-3 py-2.5 bg-gray-50 rounded-xl">
@@ -599,9 +599,9 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                     </div>
                     <div className="min-w-0">
                       <div className="text-sm font-bold text-gray-900">{isFr ? "Politique de retour" : "Return Policy"}</div>
-                      <div className="text-xs font-semibold mt-0.5" style={{ color: "#CA3F2E" }}>{isFr ? "Retours gratuits 30 jours" : "30-Day Free Returns"}</div>
+                      <div className="text-xs font-semibold mt-0.5" style={{ color: "#CA3F2E" }}>{isFr ? "Retours gratuits 14 jours" : "14-Day Free Returns"}</div>
                       <div className="text-xs text-gray-500 mt-1">
-                        {isFr ? "Pas satisfait ? Retournez les articles non portes sous 30 jours pour un remboursement complet." : "Not satisfied? Return unworn items within 30 days for a full refund."}
+                        {isFr ? "Pas satisfait ? Retournez les articles non portes sous 14 jours pour un remboursement complet." : "Not satisfied? Return unworn items within 14 days for a full refund."}
                       </div>
                       <Link href={`/${locale}/returns`} className="text-xs font-semibold text-gray-900 underline hover:text-gray-700 mt-1 inline-block">
                         {isFr ? "Lire la politique de retour" : "Read return policy"}

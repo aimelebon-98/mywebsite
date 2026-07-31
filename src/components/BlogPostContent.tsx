@@ -425,8 +425,8 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
                   </h3>
                   <p className="text-sm text-white/90 mb-4 leading-relaxed">
                     {isFr
-                      ? "Livraison gratuite pour les commandes de plus de 100$."
-                      : "Free shipping on orders over $100."}
+                      ? "Livraison gratuite pour les commandes de plus de 1000$."
+                      : "Free shipping on orders over $1000."}
                   </p>
                   <Link
                     href={`/${locale}/shop`}

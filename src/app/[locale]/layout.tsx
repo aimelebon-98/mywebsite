@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     default: "NewDealZone - Premium Footwear | Sneakers, Boots, Formal Shoes",
     template: "%s | NewDealZone",
   },
-  description: "Discover premium shoes for every occasion at NewDealZone. Shop sneakers, running shoes, boots, formal shoes, sandals and more. Free shipping on orders over $100.",
+  description: "Discover premium shoes for every occasion at NewDealZone. Shop sneakers, running shoes, boots, formal shoes, sandals and more. Free shipping on orders over $1000.",
   keywords: ["shoes", "sneakers", "boots", "running shoes", "formal shoes", "footwear", "NewDealZone"],
   authors: [{ name: "NewDealZone" }],
   openGraph: {

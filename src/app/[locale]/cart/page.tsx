@@ -250,7 +250,13 @@ export default function CartPage() {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-500">{t("shipping")}</span>
-                      <span className="text-green-600 font-semibold">{t("free")}</span>
+                      {totalPrice >= 1000 ? (
+                        <span className="text-green-600 font-semibold">{t("free")}</span>
+                      ) : (
+                        <span className="text-gray-500 text-xs">
+                          {formatPrice(1000 - totalPrice)} {t("moreForFree") || "more for FREE"}
+                        </span>
+                      )}
                     </div>
                     <div className="border-t border-gray-200 pt-3 flex justify-between">
                       <span className="font-bold text-lg">{t("total")}</span>

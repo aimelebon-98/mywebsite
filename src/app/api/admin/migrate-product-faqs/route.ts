@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
 import { productFaqs } from "@/db/schema";
@@ -39,9 +39,9 @@ export async function GET() {
         },
         {
           question: "How long does shipping take?",
-          answer: "Standard delivery takes 3-7 business days. Free shipping on all orders over $100. Express shipping options are available on request via WhatsApp.",
+          answer: "Standard delivery takes 3-7 business days. Free shipping on all orders over $1000. Express shipping options are available on request via WhatsApp.",
           questionFr: "Combien de temps prend la livraison?",
-          answerFr: "La livraison standard prend 3 a 7 jours ouvrables. Livraison gratuite pour toutes les commandes de plus de 100$. Des options de livraison express sont disponibles sur demande via WhatsApp.",
+          answerFr: "La livraison standard prend 3 a 7 jours ouvrables. Livraison gratuite pour toutes les commandes de plus de 1000$. Des options de livraison express sont disponibles sur demande via WhatsApp.",
           sortOrder: 3,
         },
         {

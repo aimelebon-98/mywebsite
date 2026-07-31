@@ -41,9 +41,9 @@ const FAQS: FAQ[] = [
   {
     category: "shipping",
     q: "How much does shipping cost?",
-    a: "Shipping is FREE on all orders over $100. For orders below $100, standard shipping rates apply and will be confirmed via WhatsApp before payment.",
+    a: "Shipping is FREE on all orders over $1000. For orders below $1000, standard shipping rates apply and will be confirmed via WhatsApp before payment.",
     qFr: "Combien coûte la livraison?",
-    aFr: "La livraison est GRATUITE sur toutes les commandes de plus de 100$. Pour les commandes en dessous de 100$, les tarifs standard s'appliquent et seront confirmés via WhatsApp avant le paiement.",
+    aFr: "La livraison est GRATUITE sur toutes les commandes de plus de 1000$. Pour les commandes en dessous de 1000$, les tarifs standard s'appliquent et seront confirmés via WhatsApp avant le paiement.",
   },
   {
     category: "shipping",
