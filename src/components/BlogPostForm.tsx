@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import type { BlogPost, Author } from "@/db/schema";
 import BlogEditor from "./BlogEditor";
+import SeoAnalyzerPanel from "./SeoAnalyzerPanel";
 import { Save, Eye, EyeOff, Star, ChevronDown, Search, Globe, Image as ImageIcon, Tag, User, Layers } from "lucide-react";
 
 const CATEGORIES = [
@@ -389,6 +390,22 @@ export default function BlogPostForm({ post, onSave, onCancel, loading }: Props)
 
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Focus Keyphrase</label>
+                            <div className="mb-4">
+                <SeoAnalyzerPanel
+                  label="EN"
+                  title={title}
+                  seoTitle={seoTitle}
+                  metaDescription={metaDescription}
+                  focusKeyphrase={focusKeyphrase}
+                  slug={slug || "post-slug"}
+                  content={content}
+                  excerpt={excerpt}
+                  coverImage={coverImage}
+                  coverImageAlt={coverImageAlt}
+                  tags={tags}
+                />
+              </div>
+
               <input type="text" value={focusKeyphrase} onChange={(e) => setFocusKeyphrase(e.target.value)} placeholder="chunky sneakers 2026" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-green-500 transition" />
             </div>
 
@@ -417,6 +434,22 @@ export default function BlogPostForm({ post, onSave, onCancel, loading }: Props)
           <SidebarCard title="French SEO" icon={Globe} defaultOpen={false}>
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Focus Keyphrase (FR)</label>
+                            <div className="mb-4">
+                <SeoAnalyzerPanel
+                  label="FR"
+                  title={titleFr || title}
+                  seoTitle={seoTitleFr}
+                  metaDescription={metaDescriptionFr}
+                  focusKeyphrase={focusKeyphraseFr}
+                  slug={slugFr || slug || "post-slug"}
+                  content={contentFr || content}
+                  excerpt={excerptFr}
+                  coverImage={coverImage}
+                  coverImageAlt={coverImageAltFr}
+                  tags={tags}
+                />
+              </div>
+
               <input type="text" value={focusKeyphraseFr} onChange={(e) => setFocusKeyphraseFr(e.target.value)} placeholder="baskets chunky 2026" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 transition" />
             </div>
             <div>
