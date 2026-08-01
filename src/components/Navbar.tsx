@@ -34,6 +34,25 @@ export default function Navbar() {
     setLangOpen(false);
 
     // On blog post pages, swap slug to the correct locale version
+    // Also handle product pages
+    const productMatch = pathname.match(/^\/product\/([^/?]+)\/?$/);
+    if (productMatch) {
+      const currentSlug = productMatch[1];
+      try {
+        const res = await fetch(`/api/products/${currentSlug}`);
+        if (res.ok) {
+          const product = await res.json();
+          let targetSlug = currentSlug;
+          if (nextLocale === "fr" && product.slugFr) targetSlug = product.slugFr;
+          else if (nextLocale === "en" && product.slug) targetSlug = product.slug;
+          if (targetSlug !== currentSlug) {
+            router.replace(`/product/${targetSlug}`, { locale: nextLocale });
+            return;
+          }
+        }
+      } catch { /* ignore */ }
+    }
+
     const blogPostMatch = pathname.match(/^\/blog\/([^/?]+)\/?$/);
     if (blogPostMatch) {
       const currentSlug = blogPostMatch[1];

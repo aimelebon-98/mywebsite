@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const {
-      name, description, shortDescription, longDescription,
+      name, slug: slugInput, slugFr, description, shortDescription, longDescription,
       nameFr, descriptionFr, shortDescriptionFr, longDescriptionFr, tagsFr,
       price, comparePrice, category, brand, sizes, colors,
       imageUrl, images, stock, featured, active, material, sku, tags, saleEndsAt,
@@ -63,11 +63,12 @@ export async function POST(request: NextRequest) {
       seoTitleFr, metaDescriptionFr, focusKeyphraseFr,
     } = body;
 
-    const slug = generateSlug(name);
+    const slug = (slugInput && slugInput.trim()) ? slugInput.trim() : generateSlug(name);
 
     const result = await db.insert(products).values({
       name,
       slug,
+      slugFr: slugFr || null,
       description: description || "",
       shortDescription: shortDescription || "",
       longDescription: longDescription || "",

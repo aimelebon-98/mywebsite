@@ -1,7 +1,7 @@
 import { db } from "@/db";
 import { products, reviews, type Product, type Review } from "@/db/schema";
-import { eq, and, ne, desc, isNotNull } from "drizzle-orm";
-import { notFound } from "next/navigation";
+import { eq, or, and, ne, desc, isNotNull } from "drizzle-orm";
+import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -39,7 +39,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const isFr = locale === "fr";
 
   try {
-    let result = await db.select().from(products).where(eq(products.slug, slug));
+    let result = await db.select().from(products).where(or(eq(products.slug, slug), eq(products.slugFr, slug)));
     if (result.length === 0) result = await db.select().from(products).where(eq(products.id, slug));
     if (result.length === 0) return { title: "Product Not Found - NewDealZone" };
 
@@ -136,7 +136,7 @@ export default async function ProductPage({ params }: Props) {
   let productReviews: Review[] = [];
 
   try {
-    let result = await db.select().from(products).where(eq(products.slug, slug));
+    let result = await db.select().from(products).where(or(eq(products.slug, slug), eq(products.slugFr, slug)));
     if (result.length === 0) {
       try {
         result = await db.select().from(products).where(eq(products.id, slug));

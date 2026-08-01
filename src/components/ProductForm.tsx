@@ -91,6 +91,8 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
 
   // English fields
   const [name, setName] = useState(product?.name || "");
+  const [slug, setSlug] = useState(product?.slug || "");
+  const [slugFr, setSlugFr] = useState((product as unknown as { slugFr?: string })?.slugFr || "");
   const [description, setDescription] = useState(product?.description || "");
   const [shortDescription, setShortDescription] = useState(product?.shortDescription || "");
   const [longDescription, setLongDescription] = useState(product?.longDescription || "");
@@ -153,7 +155,9 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
     const tagsFr = tagsFrStr.split(",").map((t) => t.trim()).filter(Boolean);
 
     onSave({
-      name, description, shortDescription, longDescription,
+      name,
+      slug: slug || undefined,
+      slugFr: slugFr || null, description, shortDescription, longDescription,
       nameFr: nameFr.trim() || null,
       descriptionFr: descriptionFr.trim() || null,
       shortDescriptionFr: shortDescriptionFr.trim() || null,

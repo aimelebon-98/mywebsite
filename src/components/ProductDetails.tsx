@@ -543,10 +543,10 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               {/* Action Buttons */}
               <div className="space-y-3">
                 <div className="flex gap-3">
-                  <button onClick={handleBuyNow} className="flex-1 flex items-center justify-center gap-2.5 px-6 py-4 bg-gradient-to-r from-brand-600 to-brand-700 text-white rounded-2xl font-bold text-lg hover:from-brand-700 hover:to-brand-800 transition-all shadow-xl shadow-brand-600/25 active:scale-[0.98]">
+                  <button onClick={handleBuyNow} className="flex-1 min-w-0 flex items-center justify-center gap-2 px-3 sm:px-5 py-3.5 sm:py-4 bg-gradient-to-r from-brand-600 to-brand-700 text-white rounded-2xl font-bold text-sm sm:text-base whitespace-nowrap hover:from-brand-700 hover:to-brand-800 transition-all shadow-xl shadow-brand-600/25 active:scale-[0.98]">
                     <Zap className="w-5 h-5" /> {t("buyNow")}
                   </button>
-                  <button onClick={handleAddToCart} disabled={added} className={`flex-1 flex items-center justify-center gap-2.5 px-6 py-4 rounded-2xl font-bold text-lg transition-all active:scale-[0.98] ${added ? "bg-green-500 text-white shadow-xl shadow-green-500/25" : "bg-gray-900 text-white hover:bg-gray-800 shadow-xl shadow-gray-900/25"}`}>
+                  <button onClick={handleAddToCart} disabled={added} className={`flex-1 min-w-0 flex items-center justify-center gap-2 px-3 sm:px-5 py-3.5 sm:py-4 rounded-2xl font-bold text-sm sm:text-base whitespace-nowrap transition-all active:scale-[0.98] ${added ? "bg-green-500 text-white shadow-xl shadow-green-500/25" : "bg-gray-900 text-white hover:bg-gray-800 shadow-xl shadow-gray-900/25"}`}>
                     {added ? <><Check className="w-5 h-5" /> {t("added")}</> : <><ShoppingBag className="w-5 h-5" /> {t("addToCart")}</>}
                   </button>
                 </div>

@@ -41,6 +41,8 @@ export async function PUT(request: NextRequest, { params }: Params) {
       updates.name = body.name;
       updates.slug = generateSlug(body.name);
     }
+    if (body.slug !== undefined && body.slug) updates.slug = String(body.slug).trim();
+    if (body.slugFr !== undefined) updates.slugFr = body.slugFr || null;
     if (body.description !== undefined) updates.description = body.description;
     if (body.shortDescription !== undefined) updates.shortDescription = body.shortDescription;
     if (body.longDescription !== undefined) updates.longDescription = body.longDescription;
