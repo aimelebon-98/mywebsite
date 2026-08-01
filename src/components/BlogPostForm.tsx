@@ -272,6 +272,29 @@ export default function BlogPostForm({ post, onSave, onCancel, loading }: Props)
 
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                Slug FR <span className="font-normal normal-case text-gray-400">(different URL for French version, optional)</span>
+              </label>
+              <input
+                type="text"
+                value={slugFr}
+                onChange={(e) => setSlugFr(e.target.value)}
+                placeholder="url-francaise-personnalisee"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 transition"
+              />
+              {slugFr && (
+                <p className="text-[10px] text-gray-500 mt-1">
+                  FR URL: <code className="bg-gray-100 px-1 rounded">/fr/blog/{slugFr}</code>
+                </p>
+              )}
+              {!slugFr && slug && (
+                <p className="text-[10px] text-gray-400 mt-1">
+                  If empty, FR version will use the same URL: <code className="bg-gray-100 px-1 rounded">/fr/blog/{slug}</code>
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
                 Resume (French)
               </label>
               <textarea
