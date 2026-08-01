@@ -8,7 +8,7 @@ import {
   Mail
 } from "lucide-react";
 import Link from "next/link";
-import { BookOpen, UsersRound, PenLine, HelpCircle, ChevronDown, ChevronRight } from "lucide-react";
+import { BookOpen, UsersRound, PenLine, HelpCircle, ChevronRight } from "lucide-react";
 import type { BlogPost } from "@/db/schema";
 import AuthorsManager from "@/components/AuthorsManager";
 import BlogCategoriesManager from "@/components/BlogCategoriesManager";
