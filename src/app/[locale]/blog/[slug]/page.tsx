@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { blogPosts, authors, type BlogPost, type Author } from "@/db/schema";
-import { eq, and, ne, isNotNull, desc } from "drizzle-orm";
+import { eq, or, and, ne, isNotNull, desc } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const isFr = locale === "fr";
 
   try {
-    let result = await db.select().from(blogPosts).where(eq(blogPosts.slug, slug));
+    let result = await db.select().from(blogPosts).where(or(eq(blogPosts.slug, slug), eq(blogPosts.slugFr, slug)));
     if (result.length === 0) {
       result = await db.select().from(blogPosts).where(eq(blogPosts.id, slug));
     }
@@ -112,7 +112,7 @@ export default async function BlogPostPage({ params }: Props) {
   let relatedPosts: BlogPost[] = [];
 
   try {
-    let result = await db.select().from(blogPosts).where(eq(blogPosts.slug, slug));
+    let result = await db.select().from(blogPosts).where(or(eq(blogPosts.slug, slug), eq(blogPosts.slugFr, slug)));
     if (result.length === 0) {
       try {
         result = await db.select().from(blogPosts).where(eq(blogPosts.id, slug));
