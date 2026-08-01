@@ -300,12 +300,11 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
 
               <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Long Description</label>
-                <textarea
+                <BlogEditor
                   value={longDescription}
-                  onChange={(e) => setLongDescription(e.target.value)}
-                  rows={6}
+                  onChange={setLongDescription}
                   placeholder="Detailed product description..."
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gray-900 transition resize-none"
+                  minHeight={300}
                 />
               </div>
 
@@ -369,13 +368,7 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
 
               <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Longue Description (French)</label>
-                <textarea
-                  value={longDescriptionFr}
-                  onChange={(e) => setLongDescriptionFr(e.target.value)}
-                  rows={6}
-                  placeholder="Description detaillee du produit en francais..."
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 transition resize-none"
-                />
+                <BlogEditor value={longDescriptionFr} onChange={setLongDescriptionFr} placeholder="Description detaillee..." minHeight={300} />
               </div>
 
               <div>
