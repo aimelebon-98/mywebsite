@@ -561,17 +561,6 @@ export default function AdminPage() {
           {[
             { id: "dashboard" as Tab, icon: BarChart3, label: "Dashboard", badge: 0 },
             { id: "analytics" as Tab, icon: TrendingUp, label: "Analytics", badge: 0 },
-            // --- Products & sales (core business) ---
-            { id: "orders" as Tab, icon: ShoppingBag, label: "Orders", badge: notifCounts.orders },
-            // --- Content (blog) ---
-            // Note: blog submenu handled separately below
-            { id: "authors" as Tab, icon: UsersRound, label: "Authors", badge: 0 },
-            { id: "comments" as Tab, icon: MessageSquare, label: "Comments", badge: notifCounts.comments },
-            // --- Marketing ---
-            { id: "newsletter" as Tab, icon: Mail, label: "Newsletter", badge: notifCounts.newsletter },
-            // --- System ---
-            { id: "settings" as Tab, icon: Settings, label: "Store Settings", badge: 0 },
-            { id: "security" as Tab, icon: Shield, label: "Security", badge: 0 },
           ].map((item) => (
             <button
               key={item.id}

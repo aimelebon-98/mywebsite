@@ -120,6 +120,7 @@ export default function BlogPostForm({ post, onSave, onCancel, loading }: Props)
     await onSave({
       title,
       slug: slug || undefined,
+      slugFr: slugFr || undefined,
       excerpt,
       content,
       coverImage,
