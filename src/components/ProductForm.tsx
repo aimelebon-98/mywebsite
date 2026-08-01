@@ -5,6 +5,8 @@ import { useState } from "react";
 type ProductLike = {
   id?: string;
   name?: string;
+  slug?: string;
+  slugFr?: string | null;
   description?: string;
   shortDescription?: string;
   longDescription?: string;
@@ -92,7 +94,7 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
   // English fields
   const [name, setName] = useState(product?.name || "");
   const [slug, setSlug] = useState(product?.slug || "");
-  const [slugFr, setSlugFr] = useState((product as unknown as { slugFr?: string })?.slugFr || "");
+  const [slugFr, setSlugFr] = useState(product?.slugFr || "");
   const [description, setDescription] = useState(product?.description || "");
   const [shortDescription, setShortDescription] = useState(product?.shortDescription || "");
   const [longDescription, setLongDescription] = useState(product?.longDescription || "");
