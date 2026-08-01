@@ -1,7 +1,7 @@
 import { db } from "@/db";
 import { blogPosts, authors, type BlogPost, type Author } from "@/db/schema";
 import { eq, or, and, ne, isNotNull, desc } from "drizzle-orm";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
