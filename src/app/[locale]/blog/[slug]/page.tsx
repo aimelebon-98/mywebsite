@@ -119,9 +119,23 @@ export default async function BlogPostPage({ params }: Props) {
       } catch {}
     }
     if (result.length === 0 || !result[0].published) notFound();
-    if (isFr && !result[0].titleFr) notFound();
 
-    post = localizePost(result[0], isFr);
+    const rawPost = result[0];
+
+    // SEO: redirect if visitor is using wrong-locale slug
+    // If FR user accesses EN slug, and post has a FR slug -> redirect to FR slug (301)
+    // If EN user accesses FR slug, redirect to EN slug (301)
+    if (isFr && rawPost.slugFr && slug === rawPost.slug && rawPost.slugFr !== rawPost.slug) {
+      redirect(`/fr/blog/${rawPost.slugFr}`);
+    }
+    if (!isFr && rawPost.slugFr && slug === rawPost.slugFr && rawPost.slug !== rawPost.slugFr) {
+      redirect(`/en/blog/${rawPost.slug}`);
+    }
+
+    // If FR requested but no FR content exists, show 404 (not enough translated data)
+    if (isFr && !rawPost.titleFr) notFound();
+
+    post = localizePost(rawPost, isFr);
 
     if (post.authorId) {
       const aRes = await db.select().from(authors).where(eq(authors.id, post.authorId));
