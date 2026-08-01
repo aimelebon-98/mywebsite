@@ -150,8 +150,8 @@ export default function AdminPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [productFilter, setProductFilter] = useState<"all" | "active" | "inactive" | "featured" | "lowStock" | "outOfStock" | "highStock">("all");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [productsMenuOpen, setProductsMenuOpen] = useState(true);
-  const [blogMenuOpen, setBlogMenuOpen] = useState(true);
+  const [productsMenuOpen, setProductsMenuOpen] = useState(false);
+  const [blogMenuOpen, setBlogMenuOpen] = useState(false);
   const [notification, setNotification] = useState("");
   const [notifCounts, setNotifCounts] = useState<{ orders: number; comments: number; reviews: number; newsletter: number }>({ orders: 0, comments: 0, reviews: 0, newsletter: 0 });
   const [notificationType, setNotificationType] = useState<"success" | "error">("success");
@@ -563,11 +563,6 @@ export default function AdminPage() {
             { id: "analytics" as Tab, icon: TrendingUp, label: "Analytics", badge: 0 },
             // --- Products & sales (core business) ---
             { id: "orders" as Tab, icon: ShoppingBag, label: "Orders", badge: notifCounts.orders },
-            { id: "products" as Tab, icon: Package, label: "Products", badge: 0 },
-            { id: "add" as Tab, icon: Plus, label: "Add Product", badge: 0 },
-            { id: "categories" as Tab, icon: Tag, label: "Categories", badge: 0 },
-            { id: "reviews" as Tab, icon: MessageSquare, label: "Reviews", badge: notifCounts.reviews },
-            { id: "product-faqs" as Tab, icon: HelpCircle, label: "Product FAQs", badge: 0 },
             // --- Content (blog) ---
             // Note: blog submenu handled separately below
             { id: "authors" as Tab, icon: UsersRound, label: "Authors", badge: 0 },
