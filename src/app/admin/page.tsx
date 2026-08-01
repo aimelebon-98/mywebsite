@@ -722,6 +722,7 @@ export default function AdminPage() {
 
           {/* Rest of sidebar items */}
           {[
+            { id: "orders" as Tab, icon: ShoppingBag, label: "Orders", badge: notifCounts.orders },
             { id: "authors" as Tab, icon: UsersRound, label: "Authors", badge: 0 },
             { id: "comments" as Tab, icon: MessageSquare, label: "Comments", badge: notifCounts.comments },
             { id: "newsletter" as Tab, icon: Mail, label: "Newsletter", badge: notifCounts.newsletter },
