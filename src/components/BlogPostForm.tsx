@@ -402,7 +402,7 @@ export default function BlogPostForm({ post, onSave, onCancel, loading }: Props)
                   excerpt={excerpt}
                   coverImage={coverImage}
                   coverImageAlt={coverImageAlt}
-                  tags={tags}
+                  tags={[]}
                 />
               </div>
 
@@ -446,7 +446,7 @@ export default function BlogPostForm({ post, onSave, onCancel, loading }: Props)
                   excerpt={excerptFr}
                   coverImage={coverImage}
                   coverImageAlt={coverImageAltFr}
-                  tags={tags}
+                  tags={[]}
                 />
               </div>
 
