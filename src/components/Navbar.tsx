@@ -30,9 +30,32 @@ export default function Navbar() {
   const isHomepage = pathname === "/" || pathname === "";
   const isBlogPage = !isHomepage;
 
-  const switchLocale = (nextLocale: "en" | "fr") => {
-    router.replace(pathname, { locale: nextLocale });
+  const switchLocale = async (nextLocale: "en" | "fr") => {
     setLangOpen(false);
+
+    // On blog post pages, swap slug to the correct locale version
+    const blogPostMatch = pathname.match(/^\/blog\/([^/?]+)\/?$/);
+    if (blogPostMatch) {
+      const currentSlug = blogPostMatch[1];
+      try {
+        const res = await fetch(`/api/blog/${currentSlug}`);
+        if (res.ok) {
+          const post = await res.json();
+          let targetSlug = currentSlug;
+          if (nextLocale === "fr" && post.slugFr) {
+            targetSlug = post.slugFr;
+          } else if (nextLocale === "en" && post.slug) {
+            targetSlug = post.slug;
+          }
+          if (targetSlug !== currentSlug) {
+            router.replace(`/blog/${targetSlug}`, { locale: nextLocale });
+            return;
+          }
+        }
+      } catch { /* ignore */ }
+    }
+
+    router.replace(pathname, { locale: nextLocale });
   };
 
   // Dynamic classes based on isBlogPage
