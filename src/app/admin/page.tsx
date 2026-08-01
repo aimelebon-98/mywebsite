@@ -602,6 +602,89 @@ export default function AdminPage() {
               )}
             </button>
           ))}
+
+          {/* Blog Posts - collapsible submenu */}
+          <button
+            onClick={() => setBlogMenuOpen(!blogMenuOpen)}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition ${
+              activeTab === "blog" || activeTab === "blog-add" || activeTab === "blog-edit" || activeTab === "blog-categories"
+                ? "bg-gray-900 text-white"
+                : "text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            <BookOpen className="w-5 h-5 flex-shrink-0" />
+            <span className="flex-1 text-left">Blog Posts</span>
+            {blogMenuOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+          </button>
+          {blogMenuOpen && (
+            <div className="ml-4 space-y-1 border-l-2 border-gray-100 pl-3">
+              <button
+                onClick={() => { setActiveTab("blog"); setSidebarOpen(false); }}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
+                  activeTab === "blog" || activeTab === "blog-edit"
+                    ? "bg-gray-100 text-gray-900 font-semibold"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                All Posts
+              </button>
+              <button
+                onClick={() => { setActiveTab("blog-add"); setSidebarOpen(false); }}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
+                  activeTab === "blog-add"
+                    ? "bg-gray-100 text-gray-900 font-semibold"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                Add New Post
+              </button>
+              <button
+                onClick={() => { setActiveTab("blog-categories"); setSidebarOpen(false); }}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
+                  activeTab === "blog-categories"
+                    ? "bg-gray-100 text-gray-900 font-semibold"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                Categories
+              </button>
+            </div>
+          )}
+
+          {/* Rest of sidebar items */}
+          {[
+            { id: "authors" as Tab, icon: UsersRound, label: "Authors", badge: 0 },
+            { id: "comments" as Tab, icon: MessageSquare, label: "Comments", badge: notifCounts.comments },
+            { id: "newsletter" as Tab, icon: Mail, label: "Newsletter", badge: notifCounts.newsletter },
+            { id: "bundles" as Tab, icon: Gift, label: "Bundles", badge: 0 },
+            { id: "settings" as Tab, icon: Settings, label: "Store Settings", badge: 0 },
+            { id: "security" as Tab, icon: Shield, label: "Security", badge: 0 },
+          ].map((item) => (
+            <button
+              key={item.id}
+              onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition ${
+                activeTab === item.id
+                  ? "bg-gray-900 text-white"
+                  : "text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              <item.icon className="w-5 h-5 flex-shrink-0" />
+              <span className="flex-1 text-left">{item.label}</span>
+              {item.badge > 0 && (
+                <span
+                  className={`min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center ${
+                    activeTab === item.id
+                      ? "bg-white text-gray-900"
+                      : "text-white"
+                  }`}
+                  style={activeTab !== item.id ? { backgroundColor: "#CA3F2E" } : undefined}
+                >
+                  {item.badge > 99 ? "99+" : item.badge}
+                </span>
+              )}
+            </button>
+          ))}
         </nav>
 
         <div className="flex-none p-3 space-y-1 border-t border-gray-100 bg-white">
