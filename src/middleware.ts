@@ -1,4 +1,4 @@
-﻿import createMiddleware from "next-intl/middleware";
+import createMiddleware from "next-intl/middleware";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { routing } from "./i18n/routing";
@@ -20,6 +20,17 @@ const PUBLIC_API_ROUTES = [
   "/api/health",             // Health check
   "/api/settings",           // Settings (used by middleware itself)
   "/api/orders",             // Order submit from cart
+  // Public read-only endpoints (needed for public pages + language switcher)
+  "/api/products",           // Product data (used by shop, quick view, language switcher)
+  "/api/blog",               // Blog post data (used by blog pages, language switcher)
+  "/api/blog-categories",    // Blog categories (public)
+  "/api/authors",            // Author data
+  "/api/categories",         // Product categories
+  "/api/search-suggestions", // Search autocomplete
+  "/api/product-faqs",       // Product FAQ display
+  "/api/bundles",            // Bundle deals display
+  "/api/exchange-rates",     // Currency conversion rates
+  "/api/geo-currency",       // Auto-detect currency by country
 ];
 
 // Admin routes (own auth already applied - middleware just lets them through)
