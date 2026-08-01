@@ -79,7 +79,7 @@ export default async function HomeBlogSection() {
               className="group bg-white rounded-2xl overflow-hidden border border-gray-200 hover:border-gray-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
             >
               {/* Image */}
-              <Link href={`/${locale}/blog/${p.slug}`} className="block relative aspect-[16/10] bg-gray-100 overflow-hidden">
+              <Link href={`/${locale}/blog/${locale === "fr" && p.slugFr ? p.slugFr : p.slug}`} className="block relative aspect-[16/10] bg-gray-100 overflow-hidden">
                 {p.coverImage ? (
                   <Image
                     src={p.coverImage}
@@ -107,7 +107,7 @@ export default async function HomeBlogSection() {
                 </div>
 
                 {/* Title */}
-                <Link href={`/${locale}/blog/${p.slug}`}>
+                <Link href={`/${locale}/blog/${locale === "fr" && p.slugFr ? p.slugFr : p.slug}`}>
                   <h3 className="font-black text-gray-900 text-base leading-snug mb-2 group-hover:text-[#CA3F2E] transition line-clamp-2">
                     {p.title}
                   </h3>
@@ -146,7 +146,7 @@ export default async function HomeBlogSection() {
 
                 {/* Read Article button */}
                 <Link
-                  href={`/${locale}/blog/${p.slug}`}
+                  href={`/${locale}/blog/${locale === "fr" && p.slugFr ? p.slugFr : p.slug}`}
                   className="inline-flex items-center justify-center gap-1.5 w-full px-4 py-2.5 bg-gray-900 hover:bg-[#CA3F2E] text-white rounded-lg text-xs font-bold transition-all group/btn"
                 >
                   {isFr ? "Lire l'article" : "Read Article"}
