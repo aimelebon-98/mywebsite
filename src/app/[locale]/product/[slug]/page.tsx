@@ -146,6 +146,18 @@ export default async function ProductPage({ params }: Props) {
     }
     if (result.length === 0) notFound();
 
+    const rawFound = result[0];
+
+    // SEO: 301 redirect if wrong-locale slug is used
+    // EN visitor on FR slug -> redirect to EN slug
+    if (!isFr && rawFound.slugFr && slug === rawFound.slugFr && rawFound.slug && rawFound.slug !== rawFound.slugFr) {
+      redirect(`/en/product/${rawFound.slug}`);
+    }
+    // FR visitor on EN slug -> redirect to FR slug (only if FR translation exists)
+    if (isFr && rawFound.slugFr && slug === rawFound.slug && rawFound.slugFr !== rawFound.slug) {
+      redirect(`/fr/product/${rawFound.slugFr}`);
+    }
+
     if (isFr && !result[0].nameFr) notFound();
 
     rawProduct = result[0];
