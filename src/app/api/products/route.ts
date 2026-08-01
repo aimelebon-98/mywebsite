@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     const result = await db.insert(products).values({
       name,
       slug,
-      slugFr: slugFr || null,
+      slugFr: (slugFr && slugFr.trim()) ? slugFr.trim() : (nameFr ? generateSlug(nameFr) : null),
       description: description || "",
       shortDescription: shortDescription || "",
       longDescription: longDescription || "",

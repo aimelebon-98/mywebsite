@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
       coverImageAlt: coverImageAlt || "",
       coverImageAltFr: coverImageAltFr || "",
       titleFr: titleFr || null,
-      slugFr: slugFr || null,
+      slugFr: (slugFr && String(slugFr).trim()) ? String(slugFr).trim() : (titleFr ? generateSlug(titleFr) : null),
       excerptFr: excerptFr || null,
       contentFr: contentFr || null,
       tagsFr: tagsFr ? JSON.stringify(Array.isArray(tagsFr) ? tagsFr : []) : null,

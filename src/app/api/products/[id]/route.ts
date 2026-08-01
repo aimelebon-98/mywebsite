@@ -42,7 +42,15 @@ export async function PUT(request: NextRequest, { params }: Params) {
       updates.slug = generateSlug(body.name);
     }
     if (body.slug !== undefined && body.slug) updates.slug = String(body.slug).trim();
-    if (body.slugFr !== undefined) updates.slugFr = body.slugFr || null;
+    if (body.slugFr !== undefined) {
+      updates.slugFr = (body.slugFr && String(body.slugFr).trim())
+        ? String(body.slugFr).trim()
+        : (body.nameFr ? generateSlug(body.nameFr) : null);
+    }
+    // If nameFr changes and no explicit slugFr provided, auto-regenerate
+    if (body.nameFr !== undefined && body.slugFr === undefined && body.nameFr) {
+      updates.slugFr = generateSlug(body.nameFr);
+    }
     if (body.description !== undefined) updates.description = body.description;
     if (body.shortDescription !== undefined) updates.shortDescription = body.shortDescription;
     if (body.longDescription !== undefined) updates.longDescription = body.longDescription;
