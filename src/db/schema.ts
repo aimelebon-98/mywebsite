@@ -289,3 +289,16 @@ export const bundles = pgTable("bundles", {
 export type Bundle = typeof bundles.$inferSelect;
 export type NewBundle = typeof bundles.$inferInsert;
 
+export const blogCategories = pgTable("blog_categories", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+  nameFr: text("name_fr"),
+  color: text("color").notNull().default("bg-gray-100 text-gray-700"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type BlogCategory = typeof blogCategories.$inferSelect;
+export type NewBlogCategory = typeof blogCategories.$inferInsert;

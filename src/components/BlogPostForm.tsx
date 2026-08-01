@@ -68,6 +68,13 @@ export default function BlogPostForm({ post, onSave, onCancel, loading }: Props)
   const [coverImageAlt, setCoverImageAlt] = useState(post?.coverImageAlt || "");
   const [coverImageAltFr, setCoverImageAltFr] = useState(post?.coverImageAltFr || "");
   const [category, setCategory] = useState(post?.category || "style-tips");
+  const [dbCategories, setDbCategories] = useState<Array<{ slug: string; name: string; nameFr?: string | null }>>([]);
+
+  useEffect(() => {
+    fetch("/api/blog-categories").then(r => r.json()).then(data => {
+      if (Array.isArray(data) && data.length > 0) setDbCategories(data);
+    }).catch(() => {});
+  }, []);
   const [tagsStr, setTagsStr] = useState(() => {
     try { return post?.tags ? (JSON.parse(post.tags) as string[]).join(", ") : ""; } catch { return ""; }
   });

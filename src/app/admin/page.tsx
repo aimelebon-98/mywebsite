@@ -8,9 +8,10 @@ import {
   Mail
 } from "lucide-react";
 import Link from "next/link";
-import { BookOpen, UsersRound, PenLine, HelpCircle } from "lucide-react";
+import { BookOpen, UsersRound, PenLine, HelpCircle, ChevronDown, ChevronRight } from "lucide-react";
 import type { BlogPost } from "@/db/schema";
 import AuthorsManager from "@/components/AuthorsManager";
+import BlogCategoriesManager from "@/components/BlogCategoriesManager";
 import BlogPostsList from "@/components/BlogPostsList";
 import BlogPostForm from "@/components/BlogPostForm";
 import CommentsManager from "@/components/CommentsManager";
@@ -83,7 +84,7 @@ interface StoreSettings {
   lockoutMinutes: number;
 }
 
-type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments" | "orders" | "product-faqs" | "analytics" | "newsletter" | "bundles";
+type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments" | "orders" | "product-faqs" | "analytics" | "newsletter" | "bundles" | "blog-categories";
 
 export default function AdminPage() {
   const [authStep, setAuthStep] = useState<"loading" | "verify" | "access-code" | "password" | "authenticated">("loading");
@@ -149,6 +150,7 @@ export default function AdminPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [productFilter, setProductFilter] = useState<"all" | "active" | "inactive" | "featured" | "lowStock" | "outOfStock" | "highStock">("all");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [blogMenuOpen, setBlogMenuOpen] = useState(true);
   const [notification, setNotification] = useState("");
   const [notifCounts, setNotifCounts] = useState<{ orders: number; comments: number; reviews: number; newsletter: number }>({ orders: 0, comments: 0, reviews: 0, newsletter: 0 });
   const [notificationType, setNotificationType] = useState<"success" | "error">("success");
@@ -566,7 +568,7 @@ export default function AdminPage() {
             { id: "reviews" as Tab, icon: MessageSquare, label: "Reviews", badge: notifCounts.reviews },
             { id: "product-faqs" as Tab, icon: HelpCircle, label: "Product FAQs", badge: 0 },
             // --- Content (blog) ---
-            { id: "blog" as Tab, icon: BookOpen, label: "Blog Posts", badge: 0 },
+            // Note: blog submenu handled separately below
             { id: "authors" as Tab, icon: UsersRound, label: "Authors", badge: 0 },
             { id: "comments" as Tab, icon: MessageSquare, label: "Comments", badge: notifCounts.comments },
             // --- Marketing ---
@@ -622,7 +624,7 @@ export default function AdminPage() {
               <Menu className="w-5 h-5" />
             </button>
             <h1 className="text-lg font-bold capitalize">
-              {activeTab === "add" ? "Add Product" : activeTab === "edit" ? "Edit Product" : activeTab === "blog-add" ? "New Blog Post" : activeTab === "blog-edit" ? "Edit Blog Post" : activeTab === "blog" ? "Blog Posts" : activeTab === "newsletter" ? "Newsletter Subscribers" : activeTab}
+              {activeTab === "add" ? "Add Product" : activeTab === "edit" ? "Edit Product" : activeTab === "blog-add" ? "New Blog Post" : activeTab === "blog-edit" ? "Edit Blog Post" : activeTab === "blog" ? "Blog Posts" : activeTab === "blog-categories" ? "Blog Categories" : activeTab === "newsletter" ? "Newsletter Subscribers" : activeTab}
             </h1>
           </div>
           <div className="flex items-center gap-2">
@@ -869,6 +871,10 @@ export default function AdminPage() {
 
           {activeTab === "bundles" && (
             <BundlesManager />
+          )}
+
+          {activeTab === "blog-categories" && (
+            <BlogCategoriesManager />
           )}
 
           {activeTab === "product-faqs" && (
