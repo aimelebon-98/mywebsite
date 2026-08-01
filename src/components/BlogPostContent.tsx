@@ -7,7 +7,7 @@ import Image from "next/image";
 import type { BlogPost, Author } from "@/db/schema";
 import { getCategoryLabel, formatDate } from "@/lib/blog";
 import CommentSection from "@/components/CommentSection";
-import { Clock, Calendar, ChevronRight, Copy, Check, ArrowLeft, ArrowRight, Home, Sparkles, Eye, List, Share2 } from "lucide-react";
+import { Clock, Calendar, ChevronRight, ArrowLeft, ArrowRight, Home, Sparkles, Eye, List, Share2 } from "lucide-react";
 
 interface Props {
   post: BlogPost;
@@ -28,7 +28,6 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
   const isFr = locale === "fr";
   const [toc, setToc] = useState<TocItem[]>([]);
   const [activeId, setActiveId] = useState<string>("");
-  const [copied, setCopied] = useState(false);
   const [progress, setProgress] = useState(0);
 
   const tags = useMemo(() => {
@@ -85,13 +84,6 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch { /* ignore */ }
-  };
 
   const shareUrl = typeof window !== "undefined" ? window.location.href : "";
   const shareText = encodeURIComponent(post.title);
@@ -143,13 +135,7 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
             <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
           </svg>
         </a>
-        <button
-          onClick={handleCopy}
-          aria-label="Copy link"
-          className={`${dim} rounded-full flex items-center justify-center transition-all hover:scale-110 ${copied ? "bg-green-500 text-white" : "bg-gray-100 hover:bg-[#CA3F2E] hover:text-white text-gray-600"}`}
-        >
-          {copied ? <Check className={iconDim} /> : <Copy className={iconDim} />}
-        </button>
+
       </div>
     );
   };
