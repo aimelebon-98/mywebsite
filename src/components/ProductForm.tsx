@@ -269,6 +269,24 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
               </div>
 
               <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                  URL Slug <span className="font-normal normal-case text-gray-400">(auto-generated from name if empty)</span>
+                </label>
+                <input
+                  type="text"
+                  value={slug}
+                  onChange={(e) => setSlug(e.target.value)}
+                  placeholder="product-url-slug"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gray-900 transition"
+                />
+                {slug && (
+                  <p className="text-[10px] text-gray-500 mt-1">
+                    EN URL: <code className="bg-gray-100 px-1 rounded">/en/product/{slug}</code>
+                  </p>
+                )}
+              </div>
+
+              <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Short Description</label>
                 <textarea
                   value={shortDescription}
@@ -313,6 +331,29 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
                   placeholder="Nom du produit en francais..."
                   className="w-full px-0 py-2 border-0 border-b border-transparent hover:border-gray-200 focus:border-blue-500 text-2xl font-bold focus:outline-none transition placeholder-gray-300 bg-transparent"
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                  Slug FR <span className="font-normal normal-case text-gray-400">(French URL - optional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={slugFr}
+                  onChange={(e) => setSlugFr(e.target.value)}
+                  placeholder="url-francaise-produit"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 transition"
+                />
+                {slugFr && (
+                  <p className="text-[10px] text-gray-500 mt-1">
+                    FR URL: <code className="bg-gray-100 px-1 rounded">/fr/product/{slugFr}</code>
+                  </p>
+                )}
+                {!slugFr && slug && (
+                  <p className="text-[10px] text-gray-400 mt-1">
+                    If empty, FR uses same slug: <code className="bg-gray-100 px-1 rounded">/fr/product/{slug}</code>
+                  </p>
+                )}
               </div>
 
               <div>
