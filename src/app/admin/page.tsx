@@ -150,6 +150,7 @@ export default function AdminPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [productFilter, setProductFilter] = useState<"all" | "active" | "inactive" | "featured" | "lowStock" | "outOfStock" | "highStock">("all");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [productsMenuOpen, setProductsMenuOpen] = useState(true);
   const [blogMenuOpen, setBlogMenuOpen] = useState(true);
   const [notification, setNotification] = useState("");
   const [notifCounts, setNotifCounts] = useState<{ orders: number; comments: number; reviews: number; newsletter: number }>({ orders: 0, comments: 0, reviews: 0, newsletter: 0 });
@@ -602,6 +603,79 @@ export default function AdminPage() {
               )}
             </button>
           ))}
+
+          {/* Products - collapsible submenu */}
+          <button
+            onClick={() => setProductsMenuOpen(!productsMenuOpen)}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition ${
+              activeTab === "products" || activeTab === "add" || activeTab === "edit" || activeTab === "categories" || activeTab === "reviews" || activeTab === "product-faqs"
+                ? "bg-gray-900 text-white"
+                : "text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            <Package className="w-5 h-5 flex-shrink-0" />
+            <span className="flex-1 text-left">Products</span>
+            {productsMenuOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+          </button>
+          {productsMenuOpen && (
+            <div className="ml-4 space-y-1 border-l-2 border-gray-100 pl-3">
+              <button
+                onClick={() => { setActiveTab("products"); setSidebarOpen(false); }}
+                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition ${
+                  activeTab === "products" || activeTab === "edit"
+                    ? "bg-gray-100 text-gray-900 font-semibold"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                All Products
+              </button>
+              <button
+                onClick={() => { setActiveTab("add"); setSidebarOpen(false); }}
+                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition ${
+                  activeTab === "add"
+                    ? "bg-gray-100 text-gray-900 font-semibold"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                <Plus className="w-3.5 h-3.5" /> Add Product
+              </button>
+              <button
+                onClick={() => { setActiveTab("categories"); setSidebarOpen(false); }}
+                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition ${
+                  activeTab === "categories"
+                    ? "bg-gray-100 text-gray-900 font-semibold"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                <Tag className="w-3.5 h-3.5" /> Categories
+              </button>
+              <button
+                onClick={() => { setActiveTab("reviews"); setSidebarOpen(false); }}
+                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition relative ${
+                  activeTab === "reviews"
+                    ? "bg-gray-100 text-gray-900 font-semibold"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                <MessageSquare className="w-3.5 h-3.5" /> Reviews
+                {notifCounts.reviews > 0 && (
+                  <span className="ml-auto min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center text-white" style={{ backgroundColor: "#CA3F2E" }}>
+                    {notifCounts.reviews > 99 ? "99+" : notifCounts.reviews}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => { setActiveTab("product-faqs"); setSidebarOpen(false); }}
+                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition ${
+                  activeTab === "product-faqs"
+                    ? "bg-gray-100 text-gray-900 font-semibold"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                <HelpCircle className="w-3.5 h-3.5" /> Product FAQs
+              </button>
+            </div>
+          )}
 
           {/* Blog Posts - collapsible submenu */}
           <button
