@@ -59,7 +59,7 @@ export default function Footer() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3 flex-shrink-0">
-              <div className="w-10 h-10 bg-brand-600 rounded-xl flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg, #CA3F2E 0%, #8B2A1E 100%)" }}>
                 <Mail className="w-5 h-5 text-white" />
               </div>
               <div>
