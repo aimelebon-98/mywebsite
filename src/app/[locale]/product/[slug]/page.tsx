@@ -1,3 +1,4 @@
+// v2: redirect fix
 import { db } from "@/db";
 import { products, reviews, type Product, type Review } from "@/db/schema";
 import { eq, or, and, ne, desc, isNotNull } from "drizzle-orm";
