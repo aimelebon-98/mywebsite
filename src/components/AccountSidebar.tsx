@@ -10,13 +10,19 @@ import { useEffect } from "react";
 interface Props {
   mobileOpen?: boolean;
   onClose?: () => void;
+  variant?: "desktop" | "mobile";
 }
 
-export default function AccountSidebar({ mobileOpen = false, onClose }: Props) {
+export default function AccountSidebar({ mobileOpen = false, onClose, variant }: Props) {
   const locale = useLocale();
   const isFr = locale === "fr";
   const pathname = usePathname();
   const { logout, customer } = useCustomer();
+
+  // If no variant specified, decide based on props:
+  // - has onClose/mobileOpen -> mobile drawer
+  // - no props -> desktop sidebar
+  const mode = variant || (onClose !== undefined ? "mobile" : "desktop");
 
   const items = [
     { href: `/${locale}/account/dashboard`,   icon: LayoutDashboard, label: isFr ? "Tableau de bord" : "Dashboard" },
@@ -31,9 +37,8 @@ export default function AccountSidebar({ mobileOpen = false, onClose }: Props) {
     { href: `/${locale}/account/security`,    icon: Shield,          label: isFr ? "S\u00e9curit\u00e9" : "Security" },
   ];
 
-  // Close on Escape key
   useEffect(() => {
-    if (!mobileOpen) return;
+    if (mode !== "mobile" || !mobileOpen) return;
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape" && onClose) onClose(); };
     document.addEventListener("keydown", handler);
     document.body.style.overflow = "hidden";
@@ -41,9 +46,9 @@ export default function AccountSidebar({ mobileOpen = false, onClose }: Props) {
       document.removeEventListener("keydown", handler);
       document.body.style.overflow = "";
     };
-  }, [mobileOpen, onClose]);
+  }, [mode, mobileOpen, onClose]);
 
-  const sidebarContent = (
+  const inner = (
     <>
       {customer && (
         <div className="px-4 py-3 mb-3 bg-gradient-to-br from-[#CA3F2E] to-[#8B2A1E] rounded-xl text-white">
@@ -97,34 +102,35 @@ export default function AccountSidebar({ mobileOpen = false, onClose }: Props) {
     </>
   );
 
-  return (
-    <>
-      {/* Desktop / Tablet - always visible, sticky */}
-      <aside className="hidden lg:block lg:sticky lg:top-24 lg:self-start bg-white border border-gray-200 rounded-2xl p-4">
-        {sidebarContent}
-      </aside>
-
-      {/* Mobile - overlay drawer */}
-      {mobileOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 flex">
-          <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in"
+  // Mobile mode: overlay drawer (fixed positioned)
+  if (mode === "mobile") {
+    if (!mobileOpen) return null;
+    return (
+      <div className="lg:hidden fixed inset-0 z-50 flex">
+        <div
+          className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in"
+          onClick={onClose}
+        />
+        <aside className="relative w-72 max-w-[85vw] bg-white h-full overflow-y-auto p-4 shadow-2xl animate-slide-in-left">
+          <button
             onClick={onClose}
-          />
-          <aside className="relative w-72 max-w-[85vw] bg-white h-full overflow-y-auto p-4 shadow-2xl animate-slide-in-left">
-            <button
-              onClick={onClose}
-              className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-gray-100 transition"
-              aria-label="Close menu"
-            >
-              <X className="w-5 h-5 text-gray-500" />
-            </button>
-            <div className="pt-6">
-              {sidebarContent}
-            </div>
-          </aside>
-        </div>
-      )}
-    </>
+            className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-gray-100 transition"
+            aria-label="Close menu"
+          >
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+          <div className="pt-6">
+            {inner}
+          </div>
+        </aside>
+      </div>
+    );
+  }
+
+  // Desktop mode: sticky sidebar inside grid column
+  return (
+    <aside className="sticky top-24 self-start bg-white border border-gray-200 rounded-2xl p-4">
+      {inner}
+    </aside>
   );
 }
