@@ -1,88 +1,127 @@
 import type { MetadataRoute } from "next";
 import { db } from "@/db";
 import { products, blogPosts, authors } from "@/db/schema";
-import { eq, isNotNull, and } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.newdealzone.com";
 
 export const revalidate = 3600;
 
+interface StaticPageConfig {
+  path: string;
+  priority: number;
+  changeFrequency: "daily" | "weekly" | "monthly" | "yearly";
+}
+
+const STATIC_PAGES: StaticPageConfig[] = [
+  { path: "",           priority: 1.0, changeFrequency: "daily" },
+  { path: "/shop",      priority: 0.95, changeFrequency: "daily" },
+  { path: "/blog",      priority: 0.9, changeFrequency: "daily" },
+  { path: "/about",     priority: 0.7, changeFrequency: "monthly" },
+  { path: "/contact",   priority: 0.7, changeFrequency: "monthly" },
+  { path: "/faq",       priority: 0.7, changeFrequency: "monthly" },
+  { path: "/privacy",   priority: 0.3, changeFrequency: "yearly" },
+  { path: "/terms",     priority: 0.3, changeFrequency: "yearly" },
+  { path: "/shipping",  priority: 0.5, changeFrequency: "monthly" },
+  { path: "/returns",   priority: 0.5, changeFrequency: "monthly" },
+];
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
-
-  const staticPaths = ["", "/blog"];
   const locales = ["en", "fr"];
+  const entries: MetadataRoute.Sitemap = [];
 
-  const staticEntries: MetadataRoute.Sitemap = [];
-  for (const locale of locales) {
-    for (const path of staticPaths) {
-      staticEntries.push({
-        url: `${SITE_URL}/${locale}${path}`,
+  // Static pages - both locales
+  for (const cfg of STATIC_PAGES) {
+    for (const locale of locales) {
+      entries.push({
+        url: `${SITE_URL}/${locale}${cfg.path}`,
         lastModified: now,
-        changeFrequency: path === "" ? "daily" : path === "/blog" ? "daily" : "weekly",
-        priority: path === "" ? 1.0 : path === "/shop" ? 0.9 : path === "/blog" ? 0.9 : 0.6,
+        changeFrequency: cfg.changeFrequency,
+        priority: cfg.priority,
         alternates: {
           languages: {
-            en: `${SITE_URL}/en${path}`,
-            fr: `${SITE_URL}/fr${path}`,
-            "x-default": `${SITE_URL}/en${path}`,
+            en: `${SITE_URL}/en${cfg.path}`,
+            fr: `${SITE_URL}/fr${cfg.path}`,
+            "x-default": `${SITE_URL}/en${cfg.path}`,
           },
         },
       });
     }
   }
 
-  // Products
-  let productEntries: MetadataRoute.Sitemap = [];
+  // Products - use slugFr when available for French URLs
   try {
     const enProducts = await db
-      .select({ slug: products.slug, updatedAt: products.updatedAt, hasFr: products.nameFr })
+      .select({
+        slug: products.slug,
+        slugFr: products.slugFr,
+        updatedAt: products.updatedAt,
+        nameFr: products.nameFr,
+      })
       .from(products)
       .where(and(eq(products.active, true), eq(products.noIndex, false)));
 
     for (const p of enProducts) {
-      productEntries.push({
+      const hasFr = Boolean(p.nameFr && p.nameFr.trim());
+      const frSlug = (p.slugFr && p.slugFr.trim()) ? p.slugFr : p.slug;
+      const lastMod = p.updatedAt || now;
+
+      // English URL
+      entries.push({
         url: `${SITE_URL}/en/product/${p.slug}`,
-        lastModified: p.updatedAt || now,
+        lastModified: lastMod,
         changeFrequency: "weekly",
-        priority: 0.8,
+        priority: 0.85,
         alternates: {
           languages: {
             en: `${SITE_URL}/en/product/${p.slug}`,
-            ...(p.hasFr ? { fr: `${SITE_URL}/fr/product/${p.slug}` } : {}),
+            ...(hasFr ? { fr: `${SITE_URL}/fr/product/${frSlug}` } : {}),
+            "x-default": `${SITE_URL}/en/product/${p.slug}`,
           },
         },
       });
-      if (p.hasFr) {
-        productEntries.push({
-          url: `${SITE_URL}/fr/product/${p.slug}`,
-          lastModified: p.updatedAt || now,
+
+      // French URL (only if translation exists)
+      if (hasFr) {
+        entries.push({
+          url: `${SITE_URL}/fr/product/${frSlug}`,
+          lastModified: lastMod,
           changeFrequency: "weekly",
-          priority: 0.8,
+          priority: 0.85,
           alternates: {
             languages: {
               en: `${SITE_URL}/en/product/${p.slug}`,
-              fr: `${SITE_URL}/fr/product/${p.slug}`,
+              fr: `${SITE_URL}/fr/product/${frSlug}`,
+              "x-default": `${SITE_URL}/en/product/${p.slug}`,
             },
           },
         });
       }
     }
   } catch (err) {
-    console.error("Sitemap product fetch error:", err);
+    console.error("[Sitemap] Product fetch error:", err);
   }
 
-  // Blog posts
-  let blogEntries: MetadataRoute.Sitemap = [];
+  // Blog posts - use slugFr when available
   try {
     const posts = await db
-      .select({ slug: blogPosts.slug, updatedAt: blogPosts.updatedAt, publishedAt: blogPosts.publishedAt, hasFr: blogPosts.titleFr })
+      .select({
+        slug: blogPosts.slug,
+        slugFr: blogPosts.slugFr,
+        updatedAt: blogPosts.updatedAt,
+        publishedAt: blogPosts.publishedAt,
+        titleFr: blogPosts.titleFr,
+      })
       .from(blogPosts)
       .where(and(eq(blogPosts.published, true), eq(blogPosts.noIndex, false)));
 
     for (const p of posts) {
+      const hasFr = Boolean(p.titleFr && p.titleFr.trim());
+      const frSlug = (p.slugFr && p.slugFr.trim()) ? p.slugFr : p.slug;
       const lastMod = p.updatedAt || p.publishedAt || now;
-      blogEntries.push({
+
+      entries.push({
         url: `${SITE_URL}/en/blog/${p.slug}`,
         lastModified: lastMod,
         changeFrequency: "monthly",
@@ -90,31 +129,33 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         alternates: {
           languages: {
             en: `${SITE_URL}/en/blog/${p.slug}`,
-            ...(p.hasFr ? { fr: `${SITE_URL}/fr/blog/${p.slug}` } : {}),
+            ...(hasFr ? { fr: `${SITE_URL}/fr/blog/${frSlug}` } : {}),
+            "x-default": `${SITE_URL}/en/blog/${p.slug}`,
           },
         },
       });
-      if (p.hasFr) {
-        blogEntries.push({
-          url: `${SITE_URL}/fr/blog/${p.slug}`,
+
+      if (hasFr) {
+        entries.push({
+          url: `${SITE_URL}/fr/blog/${frSlug}`,
           lastModified: lastMod,
           changeFrequency: "monthly",
           priority: 0.7,
           alternates: {
             languages: {
               en: `${SITE_URL}/en/blog/${p.slug}`,
-              fr: `${SITE_URL}/fr/blog/${p.slug}`,
+              fr: `${SITE_URL}/fr/blog/${frSlug}`,
+              "x-default": `${SITE_URL}/en/blog/${p.slug}`,
             },
           },
         });
       }
     }
   } catch (err) {
-    console.error("Sitemap blog fetch error:", err);
+    console.error("[Sitemap] Blog fetch error:", err);
   }
 
   // Author pages
-  let authorEntries: MetadataRoute.Sitemap = [];
   try {
     const authorList = await db
       .select({ slug: authors.slug })
@@ -123,7 +164,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     for (const a of authorList) {
       for (const locale of locales) {
-        authorEntries.push({
+        entries.push({
           url: `${SITE_URL}/${locale}/blog/author/${a.slug}`,
           lastModified: now,
           changeFrequency: "weekly",
@@ -132,14 +173,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             languages: {
               en: `${SITE_URL}/en/blog/author/${a.slug}`,
               fr: `${SITE_URL}/fr/blog/author/${a.slug}`,
+              "x-default": `${SITE_URL}/en/blog/author/${a.slug}`,
             },
           },
         });
       }
     }
   } catch (err) {
-    console.error("Sitemap author fetch error:", err);
+    console.error("[Sitemap] Author fetch error:", err);
   }
 
-  return [...staticEntries, ...productEntries, ...blogEntries, ...authorEntries];
+  return entries;
 }
