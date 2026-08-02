@@ -8,6 +8,7 @@ import { routing } from "@/i18n/routing";
 import { CartProvider } from "@/lib/cart-context";
 import { WishlistProvider } from "@/lib/wishlist-context";
 import { CurrencyProvider } from "@/lib/currency-context";
+import { CustomerProvider } from "@/lib/customer-context";
 import MiniCartDrawer from "@/components/MiniCartDrawer";
 import FloatingCartPill from "@/components/FloatingCartPill";
 import PageViewTracker from "@/components/AnalyticsTracker";
@@ -103,6 +104,7 @@ export default async function LocaleLayout({
       <body className="bg-white text-gray-900 antialiased font-sans">
         <NextIntlClientProvider locale={locale} messages={messages}>
           <CartProvider>
+            <CustomerProvider>
             <CurrencyProvider>
             <WishlistProvider>
               {children}
@@ -112,6 +114,7 @@ export default async function LocaleLayout({
               <WhatsAppButton />
             </WishlistProvider>
           </CurrencyProvider>
+          </CustomerProvider>
           </CartProvider>
         </NextIntlClientProvider>
         <StickyPromoBar />

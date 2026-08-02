@@ -303,3 +303,54 @@ export const blogCategories = pgTable("blog_categories", {
 
 export type BlogCategory = typeof blogCategories.$inferSelect;
 export type NewBlogCategory = typeof blogCategories.$inferInsert;
+
+// ============================================================
+// CUSTOMER ACCOUNTS
+// ============================================================
+export const customers = pgTable("customers", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  name: text("name").notNull().default(""),
+  phone: text("phone").default(""),
+  verified: boolean("verified").notNull().default(false),
+  locale: text("locale").notNull().default("en"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const customerSessions = pgTable("customer_sessions", {
+  token: text("token").primaryKey(),
+  customerId: uuid("customer_id").notNull(),
+  ipAddress: text("ip_address").default(""),
+  userAgent: text("user_agent").default(""),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const customerAddresses = pgTable("customer_addresses", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  customerId: uuid("customer_id").notNull(),
+  label: text("label").notNull().default("Home"),
+  fullName: text("full_name").notNull(),
+  phone: text("phone").notNull(),
+  street: text("street").notNull(),
+  city: text("city").notNull(),
+  state: text("state").default(""),
+  country: text("country").notNull().default("Nigeria"),
+  postalCode: text("postal_code").default(""),
+  isDefault: boolean("is_default").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  token: text("token").primaryKey(),
+  customerId: uuid("customer_id").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  usedAt: timestamp("used_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export type Customer = typeof customers.$inferSelect;
+export type NewCustomer = typeof customers.$inferInsert;
+export type CustomerAddress = typeof customerAddresses.$inferSelect;

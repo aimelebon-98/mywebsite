@@ -4,8 +4,9 @@ import { useCurrency } from "@/lib/currency-context";
 
 import { useTranslations, useLocale } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/routing";
-import { ShoppingBag, Menu, X, Heart, Globe } from "lucide-react";
+import { ShoppingBag, Menu, X, Heart, Globe, User, LogIn } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
+import { useCustomer } from "@/lib/customer-context";
 import { useWishlist } from "@/lib/wishlist-context";
 import { useState } from "react";
 import SearchAutocomplete from "@/components/SearchAutocomplete";
@@ -20,6 +21,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { totalItems, openDrawer } = useCart();
+  const { customer } = useCustomer();
   const { format: fmtPrice } = useCurrency();
   const isFr = locale === "fr";
   const { count: wishlistCount } = useWishlist();
@@ -174,6 +176,16 @@ export default function Navbar() {
                 </>
               )}
             </div>
+
+            {customer ? (
+              <Link href="/account/dashboard" aria-label="Account" className={`relative p-2 rounded-xl transition ${iconHoverBg}`}>
+                <User className={`w-5 h-5 ${iconColor}`} />
+              </Link>
+            ) : (
+              <Link href="/account/login" aria-label="Login" className={`relative p-2 rounded-xl transition ${iconHoverBg}`}>
+                <LogIn className={`w-5 h-5 ${iconColor}`} />
+              </Link>
+            )}
 
             <Link href="/wishlist" aria-label={t("wishlist")} className={`relative p-2 rounded-xl transition ${iconHoverBg}`}>
               <Heart className={`w-5 h-5 ${heartClass}`} />
