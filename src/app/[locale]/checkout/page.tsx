@@ -441,7 +441,7 @@ export default function CheckoutPage() {
                   href={`/${locale}/account/orders`}
                   className="block mt-3 text-sm text-gray-500 hover:text-[#CA3F2E] transition"
                 >
-                  {isFr ? "Voir mes commandes" : "View my orders"} \u2192
+                  {isFr ? "Voir mes commandes" : "View my orders"} {String.fromCharCode(0x2192)}
                 </Link>
               )}
             </div>
