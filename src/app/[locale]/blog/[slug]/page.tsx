@@ -156,7 +156,11 @@ export default async function BlogPostPage({ params }: Props) {
       .limit(3);
 
     relatedPosts = relatedRaw.map(p => localizePost(p, isFr));
-  } catch {
+  } catch (err) {
+    // Re-throw Next.js redirect errors so redirect() works properly
+    if (err && typeof err === "object" && "digest" in err && String((err as { digest?: string }).digest).startsWith("NEXT_REDIRECT")) {
+      throw err;
+    }
     notFound();
   }
 

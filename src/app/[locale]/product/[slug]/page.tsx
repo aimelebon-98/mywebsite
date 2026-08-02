@@ -2,7 +2,7 @@
 import { db } from "@/db";
 import { products, reviews, type Product, type Review } from "@/db/schema";
 import { eq, or, and, ne, desc, isNotNull } from "drizzle-orm";
-import { notFound, redirect } from "next/navigation";
+import { notFound, redirect, isRedirectError } from "next/navigation";
 import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -189,7 +189,11 @@ export default async function ProductPage({ params }: Props) {
 
       relatedProducts = [...relatedProducts, ...moreRaw.map(p => localizeProduct(p, isFr))];
     }
-  } catch {
+  } catch (err) {
+    // Re-throw Next.js redirect errors so redirect() works properly
+    if (err && typeof err === "object" && "digest" in err && String((err as { digest?: string }).digest).startsWith("NEXT_REDIRECT")) {
+      throw err;
+    }
     notFound();
   }
 
