@@ -46,7 +46,7 @@ export default function Navbar() {
           if (nextLocale === "fr" && product.slugFr) targetSlug = product.slugFr;
           else if (nextLocale === "en" && product.slug) targetSlug = product.slug;
           if (targetSlug !== currentSlug) {
-            router.replace(`/product/${targetSlug}`, { locale: nextLocale });
+            window.location.href = `/${nextLocale}/product/${targetSlug}`;
             return;
           }
         }
