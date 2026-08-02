@@ -7,23 +7,27 @@ import MiniCartDrawer from "@/components/MiniCartDrawer";
 const WhatsAppButton = dynamic(() => import("@/components/WhatsAppButton"));
 
 /**
- * MiniCartDrawer -> shop pages only (list + category, NOT product detail)
- * WhatsAppButton -> shop, product, contact, about
- * All other pages (account, checkout, cart, blog, legal, admin, etc.) hide both.
+ * MiniCartDrawer: show almost everywhere so the navbar cart icon works.
+ *   Hide only where it would be redundant (cart page, checkout, account, admin).
+ *
+ * WhatsAppButton: only on marketing pages (shop, product, contact, about, home).
  */
 export default function ConditionalWidgets() {
   const pathname = usePathname() || "";
-
-  // Strip locale prefix (/en/... or /fr/...) for cleaner matching
   const path = pathname.replace(/^\/(en|fr)/, "") || "/";
 
-  // MiniCart: only on shop listing pages (not product detail, not cart, not checkout)
-  const showMiniCart =
-    path === "/shop" ||
-    path.startsWith("/shop/") ||
-    path === "/";  // homepage also has category grids -> allow
+  // MiniCartDrawer: hide only where cart is redundant or would conflict
+  const hideMiniCartOn = [
+    "/cart",
+    "/checkout",
+  ];
+  const hideMiniCart =
+    hideMiniCartOn.includes(path) ||
+    path.startsWith("/account") ||
+    path.startsWith("/admin");
+  const showMiniCart = !hideMiniCart;
 
-  // WhatsApp: shop pages, product pages, contact, about
+  // WhatsAppButton: only on shop/product/home/contact/about
   const showWhatsApp =
     path === "/" ||
     path === "/shop" ||
