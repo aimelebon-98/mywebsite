@@ -242,6 +242,55 @@ export default function CheckoutPage() {
 
     setOrderNumber(orderNum);
 
+    // Auto-save address + phone to customer account (only for logged-in users, first order or new address)
+    if (customer && orderNum) {
+      try {
+        // Update phone on profile if empty
+        if (!customer.phone && phone.trim()) {
+          await fetch("/api/customer/profile", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phone: phone.trim() }),
+          }).catch(() => {});
+        }
+
+        // Fetch existing addresses to decide whether to save
+        const addrRes = await fetch("/api/customer/addresses");
+        if (addrRes.ok) {
+          const addrData = await addrRes.json();
+          const existing = (addrData.addresses || []) as Array<{ street?: string; city?: string; phone?: string }>;
+          const normalizedNew = address.trim().toLowerCase().replace(/\s+/g, " ");
+          const isDuplicate = existing.some(a => {
+            const combined = ((a.street || "") + " " + (a.city || "")).toLowerCase().replace(/\s+/g, " ").trim();
+            return combined && normalizedNew.includes(combined.split(" ")[0] || "");
+          });
+
+          // Save as new address if not duplicate (best-effort - use whole address string as street)
+          if (!isDuplicate && address.trim()) {
+            const parts = address.split(",").map(s => s.trim()).filter(Boolean);
+            const street = parts[0] || address.trim();
+            const city = parts[1] || "Unknown";
+            const country = parts[parts.length - 1] || "Nigeria";
+            const isFirst = existing.length === 0;
+
+            await fetch("/api/customer/addresses", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                label: isFirst ? "Home" : "Address " + (existing.length + 1),
+                fullName: name.trim() || customer.name,
+                phone: phone.trim(),
+                street,
+                city,
+                country,
+                isDefault: isFirst,
+              }),
+            }).catch(() => {});
+          }
+        }
+      } catch { /* non-blocking */ }
+    }
+
     // Build WhatsApp message
     let message = "*New Order from NewDealZone*\n\n";
     if (orderNum) message += "*Order:* " + orderNum + "\n";
