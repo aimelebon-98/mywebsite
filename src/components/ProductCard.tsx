@@ -100,7 +100,7 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
 
   return (
     <>
-      <Link href={`/${locale}/product/${product.slug || product.id}`} className="group block">
+      <Link href={`/${locale}/product/${locale === "fr" && product.slugFr ? product.slugFr : (product.slug || product.id)}`} className="group block">
         <div className="relative overflow-hidden rounded-2xl bg-gray-100 aspect-square mb-3">
           <ProductImage
             src={product.imageUrl}
