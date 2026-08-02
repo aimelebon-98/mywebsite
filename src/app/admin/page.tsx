@@ -668,7 +668,7 @@ export default function AdminPage() {
           <button
             onClick={() => setBlogMenuOpen(!blogMenuOpen)}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition ${
-              activeTab === "blog" || activeTab === "blog-add" || activeTab === "blog-edit" || activeTab === "blog-categories" | "customers"
+              activeTab === "blog" || activeTab === "blog-add" || activeTab === "blog-edit" || activeTab === "blog-categories" || activeTab === "customers"
                 ? "bg-gray-900 text-white"
                 : "text-gray-600 hover:bg-gray-50"
             }`}
@@ -702,7 +702,7 @@ export default function AdminPage() {
               <button
                 onClick={() => { setActiveTab("blog-categories" | "customers"); setSidebarOpen(false); }}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
-                  activeTab === "blog-categories" | "customers"
+                  activeTab === "blog-categories" || activeTab === "customers"
                     ? "bg-gray-100 text-gray-900 font-semibold"
                     : "text-gray-600 hover:bg-gray-50"
                 }`}
@@ -770,7 +770,7 @@ export default function AdminPage() {
               <Menu className="w-5 h-5" />
             </button>
             <h1 className="text-lg font-bold capitalize">
-              {activeTab === "add" ? "Add Product" : activeTab === "edit" ? "Edit Product" : activeTab === "blog-add" ? "New Blog Post" : activeTab === "blog-edit" ? "Edit Blog Post" : activeTab === "blog" ? "Blog Posts" : activeTab === "blog-categories" | "customers" ? "Blog Categories" : activeTab === "newsletter" ? "Newsletter Subscribers" : activeTab}
+              {activeTab === "add" ? "Add Product" : activeTab === "edit" ? "Edit Product" : activeTab === "blog-add" ? "New Blog Post" : activeTab === "blog-edit" ? "Edit Blog Post" : activeTab === "blog" ? "Blog Posts" : activeTab === "blog-categories" || activeTab === "customers" ? "Blog Categories" : activeTab === "newsletter" ? "Newsletter Subscribers" : activeTab}
             </h1>
           </div>
           <div className="flex items-center gap-2">
@@ -1023,7 +1023,7 @@ export default function AdminPage() {
             <BundlesManager />
           )}
 
-          {activeTab === "blog-categories" | "customers" && (
+          {activeTab === "blog-categories" || activeTab === "customers" && (
             <BlogCategoriesManager />
           )}
 
