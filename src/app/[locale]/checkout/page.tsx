@@ -230,7 +230,10 @@ export default function CheckoutPage() {
           couponDiscount: couponDiscount,
           total: finalTotal,
           customerId: customer?.id || null,
-          currency: userCurrency,
+          // Order amounts are stored in USD (our base currency).
+          // userCurrency is only for display - store as USD so dashboard math works.
+          currency: "USD",
+          displayCurrency: userCurrency,
           locale,
         }),
       });
