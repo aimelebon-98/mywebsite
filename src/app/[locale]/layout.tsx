@@ -9,7 +9,7 @@ import { CartProvider } from "@/lib/cart-context";
 import { WishlistProvider } from "@/lib/wishlist-context";
 import { CurrencyProvider } from "@/lib/currency-context";
 import { CustomerProvider } from "@/lib/customer-context";
-import MiniCartDrawer from "@/components/MiniCartDrawer";
+import ConditionalWidgets from "@/components/ConditionalWidgets";
 import FloatingCartPill from "@/components/FloatingCartPill";
 import PageViewTracker from "@/components/AnalyticsTracker";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -26,7 +26,6 @@ const inter = Inter({
 });
 
 // Lazy-load non-critical UI (huge FCP/LCP win - loaded AFTER first paint)
-const WhatsAppButton = dynamic(() => import("@/components/WhatsAppButton"));
 const InactivityCartReminder = dynamic(() => import("@/components/InactivityCartReminder"));
 const ExitIntentPopup = dynamic(() => import("@/components/ExitIntentPopup"));
 const CookieConsent = dynamic(() => import("@/components/CookieConsent"));
@@ -108,10 +107,9 @@ export default async function LocaleLayout({
             <CurrencyProvider>
             <WishlistProvider>
               {children}
-              <MiniCartDrawer />
+              <ConditionalWidgets />
               <FloatingCartPill />
               <InactivityCartReminder />
-              <WhatsAppButton />
             </WishlistProvider>
           </CurrencyProvider>
           </CustomerProvider>
