@@ -196,6 +196,7 @@ export const orders = pgTable("orders", {
   customerName: text("customer_name").notNull(),
   customerPhone: text("customer_phone").notNull(),
   customerEmail: text("customer_email").notNull().default(""),
+  customerId: uuid("customer_id"),
   customerAddress: text("customer_address").notNull(),
   // Order data (JSON string of items)
   items: text("items").notNull().default("[]"),
