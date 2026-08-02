@@ -2,7 +2,7 @@
 import { db } from "@/db";
 import { products, reviews, type Product, type Review } from "@/db/schema";
 import { eq, or, and, ne, desc, isNotNull } from "drizzle-orm";
-import { notFound, redirect, isRedirectError } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
