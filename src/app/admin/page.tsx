@@ -1533,7 +1533,7 @@ function ProductsTab({
                           {p.active ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                         </button>
                         <a
-                          href={`/en/product/${p.id}`}
+                          href={`/en/product/${p.slug || p.id}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="p-2 rounded-lg text-blue-500 hover:bg-blue-50 transition inline-flex items-center justify-center"
