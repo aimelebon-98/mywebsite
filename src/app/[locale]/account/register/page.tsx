@@ -1,23 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import { useCustomer } from "@/lib/customer-context";
+import Turnstile from "@/components/Turnstile";
 import { Mail, Lock, User, Phone, UserPlus, Loader2, ArrowLeft } from "lucide-react";
 
 export default function RegisterPage() {
   const locale = useLocale();
   const isFr = locale === "fr";
   const router = useRouter();
-  const { refresh } = useCustomer();
+  const { customer, loading: authLoading, refresh } = useCustomer();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
+
+  useEffect(() => {
+    if (!authLoading && customer) {
+      router.replace(`/${locale}/account/dashboard`);
+    }
+  }, [authLoading, customer, locale, router]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,11 +35,15 @@ export default function RegisterPage() {
       const res = await fetch("/api/customer/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, phone, password, locale, visitorId: typeof window !== "undefined" ? localStorage.getItem("solevault-visitor-id") || "" : "" }),
+        body: JSON.stringify({
+          name, email, phone, password, locale,
+          turnstileToken,
+          visitorId: typeof window !== "undefined" ? localStorage.getItem("solevault-visitor-id") || "" : "",
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || (isFr ? "Erreur d'inscription" : "Registration failed"));
+        setError(data.error || (isFr ? "Erreur d&#39;inscription" : "Registration failed"));
       } else {
         await refresh();
         router.push(`/${locale}/account/dashboard`);
@@ -41,6 +53,19 @@ export default function RegisterPage() {
     }
     setLoading(false);
   };
+
+  if (authLoading || customer) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-[#CA3F2E] mx-auto mb-3" />
+          <p className="text-sm text-gray-500">
+            {customer ? (isFr ? "Redirection..." : "Redirecting...") : (isFr ? "Chargement..." : "Loading...")}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
@@ -54,7 +79,7 @@ export default function RegisterPage() {
               <UserPlus className="w-7 h-7 text-white" />
             </div>
             <h1 className="text-2xl font-black text-gray-900">{isFr ? "Creer un compte" : "Create account"}</h1>
-            <p className="text-sm text-gray-500 mt-1">{isFr ? "C'est rapide et gratuit" : "It's quick and free"}</p>
+            <p className="text-sm text-gray-500 mt-1">{isFr ? "C&#39;est rapide et gratuit" : "It&#39;s quick and free"}</p>
           </div>
 
           <form onSubmit={submit} className="space-y-4">
@@ -63,6 +88,7 @@ export default function RegisterPage() {
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input type="text" required value={name} onChange={(e) => setName(e.target.value)}
+                  autoComplete="name" autoFocus
                   className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#CA3F2E] transition" />
               </div>
             </div>
@@ -71,6 +97,7 @@ export default function RegisterPage() {
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
                   className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#CA3F2E] transition" />
               </div>
             </div>
@@ -81,6 +108,7 @@ export default function RegisterPage() {
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
+                  autoComplete="tel"
                   className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#CA3F2E] transition" />
               </div>
             </div>
@@ -89,6 +117,7 @@ export default function RegisterPage() {
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="new-password"
                   className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#CA3F2E] transition" />
               </div>
               <p className="text-[10px] text-gray-400 mt-1">{isFr ? "Minimum 8 caracteres" : "Minimum 8 characters"}</p>
@@ -101,6 +130,8 @@ export default function RegisterPage() {
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               {isFr ? "Creer mon compte" : "Create my account"}
             </button>
+
+            <Turnstile mode="auto" action="customer-register" onVerify={(t) => setTurnstileToken(t)} className="hidden" />
           </form>
 
           <p className="mt-4 text-center text-sm text-gray-500">
