@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useRef, useState } from "react";
 
@@ -8,6 +8,16 @@ interface TurnstileProps {
   onExpire?: () => void;
   theme?: "light" | "dark" | "auto";
   className?: string;
+  /**
+   * "auto" (default): runs immediately when mounted, no user interaction.
+   *   Best for invisible or non-interactive site keys.
+   * "interactive": shows managed widget (may include checkbox challenge).
+   */
+  mode?: "auto" | "interactive";
+  /**
+   * Optional action label sent to Cloudflare analytics (login, register, etc.)
+   */
+  action?: string;
 }
 
 declare global {
@@ -16,6 +26,7 @@ declare global {
       render: (container: string | HTMLElement, options: Record<string, unknown>) => string;
       reset: (widgetId: string) => void;
       remove: (widgetId: string) => void;
+      execute: (widgetId: string) => void;
     };
     onloadTurnstileCallback?: () => void;
   }
@@ -23,19 +34,22 @@ declare global {
 
 const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "";
 
-export default function Turnstile({ onVerify, onError, onExpire, theme = "auto", className = "" }: TurnstileProps) {
+export default function Turnstile({
+  onVerify, onError, onExpire,
+  theme = "auto", className = "",
+  mode = "interactive", action,
+}: TurnstileProps) {
   const ref = useRef<HTMLDivElement>(null);
   const widgetId = useRef<string | null>(null);
   const [scriptLoaded, setScriptLoaded] = useState(false);
 
-  // Load Cloudflare Turnstile script once
   useEffect(() => {
     if (window.turnstile) {
       setScriptLoaded(true);
       return;
     }
 
-    const existing = document.querySelector('script[src*="challenges.cloudflare.com/turnstile"]');
+    const existing = document.querySelector("script[src*=\"challenges.cloudflare.com/turnstile\"]");
     if (existing) {
       existing.addEventListener("load", () => setScriptLoaded(true));
       return;
@@ -49,31 +63,45 @@ export default function Turnstile({ onVerify, onError, onExpire, theme = "auto",
     document.head.appendChild(script);
   }, []);
 
-  // Render widget once script + container are ready
   useEffect(() => {
     if (!scriptLoaded || !ref.current || !window.turnstile || !SITE_KEY) return;
 
-    // Reset if already rendered
     if (widgetId.current) {
       try { window.turnstile.remove(widgetId.current); } catch { /* ignore */ }
       widgetId.current = null;
     }
 
-    widgetId.current = window.turnstile.render(ref.current, {
+    const opts: Record<string, unknown> = {
       sitekey: SITE_KEY,
       theme,
       callback: (token: string) => onVerify(token),
       "error-callback": () => onError?.(),
       "expired-callback": () => onExpire?.(),
-      appearance: "always",
-    });
+    };
+
+    if (mode === "auto") {
+      // Invisible / non-interactive mode - auto executes
+      opts.execution = "execute";
+      opts.appearance = "interaction-only";
+    } else {
+      opts.appearance = "always";
+    }
+
+    if (action) opts.action = action;
+
+    widgetId.current = window.turnstile.render(ref.current, opts);
+
+    // For auto mode, trigger execution right away
+    if (mode === "auto" && widgetId.current) {
+      try { window.turnstile.execute(widgetId.current); } catch { /* ignore */ }
+    }
 
     return () => {
       if (widgetId.current && window.turnstile) {
         try { window.turnstile.remove(widgetId.current); } catch { /* ignore */ }
       }
     };
-  }, [scriptLoaded, theme, onVerify, onError, onExpire]);
+  }, [scriptLoaded, theme, mode, action, onVerify, onError, onExpire]);
 
   if (!SITE_KEY) {
     return (

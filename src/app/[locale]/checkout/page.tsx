@@ -10,6 +10,7 @@ import { useCurrency } from "@/lib/currency-context";
 import { computeShipping } from "@/lib/shipping";
 import { findApplicableBundle, calcDiscount, type Bundle } from "@/lib/bundles";
 import { trackEvent } from "@/components/AnalyticsTracker";
+import Turnstile from "@/components/Turnstile";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import {
@@ -56,6 +57,7 @@ export default function CheckoutPage() {
   const [authError, setAuthError] = useState("");
   const [welcomeCode, setWelcomeCode] = useState("");
   const [mounted, setMounted] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
 
   const [whatsappNumber, setWhatsappNumber] = useState("");
   const [bundles, setBundles] = useState<Bundle[]>([]);
@@ -142,8 +144,8 @@ export default function CheckoutPage() {
     try {
       const url = mode === "signup" ? "/api/customer/register" : "/api/customer/login";
       const body = mode === "signup"
-        ? { name: name.trim(), email: email.trim().toLowerCase(), password, locale }
-        : { email: email.trim().toLowerCase(), password };
+        ? { name: name.trim(), email: email.trim().toLowerCase(), password, locale, turnstileToken }
+        : { email: email.trim().toLowerCase(), password, turnstileToken };
 
       const res = await fetch(url, {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -420,6 +422,9 @@ export default function CheckoutPage() {
             <div>
               {stage === "auth" && (
                 <div className="bg-white rounded-2xl border border-gray-200 p-6 lg:p-8">
+
+                  {/* Invisible Turnstile - only in auth stage */}
+                  <Turnstile mode="auto" action="customer-checkout-auth" onVerify={(t) => setTurnstileToken(t)} className="hidden" />
 
                   {/* Mode tabs */}
                   <div className="grid grid-cols-3 gap-1 p-1 bg-gray-100 rounded-xl mb-6">

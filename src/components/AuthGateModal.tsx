@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { X, Loader2, Mail, Lock, User, MessageCircle, Sparkles, AlertCircle, Eye, EyeOff, CheckCircle } from "lucide-react";
 import { useCustomer } from "@/lib/customer-context";
+import Turnstile from "@/components/Turnstile";
 
 function d(s: string): string {
   return s.replace(/\\u([0-9a-fA-F]{4})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
@@ -29,12 +30,14 @@ export default function AuthGateModal({ open, onClose, onSuccess, onSkipAsGuest,
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [welcomeCode, setWelcomeCode] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState("");
 
   useEffect(() => {
     if (!open) {
       setError("");
       setWelcomeCode("");
       setLoading(false);
+      setTurnstileToken("");
     }
   }, [open]);
 
@@ -77,8 +80,8 @@ export default function AuthGateModal({ open, onClose, onSuccess, onSkipAsGuest,
     try {
       const url = mode === "signup" ? "/api/customer/register" : "/api/customer/login";
       const body = mode === "signup"
-        ? { name: name.trim(), email: email.trim().toLowerCase(), password, locale }
-        : { email: email.trim().toLowerCase(), password };
+        ? { name: name.trim(), email: email.trim().toLowerCase(), password, locale, turnstileToken }
+        : { email: email.trim().toLowerCase(), password, turnstileToken };
 
       const res = await fetch(url, {
         method: "POST",
@@ -219,6 +222,10 @@ export default function AuthGateModal({ open, onClose, onSuccess, onSkipAsGuest,
                   </a>
                 )}
               </form>
+
+              <div className="px-6 pb-3">
+                <Turnstile mode="auto" action="customer-auth" onVerify={(t) => setTurnstileToken(t)} className="hidden" />
+              </div>
 
               <div className="relative px-6">
                 <div className="absolute inset-x-6 top-1/2 h-px bg-gray-100" />

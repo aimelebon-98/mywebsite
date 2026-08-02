@@ -4,10 +4,17 @@ import { customers, coupons, customerCoupons } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { hashPassword, createSession, isValidEmail } from "@/lib/customer-auth";
 import { sendWelcomeEmail, type WelcomeCoupon } from "@/lib/email";
+import { verifyTurnstile } from "@/lib/turnstile";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    const turnstileToken = String(body.turnstileToken || "");
+    const ipReq = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "";
+    if (process.env.TURNSTILE_SECRET_KEY) {
+      const ok = await verifyTurnstile(turnstileToken, ipReq);
+      if (!ok) return NextResponse.json({ error: "Security check failed. Please refresh and try again." }, { status: 403 });
+    }
     const email = String(body.email || "").toLowerCase().trim();
     const password = String(body.password || "");
     const name = String(body.name || "").trim();

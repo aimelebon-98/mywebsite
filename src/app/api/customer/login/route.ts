@@ -3,12 +3,21 @@ import { db } from "@/db";
 import { customers } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { verifyPassword, createSession, isValidEmail } from "@/lib/customer-auth";
+import { verifyTurnstile } from "@/lib/turnstile";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const email = String(body.email || "").toLowerCase().trim();
     const password = String(body.password || "");
+    const turnstileToken = String(body.turnstileToken || "");
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "";
+
+    // Verify Turnstile if configured (non-fatal if secret missing - helper returns true then)
+    if (process.env.TURNSTILE_SECRET_KEY) {
+      const ok = await verifyTurnstile(turnstileToken, ip);
+      if (!ok) return NextResponse.json({ error: "Security check failed. Please refresh and try again." }, { status: 403 });
+    }
 
     if (!isValidEmail(email)) return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
 
@@ -18,28 +27,24 @@ export async function POST(req: NextRequest) {
     const valid = await verifyPassword(password, customer.passwordHash);
     if (!valid) return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
 
-    const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "";
     const ua = req.headers.get("user-agent") || "";
     await createSession(customer.id, ip, ua);
 
-        // Merge anonymous wishlist if visitorId provided
+    // Merge anonymous wishlist if visitorId provided
     const visitorId = body.visitorId || "";
     if (visitorId) {
       try {
         const { wishlist } = await import("@/db/schema");
-        const { and, eq, isNull } = await import("drizzle-orm");
-        // Get anonymous items
-        const anonItems = await db.select().from(wishlist).where(and(eq(wishlist.visitorId, visitorId), isNull(wishlist.customerId)));
-        // Get existing customer items
-        const custItems = await db.select().from(wishlist).where(eq(wishlist.customerId, customer.id));
+        const { and, eq: eq2, isNull } = await import("drizzle-orm");
+        const anonItems = await db.select().from(wishlist).where(and(eq2(wishlist.visitorId, visitorId), isNull(wishlist.customerId)));
+        const custItems = await db.select().from(wishlist).where(eq2(wishlist.customerId, customer.id));
         const custProductIds = new Set(custItems.map(w => w.productId));
-        // Merge non-duplicate items
         for (const item of anonItems) {
           if (!custProductIds.has(item.productId)) {
-            await db.update(wishlist).set({ customerId: customer.id }).where(eq(wishlist.id, item.id));
+            await db.update(wishlist).set({ customerId: customer.id }).where(eq2(wishlist.id, item.id));
           }
         }
-      } catch { /* ignore merge errors */ }
+      } catch { /* ignore */ }
     }
 
     return NextResponse.json({
