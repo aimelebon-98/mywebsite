@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { customers } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { customers, coupons, customerCoupons } from "@/db/schema";
+import { eq, and } from "drizzle-orm";
 import { hashPassword, createSession, isValidEmail } from "@/lib/customer-auth";
-import { sendWelcomeEmail } from "@/lib/email";
+import { sendWelcomeEmail, type WelcomeCoupon } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,17 +30,48 @@ export async function POST(req: NextRequest) {
     const ua = req.headers.get("user-agent") || "";
     await createSession(newCustomer.id, ip, ua);
 
-    sendWelcomeEmail(email, name, locale).catch(() => {});
+    // Auto-assign welcome coupon (if one exists)
+    let welcomeCouponForEmail: WelcomeCoupon | null = null;
+    try {
+      const [welcomeCoupon] = await db.select().from(coupons).where(
+        and(eq(coupons.isWelcome, true), eq(coupons.active, true))
+      ).limit(1);
 
-        // Merge anonymous wishlist
+      if (welcomeCoupon) {
+        // Check not expired
+        const notExpired = !welcomeCoupon.expiresAt || new Date(welcomeCoupon.expiresAt) > new Date();
+        // Check not maxed out
+        const hasCapacity = !welcomeCoupon.maxUses || welcomeCoupon.usedCount < welcomeCoupon.maxUses;
+
+        if (notExpired && hasCapacity) {
+          await db.insert(customerCoupons).values({
+            customerId: newCustomer.id,
+            couponId: welcomeCoupon.id,
+          });
+          welcomeCouponForEmail = {
+            code: welcomeCoupon.code,
+            type: welcomeCoupon.type,
+            value: welcomeCoupon.value,
+            description: welcomeCoupon.description,
+            descriptionFr: welcomeCoupon.descriptionFr,
+          };
+        }
+      }
+    } catch (e) {
+      console.error("[Register] Welcome coupon assignment failed:", e);
+    }
+
+    sendWelcomeEmail(email, name, locale, welcomeCouponForEmail).catch(() => {});
+
+    // Merge anonymous wishlist
     const visitorId = body.visitorId || "";
     if (visitorId) {
       try {
         const { wishlist } = await import("@/db/schema");
-        const { and, eq, isNull } = await import("drizzle-orm");
-        const anonItems = await db.select().from(wishlist).where(and(eq(wishlist.visitorId, visitorId), isNull(wishlist.customerId)));
+        const { and: and2, eq: eq2, isNull } = await import("drizzle-orm");
+        const anonItems = await db.select().from(wishlist).where(and2(eq2(wishlist.visitorId, visitorId), isNull(wishlist.customerId)));
         for (const item of anonItems) {
-          await db.update(wishlist).set({ customerId: newCustomer.id }).where(eq(wishlist.id, item.id));
+          await db.update(wishlist).set({ customerId: newCustomer.id }).where(eq2(wishlist.id, item.id));
         }
       } catch { /* ignore */ }
     }
@@ -48,6 +79,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       ok: true,
       customer: { id: newCustomer.id, email: newCustomer.email, name: newCustomer.name, phone: newCustomer.phone },
+      welcomeCoupon: welcomeCouponForEmail ? { code: welcomeCouponForEmail.code } : null,
     });
   } catch (error) {
     return NextResponse.json({ error: String(error) }, { status: 500 });
