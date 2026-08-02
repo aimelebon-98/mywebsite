@@ -106,7 +106,7 @@ export default function AdminPage() {
       localStorage.setItem("sv_admin_tab", tab);
       // Only persist stable tabs in URL (not the "edit" flow)
       if (tab !== "edit" && tab !== "blog-edit") {
-        window.history.replaceState(null, "", `#${tab}`);
+        window.history.replaceState(null, "", "#" + tab);
       }
     } catch { /* ignore */ }
   };
