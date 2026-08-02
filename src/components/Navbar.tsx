@@ -116,19 +116,15 @@ export default function Navbar() {
             <div className="relative w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden shadow-md group-hover:shadow-lg transition-all group-hover:scale-105"
                  style={{ background: "linear-gradient(135deg, #CA3F2E 0%, #8B2A1E 100%)" }}>
               <svg viewBox="0 0 24 24" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M5 20V4h2.5l9 12V4H19v16h-2.5l-9-12v12H5z" fill="white" />
+                <path d="M12.5 2H4a2 2 0 00-2 2v8.5a2 2 0 00.59 1.41l8.5 8.5a2 2 0 002.82 0l8.5-8.5a2 2 0 000-2.82L13.91 2.59A2 2 0 0012.5 2z" fill="white" stroke="white" strokeWidth="0.5" strokeLinejoin="round"/>
+                <circle cx="7.5" cy="7.5" r="1.6" fill="#CA3F2E"/>
               </svg>
               <span className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
 
             {/* Brand wordmark - two weights + subtle underline */}
-            <div className="hidden sm:flex flex-col leading-none">
-              <div className={`text-[18px] font-black tracking-tight ${logoText}`}>
-                <span className="font-light">New</span><span className="font-black">Deal</span><span className={isBlogPage ? "text-white/80" : "text-[#CA3F2E]"}>Zone</span>
-              </div>
-              <div className={`h-0.5 w-full mt-0.5 rounded-full ${isBlogPage ? "bg-white/30" : "bg-[#CA3F2E]/20"}`}>
-                <div className="h-full w-1/3 rounded-full" style={{ backgroundColor: "#CA3F2E" }} />
-              </div>
+            <div className={`hidden sm:block text-[19px] font-black tracking-tight leading-none ${logoText}`}>
+              <span>NewDeal</span><span className={isBlogPage ? "text-white/85" : "text-[#CA3F2E]"}>Zone</span>
             </div>
           </Link>
 
