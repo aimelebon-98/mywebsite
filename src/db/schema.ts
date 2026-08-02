@@ -356,3 +356,33 @@ export const passwordResetTokens = pgTable("password_reset_tokens", {
 export type Customer = typeof customers.$inferSelect;
 export type NewCustomer = typeof customers.$inferInsert;
 export type CustomerAddress = typeof customerAddresses.$inferSelect;
+
+
+// ============================================
+// SUPPORT TICKETS
+// ============================================
+export const supportTickets = pgTable("support_tickets", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  customerId: uuid("customer_id").notNull(),
+  subject: text("subject").notNull(),
+  category: text("category").notNull().default("general"),
+  status: text("status").notNull().default("open"),
+  priority: text("priority").notNull().default("normal"),
+  lastMessageAt: timestamp("last_message_at").defaultNow().notNull(),
+  unreadByAdmin: boolean("unread_by_admin").notNull().default(true),
+  unreadByCustomer: boolean("unread_by_customer").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const supportMessages = pgTable("support_messages", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  ticketId: uuid("ticket_id").notNull(),
+  senderType: text("sender_type").notNull(),
+  senderName: text("sender_name").notNull().default(""),
+  message: text("message").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type SupportTicket = typeof supportTickets.$inferSelect;
+export type SupportMessage = typeof supportMessages.$inferSelect;

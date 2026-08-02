@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { orders, wishlist } from "@/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { orders, wishlist, supportTickets } from "@/db/schema";
+import { eq, sql, and, ne } from "drizzle-orm";
 import { getCurrentCustomer } from "@/lib/customer-auth";
 
 export async function GET() {
@@ -11,7 +11,7 @@ export async function GET() {
   let orderCount = 0;
   let totalSpent = 0;
   let wishlistCount = 0;
-  const ticketCount = 0;
+  let ticketCount = 0;
 
   try {
     const [row] = await db.select({
@@ -26,7 +26,14 @@ export async function GET() {
     const [row] = await db.select({ count: sql<number>`count(*)` })
       .from(wishlist).where(eq(wishlist.customerId, customer.id));
     wishlistCount = Number(row?.count || 0);
-  } catch { /* customer_id column may not exist yet */ }
+  } catch { /* ignore */ }
+
+  try {
+    const [row] = await db.select({ count: sql<number>`count(*)` })
+      .from(supportTickets)
+      .where(and(eq(supportTickets.customerId, customer.id), ne(supportTickets.status, "closed")));
+    ticketCount = Number(row?.count || 0);
+  } catch { /* ignore */ }
 
   return NextResponse.json({ orderCount, totalSpent, wishlistCount, ticketCount });
 }
