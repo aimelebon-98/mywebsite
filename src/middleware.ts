@@ -30,7 +30,8 @@ const PUBLIC_API_ROUTES = [
   "/api/product-faqs",       // Product FAQ display
   "/api/bundles",            // Bundle deals display
   "/api/exchange-rates",     // Currency conversion rates
-  "/api/geo-currency",       // Auto-detect currency by country
+  "/api/geo-currency",
+  "/api/customer",       // Auto-detect currency by country
 ];
 
 // Admin routes (own auth already applied - middleware just lets them through)
