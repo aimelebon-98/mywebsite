@@ -6,13 +6,14 @@ import {
   Shield, Users, Download, Upload, RefreshCw, Lock, MessageSquare, Key, AlertTriangle, TrendingUp,
   DollarSign, ShoppingBag, CheckCircle, Clock, Copy, Tag, Globe, ChevronDown, ChevronUp, ExternalLink,
   Mail
-} from "lucide-react";
+} LifeBuoy } from "lucide-react";
 import Link from "next/link";
-import { BookOpen, UsersRound, PenLine, HelpCircle, ChevronRight, Gift } from "lucide-react";
+import { BookOpen, UsersRound, PenLine, HelpCircle, ChevronRight, Gift } LifeBuoy } from "lucide-react";
 import type { BlogPost } from "@/db/schema";
 import AuthorsManager from "@/components/AuthorsManager";
 import BlogCategoriesManager from "@/components/BlogCategoriesManager";
 import CustomersManager from "@/components/CustomersManager";
+import TicketsManager from "@/components/TicketsManager";
 import BlogPostsList from "@/components/BlogPostsList";
 import BlogPostForm from "@/components/BlogPostForm";
 import CommentsManager from "@/components/CommentsManager";
@@ -87,7 +88,7 @@ interface StoreSettings {
   lockoutMinutes: number;
 }
 
-type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments" | "orders" | "product-faqs" | "analytics" | "newsletter" | "bundles" | "blog-categories" | "customers";
+type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments" | "orders" | "product-faqs" | "analytics" | "newsletter" | "bundles" | "blog-categories" | "customers" | "tickets";
 
 export default function AdminPage() {
   const [authStep, setAuthStep] = useState<"loading" | "verify" | "access-code" | "password" | "authenticated">("loading");
@@ -702,7 +703,7 @@ export default function AdminPage() {
               <button
                 onClick={() => { setActiveTab("blog-categories"); setSidebarOpen(false); }}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
-                  activeTab === "blog-categories" || activeTab === "customers"
+                  activeTab === "blog-categories" || activeTab === "customers" | "tickets"
                     ? "bg-gray-100 text-gray-900 font-semibold"
                     : "text-gray-600 hover:bg-gray-50"
                 }`}
@@ -715,7 +716,7 @@ export default function AdminPage() {
           {/* Rest of sidebar items */}
           {[
             { id: "orders" as Tab, icon: ShoppingBag, label: "Orders", badge: notifCounts.orders },
-            { id: "customers" as Tab, icon: Users, label: "Customers", badge: 0 },
+            { id: "customers" | "tickets" as Tab, icon: Users, label: "Customers", badge: 0 },
             { id: "authors" as Tab, icon: UsersRound, label: "Authors", badge: 0 },
             { id: "comments" as Tab, icon: MessageSquare, label: "Comments", badge: notifCounts.comments },
             { id: "newsletter" as Tab, icon: Mail, label: "Newsletter", badge: notifCounts.newsletter },
@@ -770,7 +771,7 @@ export default function AdminPage() {
               <Menu className="w-5 h-5" />
             </button>
             <h1 className="text-lg font-bold capitalize">
-              {activeTab === "add" ? "Add Product" : activeTab === "edit" ? "Edit Product" : activeTab === "blog-add" ? "New Blog Post" : activeTab === "blog-edit" ? "Edit Blog Post" : activeTab === "blog" ? "Blog Posts" : activeTab === "blog-categories" ? "Blog Categories" : activeTab === "customers" ? "Customers" : activeTab === "newsletter" ? "Newsletter Subscribers" : activeTab}
+              {activeTab === "add" ? "Add Product" : activeTab === "edit" ? "Edit Product" : activeTab === "blog-add" ? "New Blog Post" : activeTab === "blog-edit" ? "Edit Blog Post" : activeTab === "blog" ? "Blog Posts" : activeTab === "blog-categories" ? "Blog Categories" : activeTab === "customers" | "tickets" ? "Customers" : activeTab === "newsletter" ? "Newsletter Subscribers" : activeTab}
             </h1>
           </div>
           <div className="flex items-center gap-2">
@@ -1015,7 +1016,7 @@ export default function AdminPage() {
             <AnalyticsDashboard />
           )}
 
-          {activeTab === "customers" && (
+          {activeTab === "customers" | "tickets" && (
             <CustomersManager />
           )}
 
