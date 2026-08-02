@@ -19,9 +19,6 @@ export default function AccountSidebar({ mobileOpen = false, onClose, variant }:
   const pathname = usePathname();
   const { logout, customer } = useCustomer();
 
-  // If no variant specified, decide based on props:
-  // - has onClose/mobileOpen -> mobile drawer
-  // - no props -> desktop sidebar
   const mode = variant || (onClose !== undefined ? "mobile" : "desktop");
 
   const items = [
@@ -51,7 +48,7 @@ export default function AccountSidebar({ mobileOpen = false, onClose, variant }:
   const inner = (
     <>
       {customer && (
-        <div className="px-4 py-3 mb-3 bg-gradient-to-br from-[#CA3F2E] to-[#8B2A1E] rounded-xl text-white">
+        <div className="px-4 py-3 mb-3 bg-gradient-to-br from-[#CA3F2E] to-[#8B2A1E] rounded-xl text-white flex-shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-bold text-sm flex-shrink-0">
               {customer.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)}
@@ -64,7 +61,7 @@ export default function AccountSidebar({ mobileOpen = false, onClose, variant }:
         </div>
       )}
 
-      <nav className="space-y-1">
+      <nav className="space-y-1 flex-1 min-h-0 overflow-y-auto account-sidebar-scroll pr-1 -mr-1">
         {items.map(item => {
           const Icon = item.icon;
           const active = pathname === item.href || pathname.startsWith(item.href + "/");
@@ -82,7 +79,7 @@ export default function AccountSidebar({ mobileOpen = false, onClose, variant }:
         })}
       </nav>
 
-      <div className="pt-3 mt-3 border-t border-gray-200 space-y-1">
+      <div className="pt-3 mt-3 border-t border-gray-200 space-y-1 flex-shrink-0">
         <Link
           href={`/${locale}/shop`}
           onClick={onClose}
@@ -102,7 +99,7 @@ export default function AccountSidebar({ mobileOpen = false, onClose, variant }:
     </>
   );
 
-  // Mobile mode: overlay drawer (fixed positioned)
+  // Mobile mode: overlay drawer
   if (mode === "mobile") {
     if (!mobileOpen) return null;
     return (
@@ -111,15 +108,15 @@ export default function AccountSidebar({ mobileOpen = false, onClose, variant }:
           className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in"
           onClick={onClose}
         />
-        <aside className="relative w-72 max-w-[85vw] bg-white h-full overflow-y-auto p-4 shadow-2xl animate-slide-in-left">
+        <aside className="relative w-72 max-w-[85vw] bg-white h-full flex flex-col p-4 shadow-2xl animate-slide-in-left">
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-gray-100 transition"
+            className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-gray-100 transition z-10"
             aria-label="Close menu"
           >
             <X className="w-5 h-5 text-gray-500" />
           </button>
-          <div className="pt-6">
+          <div className="pt-6 flex flex-col flex-1 min-h-0">
             {inner}
           </div>
         </aside>
@@ -127,9 +124,12 @@ export default function AccountSidebar({ mobileOpen = false, onClose, variant }:
     );
   }
 
-  // Desktop mode: sticky sidebar inside grid column
+  // Desktop mode: sticky sidebar with internal scroll if content exceeds viewport
   return (
-    <aside className="sticky top-24 self-start bg-white border border-gray-200 rounded-2xl p-4">
+    <aside
+      className="sticky top-24 self-start bg-white border border-gray-200 rounded-2xl p-4 flex flex-col"
+      style={{ maxHeight: "calc(100vh - 7rem)" }}
+    >
       {inner}
     </aside>
   );
