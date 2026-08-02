@@ -24,6 +24,11 @@ interface TocItem {
 
 const BRAND_RED = "#CA3F2E";
 
+// Runtime decoder for French accent strings (avoids PowerShell encoding corruption)
+function d(s: string): string {
+  return s.replace(/\\u([0-9a-fA-F]{4})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+}
+
 export default function BlogPostContent({ post, author, relatedPosts, locale }: Props) {
   const isFr = locale === "fr";
   const [toc, setToc] = useState<TocItem[]>([]);
@@ -210,7 +215,7 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
                     </Link>
                     <div>
                       <div className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">
-                        {isFr ? "Ecrit par" : "Written by"}
+                        {isFr ? d("\u00c9crit par") : "Written by"}
                       </div>
                       <Link href={`/${locale}/blog/author/${author.slug}`} className="text-sm font-bold text-gray-900 hover:text-[#CA3F2E] transition block">
                         {author.name}
@@ -298,7 +303,7 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <Share2 className="w-4 h-4 text-[#CA3F2E]" />
-                    <div className="text-base font-bold text-white">{isFr ? "Aime cet article ?" : "Enjoyed this article?"}</div>
+                    <div className="text-base font-bold text-white">{isFr ? d("Aim\u00e9 cet article ?") : "Enjoyed this article?"}</div>
                   </div>
                   <div className="text-xs text-gray-400">{isFr ? "Partagez-le avec vos amis" : "Share it with your friends"}</div>
                 </div>
@@ -313,7 +318,7 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
               <div className="mt-8 p-6 lg:p-8 bg-gradient-to-br from-gray-50 to-white rounded-2xl border border-gray-200 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: BRAND_RED }} />
                 <div className="text-[10px] uppercase tracking-widest font-bold text-[#CA3F2E] mb-4">
-                  {isFr ? "A propos de l'auteur" : "About the Author"}
+                  {isFr ? d("\u00c0 propos de l\u0027auteur") : "About the Author"}
                 </div>
                 <div className="flex items-start gap-5">
                   <Link href={`/${locale}/blog/author/${author.slug}`} className="flex-shrink-0">
@@ -355,7 +360,7 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
                       <List className="w-4 h-4 text-white" />
                     </div>
                     <h3 className="font-black text-sm text-gray-900">
-                      {isFr ? "Table des matieres" : "Table of Contents"}
+                      {isFr ? d("Table des mati\u00e8res") : "Table of Contents"}
                     </h3>
                   </div>
                   <nav className="px-3 py-3 max-h-[50vh] overflow-y-auto">
@@ -404,7 +409,7 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
                 <div className="relative">
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/15 backdrop-blur rounded-full text-[10px] font-bold uppercase tracking-wider mb-3">
                     <Sparkles className="w-3 h-3" />
-                    {isFr ? "Nouveaute" : "New Arrivals"}
+                    {isFr ? d("Nouveaut\u00e9") : "New Arrivals"}
                   </div>
                   <h3 className="text-xl font-black leading-tight mb-2">
                     {isFr ? "Trouvez votre prochaine paire" : "Find Your Next Pair"}
@@ -439,7 +444,7 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
                 <div className="inline-block text-xs font-bold text-[#CA3F2E] uppercase tracking-widest mb-2">
                   {isFr ? "Continuer la lecture" : "Keep reading"}
                 </div>
-                <h2 className="text-2xl lg:text-3xl font-black text-gray-900">{isFr ? "A lire ensuite" : "Read next"}</h2>
+                <h2 className="text-2xl lg:text-3xl font-black text-gray-900">{isFr ? d("\u00c0 lire ensuite") : "Read next"}</h2>
               </div>
               <Link href={`/${locale}/blog`} className="hidden sm:inline-flex items-center gap-1.5 text-sm font-bold text-gray-900 hover:text-[#CA3F2E] group transition">
                 {isFr ? "Tous les articles" : "All articles"}

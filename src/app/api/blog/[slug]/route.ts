@@ -61,7 +61,18 @@ export async function PUT(request: NextRequest, { params }: Params) {
     if (body.coverImage !== undefined) updates.coverImage = body.coverImage;
     if (body.coverImageAlt !== undefined) updates.coverImageAlt = body.coverImageAlt;
     if (body.coverImageAltFr !== undefined) updates.coverImageAltFr = body.coverImageAltFr;
-    if (body.titleFr !== undefined) updates.titleFr = body.titleFr || null;
+    if (body.titleFr !== undefined) {
+      updates.titleFr = body.titleFr || null;
+      // Auto-generate slugFr from titleFr if not explicitly provided
+      if (body.titleFr && body.slugFr === undefined) {
+        updates.slugFr = generateSlug(body.titleFr);
+      }
+    }
+    if (body.slugFr !== undefined) {
+      updates.slugFr = (body.slugFr && String(body.slugFr).trim())
+        ? String(body.slugFr).trim()
+        : (body.titleFr ? generateSlug(body.titleFr) : null);
+    }
     if (body.excerptFr !== undefined) updates.excerptFr = body.excerptFr || null;
     if (body.contentFr !== undefined) updates.contentFr = body.contentFr || null;
     if (body.tagsFr !== undefined) {

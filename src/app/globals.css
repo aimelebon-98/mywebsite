@@ -506,3 +506,31 @@ div.tiptap-editor {
 .animate-pulse-soft {
   animation: pulse-soft 2s ease-in-out infinite;
 }
+/* ============================================
+   BLOG-BODY class alias (same as #blog-content)
+   Used by BlogPostContent for FR content rendering
+   ============================================ */
+.blog-body {
+  color: #1f2937;
+  font-size: 1.05rem;
+  line-height: 1.75;
+}
+.blog-body > *:first-child { margin-top: 0; }
+.blog-body p { margin: 1em 0; font-size: 1.05rem; line-height: 1.75; }
+.blog-body h1 { font-size: 2.25rem; font-weight: 800; line-height: 1.15; margin: 1.5em 0 0.6em; color: #0f172a; letter-spacing: -0.02em; }
+.blog-body h2 { font-size: 1.75rem; font-weight: 700; line-height: 1.25; margin: 1.8em 0 0.7em; color: #0f172a; border-bottom: 2px solid #f3f4f6; padding-bottom: 0.4em; }
+.blog-body h3 { font-size: 1.35rem; font-weight: 700; line-height: 1.35; margin: 1.5em 0 0.5em; color: #0f172a; }
+.blog-body ul { padding-left: 1.75rem; margin: 1em 0; list-style-type: disc; }
+.blog-body ol { padding-left: 1.75rem; margin: 1em 0; list-style-type: decimal; }
+.blog-body li { margin: 0.4em 0; display: list-item; }
+.blog-body li > p { margin: 0.2em 0; }
+.blog-body blockquote { border-left: 4px solid #CA3F2E; padding: 1em 1.25em; margin: 1.5em 0; color: #374151; font-style: italic; background-color: #fef2f0; border-radius: 0 0.75rem 0.75rem 0; }
+.blog-body pre { background-color: #0f172a; color: #f1f5f9; padding: 1.25rem; border-radius: 0.75rem; overflow-x: auto; margin: 1.5em 0; font-family: ui-monospace, monospace; font-size: 0.9em; }
+.blog-body code { background-color: #f1f5f9; color: #dc2626; padding: 0.15em 0.4em; border-radius: 0.3rem; font-size: 0.9em; font-family: ui-monospace, monospace; }
+.blog-body pre code { background: none; color: inherit; padding: 0; }
+.blog-body hr { border: none; border-top: 2px solid #e5e7eb; margin: 2.5em 0; }
+.blog-body a { color: #CA3F2E; text-decoration: underline; text-underline-offset: 2px; }
+.blog-body a:hover { color: #8B2A1E; }
+.blog-body img { border-radius: 1rem; margin: 1.5em auto; max-width: 100%; height: auto; display: block; }
+.blog-body strong { font-weight: 700; }
+.blog-body em { font-style: italic; }
