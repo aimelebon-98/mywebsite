@@ -386,3 +386,33 @@ export const supportMessages = pgTable("support_messages", {
 
 export type SupportTicket = typeof supportTickets.$inferSelect;
 export type SupportMessage = typeof supportMessages.$inferSelect;
+// ============================================
+// COUPONS & REWARDS
+// ============================================
+export const coupons = pgTable("coupons", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  code: text("code").notNull().unique(),
+  type: text("type").notNull().default("percent"),
+  value: numeric("value", { precision: 10, scale: 2 }).notNull().default("0"),
+  minOrder: numeric("min_order", { precision: 10, scale: 2 }).notNull().default("0"),
+  maxUses: integer("max_uses"),
+  usedCount: integer("used_count").notNull().default(0),
+  expiresAt: timestamp("expires_at"),
+  active: boolean("active").notNull().default(true),
+  description: text("description").notNull().default(""),
+  descriptionFr: text("description_fr"),
+  isWelcome: boolean("is_welcome").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const customerCoupons = pgTable("customer_coupons", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  customerId: uuid("customer_id").notNull(),
+  couponId: uuid("coupon_id").notNull(),
+  usedAt: timestamp("used_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type Coupon = typeof coupons.$inferSelect;
+export type NewCoupon = typeof coupons.$inferInsert;
+export type CustomerCoupon = typeof customerCoupons.$inferSelect;
