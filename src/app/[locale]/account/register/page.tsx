@@ -27,7 +27,7 @@ export default function RegisterPage() {
       const res = await fetch("/api/customer/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, phone, password, locale }),
+        body: JSON.stringify({ name, email, phone, password, locale, visitorId: typeof window !== "undefined" ? localStorage.getItem("solevault-visitor-id") || "" : "" }),
       });
       const data = await res.json();
       if (!res.ok) {

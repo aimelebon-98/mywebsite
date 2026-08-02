@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { customers } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -21,6 +21,26 @@ export async function POST(req: NextRequest) {
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "";
     const ua = req.headers.get("user-agent") || "";
     await createSession(customer.id, ip, ua);
+
+        // Merge anonymous wishlist if visitorId provided
+    const visitorId = body.visitorId || "";
+    if (visitorId) {
+      try {
+        const { wishlist } = await import("@/db/schema");
+        const { and, eq, isNull } = await import("drizzle-orm");
+        // Get anonymous items
+        const anonItems = await db.select().from(wishlist).where(and(eq(wishlist.visitorId, visitorId), isNull(wishlist.customerId)));
+        // Get existing customer items
+        const custItems = await db.select().from(wishlist).where(eq(wishlist.customerId, customer.id));
+        const custProductIds = new Set(custItems.map(w => w.productId));
+        // Merge non-duplicate items
+        for (const item of anonItems) {
+          if (!custProductIds.has(item.productId)) {
+            await db.update(wishlist).set({ customerId: customer.id }).where(eq(wishlist.id, item.id));
+          }
+        }
+      } catch { /* ignore merge errors */ }
+    }
 
     return NextResponse.json({
       ok: true,

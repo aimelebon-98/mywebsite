@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import { useCustomer } from "@/lib/customer-context";
 import Navbar from "@/components/Navbar";
+import AccountSidebar from "@/components/AccountSidebar";
 import Footer from "@/components/Footer";
 import { User, Package, Heart, MapPin, LogOut, Loader2, ShoppingBag } from "lucide-react";
 
@@ -40,7 +41,7 @@ export default function DashboardPage() {
     <>
       <Navbar />
       <main className="min-h-screen bg-gray-50 pt-20 lg:pt-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl lg:max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
             <h1 className="text-3xl font-black text-gray-900">
               {isFr ? `Bonjour, ${customer.name.split(" ")[0]}` : `Hi, ${customer.name.split(" ")[0]}`}

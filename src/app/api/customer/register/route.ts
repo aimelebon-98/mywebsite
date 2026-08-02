@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { customers } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -31,6 +31,19 @@ export async function POST(req: NextRequest) {
     await createSession(newCustomer.id, ip, ua);
 
     sendWelcomeEmail(email, name, locale).catch(() => {});
+
+        // Merge anonymous wishlist
+    const visitorId = body.visitorId || "";
+    if (visitorId) {
+      try {
+        const { wishlist } = await import("@/db/schema");
+        const { and, eq, isNull } = await import("drizzle-orm");
+        const anonItems = await db.select().from(wishlist).where(and(eq(wishlist.visitorId, visitorId), isNull(wishlist.customerId)));
+        for (const item of anonItems) {
+          await db.update(wishlist).set({ customerId: newCustomer.id }).where(eq(wishlist.id, item.id));
+        }
+      } catch { /* ignore */ }
+    }
 
     return NextResponse.json({
       ok: true,

@@ -1,4 +1,5 @@
 "use client";
+import { useCustomer } from "@/lib/customer-context";
 import { useCurrency } from "@/lib/currency-context";
 import { computeShipping } from "@/lib/shipping";
 import BundleBanner from "@/components/BundleBanner";
@@ -21,6 +22,7 @@ export default function CartPage() {
   const locale = useLocale();
 
   const { items, removeItem, updateQuantity, clearCart, totalPrice, totalItems } = useCart();
+  const { customer } = useCustomer();
   const { currency: userCurrency, format: formatPrice, convert, visitorCountry, rates: currencyRates } = useCurrency();
   const [whatsappNumber, setWhatsappNumber] = useState("");
   const [bundles, setBundles] = useState<Bundle[]>([]);
@@ -97,6 +99,7 @@ export default function CartPage() {
           discountAmount,
           bundleName: appliedBundle?.name || null,
           total: finalTotal,
+          customerId: customer?.id || null,
           currency,
           locale,
         }),

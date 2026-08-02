@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import { useCustomer } from "@/lib/customer-context";
 import Navbar from "@/components/Navbar";
+import AccountSidebar from "@/components/AccountSidebar";
 import Footer from "@/components/Footer";
 import Link from "next/link";
 import { User, Save, ArrowLeft, Loader2, CheckCircle, Lock } from "lucide-react";
@@ -52,10 +53,8 @@ export default function ProfilePage() {
     <>
       <Navbar />
       <main className="min-h-screen bg-gray-50 pt-20 lg:pt-24">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Link href={`/${locale}/account/dashboard`} className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 mb-4">
-            <ArrowLeft className="w-4 h-4" /> {isFr ? "Tableau de bord" : "Dashboard"}
-          </Link>
+        <div className="max-w-2xl lg:max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          
           <h1 className="text-3xl font-black text-gray-900 mb-6">{isFr ? "Mon profil" : "My Profile"}</h1>
 
           <form onSubmit={saveProfile} className="space-y-6">
