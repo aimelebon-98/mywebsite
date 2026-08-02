@@ -121,7 +121,7 @@ export default function AdminPage() {
       const hash = typeof window !== "undefined" ? window.location.hash.replace("#", "") : "";
       const stored = typeof window !== "undefined" ? localStorage.getItem("sv_admin_tab") : null;
       const candidate = hash || stored || "";
-      const validTabs: Tab[] = ["dashboard","products","add","edit","categories","reviews","settings","security","blog","blog-add","blog-edit","authors","comments","orders","analytics","product-faqs","newsletter"];
+      const validTabs: Tab[] = ["dashboard","products","add","edit","categories","reviews","settings","security","blog","blog-add","blog-edit","authors","comments","orders","analytics","product-faqs","newsletter","customers","tickets","bundles","blog-categories"];
       console.log("[Admin] Restoring tab. hash=" + hash + ", stored=" + stored + ", candidate=" + candidate);
       if (candidate && validTabs.includes(candidate as Tab)) {
         if (candidate === "edit") setActiveTabRaw("products");
@@ -157,7 +157,7 @@ export default function AdminPage() {
   const [productsMenuOpen, setProductsMenuOpen] = useState(false);
   const [blogMenuOpen, setBlogMenuOpen] = useState(false);
   const [notification, setNotification] = useState("");
-  const [notifCounts, setNotifCounts] = useState<{ orders: number; comments: number; reviews: number; newsletter: number }>({ orders: 0, comments: 0, reviews: 0, newsletter: 0 });
+  const [notifCounts, setNotifCounts] = useState<{ orders: number; comments: number; reviews: number; newsletter: number; tickets: number }>({ orders: 0, comments: 0, reviews: 0, newsletter: 0, tickets: 0 });
   const [notificationType, setNotificationType] = useState<"success" | "error">("success");
 
   const showNotification = (msg: string, type: "success" | "error" = "success") => {
@@ -230,10 +230,12 @@ export default function AdminPage() {
   useEffect(() => {
     if (authStep !== "authenticated") return;
     const fetchCounts = () => {
-      fetch("/api/admin/notification-counts")
-        .then(r => r.ok ? r.json() : { orders: 0, comments: 0, reviews: 0, newsletter: 0 })
-        .then(setNotifCounts)
-        .catch(() => {});
+      Promise.all([
+        fetch("/api/admin/notification-counts").then(r => r.ok ? r.json() : { orders: 0, comments: 0, reviews: 0, newsletter: 0 }),
+        fetch("/api/admin/tickets/unread").then(r => r.ok ? r.json() : { count: 0 }),
+      ]).then(([counts, unread]) => {
+        setNotifCounts({ ...counts, tickets: unread.count || 0 });
+      }).catch(() => {});
     };
     fetchCounts();
     const interval = setInterval(fetchCounts, 30000);
@@ -703,7 +705,7 @@ export default function AdminPage() {
               <button
                 onClick={() => { setActiveTab("blog-categories"); setSidebarOpen(false); }}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
-                  activeTab === "blog-categories" || activeTab === "customers" | "tickets"
+                  activeTab === "blog-categories"
                     ? "bg-gray-100 text-gray-900 font-semibold"
                     : "text-gray-600 hover:bg-gray-50"
                 }`}
@@ -716,7 +718,8 @@ export default function AdminPage() {
           {/* Rest of sidebar items */}
           {[
             { id: "orders" as Tab, icon: ShoppingBag, label: "Orders", badge: notifCounts.orders },
-            { id: "customers" | "tickets" as Tab, icon: Users, label: "Customers", badge: 0 },
+            { id: "customers" as Tab, icon: Users, label: "Customers", badge: 0 },
+            { id: "tickets" as Tab, icon: LifeBuoy, label: "Support Tickets", badge: notifCounts.tickets },
             { id: "authors" as Tab, icon: UsersRound, label: "Authors", badge: 0 },
             { id: "comments" as Tab, icon: MessageSquare, label: "Comments", badge: notifCounts.comments },
             { id: "newsletter" as Tab, icon: Mail, label: "Newsletter", badge: notifCounts.newsletter },
@@ -771,7 +774,7 @@ export default function AdminPage() {
               <Menu className="w-5 h-5" />
             </button>
             <h1 className="text-lg font-bold capitalize">
-              {activeTab === "add" ? "Add Product" : activeTab === "edit" ? "Edit Product" : activeTab === "blog-add" ? "New Blog Post" : activeTab === "blog-edit" ? "Edit Blog Post" : activeTab === "blog" ? "Blog Posts" : activeTab === "blog-categories" ? "Blog Categories" : activeTab === "customers" | "tickets" ? "Customers" : activeTab === "newsletter" ? "Newsletter Subscribers" : activeTab}
+              {activeTab === "add" ? "Add Product" : activeTab === "edit" ? "Edit Product" : activeTab === "blog-add" ? "New Blog Post" : activeTab === "blog-edit" ? "Edit Blog Post" : activeTab === "blog" ? "Blog Posts" : activeTab === "blog-categories" ? "Blog Categories" : activeTab === "customers" ? "Customers" : activeTab === "tickets" ? "Support Tickets" : activeTab === "newsletter" ? "Newsletter Subscribers" : activeTab}
             </h1>
           </div>
           <div className="flex items-center gap-2">
@@ -1016,8 +1019,12 @@ export default function AdminPage() {
             <AnalyticsDashboard />
           )}
 
-          {activeTab === "customers" | "tickets" && (
+          {activeTab === "customers" && (
             <CustomersManager />
+          )}
+
+          {activeTab === "tickets" && (
+            <TicketsManager />
           )}
 
           {activeTab === "bundles" && (
