@@ -145,7 +145,7 @@ export default function Page() {
                   </div>
                   <p className="text-xs text-gray-400 mt-3">
                     {isFr
-                      ? d("Les prix sont convert\u00eis en temps r\u00e9el selon les taux de change.")
+                      ? d("Les prix sont convert\u00e9s en temps r\u00e9el selon les taux de change.")
                       : "Prices are converted in real time using live exchange rates."}
                   </p>
                 </div>
