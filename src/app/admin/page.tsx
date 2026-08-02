@@ -26,6 +26,8 @@ import BundlesManager from "@/components/BundlesManager";
 interface Product {
   id: string;
   name: string;
+  slug?: string;
+  slugFr?: string | null;
   description: string;
   shortDescription?: string;
   longDescription?: string;
