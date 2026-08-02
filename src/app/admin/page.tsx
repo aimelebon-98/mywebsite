@@ -87,7 +87,7 @@ interface StoreSettings {
   lockoutMinutes: number;
 }
 
-type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments" | "orders" | "product-faqs" | "analytics" | "newsletter" | "bundles" | "blog-categories" | "customers";
+type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments" | "orders" | "product-faqs" | "analytics" | "newsletter" | "bundles" | "blog-categories";
 
 export default function AdminPage() {
   const [authStep, setAuthStep] = useState<"loading" | "verify" | "access-code" | "password" | "authenticated">("loading");
@@ -700,7 +700,7 @@ export default function AdminPage() {
                 Add New Post
               </button>
               <button
-                onClick={() => { setActiveTab("blog-categories" | "customers"); setSidebarOpen(false); }}
+                onClick={() => { setActiveTab("blog-categories"); setSidebarOpen(false); }}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
                   activeTab === "blog-categories" || activeTab === "customers"
                     ? "bg-gray-100 text-gray-900 font-semibold"
