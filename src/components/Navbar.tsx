@@ -112,10 +112,24 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14 lg:h-16 gap-4">
           <Link href="/" className="group flex items-center gap-2.5 flex-shrink-0">
-            <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xs">SV</span>
+            {/* Brand icon - stylized N monogram */}
+            <div className="relative w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden shadow-md group-hover:shadow-lg transition-all group-hover:scale-105"
+                 style={{ background: "linear-gradient(135deg, #CA3F2E 0%, #8B2A1E 100%)" }}>
+              <svg viewBox="0 0 24 24" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M5 20V4h2.5l9 12V4H19v16h-2.5l-9-12v12H5z" fill="white" />
+              </svg>
+              <span className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
-            <span className={`text-lg font-bold tracking-tight hidden sm:block ${logoText}`}>NewDealZone</span>
+
+            {/* Brand wordmark - two weights + subtle underline */}
+            <div className="hidden sm:flex flex-col leading-none">
+              <div className={`text-[18px] font-black tracking-tight ${logoText}`}>
+                <span className="font-light">New</span><span className="font-black">Deal</span><span className={isBlogPage ? "text-white/80" : "text-[#CA3F2E]"}>Zone</span>
+              </div>
+              <div className={`h-0.5 w-full mt-0.5 rounded-full ${isBlogPage ? "bg-white/30" : "bg-[#CA3F2E]/20"}`}>
+                <div className="h-full w-1/3 rounded-full" style={{ backgroundColor: "#CA3F2E" }} />
+              </div>
+            </div>
           </Link>
 
           <div className="hidden lg:flex items-center gap-5">
