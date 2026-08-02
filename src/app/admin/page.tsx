@@ -1,3 +1,4 @@
+import { LifeBuoy } from "lucide-react";
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -6,9 +7,9 @@ import {
   Shield, Users, Download, Upload, RefreshCw, Lock, MessageSquare, Key, AlertTriangle, TrendingUp,
   DollarSign, ShoppingBag, CheckCircle, Clock, Copy, Tag, Globe, ChevronDown, ChevronUp, ExternalLink,
   Mail
-} LifeBuoy } from "lucide-react";
+} from "lucide-react";
 import Link from "next/link";
-import { BookOpen, UsersRound, PenLine, HelpCircle, ChevronRight, Gift } LifeBuoy } from "lucide-react";
+import { BookOpen, UsersRound, PenLine, HelpCircle, ChevronRight, Gift } from "lucide-react";
 import type { BlogPost } from "@/db/schema";
 import AuthorsManager from "@/components/AuthorsManager";
 import BlogCategoriesManager from "@/components/BlogCategoriesManager";
