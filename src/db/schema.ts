@@ -104,7 +104,8 @@ export const loginAttempts = pgTable("login_attempts", {
 
 export const wishlist = pgTable("wishlist", {
   id: uuid("id").defaultRandom().primaryKey(),
-  visitorId: text("visitor_id").notNull(),
+  visitorId: text("visitor_id"),
+  customerId: uuid("customer_id"),
   productId: uuid("product_id").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
