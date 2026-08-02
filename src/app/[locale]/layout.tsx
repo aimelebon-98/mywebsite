@@ -13,6 +13,7 @@ import MiniCartDrawer from "@/components/MiniCartDrawer";
 import FloatingCartPill from "@/components/FloatingCartPill";
 import PageViewTracker from "@/components/AnalyticsTracker";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/next";
 
 // Self-hosted Inter font (eliminates render-blocking Google Fonts request)
 const inter = Inter({
@@ -122,6 +123,7 @@ export default async function LocaleLayout({
         <PageViewTracker />
         <ExitIntentPopup />
         <SpeedInsights />
+        <Analytics />
       </body>
     </html>
   );
