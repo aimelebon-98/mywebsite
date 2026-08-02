@@ -2,27 +2,58 @@
 
 import { useState, useEffect } from "react";
 import type { Order } from "@/db/schema";
-import { ShoppingCart, Clock, CheckCircle, DollarSign, ArrowRight } from "lucide-react";
+import { ShoppingCart, Clock, CheckCircle, DollarSign, ArrowRight, Info } from "lucide-react";
+import { useCurrency } from "@/lib/currency-context";
+import { CURRENCIES, type CurrencyCode } from "@/lib/currency";
 
 interface Props {
   onOpenOrders?: () => void;
 }
 
-// Format currency: symbol comes from order.currency which is already the display symbol ($ / GHS / NGN / etc.)
-function formatMoney(amount: number, symbol: string): string {
-  const rounded = amount.toFixed(0);
-  // Currencies with symbol on left vs right
-  const symbolLeft = ["$", "€", "£", "₦", "₵", "R", "KSh"];
-  if (symbolLeft.includes(symbol)) {
-    return symbol + Number(rounded).toLocaleString();
-  }
-  // Codes like GHS, NGN, FCFA, USD etc. go on the right
-  return Number(rounded).toLocaleString() + " " + symbol;
+/**
+ * Convert an amount from one currency to another using USD as base.
+ * rates: map of currencyCode -> rate from USD (e.g. NGN: 1650 means 1 USD = 1650 NGN)
+ * We first convert source -> USD, then USD -> target.
+ */
+function convertBetween(amount: number, from: string, to: string, rates: Record<string, number>): number {
+  if (from === to) return amount;
+  // Symbols like "$" -> "USD", other symbols could exist too. Try to normalize.
+  const symbolToCode: Record<string, string> = {
+    "$": "USD", "USD": "USD",
+    "\u20AC": "EUR", "EUR": "EUR",
+    "\u00A3": "GBP", "GBP": "GBP",
+    "\u20A6": "NGN", "NGN": "NGN",
+    "\u20B5": "GHS", "GHS": "GHS",
+    "FCFA": "XOF", "XOF": "XOF",
+    "KSh": "KES", "KES": "KES",
+    "R": "ZAR", "ZAR": "ZAR",
+  };
+  const fromCode = symbolToCode[from] || from;
+  const toCode = symbolToCode[to] || to;
+  if (fromCode === toCode) return amount;
+
+  const fromRate = fromCode === "USD" ? 1 : (rates[fromCode] || 0);
+  const toRate = toCode === "USD" ? 1 : (rates[toCode] || 0);
+  if (!fromRate || !toRate) return amount; // fallback: return raw if rate missing
+
+  const inUsd = amount / fromRate;
+  return inUsd * toRate;
+}
+
+function formatMoney(amount: number, code: string): string {
+  const info = CURRENCIES[code as CurrencyCode];
+  const symbol = info?.symbol || code;
+  const decimals = info?.decimals ?? 0;
+  const rounded = amount.toFixed(decimals);
+  const numStr = Number(rounded).toLocaleString();
+  if (info?.position === "right") return numStr + " " + symbol;
+  return symbol + numStr;
 }
 
 export default function DashboardOrderStats({ onOpenOrders }: Props) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const { currency: displayCurrency, rates } = useCurrency();
 
   useEffect(() => {
     fetch("/api/orders", { credentials: "include" })
@@ -49,7 +80,7 @@ export default function DashboardOrderStats({ onOpenOrders }: Props) {
   const pending = orders.filter(o => o.status === "pending").length;
   const shipped = orders.filter(o => o.status === "shipped" || o.status === "delivered").length;
 
-  // Revenue this month = ALL orders except cancelled (option A)
+  // This month = all orders except cancelled
   const now = new Date();
   const thisMonthOrders = orders.filter(o => {
     const d = new Date(o.createdAt);
@@ -58,17 +89,23 @@ export default function DashboardOrderStats({ onOpenOrders }: Props) {
       && o.status !== "cancelled";
   });
 
-  // Group by currency (option 1) - accurate, no fake conversions
+  // Sum converted to display currency
+  const totalConverted = thisMonthOrders.reduce((sum, o) => {
+    const val = parseFloat(o.total) || 0;
+    const cur = (o.currency || "USD").trim();
+    return sum + convertBetween(val, cur, displayCurrency, rates);
+  }, 0);
+
+  // Also compute raw currency mix for tooltip breakdown
   const revenueByCurrency = thisMonthOrders.reduce((acc, o) => {
-    const cur = (o.currency || "$").trim() || "$";
+    const cur = (o.currency || "USD").trim() || "USD";
     const val = parseFloat(o.total) || 0;
     acc[cur] = (acc[cur] || 0) + val;
     return acc;
   }, {} as Record<string, number>);
-
   const currencyEntries = Object.entries(revenueByCurrency).sort((a, b) => b[1] - a[1]);
-  const currencyCount = currencyEntries.length;
   const thisMonthCount = thisMonthOrders.length;
+  const hasMultipleCurrencies = currencyEntries.length > 1;
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
@@ -115,37 +152,52 @@ export default function DashboardOrderStats({ onOpenOrders }: Props) {
           <div className="text-[11px] text-gray-500 mt-0.5">Fulfilled</div>
         </div>
 
-        <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl">
+        <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl group relative">
           <div className="flex items-center gap-2 text-green-700 text-xs mb-1">
-            <DollarSign className="w-3.5 h-3.5" /> This Month
+            <DollarSign className="w-3.5 h-3.5" />
+            This Month
+            {hasMultipleCurrencies && (
+              <Info className="w-3 h-3 text-green-600 opacity-70" />
+            )}
           </div>
-          {currencyEntries.length === 0 ? (
+          {thisMonthCount === 0 ? (
             <>
               <div className="text-2xl font-bold text-green-700">-</div>
-              <div className="text-[11px] text-green-600 mt-0.5">No orders yet</div>
-            </>
-          ) : currencyEntries.length === 1 ? (
-            <>
-              <div className="text-2xl font-bold text-green-700 leading-tight">
-                {formatMoney(currencyEntries[0][1], currencyEntries[0][0])}
-              </div>
-              <div className="text-[11px] text-green-600 mt-0.5">
-                {thisMonthCount} {thisMonthCount === 1 ? "order" : "orders"}
-              </div>
+              <div className="text-[11px] text-green-600 mt-0.5">No orders this month</div>
             </>
           ) : (
             <>
-              <div className="text-xl font-bold text-green-700 leading-tight">
-                {formatMoney(currencyEntries[0][1], currencyEntries[0][0])}
+              <div className="text-2xl font-bold text-green-700 leading-tight">
+                {formatMoney(totalConverted, displayCurrency)}
               </div>
-              <div className="text-[10px] text-green-700 font-semibold mt-1 leading-snug space-y-0.5">
-                {currencyEntries.slice(1).map(([cur, amt]) => (
-                  <div key={cur}>+ {formatMoney(amt, cur)}</div>
-                ))}
+              <div className="text-[11px] text-green-600 mt-0.5">
+                {thisMonthCount} {thisMonthCount === 1 ? "order" : "orders"}
+                {hasMultipleCurrencies && " - converted"}
               </div>
-              <div className="text-[10px] text-green-600 mt-1">
-                {thisMonthCount} {thisMonthCount === 1 ? "order" : "orders"} - {currencyCount} currencies
-              </div>
+
+              {/* Tooltip on hover showing raw currency breakdown */}
+              {hasMultipleCurrencies && (
+                <div className="absolute bottom-full right-0 mb-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10">
+                  <div className="bg-gray-900 text-white text-xs rounded-xl p-3 shadow-xl min-w-[180px]">
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2">
+                      Raw amounts
+                    </div>
+                    <div className="space-y-1">
+                      {currencyEntries.map(([cur, amt]) => (
+                        <div key={cur} className="flex items-center justify-between gap-3">
+                          <span className="text-gray-300">{cur}</span>
+                          <span className="font-mono font-semibold">
+                            {Number(amt.toFixed(2)).toLocaleString()}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-2 pt-2 border-t border-gray-700 text-[10px] text-gray-400">
+                      Converted using live rates
+                    </div>
+                  </div>
+                </div>
+              )}
             </>
           )}
         </div>
