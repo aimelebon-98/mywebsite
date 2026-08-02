@@ -45,9 +45,6 @@ export default function Page() {
   };
 
   const otherLocale = isFr ? "en" : "fr";
-  const otherLocalePath = typeof window !== "undefined"
-    ? window.location.pathname.replace(`/${locale}/`, `/${otherLocale}/`)
-    : `/${otherLocale}/account/preferences`;
 
   return (
     <>
@@ -74,23 +71,25 @@ export default function Page() {
                     </div>
                     <div>
                       <h2 className="font-bold text-gray-900">{isFr ? "Langue" : "Language"}</h2>
-                      <p className="text-xs text-gray-500">{isFr ? d("Choisissez votre langue d\u0027affichage") : "Choose your display language"}</p>
+                      <p className="text-xs text-gray-500">
+                        {isFr ? d("Choisissez votre langue d\u0027affichage") : "Choose your display language"}
+                      </p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className={`flex items-center gap-3 p-4 rounded-xl border-2 transition cursor-default ${locale === "en" ? "border-[#CA3F2E] bg-red-50" : "border-gray-200 bg-gray-50"}`}>
-                      <span className="text-2xl">🇺🇸</span>
+                      <span className="text-2xl">&#127482;&#127480;</span>
                       <div>
                         <p className="font-bold text-sm text-gray-900">English</p>
-                        <p className="text-xs text-gray-500">Current</p>
+                        <p className="text-xs text-gray-500">{locale === "en" ? "Current" : "Switch"}</p>
                       </div>
                       {locale === "en" && <CheckCircle className="w-4 h-4 text-[#CA3F2E] ml-auto" />}
                     </div>
                     <Link
-                      href={otherLocale === "fr" ? `/${otherLocale}/account/preferences` : `/${otherLocale}/account/preferences`}
+                      href={`/${otherLocale}/account/preferences`}
                       className={`flex items-center gap-3 p-4 rounded-xl border-2 transition ${locale === "fr" ? "border-[#CA3F2E] bg-red-50" : "border-gray-200 bg-gray-50 hover:border-gray-300"}`}
                     >
-                      <span className="text-2xl">🇫🇷</span>
+                      <span className="text-2xl">&#127467;&#127479;</span>
                       <div>
                         <p className="font-bold text-sm text-gray-900">{"Fran\u00e7ais"}</p>
                         <p className="text-xs text-gray-500">{locale === "fr" ? "Actuel" : "Switch"}</p>
@@ -99,7 +98,9 @@ export default function Page() {
                     </Link>
                   </div>
                   <p className="text-xs text-gray-400 mt-3">
-                    {isFr ? d("Cliquez sur une langue pour changer l\u0027interface.") : "Click a language to switch the interface."}
+                    {isFr
+                      ? d("Cliquez sur une langue pour changer l\u0027interface.")
+                      : "Click a language to switch the interface."}
                   </p>
                 </div>
 
@@ -111,7 +112,9 @@ export default function Page() {
                     </div>
                     <div>
                       <h2 className="font-bold text-gray-900">{isFr ? "Devise" : "Currency"}</h2>
-                      <p className="text-xs text-gray-500">{isFr ? "Choisissez votre devise" : "Choose your display currency"}</p>
+                      <p className="text-xs text-gray-500">
+                        {isFr ? "Choisissez votre devise" : "Choose your display currency"}
+                      </p>
                     </div>
                     {saved && (
                       <div className="ml-auto flex items-center gap-1.5 text-xs font-semibold text-green-600">
