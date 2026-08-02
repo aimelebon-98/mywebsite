@@ -14,15 +14,27 @@ async function sendCustomerEmail(email: string, name: string, subject: string, m
         from: "NewDealZone Support <support@newdealzone.com>",
         to: email,
         subject: "New reply: " + subject,
-        html: '<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;">' +
-              '<h2 style="color:#CA3F2E;">Hi ' + name + ',</h2>' +
-              '<p>You have a new reply to your support ticket:</p>' +
+        html: '<div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;max-width:600px;margin:0 auto;padding:20px;background:#f9fafb;">' +
+              '<div style="background:linear-gradient(135deg,#CA3F2E 0%,#8B2A1E 100%);padding:24px;text-align:center;border-radius:16px 16px 0 0;">' +
+              '<div style="font-weight:900;font-size:20px;letter-spacing:-0.02em;">' +
+              '<span style="color:white;">NewDeal</span>' +
+              '<span style="color:rgba(255,255,255,0.4);font-weight:300;margin:0 4px;">|</span>' +
+              '<span style="color:white;letter-spacing:0.15em;font-size:16px;">ZONE</span>' +
+              '</div>' +
+              '<div style="color:rgba(255,255,255,0.85);font-size:12px;margin-top:4px;">Support</div>' +
+              '</div>' +
+              '<div style="background:#fff;padding:28px;border:1px solid #eee;border-top:none;border-radius:0 0 16px 16px;">' +
+              '<h2 style="color:#111827;margin:0 0 12px 0;font-size:20px;">Hi ' + name + ',</h2>' +
+              '<p style="color:#4b5563;margin:0 0 16px 0;">You have a new reply to your support ticket:</p>' +
               '<div style="background:#f9fafb;border-left:4px solid #CA3F2E;padding:16px;margin:16px 0;border-radius:8px;">' +
               '<strong>' + subject + '</strong><br/><br/>' +
               message.replace(/</g, "&lt;").replace(/\n/g, "<br/>") +
               '</div>' +
-              '<p><a href="https://www.newdealzone.com/en/account/tickets" style="background:#CA3F2E;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;">View ticket</a></p>' +
-              '<p style="color:#6b7280;font-size:12px;margin-top:32px;">NewDealZone Support Team</p>' +
+              '<div style="text-align:center;margin:24px 0;">' +
+              '<a href="https://www.newdealzone.com/en/account/tickets" style="background:#CA3F2E;color:white;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:700;">View ticket</a>' +
+              '</div>' +
+              '<p style="color:#9ca3af;font-size:12px;margin:24px 0 0 0;text-align:center;">NewDeal | ZONE Support Team</p>' +
+              '</div>' +
               '</div>',
       }),
     });

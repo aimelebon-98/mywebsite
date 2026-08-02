@@ -100,9 +100,16 @@ export default function Footer() {
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center">
-                <span className="text-gray-900 font-bold text-sm">SV</span>
+                <svg viewBox="0 0 24 24" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M12.5 2H4a2 2 0 00-2 2v8.5a2 2 0 00.59 1.41l8.5 8.5a2 2 0 002.82 0l8.5-8.5a2 2 0 000-2.82L13.91 2.59A2 2 0 0012.5 2z" fill="white" />
+                  <circle cx="7.5" cy="7.5" r="1.6" fill="#CA3F2E" />
+                </svg>
               </div>
-              <span className="text-xl font-bold text-white tracking-tight">NewDealZone</span>
+              <div className="flex items-baseline gap-1.5 text-xl font-black tracking-tight leading-none text-white">
+                <span>NewDeal</span>
+                <span className="text-white/30 font-light text-base">|</span>
+                <span className="tracking-widest text-base text-[#CA3F2E]">ZONE</span>
+              </div>
             </div>
             <p className="text-sm leading-relaxed mb-4">{t("tagline")}</p>
             <div className="flex items-center gap-3">
@@ -225,7 +232,7 @@ export default function Footer() {
 
           {/* Copyright + legal links */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm">&copy; {new Date().getFullYear()} NewDealZone. {t("copyright")}</p>
+          <p className="text-sm">&copy; {new Date().getFullYear()} NewDeal <span className="text-gray-600">|</span> <span className="text-[#CA3F2E]">ZONE</span>. {t("copyright")}</p>
           <div className="flex items-center gap-4 text-xs text-gray-500">
             <Link href="/privacy" className="hover:text-white transition">Privacy Policy</Link>
             <Link href="/terms" className="hover:text-white transition">Terms of Service</Link>
