@@ -81,9 +81,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       alternates: {
         canonical,
         languages: {
-          "en-US": `${SITE_URL}/en/product/${slug}`,
-          "fr-FR": `${SITE_URL}/fr/product/${slug}`,
-          "x-default": `${SITE_URL}/en/product/${slug}`,
+          "en-US": `${SITE_URL}/en/product/${raw.slug}`,
+          ...(raw.slugFr && raw.nameFr ? { "fr-FR": `${SITE_URL}/fr/product/${raw.slugFr || raw.slug}` } : {}),
+          "x-default": `${SITE_URL}/en/product/${raw.slug}`,
         },
       },
       openGraph: {
@@ -228,6 +228,33 @@ export default async function ProductPage({ params }: Props) {
       availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       itemCondition: "https://schema.org/NewCondition",
       seller: { "@type": "Organization", name: SITE_NAME },
+      // Shipping details - Google displays "Free shipping" badges in results
+      shippingDetails: {
+        "@type": "OfferShippingDetails",
+        shippingRate: {
+          "@type": "MonetaryAmount",
+          value: parseFloat(product.price) >= 1000 ? "0" : "15",
+          currency: "USD",
+        },
+        shippingDestination: {
+          "@type": "DefinedRegion",
+          addressCountry: ["US", "CA", "GB", "FR", "DE", "NG", "GH", "KE", "ZA", "CI", "SN", "TG"],
+        },
+        deliveryTime: {
+          "@type": "ShippingDeliveryTime",
+          handlingTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 1, unitCode: "DAY" },
+          transitTime:  { "@type": "QuantitativeValue", minValue: 3, maxValue: 7, unitCode: "DAY" },
+        },
+      },
+      // Return policy - Google displays "Free 14-day returns" badges
+      hasMerchantReturnPolicy: {
+        "@type": "MerchantReturnPolicy",
+        applicableCountry: ["US", "CA", "GB", "FR", "DE", "NG", "GH", "KE", "ZA", "CI", "SN", "TG"],
+        returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+        merchantReturnDays: 14,
+        returnMethod: "https://schema.org/ReturnByMail",
+        returnFees: "https://schema.org/FreeReturn",
+      },
     },
   };
 
