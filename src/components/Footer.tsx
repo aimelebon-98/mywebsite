@@ -158,7 +158,7 @@ export default function Footer() {
             <ul className="space-y-3">
               <li><Link href="/cart" className="text-sm hover:text-white transition">{t("myCart")}</Link></li>
               <li><Link href="/wishlist" className="text-sm hover:text-white transition">{t("myWishlist")}</Link></li>
-              <li><Link href="/shop" className="text-sm hover:text-white transition">Shop</Link></li>
+              <li><Link href="/shop" className="text-sm hover:text-white transition">{t("shop")}</Link></li>
               <li><Link href="/faq" className="text-sm hover:text-white transition">{t("helpCenter")}</Link></li>
             </ul>
           </div>
@@ -226,7 +226,7 @@ export default function Footer() {
                 <rect x="3" y="11" width="18" height="11" rx="2" />
                 <path d="M7 11V7a5 5 0 0 1 10 0v4" />
               </svg>
-              <span>Secure SSL encrypted checkout</span>
+              <span>{t("secureCheckout")}</span>
             </div>
           </div>
 
@@ -234,9 +234,9 @@ export default function Footer() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm">&copy; {new Date().getFullYear()} NewDeal <span className="text-gray-600">|</span> <span className="text-[#CA3F2E]">ZONE</span>. {t("copyright")}</p>
           <div className="flex items-center gap-4 text-xs text-gray-500">
-            <Link href="/privacy" className="hover:text-white transition">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-white transition">Terms of Service</Link>
-            <Link href="/privacy#cookies" className="hover:text-white transition">Cookies</Link>
+            <Link href="/privacy" className="hover:text-white transition">{t("privacyPolicy")}</Link>
+            <Link href="/terms" className="hover:text-white transition">{t("termsOfService")}</Link>
+            <Link href="/privacy#cookies" className="hover:text-white transition">{t("cookies")}</Link>
           </div>
         </div>
         </div>

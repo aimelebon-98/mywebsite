@@ -219,6 +219,10 @@
         "myCart": "My Cart",
         "myWishlist": "My Wishlist",
         "helpCenter": "Help Center",
+        "secureCheckout": "Secure SSL encrypted checkout",
+        "privacyPolicy": "Privacy Policy",
+        "termsOfService": "Terms of Service",
+        "cookies": "Cookies",
         "copyright": "All rights reserved."
     },
     "home": {
