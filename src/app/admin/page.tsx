@@ -87,7 +87,7 @@ interface StoreSettings {
   lockoutMinutes: number;
 }
 
-type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments" | "orders" | "product-faqs" | "analytics" | "newsletter" | `"bundles" | "blog-categories" | "customers";
+type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments" | "orders" | "product-faqs" | "analytics" | "newsletter" | "bundles" | "blog-categories" | "customers";
 
 export default function AdminPage() {
   const [authStep, setAuthStep] = useState<"loading" | "verify" | "access-code" | "password" | "authenticated">("loading");
@@ -106,7 +106,7 @@ export default function AdminPage() {
       localStorage.setItem("sv_admin_tab", tab);
       // Only persist stable tabs in URL (not the "edit" flow)
       if (tab !== "edit" && tab !== "blog-edit") {
-        window.history.replaceState(null, "", "#" + tab);
+        window.history.replaceState(null, "", `#${tab}`);
       }
     } catch { /* ignore */ }
   };
@@ -668,7 +668,7 @@ export default function AdminPage() {
           <button
             onClick={() => setBlogMenuOpen(!blogMenuOpen)}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition ${
-              activeTab === "blog" || activeTab === "blog-add" || activeTab === "blog-edit" || activeTab === "blog-categories"
+              activeTab === "blog" || activeTab === "blog-add" || activeTab === "blog-edit" || activeTab === "blog-categories" | "customers"
                 ? "bg-gray-900 text-white"
                 : "text-gray-600 hover:bg-gray-50"
             }`}
@@ -700,9 +700,9 @@ export default function AdminPage() {
                 Add New Post
               </button>
               <button
-                onClick={() => { setActiveTab("blog-categories"); setSidebarOpen(false); }}
+                onClick={() => { setActiveTab("blog-categories" | "customers"); setSidebarOpen(false); }}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
-                  activeTab === "blog-categories"
+                  activeTab === "blog-categories" | "customers"
                     ? "bg-gray-100 text-gray-900 font-semibold"
                     : "text-gray-600 hover:bg-gray-50"
                 }`}
@@ -770,7 +770,7 @@ export default function AdminPage() {
               <Menu className="w-5 h-5" />
             </button>
             <h1 className="text-lg font-bold capitalize">
-              {activeTab === "add" ? "Add Product" : activeTab === "edit" ? "Edit Product" : activeTab === "blog-add" ? "New Blog Post" : activeTab === "blog-edit" ? "Edit Blog Post" : activeTab === "blog" ? "Blog Posts" : activeTab === "blog-categories" ? "Blog Categories" : activeTab === "customers" ? "Customers" : activeTab === "newsletter" ? "Newsletter Subscribers" : activeTab}
+              {activeTab === "add" ? "Add Product" : activeTab === "edit" ? "Edit Product" : activeTab === "blog-add" ? "New Blog Post" : activeTab === "blog-edit" ? "Edit Blog Post" : activeTab === "blog" ? "Blog Posts" : activeTab === "blog-categories" | "customers" ? "Blog Categories" : activeTab === "newsletter" ? "Newsletter Subscribers" : activeTab}
             </h1>
           </div>
           <div className="flex items-center gap-2">
@@ -1023,7 +1023,7 @@ export default function AdminPage() {
             <BundlesManager />
           )}
 
-          {activeTab === "blog-categories" && (
+          {activeTab === "blog-categories" | "customers" && (
             <BlogCategoriesManager />
           )}
 
