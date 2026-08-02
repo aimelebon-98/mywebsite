@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
@@ -8,87 +8,96 @@ import { useCustomer } from "@/lib/customer-context";
 import Navbar from "@/components/Navbar";
 import AccountSidebar from "@/components/AccountSidebar";
 import Footer from "@/components/Footer";
-import { User, Package, Heart, MapPin, LogOut, Loader2, ShoppingBag } from "lucide-react";
+import { User, Package, Heart, MapPin, Loader2, LifeBuoy, Gift, Star, ShoppingBag, TrendingUp } from "lucide-react";
+
+interface Stats {
+  orderCount: number;
+  wishlistCount: number;
+  ticketCount: number;
+  totalSpent: number;
+}
 
 export default function DashboardPage() {
   const locale = useLocale();
   const isFr = locale === "fr";
   const router = useRouter();
-  const { customer, loading, logout } = useCustomer();
+  const { customer, loading } = useCustomer();
+  const [stats, setStats] = useState<Stats>({ orderCount: 0, wishlistCount: 0, ticketCount: 0, totalSpent: 0 });
 
   useEffect(() => {
-    if (!loading && !customer) {
-      router.push(`/${locale}/account/login`);
-    }
+    if (!loading && !customer) router.push(`/${locale}/account/login`);
   }, [loading, customer, locale, router]);
 
+  useEffect(() => {
+    if (!customer) return;
+    fetch("/api/customer/stats").then(r => r.json()).then(d => {
+      if (d && !d.error) setStats(d);
+    }).catch(() => {});
+  }, [customer]);
+
   if (loading || !customer) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-[#CA3F2E]" />
-      </div>
-    );
+    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-[#CA3F2E]" /></div>;
   }
 
-  const cards = [
-    { icon: Package, label: isFr ? "Mes commandes" : "My orders", desc: isFr ? "Suivi et historique" : "Track and history", href: `/${locale}/account/orders`, color: "bg-blue-500" },
-    { icon: Heart, label: isFr ? "Liste de souhaits" : "Wishlist", desc: isFr ? "Vos produits favoris" : "Your favorite items", href: `/${locale}/wishlist`, color: "bg-pink-500" },
-    { icon: MapPin, label: isFr ? "Adresses" : "Addresses", desc: isFr ? "Livraison sauvegardees" : "Saved shipping addresses", href: `/${locale}/account/addresses`, color: "bg-emerald-500" },
-    { icon: User, label: isFr ? "Profil" : "Profile", desc: isFr ? "Informations personnelles" : "Personal information", href: `/${locale}/account/profile`, color: "bg-purple-500" },
+  const quickCards = [
+    { icon: Package, label: isFr ? "Mes commandes" : "My Orders", href: `/${locale}/account/orders`, color: "bg-blue-500" },
+    { icon: LifeBuoy, label: isFr ? "Support" : "Support", href: `/${locale}/account/tickets`, color: "bg-cyan-500" },
+    { icon: Heart, label: isFr ? "Favoris" : "Wishlist", href: `/${locale}/wishlist`, color: "bg-pink-500" },
+    { icon: Star, label: isFr ? "Mes avis" : "My Reviews", href: `/${locale}/account/reviews`, color: "bg-amber-500" },
+    { icon: Gift, label: isFr ? "R\u00e9compenses" : "Rewards", href: `/${locale}/account/rewards`, color: "bg-violet-500" },
+    { icon: MapPin, label: isFr ? "Adresses" : "Addresses", href: `/${locale}/account/addresses`, color: "bg-emerald-500" },
+    { icon: User, label: isFr ? "Profil" : "Profile", href: `/${locale}/account/profile`, color: "bg-purple-500" },
+    { icon: ShoppingBag, label: isFr ? "Continuer les achats" : "Continue Shopping", href: `/${locale}/shop`, color: "bg-gray-700" },
   ];
 
   return (
     <>
       <Navbar />
       <main className="min-h-screen bg-gray-50 pt-20 lg:pt-24">
-        <div className="max-w-7xl lg:max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-black text-gray-900">
-              {isFr ? `Bonjour, ${customer.name.split(" ")[0]}` : `Hi, ${customer.name.split(" ")[0]}`}
-            </h1>
-            <p className="text-gray-500 mt-1">{isFr ? "Bienvenue dans votre compte" : "Welcome to your account"}</p>
-          </div>
-
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {cards.map(c => (
-              <Link key={c.href} href={c.href}
-                className="group bg-white border border-gray-200 rounded-2xl p-5 hover:border-gray-300 hover:shadow-md transition-all">
-                <div className={`w-11 h-11 ${c.color} rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition`}>
-                  <c.icon className="w-5 h-5 text-white" />
-                </div>
-                <div className="font-bold text-gray-900 text-sm">{c.label}</div>
-                <div className="text-xs text-gray-500 mt-0.5">{c.desc}</div>
-              </Link>
-            ))}
-          </div>
-
-          <div className="grid lg:grid-cols-2 gap-4">
-            <div className="bg-white border border-gray-200 rounded-2xl p-6">
-              <h2 className="font-bold text-gray-900 mb-4">{isFr ? "Vos informations" : "Your info"}</h2>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between"><span className="text-gray-500">{isFr ? "Nom" : "Name"}</span><span className="font-semibold">{customer.name}</span></div>
-                <div className="flex justify-between"><span className="text-gray-500">Email</span><span className="font-semibold">{customer.email}</span></div>
-                {customer.phone && <div className="flex justify-between"><span className="text-gray-500">{isFr ? "Telephone" : "Phone"}</span><span className="font-semibold">{customer.phone}</span></div>}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="lg:grid lg:grid-cols-[240px_1fr] lg:gap-8">
+            <div className="hidden lg:block"><AccountSidebar /></div>
+            <div>
+              <div className="mb-6">
+                <h1 className="text-3xl font-black text-gray-900">
+                  {isFr ? "Bonjour, " : "Hi, "}{customer.name.split(" ")[0]}
+                </h1>
+                <p className="text-gray-500 mt-1">{isFr ? "Bienvenue dans votre espace client" : "Welcome to your account"}</p>
               </div>
-              <Link href={`/${locale}/account/profile`} className="inline-block mt-4 text-xs font-bold text-[#CA3F2E] hover:underline">
-                {isFr ? "Modifier" : "Edit"}
-              </Link>
-            </div>
 
-            <div className="bg-gradient-to-br from-gray-950 to-[#8B2A1E] rounded-2xl p-6 text-white">
-              <ShoppingBag className="w-8 h-8 mb-3 opacity-70" />
-              <h2 className="font-bold text-lg">{isFr ? "Continuez a decouvrir" : "Keep exploring"}</h2>
-              <p className="text-sm text-gray-300 mt-1 mb-4">{isFr ? "Nos derniers produits vous attendent" : "Our latest products are waiting"}</p>
-              <Link href={`/${locale}/shop`} className="inline-block px-5 py-2 bg-white text-gray-900 rounded-xl text-sm font-bold hover:bg-gray-100 transition">
-                {isFr ? "Voir la boutique" : "Shop now"}
-              </Link>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+                <div className="bg-white border border-gray-200 rounded-2xl p-4">
+                  <div className="flex items-center gap-2 text-gray-500 text-xs font-bold uppercase mb-2"><Package className="w-3.5 h-3.5" /> {isFr ? "Commandes" : "Orders"}</div>
+                  <div className="text-2xl font-black text-gray-900">{stats.orderCount}</div>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-2xl p-4">
+                  <div className="flex items-center gap-2 text-gray-500 text-xs font-bold uppercase mb-2"><Heart className="w-3.5 h-3.5" /> {isFr ? "Favoris" : "Wishlist"}</div>
+                  <div className="text-2xl font-black text-gray-900">{stats.wishlistCount}</div>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-2xl p-4">
+                  <div className="flex items-center gap-2 text-gray-500 text-xs font-bold uppercase mb-2"><LifeBuoy className="w-3.5 h-3.5" /> {isFr ? "Tickets" : "Tickets"}</div>
+                  <div className="text-2xl font-black text-gray-900">{stats.ticketCount}</div>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-2xl p-4">
+                  <div className="flex items-center gap-2 text-gray-500 text-xs font-bold uppercase mb-2"><TrendingUp className="w-3.5 h-3.5" /> {isFr ? "Total d\u00e9pens\u00e9" : "Total Spent"}</div>
+                  <div className="text-2xl font-black text-gray-900">${stats.totalSpent.toFixed(0)}</div>
+                </div>
+              </div>
+
+              <h2 className="text-lg font-bold text-gray-900 mb-3">{isFr ? "Acc\u00e8s rapide" : "Quick access"}</h2>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                {quickCards.map(c => (
+                  <Link key={c.href} href={c.href}
+                    className="group bg-white border border-gray-200 rounded-2xl p-4 hover:border-gray-300 hover:shadow-md transition-all">
+                    <div className={"w-10 h-10 " + c.color + " rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 transition"}>
+                      <c.icon className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="font-bold text-gray-900 text-sm">{c.label}</div>
+                  </Link>
+                ))}
+              </div>
             </div>
           </div>
-
-          <button onClick={logout}
-            className="mt-8 inline-flex items-center gap-2 text-sm text-red-600 hover:text-red-700 font-semibold">
-            <LogOut className="w-4 h-4" /> {isFr ? "Se deconnecter" : "Log out"}
-          </button>
         </div>
       </main>
       <Footer />
