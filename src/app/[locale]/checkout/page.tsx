@@ -85,14 +85,33 @@ export default function CheckoutPage() {
     }).catch(() => {});
   }, []);
 
-  // If already logged in, skip auth stage and prefill
+  // If already logged in, skip auth stage and prefill from account
   useEffect(() => {
-    if (customer && stage === "auth") {
-      setName(customer.name || "");
-      setPhone(customer.phone || "");
-      setWasGuest(false);
-      setStage("details");
-    }
+    if (!customer) return;
+
+    // Set name + phone from customer profile
+    setName(prev => prev || customer.name || "");
+    setPhone(prev => prev || customer.phone || "");
+    setWasGuest(false);
+    if (stage === "auth") setStage("details");
+
+    // Fetch default address for prefill
+    fetch("/api/customer/addresses")
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data?.addresses?.length) return;
+        // Prefer default address, else the most recent
+        const list = data.addresses as Array<{ isDefault?: boolean; fullName?: string; phone?: string; street?: string; city?: string; state?: string; country?: string; postalCode?: string; }>;
+        const def = list.find(a => a.isDefault) || list[0];
+        if (!def) return;
+
+        // Only fill blanks - do not overwrite what user already typed
+        setName(prev => prev || def.fullName || customer.name || "");
+        setPhone(prev => prev || def.phone || customer.phone || "");
+        const addrParts = [def.street, def.city, def.state, def.postalCode, def.country].filter(Boolean).join(", ");
+        setAddress(prev => prev || addrParts);
+      })
+      .catch(() => { /* ignore - user can still type manually */ });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customer]);
 
@@ -289,6 +308,10 @@ export default function CheckoutPage() {
     const url = "https://wa.me/" + waPhone + "?text=" + encodeURIComponent(message);
     window.open(url, "_blank");
 
+    // Clear cart immediately after successful submission
+    // (order is saved server-side, WhatsApp is opened - no reason to keep items)
+    clearCart();
+
     setStage("success");
     setLoading(false);
   };
@@ -354,7 +377,7 @@ export default function CheckoutPage() {
               )}
 
               <button
-                onClick={() => { clearCart(); router.push(`/${locale}/shop`); }}
+                onClick={() => router.push(`/${locale}/shop`)}
                 className="w-full px-6 py-3 bg-gray-900 text-white rounded-xl font-bold text-sm hover:bg-gray-800 transition inline-flex items-center justify-center gap-2"
               >
                 <ShoppingBag className="w-4 h-4" />
