@@ -34,7 +34,7 @@ export default function CartPage() {
     ? shippingInfo.amountLocal / (currencyRates[shippingInfo.localCurrency] || 1)
     : 0;
   const grandTotal = finalTotal + shippingUsd;
-  const [currency, setCurrency] = useState("$");
+  // currency symbol comes from useCurrency() context - no local state needed
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
@@ -47,9 +47,7 @@ export default function CartPage() {
       .then(r => r.json())
       .then(data => {
         if (data.whatsappNumber) setWhatsappNumber(data.whatsappNumber);
-
-    fetch("/api/bundles").then(r => r.json()).then(setBundles).catch(() => {});
-        if (data.currency) setCurrency(data.currency);
+        fetch("/api/bundles").then(r => r.json()).then(setBundles).catch(() => {});
       })
       .catch(() => {});
   }, []);
@@ -100,7 +98,7 @@ export default function CartPage() {
           bundleName: appliedBundle?.name || null,
           total: finalTotal,
           customerId: customer?.id || null,
-          currency,
+          currency: userCurrency,
           locale,
         }),
       });
@@ -353,7 +351,7 @@ export default function CartPage() {
                     </div>
                   </div>
 
-                  <BundleBanner bundle={appliedBundle} bundles={bundles} currentItemCount={totalItems} discountAmount={discountAmount} currency={currency} />
+                  <BundleBanner bundle={appliedBundle} bundles={bundles} currentItemCount={totalItems} discountAmount={discountAmount} currency={userCurrency} />
             {/* WhatsApp Checkout */}
                   <button
                     onClick={handleWhatsAppCheckout}
