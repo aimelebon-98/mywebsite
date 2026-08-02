@@ -25,6 +25,7 @@ import ProductFaqsManager from "@/components/ProductFaqsManager";
 import Turnstile from "@/components/Turnstile";
 import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 import BundlesManager from "@/components/BundlesManager";
+import CouponsManager from "@/components/CouponsManager";
 interface Product {
   id: string;
   name: string;
@@ -88,7 +89,7 @@ interface StoreSettings {
   lockoutMinutes: number;
 }
 
-type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments" | "orders" | "product-faqs" | "analytics" | "newsletter" | "bundles" | "blog-categories" | "customers" | "tickets";
+type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments" | "orders" | "product-faqs" | "analytics" | "newsletter" | "bundles" | "blog-categories" | "customers" | "tickets" | "coupons";
 
 export default function AdminPage() {
   const [authStep, setAuthStep] = useState<"loading" | "verify" | "access-code" | "password" | "authenticated">("loading");
@@ -121,7 +122,7 @@ export default function AdminPage() {
       const hash = typeof window !== "undefined" ? window.location.hash.replace("#", "") : "";
       const stored = typeof window !== "undefined" ? localStorage.getItem("sv_admin_tab") : null;
       const candidate = hash || stored || "";
-      const validTabs: Tab[] = ["dashboard","products","add","edit","categories","reviews","settings","security","blog","blog-add","blog-edit","authors","comments","orders","analytics","product-faqs","newsletter","customers","tickets","bundles","blog-categories"];
+      const validTabs: Tab[] = ["dashboard","products","add","edit","categories","reviews","settings","security","blog","blog-add","blog-edit","authors","comments","orders","analytics","product-faqs","newsletter","customers","tickets","bundles","blog-categories","coupons"];
       console.log("[Admin] Restoring tab. hash=" + hash + ", stored=" + stored + ", candidate=" + candidate);
       if (candidate && validTabs.includes(candidate as Tab)) {
         if (candidate === "edit") setActiveTabRaw("products");
@@ -724,6 +725,7 @@ export default function AdminPage() {
             { id: "comments" as Tab, icon: MessageSquare, label: "Comments", badge: notifCounts.comments },
             { id: "newsletter" as Tab, icon: Mail, label: "Newsletter", badge: notifCounts.newsletter },
             { id: "bundles" as Tab, icon: Gift, label: "Bundles", badge: 0 },
+            { id: "coupons" as Tab, icon: Ticket, label: "Coupons", badge: 0 },
             { id: "settings" as Tab, icon: Settings, label: "Store Settings", badge: 0 },
             { id: "security" as Tab, icon: Shield, label: "Security", badge: 0 },
           ].map((item) => (
@@ -774,7 +776,7 @@ export default function AdminPage() {
               <Menu className="w-5 h-5" />
             </button>
             <h1 className="text-lg font-bold capitalize">
-              {activeTab === "add" ? "Add Product" : activeTab === "edit" ? "Edit Product" : activeTab === "blog-add" ? "New Blog Post" : activeTab === "blog-edit" ? "Edit Blog Post" : activeTab === "blog" ? "Blog Posts" : activeTab === "blog-categories" ? "Blog Categories" : activeTab === "customers" ? "Customers" : activeTab === "tickets" ? "Support Tickets" : activeTab === "newsletter" ? "Newsletter Subscribers" : activeTab}
+              {activeTab === "add" ? "Add Product" : activeTab === "edit" ? "Edit Product" : activeTab === "blog-add" ? "New Blog Post" : activeTab === "blog-edit" ? "Edit Blog Post" : activeTab === "blog" ? "Blog Posts" : activeTab === "blog-categories" ? "Blog Categories" : activeTab === "customers" ? "Customers" : activeTab === "tickets" ? "Support Tickets" : activeTab === "coupons" ? "Coupons" : activeTab === "newsletter" ? "Newsletter Subscribers" : activeTab}
             </h1>
           </div>
           <div className="flex items-center gap-2">
@@ -1029,6 +1031,10 @@ export default function AdminPage() {
 
           {activeTab === "bundles" && (
             <BundlesManager />
+          )}
+
+          {activeTab === "coupons" && (
+            <CouponsManager onNotify={showNotification} />
           )}
 
           {activeTab === "blog-categories" && (
