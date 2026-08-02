@@ -1,5 +1,5 @@
-import { LifeBuoy } from "lucide-react";
 "use client";
+import { LifeBuoy } from "lucide-react";
 
 import { useState, useEffect, useCallback } from "react";
 import {
