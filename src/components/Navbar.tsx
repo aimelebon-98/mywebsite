@@ -123,8 +123,10 @@ export default function Navbar() {
             </div>
 
             {/* Brand wordmark - two weights + subtle underline */}
-            <div className={`hidden sm:block text-[19px] font-black tracking-tight leading-none ${logoText}`}>
-              <span>NewDeal</span><span className={isBlogPage ? "text-white/85" : "text-[#CA3F2E]"}>Zone</span>
+            <div className={`hidden sm:flex items-baseline gap-1.5 text-[19px] font-black tracking-tight leading-none ${logoText}`}>
+              <span>NewDeal</span>
+              <span className={isBlogPage ? "text-white/40 font-light text-[15px]" : "text-gray-300 font-light text-[15px]"}>|</span>
+              <span className={`tracking-widest text-[15px] ${isBlogPage ? "text-white/85" : "text-[#CA3F2E]"}`}>ZONE</span>
             </div>
           </Link>
 
