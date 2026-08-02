@@ -194,8 +194,10 @@ function XofFlag({ country, svgProps }: { country: string; svgProps: SvgProps })
 
 export default function CurrencySelector({ compact = false, className = "", dark = false }: Props) {
   const { currency, setCurrency, visitorCountry } = useCurrency();
-  const locale = useLocale();
-  const isFr = locale === "fr";
+  // Safe locale detection - useLocale throws if no NextIntlClientProvider (e.g. admin panel)
+  let localeSafe = "en";
+  try { localeSafe = useLocale(); } catch { /* not inside next-intl provider - fallback to en */ }
+  const isFr = localeSafe === "fr";
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
 
