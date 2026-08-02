@@ -119,7 +119,7 @@ export default function LoginPage() {
               <p className="text-sm text-gray-500">
                 {isFr ? "Pas de compte ?" : "No account?"}{" "}
                 <Link href={`/${locale}/account/register`} className="text-[#CA3F2E] font-semibold hover:underline">
-                  {isFr ? "S&#39;inscrire" : "Sign up"}
+                  {isFr ? "S\u0027inscrire" : "Sign up"}
                 </Link>
               </p>
             </div>

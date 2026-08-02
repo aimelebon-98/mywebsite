@@ -43,7 +43,7 @@ export default function RegisterPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || (isFr ? "Erreur d&#39;inscription" : "Registration failed"));
+        setError(data.error || (isFr ? "Erreur d\u0027inscription" : "Registration failed"));
       } else {
         await refresh();
         router.push(`/${locale}/account/dashboard`);
@@ -80,7 +80,7 @@ export default function RegisterPage() {
                 <UserPlus className="w-7 h-7 text-white" />
               </div>
               <h1 className="text-2xl font-black text-gray-900">{isFr ? "Creer un compte" : "Create account"}</h1>
-              <p className="text-sm text-gray-500 mt-1">{isFr ? "C&#39;est rapide et gratuit" : "It&#39;s quick and free"}</p>
+              <p className="text-sm text-gray-500 mt-1">{isFr ? "C\u0027est rapide et gratuit" : "It\u0027s quick and free"}</p>
             </div>
 
             <form onSubmit={submit} className="space-y-4">
