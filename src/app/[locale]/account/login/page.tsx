@@ -68,7 +68,7 @@ export default function LoginPage() {
   }
 
   return (
-    <TurnstileGate action="customer-login" isFr={isFr} onVerify={setTurnstileToken}>
+    <TurnstileGate action="customer-login" isFr={isFr} locale={locale} onVerify={setTurnstileToken}>
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
           <Link href={`/${locale}`} className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 mb-6 transition">

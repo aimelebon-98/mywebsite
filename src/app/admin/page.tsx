@@ -25,6 +25,7 @@ import ProductFaqsManager from "@/components/ProductFaqsManager";
 import Turnstile from "@/components/Turnstile";
 import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 import BundlesManager from "@/components/BundlesManager";
+import CurrencySelector from "@/components/CurrencySelector";
 import CouponsManager from "@/components/CouponsManager";
 interface Product {
   id: string;
@@ -780,6 +781,7 @@ export default function AdminPage() {
             </h1>
           </div>
           <div className="flex items-center gap-2">
+            <CurrencySelector />
             <button onClick={() => { fetchProducts(); fetchCategories(); }} className="p-2 hover:bg-gray-100 rounded-xl" title="Refresh">
               <RefreshCw className="w-4 h-4 text-gray-500" />
             </button>
