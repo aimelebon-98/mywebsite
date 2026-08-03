@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { ChevronDown, Check } from "lucide-react";
 import { useCurrency } from "@/lib/currency-context";
 import { CURRENCIES, type CurrencyCode } from "@/lib/currency";
@@ -12,12 +13,10 @@ interface Props {
   dark?: boolean;
 }
 
-// SVG flag components
 function Flag({ code, xofCountry, size = 20 }: { code: CurrencyCode; xofCountry?: string; size?: number }) {
   const h = Math.round(size * 0.7);
   const props = { width: size, height: h, className: "rounded-sm flex-shrink-0", xmlns: "http://www.w3.org/2000/svg" };
 
-  // Special case: XOF uses visitor's country flag
   if (code === "XOF" && xofCountry) {
     return <XofFlag country={xofCountry} svgProps={props} />;
   }
@@ -80,7 +79,6 @@ function Flag({ code, xofCountry, size = 20 }: { code: CurrencyCode; xofCountry?
         </svg>
       );
     case "XOF":
-      // Fallback: use Senegal flag (largest XOF economy) if no visitor country
       return <XofFlag country="SN" svgProps={props} />;
     case "KES":
       return (
@@ -107,11 +105,10 @@ function Flag({ code, xofCountry, size = 20 }: { code: CurrencyCode; xofCountry?
   }
 }
 
-// XOF country-specific flags
 type SvgProps = { width: number; height: number; className: string; xmlns: string };
 function XofFlag({ country, svgProps }: { country: string; svgProps: SvgProps }) {
   switch (country.toUpperCase()) {
-    case "TG": // Togo
+    case "TG":
       return (
         <svg {...svgProps} viewBox="0 0 60 42">
           <rect width="60" height="42" fill="#FFCE00" />
@@ -121,7 +118,7 @@ function XofFlag({ country, svgProps }: { country: string; svgProps: SvgProps })
           <polygon points="12,7 13.5,11.5 18.5,11.5 14.5,14.5 16,19 12,16 8,19 9.5,14.5 5.5,11.5 10.5,11.5" fill="#fff" />
         </svg>
       );
-    case "CI": // Cote d'Ivoire
+    case "CI":
       return (
         <svg {...svgProps} viewBox="0 0 3 2">
           <rect x="0" width="1" height="2" fill="#F77F00" />
@@ -129,7 +126,7 @@ function XofFlag({ country, svgProps }: { country: string; svgProps: SvgProps })
           <rect x="2" width="1" height="2" fill="#009E60" />
         </svg>
       );
-    case "SN": // Senegal
+    case "SN":
       return (
         <svg {...svgProps} viewBox="0 0 60 42">
           <rect width="20" height="42" fill="#00853F" />
@@ -138,7 +135,7 @@ function XofFlag({ country, svgProps }: { country: string; svgProps: SvgProps })
           <polygon points="30,17 31,20 34,20 31.5,22 32.5,25 30,23 27.5,25 28.5,22 26,20 29,20" fill="#00853F" />
         </svg>
       );
-    case "BF": // Burkina Faso
+    case "BF":
       return (
         <svg {...svgProps} viewBox="0 0 60 42">
           <rect width="60" height="21" fill="#EF2B2D" />
@@ -146,7 +143,7 @@ function XofFlag({ country, svgProps }: { country: string; svgProps: SvgProps })
           <polygon points="30,15 31.5,19.5 36,19.5 32,22 34,26.5 30,24 26,26.5 28,22 24,19.5 28.5,19.5" fill="#FCD116" />
         </svg>
       );
-    case "BJ": // Benin
+    case "BJ":
       return (
         <svg {...svgProps} viewBox="0 0 60 42">
           <rect width="20" height="42" fill="#009543" />
@@ -154,7 +151,7 @@ function XofFlag({ country, svgProps }: { country: string; svgProps: SvgProps })
           <rect x="20" y="21" width="40" height="21" fill="#E8112D" />
         </svg>
       );
-    case "ML": // Mali
+    case "ML":
       return (
         <svg {...svgProps} viewBox="0 0 3 2">
           <rect x="0" width="1" height="2" fill="#14B53A" />
@@ -162,7 +159,7 @@ function XofFlag({ country, svgProps }: { country: string; svgProps: SvgProps })
           <rect x="2" width="1" height="2" fill="#CE1126" />
         </svg>
       );
-    case "NE": // Niger
+    case "NE":
       return (
         <svg {...svgProps} viewBox="0 0 60 42">
           <rect width="60" height="14" fill="#E05206" />
@@ -171,7 +168,7 @@ function XofFlag({ country, svgProps }: { country: string; svgProps: SvgProps })
           <circle cx="30" cy="21" r="4" fill="#E05206" />
         </svg>
       );
-    case "GW": // Guinea-Bissau
+    case "GW":
       return (
         <svg {...svgProps} viewBox="0 0 60 42">
           <rect width="60" height="21" fill="#FCD116" />
@@ -181,7 +178,6 @@ function XofFlag({ country, svgProps }: { country: string; svgProps: SvgProps })
         </svg>
       );
     default:
-      // Generic West African / neutral (green/yellow/red pan-African)
       return (
         <svg {...svgProps} viewBox="0 0 3 2">
           <rect x="0" width="1" height="2" fill="#009E60" />
@@ -194,26 +190,157 @@ function XofFlag({ country, svgProps }: { country: string; svgProps: SvgProps })
 
 export default function CurrencySelector({ compact = false, className = "", dark = false }: Props) {
   const { currency, setCurrency, visitorCountry } = useCurrency();
-  // Safe locale detection - useLocale throws if no NextIntlClientProvider (e.g. admin panel)
   let localeSafe = "en";
-  try { localeSafe = useLocale(); } catch { /* not inside next-intl provider - fallback to en */ }
+  try { localeSafe = useLocale(); } catch { /* ignore */ }
   const isFr = localeSafe === "fr";
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [dropdownPos, setDropdownPos] = useState<{ top: number; right: number } | null>(null);
 
+  useEffect(() => { setMounted(true); }, []);
+
+  // Detect mobile viewport
+  const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
+    const check = () => setIsMobile(window.innerWidth < 640);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
   }, []);
 
+  // Calculate desktop dropdown position when opening
+  useEffect(() => {
+    if (open && !isMobile && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setDropdownPos({
+        top: rect.bottom + 4,
+        right: window.innerWidth - rect.right,
+      });
+    }
+  }, [open, isMobile]);
+
+  // Lock body scroll when mobile sheet open
+  useEffect(() => {
+    if (open && isMobile) {
+      document.body.style.overflow = "hidden";
+      return () => { document.body.style.overflow = ""; };
+    }
+  }, [open, isMobile]);
+
+  // Close on outside click (desktop) or Escape
+  useEffect(() => {
+    if (!open) return;
+    const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [open]);
+
   const current = CURRENCIES[currency];
+
+  const renderList = () => (
+    <>
+      {(Object.keys(CURRENCIES) as CurrencyCode[]).map(code => {
+        const info = CURRENCIES[code];
+        const isActive = code === currency;
+        return (
+          <button
+            key={code}
+            onClick={() => { setCurrency(code); setOpen(false); }}
+            className={`w-full flex items-center gap-3 px-4 py-3 sm:px-3 sm:py-2 text-left transition active:bg-gray-100 ${
+              isActive ? "bg-[#CA3F2E]/5" : "hover:bg-gray-50"
+            }`}
+          >
+            <Flag code={code} xofCountry={visitorCountry} size={24} />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className={`text-base sm:text-sm font-bold ${isActive ? "text-[#CA3F2E]" : "text-gray-900"}`}>
+                  {code}
+                </span>
+                <span className="text-sm sm:text-xs text-gray-500">{info.symbol}</span>
+              </div>
+              <div className="text-xs sm:text-[11px] text-gray-500 truncate">
+                {isFr ? info.nameFr : info.name}
+              </div>
+            </div>
+            {isActive && <Check className="w-5 h-5 sm:w-4 sm:h-4 text-[#CA3F2E] flex-shrink-0" />}
+          </button>
+        );
+      })}
+    </>
+  );
+
+  const dropdown = open && mounted ? (
+    isMobile ? (
+      // MOBILE: Full-screen bottom sheet via portal
+      <>
+        <div
+          className="fixed inset-0 z-[9998] bg-black/50"
+          onClick={() => setOpen(false)}
+        />
+        <div className="fixed inset-x-0 bottom-0 z-[9999] bg-white rounded-t-2xl shadow-2xl border-t border-gray-100 overflow-hidden flex flex-col max-h-[85vh] animate-slide-up">
+          <div className="flex justify-center pt-2 pb-1">
+            <div className="w-10 h-1 bg-gray-300 rounded-full" />
+          </div>
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 flex-shrink-0">
+            <div className="text-sm font-bold uppercase tracking-wider text-gray-700">
+              {isFr ? "Choisir la devise" : "Select Currency"}
+            </div>
+            <button
+              onClick={() => setOpen(false)}
+              className="p-1 -mr-1 rounded-lg hover:bg-gray-100 transition"
+              aria-label="Close"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <div className="overflow-y-auto flex-1 py-1">
+            {renderList()}
+          </div>
+          <div className="p-3 border-t border-gray-100 bg-gray-50 flex-shrink-0" style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0.75rem) + 0.75rem)" }}>
+            <p className="text-xs text-gray-500 leading-relaxed">
+              {isFr
+                ? "Prix convertis automatiquement. Paiement final en USD."
+                : "Prices auto-converted. Final payment in USD."}
+            </p>
+          </div>
+        </div>
+      </>
+    ) : (
+      // DESKTOP: dropdown via portal (escapes overflow parents)
+      dropdownPos && (
+        <>
+          <div className="fixed inset-0 z-[9998]" onClick={() => setOpen(false)} />
+          <div
+            className="fixed z-[9999] w-64 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden"
+            style={{ top: dropdownPos.top, right: dropdownPos.right }}
+          >
+            <div className="p-2 border-b border-gray-100">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-gray-500 px-2 py-1">
+                {isFr ? "Choisir la devise" : "Select Currency"}
+              </div>
+            </div>
+            <div className="max-h-80 overflow-y-auto py-1">
+              {renderList()}
+            </div>
+            <div className="p-2 border-t border-gray-100 bg-gray-50">
+              <p className="text-[10px] text-gray-500 leading-relaxed px-2">
+                {isFr
+                  ? "Prix convertis automatiquement. Paiement final en USD."
+                  : "Prices auto-converted. Final payment in USD."}
+              </p>
+            </div>
+          </div>
+        </>
+      )
+    )
+  ) : null;
 
   return (
     <div ref={wrapRef} className={`relative ${className}`}>
       <button
+        ref={buttonRef}
         onClick={() => setOpen(!open)}
         aria-label="Change currency"
         className={`inline-flex items-center gap-1.5 transition ${
@@ -229,78 +356,7 @@ export default function CurrencySelector({ compact = false, className = "", dark
         <ChevronDown className={`w-3 h-3 transition ${open ? "rotate-180" : ""} ${dark ? "text-white" : ""}`} />
       </button>
 
-      {open && (
-        <>
-          {/* MOBILE: full-screen bottom sheet backdrop */}
-          <div
-            className="fixed inset-0 z-40 bg-black/40 sm:bg-transparent sm:pointer-events-none"
-            onClick={() => setOpen(false)}
-          />
-
-          {/* MOBILE bottom sheet | DESKTOP dropdown */}
-          <div className="fixed inset-x-0 bottom-0 z-50 sm:absolute sm:inset-x-auto sm:bottom-auto sm:right-0 sm:top-full sm:mt-1 sm:w-64 bg-white rounded-t-2xl sm:rounded-xl shadow-2xl sm:shadow-lg border-t sm:border border-gray-100 overflow-hidden animate-slide-up sm:animate-none max-h-[85vh] sm:max-h-none flex flex-col">
-
-            {/* Mobile drag handle */}
-            <div className="flex justify-center pt-2 pb-1 sm:hidden">
-              <div className="w-10 h-1 bg-gray-300 rounded-full" />
-            </div>
-
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 sm:p-2 sm:py-2 border-b border-gray-100 flex-shrink-0">
-              <div className="text-sm sm:text-[10px] font-bold uppercase tracking-wider text-gray-700 sm:text-gray-500 sm:px-2">
-                {isFr ? "Choisir la devise" : "Select Currency"}
-              </div>
-              <button
-                onClick={() => setOpen(false)}
-                className="sm:hidden p-1 -mr-1 rounded-lg hover:bg-gray-100 transition"
-                aria-label="Close"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              </button>
-            </div>
-
-            {/* Currency list - scrollable */}
-            <div className="overflow-y-auto py-1 flex-1 sm:max-h-80">
-              {(Object.keys(CURRENCIES) as CurrencyCode[]).map(code => {
-                const info = CURRENCIES[code];
-                const isActive = code === currency;
-                return (
-                  <button
-                    key={code}
-                    onClick={() => { setCurrency(code); setOpen(false); }}
-                    className={`w-full flex items-center gap-3 px-4 sm:px-3 py-3 sm:py-2 text-left transition active:bg-gray-100 ${
-                      isActive ? "bg-[#CA3F2E]/5" : "hover:bg-gray-50"
-                    }`}
-                  >
-                    <Flag code={code} xofCountry={visitorCountry} size={24} />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className={`text-base sm:text-sm font-bold ${isActive ? "text-[#CA3F2E]" : "text-gray-900"}`}>
-                          {code}
-                        </span>
-                        <span className="text-sm sm:text-xs text-gray-500">{info.symbol}</span>
-                      </div>
-                      <div className="text-xs sm:text-[11px] text-gray-500 truncate">
-                        {isFr ? info.nameFr : info.name}
-                      </div>
-                    </div>
-                    {isActive && <Check className="w-5 h-5 sm:w-4 sm:h-4 text-[#CA3F2E] flex-shrink-0" />}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Footer note */}
-            <div className="p-3 sm:p-2 border-t border-gray-100 bg-gray-50 flex-shrink-0 pb-safe">
-              <p className="text-xs sm:text-[10px] text-gray-500 leading-relaxed sm:px-2">
-                {isFr
-                  ? "Prix convertis automatiquement. Paiement final en USD."
-                  : "Prices auto-converted. Final payment in USD."}
-              </p>
-            </div>
-          </div>
-        </>
-      )}
+      {mounted && dropdown && createPortal(dropdown, document.body)}
     </div>
   );
 }
