@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { db } from "@/db";
 import { products, blogPosts, authors } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, or, isNull } from "drizzle-orm";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.newdealzone.com";
 
@@ -14,16 +14,16 @@ interface StaticPageConfig {
 }
 
 const STATIC_PAGES: StaticPageConfig[] = [
-  { path: "",           priority: 1.0, changeFrequency: "daily" },
-  { path: "/shop",      priority: 0.95, changeFrequency: "daily" },
-  { path: "/blog",      priority: 0.9, changeFrequency: "daily" },
-  { path: "/about",     priority: 0.7, changeFrequency: "monthly" },
-  { path: "/contact",   priority: 0.7, changeFrequency: "monthly" },
-  { path: "/faq",       priority: 0.7, changeFrequency: "monthly" },
-  { path: "/privacy",   priority: 0.3, changeFrequency: "yearly" },
-  { path: "/terms",     priority: 0.3, changeFrequency: "yearly" },
-  { path: "/shipping",  priority: 0.5, changeFrequency: "monthly" },
-  { path: "/returns",   priority: 0.5, changeFrequency: "monthly" },
+  { path: "",           priority: 1.0,  changeFrequency: "daily"   },
+  { path: "/shop",      priority: 0.95, changeFrequency: "daily"   },
+  { path: "/blog",      priority: 0.9,  changeFrequency: "daily"   },
+  { path: "/about",     priority: 0.7,  changeFrequency: "monthly" },
+  { path: "/contact",   priority: 0.7,  changeFrequency: "monthly" },
+  { path: "/faq",       priority: 0.7,  changeFrequency: "monthly" },
+  { path: "/privacy",   priority: 0.3,  changeFrequency: "yearly"  },
+  { path: "/terms",     priority: 0.3,  changeFrequency: "yearly"  },
+  { path: "/shipping",  priority: 0.5,  changeFrequency: "monthly" },
+  { path: "/returns",   priority: 0.5,  changeFrequency: "monthly" },
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -50,7 +50,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  // Products - use slugFr when available for French URLs
+  // Products
+  // noIndex filter: include products where noIndex is false OR null (not explicitly hidden)
   try {
     const enProducts = await db
       .select({
@@ -60,14 +61,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         nameFr: products.nameFr,
       })
       .from(products)
-      .where(and(eq(products.active, true), eq(products.noIndex, false)));
+      .where(
+        and(
+          eq(products.active, true),
+          or(eq(products.noIndex, false), isNull(products.noIndex))
+        )
+      );
 
     for (const p of enProducts) {
       const hasFr = Boolean(p.nameFr && p.nameFr.trim());
       const frSlug = (p.slugFr && p.slugFr.trim()) ? p.slugFr : p.slug;
       const lastMod = p.updatedAt || now;
 
-      // English URL
+      // English URL always included
       entries.push({
         url: `${SITE_URL}/en/product/${p.slug}`,
         lastModified: lastMod,
@@ -82,7 +88,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         },
       });
 
-      // French URL (only if translation exists)
+      // French URL only if translation exists
       if (hasFr) {
         entries.push({
           url: `${SITE_URL}/fr/product/${frSlug}`,
@@ -103,7 +109,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("[Sitemap] Product fetch error:", err);
   }
 
-  // Blog posts - use slugFr when available
+  // Blog posts
   try {
     const posts = await db
       .select({
@@ -114,7 +120,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         titleFr: blogPosts.titleFr,
       })
       .from(blogPosts)
-      .where(and(eq(blogPosts.published, true), eq(blogPosts.noIndex, false)));
+      .where(
+        and(
+          eq(blogPosts.published, true),
+          or(eq(blogPosts.noIndex, false), isNull(blogPosts.noIndex))
+        )
+      );
 
     for (const p of posts) {
       const hasFr = Boolean(p.titleFr && p.titleFr.trim());
