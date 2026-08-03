@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { ArrowRight, X, Check, MessageCircle } from "lucide-react";
+import { ArrowRight, Check, MessageCircle } from "lucide-react";
 
 const FOUNDER_AVATAR = "https://i.ibb.co/HTrQYdfK/Aime-komlan.jpg";
 
@@ -14,8 +14,7 @@ export default function AboutPage() {
   return (
     <main className="min-h-screen relative overflow-hidden">
       {/* ============================================
-          ANIMATED BACKGROUND - floating gradient blobs
-          Sits behind everything, subtle and pro
+          ANIMATED BACKGROUND
           ============================================ */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full bg-[#CA3F2E]/8 blur-3xl animate-blob-1" />
@@ -27,51 +26,31 @@ export default function AboutPage() {
       <Navbar />
 
       {/* ============================================
-          FOUNDER CARD - first section
+          HERO STATEMENT - big and bold
           ============================================ */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 lg:pt-32 relative">
-        <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-          <div className="grid md:grid-cols-[minmax(300px,380px)_1fr]">
-            {/* Photo */}
-            <div className="relative bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-6 md:p-8">
-              <div className="relative">
-                <div className="w-64 h-64 md:w-72 md:h-72 lg:w-80 lg:h-80 rounded-2xl overflow-hidden ring-4 ring-white shadow-xl">
-                  <img
-                    src={FOUNDER_AVATAR}
-                    alt={t("founderName")}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-[#CA3F2E] text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg shadow-md whitespace-nowrap">
-                  Founder
-                </div>
-              </div>
-            </div>
-
-            {/* Note */}
-            <div className="p-6 md:p-10 lg:p-12 flex flex-col justify-center">
-              <span className="inline-block text-[10px] font-bold tracking-widest uppercase text-[#CA3F2E] mb-4">
-                {t("founderLabel")}
-              </span>
-              <p className="font-fancy text-xl md:text-2xl lg:text-[28px] text-gray-800 leading-[1.4] mb-6">
-                &ldquo;{t("founderNote")}&rdquo;
-              </p>
-              <div className="flex items-center justify-between pt-5 border-t border-gray-100 flex-wrap gap-3">
-                <div>
-                  <div className="font-bold text-gray-900">{t("founderName")}</div>
-                  <div className="text-xs text-gray-500">{t("founderRole")}</div>
-                </div>
-                <div className="font-fancy text-sm text-gray-500">{t("founderSignature")}</div>
-              </div>
-            </div>
+      <section className="pt-28 lg:pt-36 pb-12 lg:pb-16 relative">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/70 backdrop-blur-sm border border-gray-200/60 rounded-full mb-6 shadow-sm">
+            <div className="w-1.5 h-1.5 rounded-full bg-[#CA3F2E] animate-pulse" />
+            <span className="text-[10px] font-black tracking-widest uppercase text-gray-700">
+              {t("badge")}
+            </span>
           </div>
+
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl xl:text-8xl font-black tracking-tight leading-[0.95] text-gray-900 mb-5">
+            {t("manifestoIntro")}
+          </h1>
+
+          <p className="text-xl sm:text-2xl lg:text-3xl font-light text-gray-500 tracking-tight max-w-3xl mx-auto">
+            {t("manifestoSub")}
+          </p>
         </div>
       </section>
 
       {/* ============================================
-          THREE CHAPTERS - restored numbered timeline
+          THREE CHAPTERS - numbered timeline
           ============================================ */}
-      <section className="py-20 lg:py-24 relative">
+      <section className="py-16 lg:py-20 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="text-center mb-14">
             <span className="inline-block text-[10px] font-black tracking-[0.2em] uppercase text-[#CA3F2E] mb-3">
@@ -83,7 +62,6 @@ export default function AboutPage() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 lg:gap-8 relative">
-            {/* Connecting line */}
             <div className="hidden md:block absolute top-16 left-[16%] right-[16%] h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
 
             {[
@@ -111,32 +89,50 @@ export default function AboutPage() {
       </section>
 
       {/* ============================================
-          WE REFUSE + WE PROMISE
+          FOUNDER CARD (LEFT) + WE PROMISE (RIGHT)
+          Replaces the "We refuse" spot
           ============================================ */}
       <section className="py-16 lg:py-20 relative">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-4 lg:gap-6">
-          {/* We refuse */}
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 lg:p-8 border border-gray-100 shadow-sm">
-            <div className="flex items-center gap-2 mb-5 pb-5 border-b border-gray-100">
-              <div className="w-9 h-9 bg-gray-900 rounded-xl flex items-center justify-center">
-                <X className="w-4 h-4 text-white" strokeWidth={3} />
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-4 lg:gap-6 items-stretch">
+
+          {/* Founder card - replaces We Refuse */}
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl overflow-hidden border border-gray-100 shadow-sm flex flex-col">
+            {/* Photo band */}
+            <div className="relative bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-6 md:p-8">
+              <div className="relative">
+                <div className="w-52 h-52 md:w-60 md:h-60 rounded-2xl overflow-hidden ring-4 ring-white shadow-xl">
+                  <img
+                    src={FOUNDER_AVATAR}
+                    alt={t("founderName")}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-[#CA3F2E] text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg shadow-md whitespace-nowrap">
+                  Founder
+                </div>
               </div>
-              <span className="text-[10px] font-bold tracking-widest uppercase text-gray-500">
-                {t("refuseLabel")}
-              </span>
             </div>
-            <ul className="space-y-3">
-              {[t("refuse1"), t("refuse2"), t("refuse3")].map((line, i) => (
-                <li key={i} className="flex items-start gap-3">
-                  <X className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                  <span className="text-sm text-gray-500 line-through">{line}</span>
-                </li>
-              ))}
-            </ul>
+
+            {/* Note */}
+            <div className="p-6 lg:p-8 flex-1 flex flex-col">
+              <span className="inline-block text-[10px] font-bold tracking-widest uppercase text-[#CA3F2E] mb-3">
+                {t("founderLabel")}
+              </span>
+              <p className="font-fancy text-lg md:text-xl lg:text-[22px] text-gray-800 leading-[1.45] mb-5 flex-1">
+                &ldquo;{t("founderNote")}&rdquo;
+              </p>
+              <div className="flex items-center justify-between pt-4 border-t border-gray-100 flex-wrap gap-3">
+                <div>
+                  <div className="font-bold text-gray-900 text-sm">{t("founderName")}</div>
+                  <div className="text-xs text-gray-500">{t("founderRole")}</div>
+                </div>
+                <div className="font-fancy text-sm text-gray-500">{t("founderSignature")}</div>
+              </div>
+            </div>
           </div>
 
           {/* We promise */}
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 lg:p-8 border border-[#CA3F2E]/20 shadow-sm">
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 lg:p-8 border border-[#CA3F2E]/20 shadow-sm flex flex-col">
             <div className="flex items-center gap-2 mb-5 pb-5 border-b border-gray-100">
               <div className="w-9 h-9 bg-[#CA3F2E] rounded-xl flex items-center justify-center">
                 <Check className="w-4 h-4 text-white" strokeWidth={3} />
@@ -145,7 +141,7 @@ export default function AboutPage() {
                 {t("promiseLabel")}
               </span>
             </div>
-            <ul className="space-y-4">
+            <ul className="space-y-5 flex-1">
               {[
                 { title: t("promise1Title"), body: t("promise1Body") },
                 { title: t("promise2Title"), body: t("promise2Body") },
