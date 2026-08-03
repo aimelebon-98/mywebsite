@@ -7,6 +7,7 @@ import { Link, usePathname, useRouter } from "@/i18n/routing";
 import { ShoppingBag, Menu, X, Heart, Globe, User, LogIn } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
 import { useCustomer } from "@/lib/customer-context";
+import AccountHoverMenu from "@/components/AccountHoverMenu";
 import { useWishlist } from "@/lib/wishlist-context";
 import { useState } from "react";
 import SearchAutocomplete from "@/components/SearchAutocomplete";
@@ -189,15 +190,7 @@ export default function Navbar() {
               )}
             </div>
 
-            {customer ? (
-              <Link href="/account/dashboard" aria-label="Account" className={`relative p-2 rounded-xl transition ${iconHoverBg}`}>
-                <User className={`w-5 h-5 ${iconColor}`} />
-              </Link>
-            ) : (
-              <Link href="/account/login" aria-label="Login" className={`relative p-2 rounded-xl transition ${iconHoverBg}`}>
-                <LogIn className={`w-5 h-5 ${iconColor}`} />
-              </Link>
-            )}
+            <AccountHoverMenu iconColor={iconColor} iconHoverBg={iconHoverBg} />
 
             <Link href="/wishlist" aria-label={t("wishlist")} className={`relative p-2 rounded-xl transition ${iconHoverBg}`}>
               <Heart className={`w-5 h-5 ${heartClass}`} />
