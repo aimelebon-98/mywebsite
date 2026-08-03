@@ -771,12 +771,11 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                 {/* Collapsible long description - SEO safe (full text in DOM) */}
                 <div className="relative">
                   <div
-                    className={`text-gray-600 leading-relaxed text-lg whitespace-pre-line overflow-hidden transition-all duration-500 ${
-                      showFullDesc || longDesc.length <= 400 ? "max-h-[10000px]" : "max-h-[220px]"
-                    }`}
-                  >
-                    {longDesc}
-                  </div>
+                      className={`product-long-desc text-gray-600 leading-relaxed text-lg overflow-hidden transition-all duration-500 ${
+                        showFullDesc || longDesc.length <= 400 ? "max-h-[10000px]" : "max-h-[220px]"
+                      }`}
+                      dangerouslySetInnerHTML={{ __html: longDesc }}
+                    />
                   {/* Fade gradient - only when collapsed and long */}
                   {!showFullDesc && longDesc.length > 400 && (
                     <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white via-white/90 to-transparent pointer-events-none" />
