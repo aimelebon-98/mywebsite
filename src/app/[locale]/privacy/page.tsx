@@ -58,7 +58,7 @@ export default async function PrivacyPage() {
     },
     {
       id: "cookies",
-      title: "4. Cookies &amp; Tracking",
+      title: "4. Cookies & Tracking",
       content: (
         <>
           <p>We use cookies to remember your preferences, keep you logged in, and analyze site usage. You can manage your cookie preferences at any time through our cookie banner or your browser settings.</p>

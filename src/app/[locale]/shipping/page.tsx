@@ -60,14 +60,14 @@ export default async function ShippingPage() {
     },
     {
       id: "customs",
-      title: "5. Customs &amp; Import Duties",
+      title: "5. Customs & Import Duties",
       content: (
         <p>International orders may be subject to customs duties, taxes, or import fees imposed by the destination country. These are the responsibility of the customer and are not included in our shipping fees.</p>
       ),
     },
     {
       id: "issues",
-      title: "6. Delays &amp; Lost Packages",
+      title: "6. Delays & Lost Packages",
       content: (
         <>
           <p>While we do everything possible to ensure timely delivery, delays may occur due to weather, customs, or carrier issues. We are not responsible for delays caused by the shipping carrier.</p>

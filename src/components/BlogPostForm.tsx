@@ -344,7 +344,7 @@ export default function BlogPostForm({ post, onSave, onCancel, loading }: Props)
           </SidebarCard>
 
           {/* Category + Author */}
-          <SidebarCard title="Category &amp; Author" icon={User}>
+          <SidebarCard title="Category & Author" icon={User}>
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Category *</label>
               <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gray-900 transition bg-white">

@@ -57,7 +57,7 @@ export default function SeedButton() {
         {loading ? (
           <><RefreshCw className="w-4 h-4 animate-spin" /> {status}</>
         ) : (
-          <><Database className="w-4 h-4" /> Setup Store &amp; Add Products</>
+          <><Database className="w-4 h-4" /> Setup Store & Add Products</>
         )}
       </button>
       {error && (
