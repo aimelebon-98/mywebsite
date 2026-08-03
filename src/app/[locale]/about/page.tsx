@@ -165,6 +165,26 @@ export default function AboutPage() {
               ))}
             </ul>
 
+            {/* Closing CTA block - fills bottom of promise column */}
+            <div className="mt-auto pt-6">
+              <div className="rounded-xl bg-gradient-to-br from-[#CA3F2E] to-[#8B2A1E] p-5 text-white">
+                <div className="flex items-start gap-3 mb-3">
+                  <MessageCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <div className="text-sm font-black mb-1">{t("ctaTitle")}</div>
+                    <div className="text-xs text-white/80 leading-relaxed">{t("ctaDesc")}</div>
+                  </div>
+                </div>
+                <Link
+                  href="/shop"
+                  className="inline-flex items-center justify-center gap-1.5 w-full py-2.5 bg-white text-gray-900 rounded-lg text-xs font-black hover:bg-gray-100 transition"
+                >
+                  {t("ctaShop")}
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
