@@ -4,351 +4,494 @@ import { products } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireAdmin } from "@/lib/admin-auth";
 
-// Unicode decoder for French accents (safe through PowerShell)
 function d(s: string): string {
   return s.replace(/\\u([0-9a-fA-F]{4})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
 }
 
-// Rich long descriptions for all products - HTML formatted for Tiptap editor
 const LONG_DESC: Record<string, { en: string; fr: string }> = {
 
-  // ==================== SNEAKERS ====================
+  // ==================== RUNNING ====================
 
-  "c80ce47b-dca5-43e0-8023-d34752ced1c4": {
-    en: `<p>The Air Max Velocity represents the perfect fusion of athletic performance and street-ready style. Engineered for the modern lifestyle, these sneakers deliver premium comfort whether you are hitting the gym, running errands, or making a fashion statement on the city streets.</p>
-<p><strong>Advanced Cushioning Technology</strong></p>
-<p>At the heart of the Air Max Velocity lies our proprietary air cushioning system, strategically placed in the heel and forefoot to absorb impact and return energy with every stride. The dual-density foam midsole provides all-day comfort while maintaining the responsiveness serious athletes demand.</p>
-<p><strong>Breathable Engineered Mesh Upper</strong></p>
-<p>The upper is crafted from an engineered mesh that promotes airflow, keeping your feet cool and dry even during intense activity. Reinforced overlays at high-stress zones provide structural support without adding unnecessary weight, resulting in a shoe that feels barely there yet performs exceptionally.</p>
-<p><strong>Versatile Design for Every Occasion</strong></p>
-<p>Available in Black, White, and Red, the Air Max Velocity transitions seamlessly from your morning workout to weekend brunches. The clean silhouette pairs effortlessly with athletic wear, denim, or even chinos for a smart-casual look.</p>
-<p><strong>Perfect For</strong></p>
-<ul><li>Daily training and gym sessions</li><li>Long walks and casual jogging</li><li>Street style and everyday wear</li><li>Travel and standing for extended periods</li></ul>
+  "5637c0b5-2e1b-45bf-a92d-5903e7c75328": {
+    en: `<p>Push the limits of speed with the Velocity Pro X, a racing-inspired sneaker built for athletes who demand peak performance from their footwear. This is not an evolution of existing technology, it is a revolution in how fast a shoe can make you feel.</p>
+<p><strong>Carbon Fiber Plate Technology</strong></p>
+<p>Embedded within the midsole is a full-length carbon fiber plate that acts as a spring, propelling you forward with each stride. This technology, previously reserved for elite marathon racers, is now accessible to performance-minded runners and speed enthusiasts at every level.</p>
+<p><strong>ZoomX Responsive Foam</strong></p>
+<p>The ZoomX foam midsole delivers an incredible 85% energy return, meaning you get back nearly all the energy you put into each step. The result is a shoe that feels faster the longer you run, reducing fatigue during high-intensity efforts and competitive events.</p>
+<p><strong>Aerodynamic Upper Design</strong></p>
+<p>Every curve of the upper has been wind-tunnel tested to reduce drag. The seamless construction eliminates unnecessary material while maintaining structural support, creating a shoe that cuts through the air with minimal resistance.</p>
+<p><strong>Three Race-Ready Colorways</strong></p>
+<ul><li><strong>Volt:</strong> High-visibility neon that commands attention on the track</li><li><strong>Racing Red:</strong> Bold crimson that channels competitive fire</li><li><strong>Black:</strong> Stealth performance for focused athletes</li></ul>
+<p><strong>Built for Competition</strong></p>
+<ul><li>5K and 10K races where every second matters</li><li>Half marathon and marathon personal bests</li><li>Track workouts and interval training</li><li>Time trials and competitive club runs</li><li>Speed-focused training sessions</li></ul>
+<p><strong>Technical Specifications</strong></p>
+<p>Weight: 198g per shoe in size 10. Drop: 8mm heel-to-toe. Stack height: 39mm heel, 31mm forefoot. The engineered mesh upper features targeted support zones that lock your foot in place during aggressive cornering and sprint finishes.</p>
+<p><strong>Sizing & Fit</strong></p>
+<p>Available in sizes 7-12. The racing fit runs snug, providing lockdown performance. If you prefer a more relaxed fit, consider sizing up half a size. These are performance tools designed for race day and speed sessions, not casual daily wear.</p>`,
+    fr: d(`<p>Repoussez les limites de la vitesse avec les Velocite Pro X, des baskets inspir\\u00e9es de la course con\\u00e7ues pour les athl\\u00e8tes qui exigent le meilleur de leurs chaussures.</p>
+<p><strong>Technologie plaque fibre de carbone</strong></p>
+<p>Int\\u00e9gr\\u00e9e dans la semelle interm\\u00e9diaire, une plaque en fibre de carbone pleine longueur agit comme un ressort, vous propulsant vers l\\u2019avant \\u00e0 chaque foul\\u00e9e. Cette technologie, autrefois r\\u00e9serv\\u00e9e aux marathoniens d\\u2019\\u00e9lite, est d\\u00e9sormais accessible.</p>
+<p><strong>Mousse ZoomX r\\u00e9active</strong></p>
+<p>La semelle en mousse ZoomX offre un retour d\\u2019\\u00e9nergie de 85%, ce qui signifie que vous r\\u00e9cup\\u00e9rez presque toute l\\u2019\\u00e9nergie investie \\u00e0 chaque pas. Le r\\u00e9sultat est une chaussure qui semble plus rapide plus vous courez longtemps.</p>
+<p><strong>Design a\\u00e9rodynamique</strong></p>
+<p>Chaque courbe de la tige a \\u00e9t\\u00e9 test\\u00e9e en soufflerie pour r\\u00e9duire la tra\\u00een\\u00e9e.</p>
+<p><strong>Trois coloris pr\\u00eats pour la course</strong></p>
+<ul><li><strong>Volt :</strong> N\\u00e9on haute visibilit\\u00e9 qui attire l\\u2019attention</li><li><strong>Rouge Course :</strong> Cramoisi audacieux qui canalise le feu comp\\u00e9titif</li><li><strong>Noir :</strong> Performance discr\\u00e8te pour athl\\u00e8tes concentr\\u00e9s</li></ul>
+<p><strong>Con\\u00e7ues pour la comp\\u00e9tition</strong></p>
+<ul><li>Courses 5K et 10K o\\u00f9 chaque seconde compte</li><li>Records personnels en semi-marathon et marathon</li><li>Entra\\u00eenements de vitesse et intervalles</li></ul>
+<p><strong>Taille et ajustement</strong></p>
+<p>Disponibles du 7 au 12. L\\u2019ajustement course est serr\\u00e9 pour un maintien optimal. Envisagez une demi-taille au-dessus pour un ajustement plus d\\u00e9tendu.</p>`),
+  },
+
+  "089dce91-5ac4-426f-8382-cad4ad3a2944": {
+    en: `<p>Meet the Urban Runner Pro, the shoe designed specifically for runners who call the city their track. Whether you are weaving through pedestrian traffic, pounding concrete sidewalks, or sprinting through crosswalks, these shoes deliver athletic performance with street-savvy style.</p>
+<p><strong>Lightweight Urban Construction</strong></p>
+<p>At just 245 grams per shoe, the Urban Runner Pro provides substantial cushioning without the bulk that slows you down. The mesh upper is reinforced at critical points but remains breathable, perfect for the temperature swings you encounter moving between air-conditioned buildings and summer streets.</p>
+<p><strong>Durable Outsole Grip</strong></p>
+<p>City running demands a sole that handles wet tile, painted crosswalks, metal grates, and concrete with equal confidence. Our multi-compound rubber outsole features micro-grooves that channel water and grip textured surfaces, providing traction regardless of urban terrain.</p>
+<p><strong>Modern Athletic Aesthetic</strong></p>
+<p>These shoes look as good at a coffee shop as they do on a morning run. The clean, modern silhouette transitions seamlessly from workout to casual wear, eliminating the need for multiple pairs throughout your day.</p>
+<p><strong>Three Urban Colorways</strong></p>
+<ul><li><strong>Blue:</strong> Fresh and energetic, perfect for standing out on gray city streets</li><li><strong>Gray:</strong> Versatile neutral that pairs with any athletic or casual outfit</li><li><strong>Black:</strong> Classic stealth for early morning and after-dark runs</li></ul>
+<p><strong>Perfect For Urban Athletes</strong></p>
+<ul><li>Pre-work morning runs through city streets</li><li>Lunchtime jogs around the office district</li><li>Weekend park runs and urban exploration</li><li>Commuting by foot or public transit</li><li>Casual everyday wear after your workout</li></ul>
 <p><strong>Sizing & Care</strong></p>
-<p>Available in sizes 7 through 12. We recommend ordering your standard athletic shoe size. To maintain the pristine appearance, wipe clean with a damp cloth and mild soap. Avoid machine washing to preserve the cushioning technology and mesh integrity.</p>
-<p>Backed by NewDealZone quality assurance, every pair of Air Max Velocity sneakers comes with our 14-day satisfaction guarantee and free returns.</p>`,
-    fr: d(`<p>Les Air Max Vitesse repr\\u00e9sentent la fusion parfaite entre performance athl\\u00e9tique et style urbain. Con\\u00e7ues pour le mode de vie moderne, ces baskets offrent un confort premium que vous alliez \\u00e0 la salle de sport, fassiez vos courses ou affirmiez votre style dans la rue.</p>
-<p><strong>Technologie d\\u2019amorti avanc\\u00e9e</strong></p>
-<p>Au c\\u0153ur des Air Max Vitesse se trouve notre syst\\u00e8me exclusif d\\u2019amorti \\u00e0 air, plac\\u00e9 strat\\u00e9giquement au talon et \\u00e0 l\\u2019avant-pied pour absorber les chocs et restituer l\\u2019\\u00e9nergie \\u00e0 chaque foul\\u00e9e. La semelle interm\\u00e9diaire en mousse \\u00e0 double densit\\u00e9 offre un confort tout au long de la journ\\u00e9e.</p>
-<p><strong>Tige en mesh respirant</strong></p>
-<p>La tige est fabriqu\\u00e9e dans un mesh technique qui favorise la circulation de l\\u2019air, gardant vos pieds au frais et au sec m\\u00eame lors d\\u2019activit\\u00e9s intenses. Des renforts synth\\u00e9tiques aux zones de forte contrainte apportent un soutien structurel sans ajouter de poids inutile.</p>
-<p><strong>Design polyvalent pour toutes les occasions</strong></p>
-<p>Disponibles en Noir, Blanc et Rouge, les Air Max Vitesse passent sans effort de votre entra\\u00eenement matinal aux brunchs du week-end. La silhouette \\u00e9pur\\u00e9e s\\u2019associe aussi bien \\u00e0 des tenues sport qu\\u2019\\u00e0 des jeans ou chinos pour un look smart casual.</p>
-<p><strong>Parfaites pour</strong></p>
-<ul><li>Entra\\u00eenement quotidien et salle de sport</li><li>Longues marches et jogging occasionnel</li><li>Style urbain et port quotidien</li><li>Voyages et stations debout prolong\\u00e9es</li></ul>
+<p>Available in sizes 7-11. True to size for most runners. The breathable mesh upper can be spot-cleaned with a damp cloth and mild soap. Air dry away from direct heat to maintain cushioning performance. Backed by our 14-day comfort guarantee.</p>`,
+    fr: d(`<p>D\\u00e9couvrez le Coureur Urbain Pro, la chaussure con\\u00e7ue sp\\u00e9cifiquement pour les coureurs qui font de la ville leur piste. Que vous naviguiez entre les pi\\u00e9tons, couriez sur le b\\u00e9ton ou spriniez aux passages pi\\u00e9tons.</p>
+<p><strong>Construction urbaine l\\u00e9g\\u00e8re</strong></p>
+<p>\\u00c0 seulement 245 grammes par chaussure, le Coureur Urbain Pro offre un amorti substantiel sans le volume qui vous ralentit. La tige en mesh est renforc\\u00e9e mais reste respirante.</p>
+<p><strong>Adh\\u00e9rence durable de la semelle</strong></p>
+<p>La course en ville exige une semelle qui g\\u00e8re le carrelage mouill\\u00e9, les passages pi\\u00e9tons peints, les grilles m\\u00e9talliques et le b\\u00e9ton avec la m\\u00eame assurance. Notre semelle multi-compos\\u00e9 offre une traction sur tous les terrains urbains.</p>
+<p><strong>Esth\\u00e9tique athl\\u00e9tique moderne</strong></p>
+<p>Ces chaussures sont aussi belles dans un caf\\u00e9 que lors d\\u2019une course matinale.</p>
+<p><strong>Trois coloris urbains</strong></p>
+<ul><li><strong>Bleu :</strong> Frais et \\u00e9nergique, parfait pour se d\\u00e9marquer dans les rues grises</li><li><strong>Gris :</strong> Neutre polyvalent</li><li><strong>Noir :</strong> Discr\\u00e9tion classique pour les courses matinales et nocturnes</li></ul>
+<p><strong>Parfaites pour les athl\\u00e8tes urbains</strong></p>
+<ul><li>Courses matinales avant le travail</li><li>Jogging du d\\u00e9jeuner autour du quartier des affaires</li><li>Courses du week-end au parc</li><li>D\\u00e9placements \\u00e0 pied ou transports</li></ul>
 <p><strong>Taille et entretien</strong></p>
-<p>Disponibles du 7 au 12. Nous recommandons de commander votre taille habituelle de chaussure de sport. Pour maintenir leur aspect impeccable, nettoyez avec un chiffon humide et un savon doux. \\u00c9vitez le lavage en machine.</p>
-<p>Chaque paire est garantie par NewDealZone avec 14 jours pour changer d\\u2019avis et retours gratuits.</p>`),
+<p>Disponibles du 7 au 11. Fid\\u00e8les \\u00e0 la taille. Nettoyage avec un chiffon humide. Garantie confort 14 jours.</p>`),
   },
 
-  "495f6a05-522b-4e96-96f9-16eb6f09bb8c": {
-    en: `<p>Make a bold statement with the StreetFlex High-Top, the ultimate expression of urban style meets premium comfort. Designed for those who refuse to blend in, these high-tops combine timeless canvas construction with modern athletic engineering.</p>
-<p><strong>Reinforced Ankle Support</strong></p>
-<p>The distinctive high-top silhouette does more than just look great, it provides critical ankle stability and support that low-tops simply cannot match. Padded ankle collars cradle your feet in comfort while preventing rolls and strains during active use.</p>
-<p><strong>Premium Canvas Construction</strong></p>
-<p>Built from heavyweight cotton canvas that softens beautifully with wear, these sneakers develop character over time while maintaining their structural integrity. Double-stitched seams at stress points ensure these will last through years of daily wear.</p>
-<p><strong>Cushioned Insole for All-Day Comfort</strong></p>
-<p>Beneath the classic canvas exterior lies a removable cushioned insole engineered for extended wear. The molded footbed provides arch support while shock-absorbing foam reduces fatigue on hard urban surfaces.</p>
-<p><strong>Available Colorways</strong></p>
-<p>Choose from White, Black, Red, and Green to match any streetwear rotation. Each colorway features contrast stitching and metallic eyelets that add just the right amount of visual interest.</p>
-<p><strong>Style Guide</strong></p>
-<ul><li>Pair with slim jeans and a graphic tee for effortless street style</li><li>Roll up cuffed pants to showcase the iconic high-top silhouette</li><li>Layer under joggers for a modern athleisure look</li><li>Combine with tailored shorts for warm-weather edge</li></ul>
-<p><strong>Fit & Sizing</strong></p>
-<p>Available in sizes 7-13. Runs true to size for most wearers. For narrow feet, consider sizing down half a size. The lace-up closure allows for personalized fit adjustment throughout the day.</p>`,
-    fr: d(`<p>Faites une d\\u00e9claration audacieuse avec la StreetFlex Montante, l\\u2019expression ultime du style urbain rencontrant le confort premium. Con\\u00e7ues pour ceux qui refusent de se fondre dans la masse, ces montantes combinent la construction toile intemporelle avec l\\u2019ing\\u00e9nierie athl\\u00e9tique moderne.</p>
-<p><strong>Soutien de cheville renforc\\u00e9</strong></p>
-<p>La silhouette montante distinctive ne se contente pas d\\u2019\\u00eatre belle, elle offre une stabilit\\u00e9 critique de la cheville que les mod\\u00e8les bas ne peuvent \\u00e9galer. Les cols de cheville rembourr\\u00e9s berc\\u00e9nt vos pieds tout en pr\\u00e9venant les entorses lors d\\u2019utilisation active.</p>
-<p><strong>Construction en toile premium</strong></p>
-<p>Fabriqu\\u00e9es en toile de coton \\u00e9paisse qui s\\u2019assouplit magnifiquement avec l\\u2019usure, ces baskets d\\u00e9veloppent du caract\\u00e8re tout en gardant leur int\\u00e9grit\\u00e9 structurelle. Les coutures doubles aux points de tension garantissent une long\\u00e9vit\\u00e9 exceptionnelle.</p>
-<p><strong>Semelle rembourr\\u00e9e pour un confort toute la journ\\u00e9e</strong></p>
-<p>Sous l\\u2019ext\\u00e9rieur en toile classique se trouve une semelle rembourr\\u00e9e amovible con\\u00e7ue pour un port prolong\\u00e9. La forme moul\\u00e9e offre un maintien de la vo\\u00fbte plantaire tandis que la mousse absorbante r\\u00e9duit la fatigue sur les surfaces urbaines.</p>
-<p><strong>Coloris disponibles</strong></p>
-<p>Choisissez parmi Blanc, Noir, Rouge et Vert pour compl\\u00e9ter toute garde-robe streetwear. Chaque coloris pr\\u00e9sente des coutures contrast\\u00e9es et des \\u0153illets m\\u00e9talliques qui apportent la juste touche d\\u2019int\\u00e9r\\u00eat visuel.</p>
-<p><strong>Guide de style</strong></p>
-<ul><li>Associez \\u00e0 un jean slim et un t-shirt graphique pour un style urbain sans effort</li><li>Retroussez les bas de pantalon pour mettre en valeur la silhouette montante</li><li>Portez sous un jogger pour un look ath-leisure moderne</li><li>Combinez avec un short sur mesure pour un style estival tranchant</li></ul>
-<p><strong>Ajustement et taille</strong></p>
-<p>Disponibles du 7 au 13. Chaussant fid\\u00e8le pour la plupart. Pour les pieds \\u00e9troits, envisagez une demi-taille en dessous.</p>`),
+  "df1e55fc-a2f6-40cf-bcce-ab623672a991": {
+    en: `<p>Go the distance with Marathon Elite, the long-distance running shoe engineered for endurance athletes who refuse to settle for ordinary. Every element of this shoe has been optimized for the unique demands of extended running, from 10K training to full marathon competition.</p>
+<p><strong>Energy Return Technology</strong></p>
+<p>Our advanced energy return foam captures and redirects the kinetic energy from each footstrike, converting what would normally be wasted impact into forward propulsion. The result is measurably reduced fatigue in the late miles when it matters most.</p>
+<p><strong>Ultra-Lightweight Mesh Upper</strong></p>
+<p>The engineered mesh upper weighs almost nothing while providing targeted support where your foot needs it. Seamless construction eliminates friction points that cause blisters during long runs, keeping you comfortable from mile one to mile twenty-six.</p>
+<p><strong>Arch Support Engineered for Endurance</strong></p>
+<p>Unlike shoes designed for short bursts of speed, Marathon Elite features graduated arch support that maintains its shape throughout extended wear. The medial post prevents excessive pronation that can lead to knee and hip issues during long training blocks.</p>
+<p><strong>Three Performance Colorways</strong></p>
+<ul><li><strong>Neon Yellow:</strong> Maximum visibility for early morning and evening training runs</li><li><strong>Black/Red:</strong> Aggressive race-day aesthetics that channel competitive energy</li><li><strong>White/Blue:</strong> Clean, classic marathon styling</li></ul>
+<p><strong>Distance Runner Essentials</strong></p>
+<ul><li>Marathon and half-marathon race day performance</li><li>Long training runs exceeding 15 miles</li><li>Progressive distance building programs</li><li>Running club group training</li><li>Ultra-distance preparation</li></ul>
+<p><strong>Durability for High Mileage</strong></p>
+<p>The carbon rubber outsole is rated for 500+ miles of pavement running, making Marathon Elite an excellent value for serious runners who track their mileage. Strategic placement of harder compounds in high-wear zones extends the life of each pair significantly.</p>
+<p><strong>Sizing</strong></p>
+<p>Available in sizes 7-12. We recommend going half a size up from your casual shoe size for long-distance running to accommodate foot swelling during extended efforts.</p>`,
+    fr: d(`<p>Allez au bout de la distance avec Marathon Elite, la chaussure de course longue distance con\\u00e7ue pour les athl\\u00e8tes d\\u2019endurance. Chaque \\u00e9l\\u00e9ment a \\u00e9t\\u00e9 optimis\\u00e9 pour les exigences de la course prolong\\u00e9e.</p>
+<p><strong>Technologie de retour d\\u2019\\u00e9nergie</strong></p>
+<p>Notre mousse avanc\\u00e9e capture et redirige l\\u2019\\u00e9nergie cin\\u00e9tique de chaque foul\\u00e9e, convertissant l\\u2019impact en propulsion. Le r\\u00e9sultat est une fatigue r\\u00e9duite dans les derniers kilom\\u00e8tres.</p>
+<p><strong>Tige mesh ultra-l\\u00e9g\\u00e8re</strong></p>
+<p>La tige en mesh technique ne p\\u00e8se presque rien tout en fournissant un soutien cibl\\u00e9. La construction sans coutures \\u00e9limine les points de friction qui causent des ampoules.</p>
+<p><strong>Maintien de la vo\\u00fbte plantaire pour l\\u2019endurance</strong></p>
+<p>Contrairement aux chaussures con\\u00e7ues pour la vitesse, Marathon Elite pr\\u00e9sente un soutien progressif de la vo\\u00fbte qui maintient sa forme durant le port prolong\\u00e9.</p>
+<p><strong>Trois coloris performance</strong></p>
+<ul><li><strong>Jaune N\\u00e9on :</strong> Visibilit\\u00e9 maximale pour les courses matinales et nocturnes</li><li><strong>Noir/Rouge :</strong> Esth\\u00e9tique de jour de course agressive</li><li><strong>Blanc/Bleu :</strong> Style marathon classique et \\u00e9pur\\u00e9</li></ul>
+<p><strong>Essentiels pour coureurs de distance</strong></p>
+<ul><li>Performance en marathon et semi-marathon</li><li>Longues sorties d\\u2019entra\\u00eenement d\\u00e9passant 25 km</li><li>Programmes de progression en distance</li></ul>
+<p><strong>Taille</strong></p>
+<p>Disponibles du 7 au 12. Nous recommandons une demi-taille au-dessus de votre taille habituelle pour la course longue distance.</p>`),
   },
 
-  "e46a9018-f425-4fff-bbac-35cae4dea368": {
-    en: `<p>Experience footwear reimagined with the Cloud Walker, featuring our revolutionary CloudFoam cushioning technology. This is not just another comfort shoe, it is a completely new standard for what all-day comfort should feel like.</p>
-<p><strong>Proprietary CloudFoam Technology</strong></p>
-<p>Years of research and development have produced our CloudFoam midsole, a material that responds to your body weight and stride, providing customized cushioning with every step. Unlike traditional foam that compresses over time, CloudFoam maintains its shape and support for years of consistent performance.</p>
-<p><strong>Weightless Feel</strong></p>
-<p>Despite its substantial cushioning, the Cloud Walker weighs remarkably little. The engineered upper uses a knit construction that flexes naturally with your foot, eliminating pressure points and hot spots that plague conventional walking shoes.</p>
-<p><strong>Anatomically Correct Design</strong></p>
-<p>Every curve of the Cloud Walker follows the natural anatomy of the human foot. The wide toe box allows your toes to splay naturally, promoting proper balance and reducing the risk of common foot ailments like bunions and hammertoes.</p>
-<p><strong>Perfect For Extended Wear</strong></p>
-<ul><li>Healthcare professionals on 12-hour shifts</li><li>Teachers and educators on their feet all day</li><li>Retail workers and hospitality staff</li><li>Travelers exploring cities on foot</li><li>Anyone recovering from foot injuries</li></ul>
-<p><strong>Three Signature Colorways</strong></p>
-<p>Available in Cloud White for a fresh, clean aesthetic, Sky Blue for a subtle pop of color, and Mist Gray for a versatile neutral that pairs with everything in your wardrobe.</p>
-<p><strong>Care Instructions</strong></p>
-<p>Machine washable in cold water on gentle cycle. Air dry only, never use a dryer. The knit upper will retain its shape and CloudFoam midsole will not degrade with regular washing.</p>`,
-    fr: d(`<p>D\\u00e9couvrez la chaussure r\\u00e9invent\\u00e9e avec le Marcheur des Nuages, dot\\u00e9 de notre technologie r\\u00e9volutionnaire CloudFoam. Ce n\\u2019est pas juste une autre chaussure confortable, c\\u2019est un nouveau standard pour ce que devrait \\u00eatre le confort toute la journ\\u00e9e.</p>
-<p><strong>Technologie CloudFoam exclusive</strong></p>
-<p>Des ann\\u00e9es de recherche et d\\u00e9veloppement ont produit notre semelle interm\\u00e9diaire CloudFoam, un mat\\u00e9riau qui r\\u00e9pond \\u00e0 votre poids et votre foul\\u00e9e, offrant un amorti personnalis\\u00e9 \\u00e0 chaque pas. Contrairement \\u00e0 la mousse traditionnelle qui se compresse, CloudFoam garde sa forme et son soutien pendant des ann\\u00e9es.</p>
-<p><strong>Sensation d\\u2019apesanteur</strong></p>
-<p>Malgr\\u00e9 son amorti substantiel, le Marcheur des Nuages p\\u00e8se remarquablement peu. La tige technique utilise une construction tricot qui se plie naturellement avec votre pied, \\u00e9liminant les points de pression et les zones chaudes.</p>
-<p><strong>Design anatomiquement correct</strong></p>
-<p>Chaque courbe suit l\\u2019anatomie naturelle du pied humain. L\\u2019avant-pied large permet aux orteils de s\\u2019\\u00e9tendre naturellement, favorisant l\\u2019\\u00e9quilibre et r\\u00e9duisant le risque d\\u2019affections courantes.</p>
-<p><strong>Parfait pour un port prolong\\u00e9</strong></p>
-<ul><li>Professionnels de sant\\u00e9 sur des postes de 12 heures</li><li>Enseignants debout toute la journ\\u00e9e</li><li>Employ\\u00e9s de la restauration et h\\u00f4tellerie</li><li>Voyageurs explorant les villes \\u00e0 pied</li><li>Personnes en r\\u00e9cup\\u00e9ration de blessures aux pieds</li></ul>
-<p><strong>Trois coloris signature</strong></p>
-<p>Disponibles en Blanc Nuage pour une esth\\u00e9tique fra\\u00eeche, Bleu Ciel pour une touche de couleur subtile, et Gris Brume pour un neutre polyvalent qui s\\u2019associe avec tout.</p>
-<p><strong>Instructions d\\u2019entretien</strong></p>
-<p>Lavable en machine \\u00e0 froid sur cycle d\\u00e9licat. S\\u00e9chage \\u00e0 l\\u2019air uniquement.</p>`),
+  "5dc6d298-20a0-47bb-9630-756b96e6110f": {
+    en: `<p>Discover the most comfortable running shoe you have ever worn. Comfort Stride is engineered from the ground up for runners and walkers who prioritize cushioning and support above all else, delivering a plush ride that feels like walking on pillows.</p>
+<p><strong>Triple-Density Foam System</strong></p>
+<p>Three layers of progressively responsive foam work together to create a cushioning system greater than the sum of its parts. The soft top layer provides immediate comfort, the medium-density middle layer absorbs impact, and the firm base layer ensures stability and energy return.</p>
+<p><strong>Wide Toe Box Design</strong></p>
+<p>Unlike narrow-fit running shoes that compress your toes, Comfort Stride features a generous toe box that allows natural toe splay. This anatomical design reduces pressure on metatarsal joints and helps prevent common foot issues associated with tight footwear.</p>
+<p><strong>Plush Collar Padding</strong></p>
+<p>The ankle collar features premium foam padding that cradles the Achilles tendon without creating pressure points. The result is a secure fit that does not sacrifice comfort, even during extended wear sessions.</p>
+<p><strong>Three Clean Colorways</strong></p>
+<ul><li><strong>White:</strong> Fresh and clinical, perfect for healthcare and service professionals</li><li><strong>Black:</strong> Classic versatility for any outfit or occasion</li><li><strong>Navy:</strong> Rich depth that pairs with professional and casual attire</li></ul>
+<p><strong>Who Should Wear Comfort Stride</strong></p>
+<ul><li>Runners transitioning to higher-cushion shoes</li><li>Walkers covering significant daily distance</li><li>Professionals standing for long shifts</li><li>Anyone with plantar fasciitis or heel sensitivity</li><li>Recovery days between harder training sessions</li></ul>
+<p><strong>Removable Insole</strong></p>
+<p>The cushioned insole can be removed and replaced with custom orthotics if needed, making Comfort Stride a medical-grade comfort option for those with specific foot requirements.</p>
+<p><strong>Sizing</strong></p>
+<p>Available in sizes 6-13, including wide sizing options. True to size for most wearers. The wide toe box means most people do not need to size up.</p>`,
+    fr: d(`<p>D\\u00e9couvrez la chaussure de course la plus confortable que vous ayez jamais port\\u00e9e. Foulee Confort est con\\u00e7ue pour ceux qui privil\\u00e9gient l\\u2019amorti et le soutien par-dessus tout.</p>
+<p><strong>Syst\\u00e8me de mousse triple densit\\u00e9</strong></p>
+<p>Trois couches de mousse progressivement r\\u00e9active travaillent ensemble. La couche sup\\u00e9rieure souple offre un confort imm\\u00e9diat, la couche interm\\u00e9diaire absorbe les chocs, et la base ferme assure stabilit\\u00e9 et retour d\\u2019\\u00e9nergie.</p>
+<p><strong>Avant-pied large</strong></p>
+<p>Contrairement aux chaussures \\u00e9troites qui compriment les orteils, Foulee Confort offre un avant-pied g\\u00e9n\\u00e9reux permettant l\\u2019extension naturelle des orteils.</p>
+<p><strong>Rembourrage collar en mousse</strong></p>
+<p>Le col de cheville pr\\u00e9sente un rembourrage premium qui berce le tendon d\\u2019Achille sans cr\\u00e9er de points de pression.</p>
+<p><strong>Trois coloris</strong></p>
+<ul><li><strong>Blanc :</strong> Frais et net, parfait pour les professionnels de sant\\u00e9</li><li><strong>Noir :</strong> Polyvalence classique</li><li><strong>Marine :</strong> Profondeur riche qui s\\u2019accorde avec tenues professionnelles et casual</li></ul>
+<p><strong>Qui devrait porter la Foulee Confort</strong></p>
+<ul><li>Coureurs en transition vers plus d\\u2019amorti</li><li>Marcheurs couvrant de grandes distances quotidiennes</li><li>Professionnels debout de longues heures</li><li>Personnes souffrant de fasciite plantaire</li></ul>
+<p><strong>Semelle amovible</strong></p>
+<p>La semelle rembourr\\u00e9e peut \\u00eatre remplac\\u00e9e par des ortho\\u00e8ses personnalis\\u00e9es.</p>
+<p><strong>Taille</strong></p>
+<p>Disponibles du 6 au 13. Fid\\u00e8les \\u00e0 la taille.</p>`),
   },
 
-  "e4349824-c6bf-4b35-9d78-c08ca8c48da4": {
-    en: `<p>Illuminate the night with Neon Pulse sneakers, the ultimate footwear for those who refuse to fade into the background. These are not just shoes, they are a statement piece designed to command attention wherever you go.</p>
-<p><strong>360-Degree Reflective Detailing</strong></p>
-<p>Strategic placement of 3M reflective materials throughout the upper ensures visibility from every angle in low-light conditions. Whether you are night running, cycling, or heading to the club, these sneakers keep you seen and safe.</p>
-<p><strong>Neon Colorways That Pop</strong></p>
-<p>Available in three eye-catching options: electrifying Neon Green, vibrant Electric Blue, and unmissable Hot Pink. Each colorway uses premium dye processes that maintain their bold intensity wash after wash, wear after wear.</p>
-<p><strong>Ultra-Responsive Foam Midsole</strong></p>
-<p>Beneath the bold exterior lies serious performance technology. Our ultra-responsive foam midsole provides explosive energy return that makes every step feel bouncy and effortless, perfect for dancing all night or pounding the pavement.</p>
+  "e0d886dd-b37d-4566-addb-545faad67dd7": {
+    en: `<p>Experience the next generation of running shoe technology with HyperBoost Max. Powered by revolutionary Boost foam, these shoes deliver unmatched energy return and responsiveness that serious runners can feel from the first step.</p>
+<p><strong>Revolutionary Boost Foam</strong></p>
+<p>Each Boost midsole contains thousands of individually fused TPU energy capsules that compress under impact and spring back with explosive force. This creates a unique bouncy feeling that never flattens out, maintaining performance for hundreds of miles.</p>
+<p><strong>Unmatched Energy Return</strong></p>
+<p>Independent lab testing confirms HyperBoost Max delivers up to 80% energy return, meaning minimal energy is lost with each footstrike. The practical result is less fatigue, faster paces, and more enjoyable runs at every distance.</p>
+<p><strong>Temperature Independent Performance</strong></p>
+<p>Unlike traditional EVA foams that stiffen in cold weather, Boost foam maintains consistent cushioning properties from freezing to hot conditions. Whether you run in winter or summer, the ride remains the same.</p>
+<p><strong>Three Performance Colorways</strong></p>
+<ul><li><strong>Core Black:</strong> Timeless versatility for any running kit</li><li><strong>Cloud White:</strong> Clean premium aesthetic</li><li><strong>Solar Red:</strong> Eye-catching energy for competitive runners</li></ul>
+<p><strong>Versatile Training Partner</strong></p>
+<ul><li>Daily training runs and easy recovery sessions</li><li>Tempo workouts and progressive runs</li><li>Long runs and marathon preparation</li><li>Gym cross-training and fitness classes</li><li>All-day wear for active lifestyles</li></ul>
+<p><strong>Continental Rubber Outsole</strong></p>
+<p>The outsole features Continental rubber, the same material used in premium car tires, providing exceptional grip in wet and dry conditions. You can trust your footing on rain-slicked roads or dry trails.</p>
+<p><strong>Sizing</strong></p>
+<p>Available in sizes 7-12. Fits true to size. The Primeknit upper adapts to your foot shape, providing a personalized fit that improves with wear.</p>`,
+    fr: d(`<p>Vivez la prochaine g\\u00e9n\\u00e9ration de technologie avec HyperBoost Max. Propuls\\u00e9es par la mousse Boost r\\u00e9volutionnaire, ces chaussures offrent un retour d\\u2019\\u00e9nergie et une r\\u00e9activit\\u00e9 in\\u00e9gal\\u00e9s.</p>
+<p><strong>Mousse Boost r\\u00e9volutionnaire</strong></p>
+<p>Chaque semelle Boost contient des milliers de capsules \\u00e9nerg\\u00e9tiques TPU fusionn\\u00e9es qui se compriment sous l\\u2019impact et rebondissent avec une force explosive.</p>
+<p><strong>Retour d\\u2019\\u00e9nergie in\\u00e9gal\\u00e9</strong></p>
+<p>Les tests en laboratoire confirment que HyperBoost Max offre jusqu\\u2019\\u00e0 80% de retour d\\u2019\\u00e9nergie. Moins de fatigue, des allures plus rapides, des courses plus agr\\u00e9ables.</p>
+<p><strong>Performance ind\\u00e9pendante de la temp\\u00e9rature</strong></p>
+<p>Contrairement aux mousses EVA qui durcissent par temps froid, la mousse Boost maintient ses propri\\u00e9t\\u00e9s d\\u2019amorti du gel \\u00e0 la chaleur.</p>
+<p><strong>Trois coloris performance</strong></p>
+<ul><li><strong>Noir :</strong> Polyvalence intemporelle</li><li><strong>Blanc :</strong> Esth\\u00e9tique premium \\u00e9pur\\u00e9e</li><li><strong>Rouge Solaire :</strong> \\u00c9nergie accrocheuse pour les comp\\u00e9titeurs</li></ul>
+<p><strong>Partenaire d\\u2019entra\\u00eenement polyvalent</strong></p>
+<ul><li>Courses d\\u2019entra\\u00eenement quotidiennes</li><li>S\\u00e9ances tempo et courses progressives</li><li>Longues sorties et pr\\u00e9paration marathon</li></ul>
+<p><strong>Semelle caoutchouc Continental</strong></p>
+<p>La semelle ext\\u00e9rieure en caoutchouc Continental offre une adh\\u00e9rence exceptionnelle sur sol mouill\\u00e9 et sec.</p>
+<p><strong>Taille</strong></p>
+<p>Disponibles du 7 au 12. Fid\\u00e8les \\u00e0 la taille.</p>`),
+  },
+
+  "b0cfff4c-a728-4c92-948a-afdc79ee922c": {
+    en: `<p>Reconnect with the natural way your body was designed to move with Flex Motion running shoes. Inspired by barefoot running science, these shoes strip away unnecessary cushioning and structure to promote natural foot mechanics and strengthen the muscles that conventional shoes weaken.</p>
+<p><strong>Barefoot-Inspired Design</strong></p>
+<p>With a minimal 4mm heel-to-toe drop, Flex Motion encourages a natural midfoot strike pattern that reduces impact forces on joints. The ultra-thin midsole provides ground feedback that helps you develop better running form over time.</p>
+<p><strong>Ultra-Flexible Sole</strong></p>
+<p>The outsole features deep flex grooves that allow the shoe to bend and twist in every direction your foot moves naturally. Unlike rigid shoes that fight your foot, Flex Motion works with your biomechanics for a more efficient stride.</p>
+<p><strong>Essential Protection</strong></p>
+<p>While mimicking the barefoot experience, Flex Motion still provides essential protection from rocks, glass, and rough surfaces. The thin but durable outsole shields your feet without blocking the ground feel that makes barefoot-style running so effective.</p>
+<p><strong>Three Natural Colorways</strong></p>
+<ul><li><strong>Black:</strong> Understated and versatile</li><li><strong>White:</strong> Clean minimalist aesthetic</li><li><strong>Olive:</strong> Earth-toned option for trail and nature runners</li></ul>
+<p><strong>Transition Guide</strong></p>
+<p>If you are transitioning from traditional cushioned shoes, we recommend a gradual approach. Start with short runs of 1-2 miles and increase distance by no more than 10% per week. Your feet and calves will need time to adapt to the lower-drop design.</p>
 <p><strong>Perfect For</strong></p>
-<ul><li>Music festivals and concerts</li><li>Late night runs and workouts</li><li>Club nights and events</li><li>Making a bold fashion statement</li><li>Street photography and content creation</li></ul>
-<p><strong>Durability Meets Style</strong></p>
-<p>The upper combines synthetic overlays with breathable mesh, creating a shoe that looks incredible but also stands up to real-world use. Reinforced toe caps and heel counters prevent premature wear in high-stress zones.</p>
-<p><strong>Sizing Recommendation</strong></p>
-<p>Available in sizes 7 through 12. True to size for most wearers. The shoe includes a padded tongue and collar that break in perfectly after just a few wears.</p>`,
-    fr: d(`<p>Illuminez la nuit avec les baskets Neon Pulse, la chaussure ultime pour ceux qui refusent de dispara\\u00eetre dans le d\\u00e9cor. Ce ne sont pas seulement des chaussures, c\\u2019est une pi\\u00e8ce statement con\\u00e7ue pour attirer l\\u2019attention partout o\\u00f9 vous allez.</p>
-<p><strong>D\\u00e9tails r\\u00e9fl\\u00e9chissants \\u00e0 360 degr\\u00e9s</strong></p>
-<p>Le placement strat\\u00e9gique de mat\\u00e9riaux r\\u00e9fl\\u00e9chissants 3M sur toute la tige assure une visibilit\\u00e9 sous tous les angles dans les conditions de faible luminosit\\u00e9. Que vous couriez la nuit ou alliez en bo\\u00eete, ces baskets vous gardent visible et en s\\u00e9curit\\u00e9.</p>
-<p><strong>Coloris n\\u00e9on qui \\u00e9clatent</strong></p>
-<p>Disponibles en trois options accrocheuses : Vert N\\u00e9on \\u00e9lectrisant, Bleu \\u00c9lectrique vibrant, et Rose Vif immanquable. Chaque coloris utilise des proc\\u00e9d\\u00e9s de teinture premium qui gardent leur intensit\\u00e9 lavage apr\\u00e8s lavage.</p>
-<p><strong>Semelle en mousse ultra-r\\u00e9active</strong></p>
-<p>Sous l\\u2019ext\\u00e9rieur audacieux se cache une technologie s\\u00e9rieuse. Notre semelle interm\\u00e9diaire en mousse ultra-r\\u00e9active offre un retour d\\u2019\\u00e9nergie explosif qui rend chaque pas rebondissant et sans effort.</p>
-<p><strong>Parfait pour</strong></p>
-<ul><li>Festivals de musique et concerts</li><li>Courses et entra\\u00eenements nocturnes</li><li>Soir\\u00e9es en club et \\u00e9v\\u00e9nements</li><li>Faire une d\\u00e9claration mode audacieuse</li><li>Photographie de rue et cr\\u00e9ation de contenu</li></ul>
-<p><strong>Durabilit\\u00e9 et style</strong></p>
-<p>La tige combine des renforts synth\\u00e9tiques avec du mesh respirant. Les embouts renforc\\u00e9s emp\\u00eachent l\\u2019usure pr\\u00e9matur\\u00e9e.</p>
-<p><strong>Recommandation de taille</strong></p>
-<p>Disponibles du 7 au 12. Fid\\u00e8les \\u00e0 la taille pour la plupart. Langue et col rembourr\\u00e9s.</p>`),
+<ul><li>Runners seeking to strengthen foot muscles</li><li>Barefoot running enthusiasts wanting protection</li><li>Cross-training and gym workouts</li><li>Recovery runs on easy days</li><li>Walking and casual daily wear</li></ul>
+<p><strong>Sizing</strong></p>
+<p>Available in sizes 7-11. Some runners prefer sizing up half a size to allow natural toe splay.</p>`,
+    fr: d(`<p>Reconnectez avec le mouvement naturel de votre corps avec les Flex Motion. Inspir\\u00e9es de la science de la course pieds nus, ces chaussures \\u00e9liminent l\\u2019amorti et la structure inutiles pour promouvoir une m\\u00e9canique naturelle du pied.</p>
+<p><strong>Design inspir\\u00e9 du pied nu</strong></p>
+<p>Avec un d\\u00e9nivel\\u00e9 minimal de 4 mm, Flex Motion encourage une attaque naturelle du m\\u00e9diopied qui r\\u00e9duit les forces d\\u2019impact sur les articulations.</p>
+<p><strong>Semelle ultra-flexible</strong></p>
+<p>La semelle ext\\u00e9rieure pr\\u00e9sente des rainures de flexion profondes permettant \\u00e0 la chaussure de se plier dans toutes les directions o\\u00f9 votre pied bouge naturellement.</p>
+<p><strong>Protection essentielle</strong></p>
+<p>Tout en imitant l\\u2019exp\\u00e9rience pieds nus, Flex Motion fournit une protection essentielle contre les cailloux, le verre et les surfaces rugueuses.</p>
+<p><strong>Trois coloris naturels</strong></p>
+<ul><li><strong>Noir :</strong> Discret et polyvalent</li><li><strong>Blanc :</strong> Esth\\u00e9tique minimaliste</li><li><strong>Olive :</strong> Tonal terreux pour la course nature</li></ul>
+<p><strong>Guide de transition</strong></p>
+<p>Si vous transitionnez depuis des chaussures \\u00e0 fort amorti, nous recommandons une approche progressive. Commencez par des courses courtes de 2-3 km et augmentez de 10% par semaine maximum.</p>
+<p><strong>Taille</strong></p>
+<p>Disponibles du 7 au 11. Certains coureurs pr\\u00e9f\\u00e8rent une demi-taille au-dessus.</p>`),
   },
 
-  "603a75fa-e244-4a0d-bd76-7173d355f730": {
-    en: `<p>Step into sneaker history with the Retro Classic 88, a modern homage to the golden era of athletic footwear. These are not mere reproductions, they are carefully crafted tributes that combine vintage aesthetics with contemporary comfort technology.</p>
-<p><strong>Authentic Vintage Design</strong></p>
-<p>Every detail of the Retro Classic 88 pays homage to sneaker culture of the late 1980s. From the panel construction to the specific curve of the swoosh-inspired side stripe, these shoes capture the essence of that iconic era while remaining wearable and stylish today.</p>
-<p><strong>Premium Suede and Leather Construction</strong></p>
-<p>Unlike fast-fashion retro sneakers, the Classic 88 uses genuine premium suede overlays combined with full-grain leather panels. These materials develop a beautiful patina over time, meaning your shoes look better with age, not worse.</p>
-<p><strong>Three Heritage Colorways</strong></p>
-<ul><li><strong>Navy:</strong> A timeless choice that pairs with virtually anything in your wardrobe</li><li><strong>Cream:</strong> Vintage-inspired neutral perfect for warm weather styling</li><li><strong>Forest Green:</strong> Bold heritage colorway that stands out from the crowd</li></ul>
-<p><strong>Modern Comfort Hidden Inside</strong></p>
-<p>Do not let the vintage exterior fool you. Inside these shoes, you will find modern EVA foam cushioning, moisture-wicking linings, and padded collars that make them comfortable enough for all-day wear. This is not a shoe you save for special occasions, this is a daily driver.</p>
-<p><strong>Sneakerhead Appeal</strong></p>
-<p>The Retro Classic 88 has developed a cult following among sneaker enthusiasts who appreciate the attention to detail and quality materials. The limited color availability and premium construction mean these are pieces you can build outfits around, not just wear.</p>
-<p><strong>Sizing & Care</strong></p>
-<p>Available in sizes 7-11. True to size. Care for suede portions with a soft brush and specialized suede cleaner. Leather panels benefit from occasional conditioning to maintain suppleness and prevent cracking.</p>`,
-    fr: d(`<p>Entrez dans l\\u2019histoire des sneakers avec les Retro Classique 88, un hommage moderne \\u00e0 l\\u2019\\u00e2ge d\\u2019or de la chaussure athl\\u00e9tique. Ce ne sont pas de simples reproductions, ce sont des tributs soigneusement con\\u00e7us combinant esth\\u00e9tique vintage et technologie de confort contemporaine.</p>
-<p><strong>Design vintage authentique</strong></p>
-<p>Chaque d\\u00e9tail des Retro Classique 88 rend hommage \\u00e0 la culture sneaker de la fin des ann\\u00e9es 1980. De la construction des panneaux \\u00e0 la courbe sp\\u00e9cifique de la bande lat\\u00e9rale, ces chaussures capturent l\\u2019essence de cette \\u00e9poque ic\\u00f4nique.</p>
-<p><strong>Construction su\\u00e8de et cuir premium</strong></p>
-<p>Contrairement aux sneakers r\\u00e9tro fast-fashion, les Classique 88 utilisent des empi\\u00e8cements en su\\u00e8de v\\u00e9ritable combin\\u00e9s \\u00e0 des panneaux en cuir pleine fleur. Ces mat\\u00e9riaux d\\u00e9veloppent une belle patine avec le temps.</p>
-<p><strong>Trois coloris h\\u00e9ritage</strong></p>
-<ul><li><strong>Marine :</strong> Un choix intemporel qui s\\u2019associe \\u00e0 pratiquement tout</li><li><strong>Cr\\u00e8me :</strong> Neutre d\\u2019inspiration vintage parfait pour l\\u2019\\u00e9t\\u00e9</li><li><strong>Vert For\\u00eat :</strong> Coloris h\\u00e9ritage audacieux qui se d\\u00e9marque</li></ul>
-<p><strong>Confort moderne \\u00e0 l\\u2019int\\u00e9rieur</strong></p>
-<p>Ne vous laissez pas tromper par l\\u2019ext\\u00e9rieur vintage. \\u00c0 l\\u2019int\\u00e9rieur, vous trouverez un amorti en mousse EVA moderne, des doublures respirantes et des cols rembourr\\u00e9s.</p>
-<p><strong>Attrait pour les sneakerheads</strong></p>
-<p>Les Retro Classique 88 ont d\\u00e9velopp\\u00e9 un culte parmi les enthousiastes de sneakers qui appr\\u00e9cient l\\u2019attention aux d\\u00e9tails et les mat\\u00e9riaux de qualit\\u00e9.</p>
-<p><strong>Taille et entretien</strong></p>
-<p>Disponibles du 7 au 11. Fid\\u00e8les \\u00e0 la taille. Entretien du su\\u00e8de avec brosse douce et nettoyant sp\\u00e9cialis\\u00e9.</p>`),
+  "ee741750-eba2-48d4-aed8-bfb13446d3fa": {
+    en: `<p>Break through your speed barriers with Tempo Racer, the running shoe engineered specifically for high-intensity tempo runs and interval training. When your workout demands speed and your feet demand comfort, Tempo Racer delivers both without compromise.</p>
+<p><strong>Propulsive Forefoot Design</strong></p>
+<p>The innovative rocker geometry in the forefoot creates a natural rolling motion that propels you forward at the toe-off phase. This mechanical advantage translates to faster paces with less perceived effort, helping you maintain aggressive splits through your entire workout.</p>
+<p><strong>Snug Racing Fit</strong></p>
+<p>The engineered upper wraps your foot securely with a precision fit that eliminates internal movement. No sliding, no hot spots, just locked-in performance that lets you focus entirely on your effort and pace.</p>
+<p><strong>Responsive Cushioning</strong></p>
+<p>The midsole strikes the perfect balance between soft landing and firm push-off, providing enough cushioning for comfort while remaining responsive enough for speed work. This dual-purpose design makes Tempo Racer ideal for workouts that mix easy and hard efforts.</p>
+<p><strong>Three Race-Day Colorways</strong></p>
+<ul><li><strong>Racing Red:</strong> Bold statement for competitive sessions</li><li><strong>Electric Blue:</strong> Cool confidence for interval days</li><li><strong>Black/Gold:</strong> Premium sophistication for race morning</li></ul>
+<p><strong>Designed For Speed Workouts</strong></p>
+<ul><li>Tempo runs at threshold pace</li><li>Track intervals from 400m to mile repeats</li><li>Fartlek and progression runs</li><li>Race-day performance for 5K through half marathon</li><li>Uptempo steady-state sessions</li></ul>
+<p><strong>Sizing</strong></p>
+<p>Available in sizes 7-11. Runs slightly narrow for a secure racing fit. If you typically prefer a roomier shoe, consider sizing up half a size.</p>`,
+    fr: d(`<p>Brisez vos barri\\u00e8res de vitesse avec Tempo Racer, la chaussure de course con\\u00e7ue pour les sorties tempo haute intensit\\u00e9 et l\\u2019entra\\u00eenement par intervalles.</p>
+<p><strong>Design avant-pied propulsif</strong></p>
+<p>La g\\u00e9om\\u00e9trie rocker innovante \\u00e0 l\\u2019avant-pied cr\\u00e9e un mouvement de roulement naturel qui vous propulse vers l\\u2019avant. Cet avantage m\\u00e9canique se traduit par des allures plus rapides avec moins d\\u2019effort per\\u00e7u.</p>
+<p><strong>Ajustement racing serr\\u00e9</strong></p>
+<p>La tige technique enveloppe votre pied avec un ajustement pr\\u00e9cis qui \\u00e9limine les mouvements internes. Pas de glissement, pas de zones chaudes.</p>
+<p><strong>Amorti r\\u00e9actif</strong></p>
+<p>La semelle interm\\u00e9diaire trouve l\\u2019\\u00e9quilibre parfait entre atterrissage souple et pouss\\u00e9e ferme.</p>
+<p><strong>Trois coloris jour de course</strong></p>
+<ul><li><strong>Rouge Course :</strong> D\\u00e9claration audacieuse pour les s\\u00e9ances comp\\u00e9titives</li><li><strong>Bleu \\u00c9lectrique :</strong> Confiance fra\\u00eeche pour les jours d\\u2019intervalles</li><li><strong>Noir/Or :</strong> Sophistication premium pour le matin de course</li></ul>
+<p><strong>Con\\u00e7ues pour les entra\\u00eenements de vitesse</strong></p>
+<ul><li>Sorties tempo \\u00e0 allure au seuil</li><li>Intervalles sur piste du 400m au mile</li><li>Fartlek et courses progressives</li></ul>
+<p><strong>Taille</strong></p>
+<p>Disponibles du 7 au 11. Chaussant l\\u00e9g\\u00e8rement \\u00e9troit. Consid\\u00e9rez une demi-taille au-dessus si vous pr\\u00e9f\\u00e9rez plus d\\u2019espace.</p>`),
   },
 
-  "a06e87e2-6430-40b1-b5ca-adc38560f52c": {
-    en: `<p>Master the art of understated elegance with the Shadow Black Edition. In a world of loud logos and flashy designs, these sneakers speak in whispers of quiet luxury and refined taste. This is footwear for those who understand that true style needs no announcement.</p>
-<p><strong>All-Black Monochrome Excellence</strong></p>
-<p>Every element of these shoes, from the laces to the outsole, features a carefully coordinated black colorway. Matte and satin finishes are strategically combined to create visual interest without breaking the monochromatic aesthetic.</p>
-<p><strong>Premium Matte Finish</strong></p>
-<p>The upper features a specialized matte finish that resists scuffs and maintains its stealth appearance even after months of daily wear. Unlike glossy alternatives, matte black hides minor imperfections and looks better as it develops character.</p>
-<p><strong>Two Refined Options</strong></p>
-<ul><li><strong>Triple Black:</strong> The purest expression of stealth style with completely blacked-out construction</li><li><strong>Charcoal:</strong> Deep gray-black offering subtle variation while maintaining the dark aesthetic</li></ul>
-<p><strong>Professional Versatility</strong></p>
-<p>The all-black colorway makes these sneakers appropriate for settings where traditional athletic footwear would feel out of place. Pair them with dark denim and a blazer for smart-casual meetings, or with a fitted suit for creative workplace looks.</p>
-<p><strong>Perfect For</strong></p>
-<ul><li>Creative professionals in relaxed corporate settings</li><li>Weekend warriors who prefer subdued style</li><li>Anyone building a capsule wardrobe</li><li>Travel wear that pairs with everything</li><li>Photography and events where flashy shoes would distract</li></ul>
-<p><strong>Construction Details</strong></p>
-<p>Built from premium synthetic leather with reinforced stitching throughout, these shoes are built to last. The cushioned insole and padded collar provide day-long comfort while the flexible sole ensures natural movement.</p>
-<p><strong>Care Guide</strong></p>
-<p>Wipe clean with a damp cloth. For scuff marks on the matte finish, use a suede eraser or specialized matte leather cleaner. Available in sizes 8-12.</p>`,
-    fr: d(`<p>Ma\\u00eetrisez l\\u2019art de l\\u2019\\u00e9l\\u00e9gance discr\\u00e8te avec l\\u2019Ombre Noir Edition. Dans un monde de logos bruyants et de designs voyants, ces baskets parlent en chuchotements de luxe discret et de go\\u00fbt raffin\\u00e9.</p>
-<p><strong>Excellence monochrome tout noir</strong></p>
-<p>Chaque \\u00e9l\\u00e9ment, des lacets \\u00e0 la semelle ext\\u00e9rieure, pr\\u00e9sente un coloris noir soigneusement coordonn\\u00e9. Les finitions mates et satin\\u00e9es sont combin\\u00e9es strat\\u00e9giquement.</p>
-<p><strong>Finition mate premium</strong></p>
-<p>La tige pr\\u00e9sente une finition mate sp\\u00e9cialis\\u00e9e qui r\\u00e9siste aux \\u00e9raflures et maintient son apparence discr\\u00e8te m\\u00eame apr\\u00e8s des mois de port quotidien.</p>
-<p><strong>Deux options raffin\\u00e9es</strong></p>
-<ul><li><strong>Triple Noir :</strong> L\\u2019expression la plus pure du style discret avec une construction enti\\u00e8rement noire</li><li><strong>Charbon :</strong> Gris-noir profond offrant une variation subtile</li></ul>
-<p><strong>Polyvalence professionnelle</strong></p>
-<p>Le coloris tout noir rend ces baskets appropri\\u00e9es pour des environnements o\\u00f9 la chaussure athl\\u00e9tique traditionnelle serait d\\u00e9plac\\u00e9e. Associez-les \\u00e0 un jean fonc\\u00e9 et un blazer.</p>
-<p><strong>Parfaites pour</strong></p>
-<ul><li>Professionnels cr\\u00e9atifs dans un cadre corporate d\\u00e9contract\\u00e9</li><li>Guerriers du week-end pr\\u00e9f\\u00e9rant un style sobre</li><li>Toute garde-robe capsule</li><li>Tenues de voyage qui s\\u2019accordent avec tout</li></ul>
-<p><strong>D\\u00e9tails de construction</strong></p>
-<p>Fabriqu\\u00e9es en cuir synth\\u00e9tique premium avec coutures renforc\\u00e9es. Semelle rembourr\\u00e9e et col rembourr\\u00e9.</p>
-<p><strong>Guide d\\u2019entretien</strong></p>
-<p>Nettoyez avec un chiffon humide. Disponibles du 8 au 12.</p>`),
-  },
-
-  "d44f0138-205e-4d2e-999b-3699a71fb05c": {
-    en: `<p>Wear your personality on your feet with Canvas Culture sneakers. These are not just shoes, they are a canvas for self-expression, featuring vibrant patterns and colors that celebrate individuality and creative spirit.</p>
-<p><strong>Vibrant Artistic Patterns</strong></p>
-<p>Choose from three distinctive designs, each carefully created by our in-house artists to make a statement without being overwhelming. Every pattern is applied using colorfast printing techniques that maintain vibrancy through repeated wear and washing.</p>
-<p><strong>Three Unique Colorways</strong></p>
-<ul><li><strong>Tie-Dye:</strong> Explosive rainbow patterns reminiscent of festival culture and free spirit lifestyles</li><li><strong>Floral:</strong> Delicate botanical prints that bring nature\\u2019s beauty to your everyday style</li><li><strong>Abstract:</strong> Modern geometric designs perfect for the contemporary art lover</li></ul>
-<p><strong>Lightweight Canvas Construction</strong></p>
-<p>Built from breathable cotton canvas that molds to your feet with wear, these sneakers become more comfortable the more you wear them. The material breathes naturally, making them perfect for warm weather activities and extended wear.</p>
-<p><strong>Perfect for Creative Souls</strong></p>
-<ul><li>Art students and creative professionals</li><li>Music festivals and outdoor concerts</li><li>Beach days and boardwalk strolls</li><li>Coffee shops and creative workspaces</li><li>Anyone who refuses to wear boring shoes</li></ul>
-<p><strong>Affordable Style Statement</strong></p>
-<p>At an accessible price point, Canvas Culture proves that expressing your unique style does not require breaking the bank. These sneakers deliver premium print quality and construction at a fraction of designer prices.</p>
-<p><strong>Care & Longevity</strong></p>
-<p>Hand wash with cool water and mild detergent to preserve pattern vibrancy. Air dry only. With proper care, the patterns will remain bright and beautiful for years of creative expression. Available in sizes 6-11.</p>`,
-    fr: d(`<p>Portez votre personnalit\\u00e9 sur vos pieds avec les baskets Toile Culture. Ce ne sont pas seulement des chaussures, c\\u2019est une toile pour l\\u2019expression de soi, pr\\u00e9sentant des motifs vibrants qui c\\u00e9l\\u00e8brent l\\u2019individualit\\u00e9.</p>
-<p><strong>Motifs artistiques vibrants</strong></p>
-<p>Choisissez parmi trois designs distinctifs, chacun soigneusement cr\\u00e9\\u00e9 par nos artistes internes. Chaque motif est appliqu\\u00e9 avec des techniques d\\u2019impression grand teint.</p>
-<p><strong>Trois coloris uniques</strong></p>
-<ul><li><strong>Tie-Dye :</strong> Motifs arc-en-ciel explosifs rappelant la culture festival</li><li><strong>Floral :</strong> Impressions botaniques d\\u00e9licates apportant la beaut\\u00e9 de la nature</li><li><strong>Abstrait :</strong> Designs g\\u00e9om\\u00e9triques modernes parfaits pour l\\u2019amateur d\\u2019art contemporain</li></ul>
-<p><strong>Construction en toile l\\u00e9g\\u00e8re</strong></p>
-<p>Fabriqu\\u00e9es en toile de coton respirante qui \\u00e9pouse vos pieds avec l\\u2019usure, ces baskets deviennent plus confortables plus vous les portez.</p>
-<p><strong>Parfaites pour les \\u00e2mes cr\\u00e9atives</strong></p>
-<ul><li>\\u00c9tudiants en art et professionnels cr\\u00e9atifs</li><li>Festivals de musique et concerts en plein air</li><li>Journ\\u00e9es \\u00e0 la plage et promenades</li><li>Caf\\u00e9s et espaces de travail cr\\u00e9atifs</li></ul>
-<p><strong>Style abordable</strong></p>
-<p>\\u00c0 un prix accessible, Toile Culture prouve qu\\u2019exprimer votre style unique ne n\\u00e9cessite pas de casser votre tirelire.</p>
-<p><strong>Entretien et long\\u00e9vit\\u00e9</strong></p>
-<p>Lavage \\u00e0 la main \\u00e0 l\\u2019eau froide avec d\\u00e9tergent doux. S\\u00e9chage \\u00e0 l\\u2019air uniquement. Disponibles du 6 au 11.</p>`),
-  },
-
-  "985530f4-1428-45d4-8381-0bade4a469e0": {
-    en: `<p>Embrace the philosophy that less is more with the Minimalist One. In a world obsessed with excess and complication, these sneakers stand as a testament to the enduring power of simple, honest design.</p>
-<p><strong>Pure Design Philosophy</strong></p>
-<p>Every element that does not serve a functional or aesthetic purpose has been stripped away. What remains is a shoe of remarkable purity, where every curve, seam, and stitch has been carefully considered and refined.</p>
-<p><strong>Uncompromising Comfort</strong></p>
-<p>Do not mistake minimalism for austerity. These shoes feature premium cushioning, ergonomic footbeds, and breathable linings that deliver exceptional all-day comfort. The simplicity is in the appearance, not the engineering.</p>
-<p><strong>Three Timeless Colorways</strong></p>
-<ul><li><strong>White:</strong> The ultimate minimalist statement, pristine and versatile</li><li><strong>Black:</strong> Understated elegance that pairs with any outfit</li><li><strong>Gray:</strong> Sophisticated neutral offering subtle variation</li></ul>
-<p><strong>Capsule Wardrobe Essential</strong></p>
-<p>These are the sneakers you reach for when you want to look put-together without effort. They work with jeans, chinos, shorts, and even relaxed suits. If you are building a capsule wardrobe or minimalist lifestyle, these are the sneakers you need.</p>
-<p><strong>Premium Materials Throughout</strong></p>
-<p>Do not confuse minimalism with cheap. These shoes feature premium leather upper, soft memory foam insole, and durable rubber outsole. The materials are what elevate a simple design into something truly special.</p>
-<p><strong>Perfect For</strong></p>
-<ul><li>Building a minimalist wardrobe</li><li>Travel with limited packing</li><li>Business casual environments</li><li>Weekend outings and casual wear</li><li>Anyone who values quiet quality over loud branding</li></ul>
-<p><strong>Sizing & Care</strong></p>
-<p>Available in sizes 7-11. Runs true to size. Care instructions vary by colorway but generally include wiping with a damp cloth and periodic leather conditioning for the black and gray options.</p>`,
-    fr: d(`<p>Adoptez la philosophie que moins c\\u2019est plus avec le Minimaliste One. Dans un monde obs\\u00e9d\\u00e9 par l\\u2019exc\\u00e8s, ces baskets sont un t\\u00e9moignage du pouvoir durable du design simple et honn\\u00eate.</p>
-<p><strong>Philosophie de design pur</strong></p>
-<p>Chaque \\u00e9l\\u00e9ment qui ne sert pas un but fonctionnel ou esth\\u00e9tique a \\u00e9t\\u00e9 supprim\\u00e9. Ce qui reste est une chaussure d\\u2019une puret\\u00e9 remarquable.</p>
-<p><strong>Confort sans compromis</strong></p>
-<p>Ne confondez pas minimalisme avec aust\\u00e9rit\\u00e9. Ces chaussures pr\\u00e9sentent un amorti premium, des semelles ergonomiques et des doublures respirantes.</p>
-<p><strong>Trois coloris intemporels</strong></p>
-<ul><li><strong>Blanc :</strong> La d\\u00e9claration minimaliste ultime, pure et polyvalente</li><li><strong>Noir :</strong> \\u00c9l\\u00e9gance discr\\u00e8te qui s\\u2019associe \\u00e0 toute tenue</li><li><strong>Gris :</strong> Neutre sophistiqu\\u00e9 offrant une variation subtile</li></ul>
-<p><strong>Essentiel de garde-robe capsule</strong></p>
-<p>Ce sont les baskets que vous choisirez quand vous voudrez avoir l\\u2019air soign\\u00e9 sans effort. Elles s\\u2019accordent aux jeans, chinos, shorts.</p>
-<p><strong>Mat\\u00e9riaux premium</strong></p>
-<p>Ne confondez pas minimalisme avec bon march\\u00e9. Ces chaussures pr\\u00e9sentent une tige en cuir premium et une semelle en mousse m\\u00e9moire.</p>
-<p><strong>Parfaites pour</strong></p>
-<ul><li>Construire une garde-robe minimaliste</li><li>Voyages avec bagages limit\\u00e9s</li><li>Environnements business casual</li><li>Sorties de week-end</li></ul>
-<p><strong>Taille et entretien</strong></p>
+  "9f7f3763-e682-4b09-a1ab-671718065549": {
+    en: `<p>Run safely after dark with Night Glow Runner, the visibility-first running shoe designed for athletes who train before sunrise and after sunset. When conditions demand you be seen, these shoes make sure drivers, cyclists, and other runners notice you.</p>
+<p><strong>3M Reflective Materials</strong></p>
+<p>Industrial-grade 3M reflective strips are integrated throughout the upper, catching headlights and streetlights from every angle. When light hits these shoes, they glow brilliantly, making your feet visible from over 200 meters away in dark conditions.</p>
+<p><strong>LED-Compatible Lace Loops</strong></p>
+<p>Special loops are integrated into the lacing system, designed to accommodate LED clip-on lights for maximum visibility. This innovative feature lets you add active lighting for the darkest conditions without modifying the shoe.</p>
+<p><strong>High-Visibility Colorways</strong></p>
+<ul><li><strong>Hi-Vis Yellow:</strong> Maximum daytime and nighttime visibility</li><li><strong>Reflective Silver:</strong> Mirror-like finish that captures all ambient light</li><li><strong>Neon Orange:</strong> Construction-zone visibility for the most cautious runners</li></ul>
+<p><strong>Performance Underneath</strong></p>
+<p>Safety features aside, Night Glow Runner is a fully capable running shoe with responsive cushioning, breathable mesh, and durable outsole grip. You are not sacrificing performance for visibility, you get both.</p>
+<p><strong>Essential For</strong></p>
+<ul><li>Early morning pre-dawn runners</li><li>After-work evening training sessions</li><li>Winter running when daylight is limited</li><li>Road running on busy streets</li><li>Night race events and fun runs</li></ul>
+<p><strong>Sizing</strong></p>
+<p>Available in sizes 7-11. True to size. The reflective materials are embedded in the fabric, so they do not add bulk or affect the fit compared to standard running shoes.</p>`,
+    fr: d(`<p>Courez en s\\u00e9curit\\u00e9 apr\\u00e8s la tomb\\u00e9e de la nuit avec Nuit Glow Coureur, la chaussure de course con\\u00e7ue pour les athl\\u00e8tes qui s\\u2019entra\\u00eenent avant l\\u2019aube et apr\\u00e8s le coucher du soleil.</p>
+<p><strong>Mat\\u00e9riaux r\\u00e9fl\\u00e9chissants 3M</strong></p>
+<p>Des bandes r\\u00e9fl\\u00e9chissantes 3M de grade industriel sont int\\u00e9gr\\u00e9es sur toute la tige, captant les phares et l\\u2019\\u00e9clairage public sous tous les angles. Vos pieds sont visibles \\u00e0 plus de 200 m\\u00e8tres dans l\\u2019obscurit\\u00e9.</p>
+<p><strong>Boucles compatibles LED</strong></p>
+<p>Des boucles sp\\u00e9ciales sont int\\u00e9gr\\u00e9es au syst\\u00e8me de la\\u00e7age pour accueillir des lumi\\u00e8res LED clip-on pour une visibilit\\u00e9 maximale.</p>
+<p><strong>Coloris haute visibilit\\u00e9</strong></p>
+<ul><li><strong>Jaune Haute Visibilit\\u00e9 :</strong> Visibilit\\u00e9 maximale jour et nuit</li><li><strong>Argent R\\u00e9fl\\u00e9chissant :</strong> Finition miroir captant toute lumi\\u00e8re ambiante</li><li><strong>Orange N\\u00e9on :</strong> Visibilit\\u00e9 de zone de chantier pour les coureurs les plus prudents</li></ul>
+<p><strong>Performance incluse</strong></p>
+<p>Au-del\\u00e0 de la s\\u00e9curit\\u00e9, Nuit Glow Coureur est une chaussure de course capable avec amorti r\\u00e9actif, mesh respirant et adh\\u00e9rence durable.</p>
+<p><strong>Essentielle pour</strong></p>
+<ul><li>Coureurs matinaux avant l\\u2019aube</li><li>Entra\\u00eenements du soir apr\\u00e8s le travail</li><li>Course hivernale quand la lumi\\u00e8re est limit\\u00e9e</li></ul>
+<p><strong>Taille</strong></p>
 <p>Disponibles du 7 au 11. Fid\\u00e8les \\u00e0 la taille.</p>`),
   },
 
-  "5d985ff0-c702-4af3-a354-324bd61b74f6": {
-    en: `<p>Rise above the ordinary with Platform Rise sneakers. These are not just shoes, they are a statement of confidence and style. The bold chunky platform sole adds physical height and undeniable attitude to every step you take.</p>
-<p><strong>Bold Chunky Platform Design</strong></p>
-<p>The signature platform sole measures 1.5 inches at its highest point, adding meaningful height while maintaining walkability. This is not an unwearable stiletto, this is elevated street style that works from morning meetings to evening dates.</p>
-<p><strong>Premium Materials Throughout</strong></p>
-<p>Built from a combination of genuine leather and premium synthetic materials, these sneakers are designed to withstand daily wear while maintaining their sculptural silhouette. The construction is substantial, giving these shoes real presence and weight.</p>
-<p><strong>Three Fashion-Forward Colorways</strong></p>
-<ul><li><strong>White/Pink:</strong> Ultra-feminine combination perfect for warm weather styling</li><li><strong>Black/Gold:</strong> Luxurious contrast that adds glamour to any outfit</li><li><strong>Beige:</strong> Neutral tonal design that pairs with everything</li></ul>
-<p><strong>Confidence-Boosting Height</strong></p>
-<p>Beyond the aesthetic appeal, the platform provides genuine height benefits. Whether you want to appear taller in photos, feel more commanding in professional settings, or simply enjoy a new perspective on the world, these shoes deliver.</p>
-<p><strong>Surprisingly Comfortable</strong></p>
-<p>Do not let the bold design fool you. These sneakers include memory foam insoles and shock-absorbing platform materials that make them wearable for hours. Many customers report being surprised by how comfortable they are once broken in.</p>
-<p><strong>Style Guide</strong></p>
-<ul><li>Pair with wide-leg pants for balanced proportions</li><li>Wear with midi skirts for modern retro vibes</li><li>Rock with shorts to elongate the leg line</li><li>Combine with oversized sweaters for cozy chic</li></ul>
-<p><strong>Sizing Note</strong></p>
-<p>Available in sizes 5-10. We recommend ordering true to size. The break-in period is typically 3-5 wears, after which they conform beautifully to your feet.</p>`,
-    fr: d(`<p>\\u00c9levez-vous au-dessus de l\\u2019ordinaire avec les baskets Plateforme Montante. Ce ne sont pas seulement des chaussures, c\\u2019est une d\\u00e9claration de confiance et de style.</p>
-<p><strong>Design plateforme chunky audacieux</strong></p>
-<p>La semelle plateforme signature mesure 3,8 cm \\u00e0 son point le plus haut, ajoutant une hauteur significative tout en maintenant la marchabilit\\u00e9.</p>
-<p><strong>Mat\\u00e9riaux premium</strong></p>
-<p>Construites d\\u2019une combinaison de cuir v\\u00e9ritable et de mat\\u00e9riaux synth\\u00e9tiques premium.</p>
-<p><strong>Trois coloris avant-gardistes</strong></p>
-<ul><li><strong>Blanc/Rose :</strong> Combinaison ultra-f\\u00e9minine parfaite pour l\\u2019\\u00e9t\\u00e9</li><li><strong>Noir/Or :</strong> Contraste luxueux qui ajoute du glamour</li><li><strong>Beige :</strong> Design neutre tonal qui s\\u2019accorde avec tout</li></ul>
-<p><strong>Hauteur qui booste la confiance</strong></p>
-<p>Au-del\\u00e0 de l\\u2019attrait esth\\u00e9tique, la plateforme offre de vrais avantages de hauteur.</p>
-<p><strong>Etonnamment confortables</strong></p>
-<p>Ne vous laissez pas tromper par le design audacieux. Ces baskets incluent des semelles en mousse m\\u00e9moire.</p>
-<p><strong>Guide de style</strong></p>
-<ul><li>Associez \\u00e0 des pantalons larges pour des proportions \\u00e9quilibr\\u00e9es</li><li>Portez avec des jupes midi pour un style r\\u00e9tro moderne</li><li>Portez avec des shorts pour allonger la jambe</li><li>Combinez avec des pulls oversized</li></ul>
-<p><strong>Note de taille</strong></p>
-<p>Disponibles du 5 au 10. Fid\\u00e8les \\u00e0 la taille.</p>`),
+  "ff8f0c92-78eb-47e4-8297-32d03e2d79e7": {
+    en: `<p>Start your running journey or maintain your daily training habit with EasyRun Daily, the no-nonsense running shoe that delivers excellent performance at a price that respects your budget. These shoes prove that quality running footwear does not have to cost a fortune.</p>
+<p><strong>Balanced Cushioning</strong></p>
+<p>The midsole uses a carefully calibrated foam density that provides enough cushioning for comfortable daily running while maintaining the responsiveness needed for tempo efforts. This balance makes EasyRun Daily versatile enough to be your one-shoe solution.</p>
+<p><strong>Durable Construction</strong></p>
+<p>Despite the accessible price, there are no shortcuts in construction. Reinforced toe caps, double-stitched overlays, and a high-abrasion rubber outsole ensure these shoes deliver hundreds of miles of reliable service.</p>
+<p><strong>Three Versatile Colorways</strong></p>
+<ul><li><strong>Black:</strong> Classic choice that hides dirt and scuffs</li><li><strong>White:</strong> Clean aesthetic for style-conscious runners</li><li><strong>Gray/Teal:</strong> Subtle pop of color for those who want something different</li></ul>
+<p><strong>Who Is EasyRun Daily For</strong></p>
+<ul><li>Beginning runners building their first training habit</li><li>Budget-conscious athletes who still want quality</li><li>Gym members needing reliable cross-training shoes</li><li>Casual runners who run 2-4 times per week</li><li>Anyone wanting a comfortable daily shoe that can also run</li></ul>
+<p><strong>Exceptional Value</strong></p>
+<p>We believe everyone deserves quality running shoes regardless of budget. EasyRun Daily brings the same engineering attention as our premium models at a fraction of the price, making proper running footwear accessible to all.</p>
+<p><strong>Sizing</strong></p>
+<p>Available in sizes 6-12. True to size. The padded tongue and collar provide a secure yet comfortable fit right out of the box with minimal break-in required.</p>`,
+    fr: d(`<p>Commencez votre parcours de course ou maintenez votre habitude d\\u2019entra\\u00eenement quotidien avec EasyRun Daily, la chaussure de course sans fioritures qui offre d\\u2019excellentes performances \\u00e0 un prix respectueux de votre budget.</p>
+<p><strong>Amorti \\u00e9quilibr\\u00e9</strong></p>
+<p>La semelle interm\\u00e9diaire utilise une densit\\u00e9 de mousse soigneusement calibr\\u00e9e offrant assez d\\u2019amorti pour la course quotidienne tout en maintenant la r\\u00e9activit\\u00e9 n\\u00e9cessaire pour les efforts tempo.</p>
+<p><strong>Construction durable</strong></p>
+<p>Malgr\\u00e9 le prix accessible, aucun raccourci n\\u2019a \\u00e9t\\u00e9 pris. Embouts renforc\\u00e9s, doubles coutures et semelle caoutchouc haute abrasion garantissent des centaines de kilom\\u00e8tres de service fiable.</p>
+<p><strong>Trois coloris polyvalents</strong></p>
+<ul><li><strong>Noir :</strong> Choix classique qui cache la salet\\u00e9</li><li><strong>Blanc :</strong> Esth\\u00e9tique propre pour les coureurs soucieux du style</li><li><strong>Gris/Turquoise :</strong> Touche de couleur subtile</li></ul>
+<p><strong>Pour qui est EasyRun Daily</strong></p>
+<ul><li>Coureurs d\\u00e9butants construisant leur premi\\u00e8re routine</li><li>Athl\\u00e8tes soucieux du budget voulant de la qualit\\u00e9</li><li>Membres de salle de sport cherchant des chaussures polyvalentes</li><li>Coureurs occasionnels 2 \\u00e0 4 fois par semaine</li></ul>
+<p><strong>Valeur exceptionnelle</strong></p>
+<p>Nous croyons que tout le monde m\\u00e9rite des chaussures de course de qualit\\u00e9 quel que soit le budget.</p>
+<p><strong>Taille</strong></p>
+<p>Disponibles du 6 au 12. Fid\\u00e8les \\u00e0 la taille.</p>`),
   },
 
-  "5ed02bba-dce7-4938-9d47-907d6f85cb60": {
-    en: `<p>Breathe easy in every step with Knit Breeze sneakers. Featuring our advanced flyknit construction with true 360-degree ventilation, these sneakers redefine what breathable footwear means in the modern era.</p>
-<p><strong>Full Flyknit Upper</strong></p>
-<p>The one-piece flyknit upper eliminates traditional stitching and overlays that restrict airflow. Instead, precision-engineered knit patterns create zones of breathability, support, and flex exactly where your foot needs them.</p>
-<p><strong>360-Degree Ventilation System</strong></p>
-<p>Unlike shoes with mesh only at the toe box, Knit Breeze features ventilation zones throughout the entire upper. Air flows in from the sides, top, and even the collar, keeping your feet cool from every angle during activity.</p>
-<p><strong>Three Fresh Colorways</strong></p>
-<ul><li><strong>Ocean Blue:</strong> Refreshing marine tones inspired by summer coastlines</li><li><strong>Coral:</strong> Warm sunset colors that add personality to your outfit</li><li><strong>Mint:</strong> Cool spring greens perfect for the fashion-forward athlete</li></ul>
-<p><strong>Ideal for Active Lifestyles</strong></p>
-<p>The breathability makes these sneakers particularly suited to hot weather, humid climates, and high-intensity activities. If you struggle with sweaty feet or hot spots in traditional sneakers, Knit Breeze will transform your comfort level.</p>
-<p><strong>Sock-Like Fit</strong></p>
-<p>The stretchy flyknit material conforms to your foot like a premium sock, eliminating pressure points and hot spots. There is no break-in period, they feel great from the very first wear.</p>
-<p><strong>Perfect For</strong></p>
-<ul><li>Summer activities and hot weather</li><li>Gym workouts and cardio sessions</li><li>Walking tours and city exploration</li><li>People who suffer from sweaty feet</li><li>Anyone recovering from foot issues</li></ul>
-<p><strong>Machine Washable</strong></p>
-<p>The knit upper can be machine washed on gentle cycle with cold water. Air dry only. Available in sizes 7-12. True to size fit.</p>`,
-    fr: d(`<p>Respirez facilement \\u00e0 chaque pas avec les baskets Tricote Brise. Avec notre construction flyknit avanc\\u00e9e et une v\\u00e9ritable ventilation \\u00e0 360 degr\\u00e9s.</p>
-<p><strong>Tige flyknit int\\u00e9grale</strong></p>
-<p>La tige flyknit d\\u2019une pi\\u00e8ce \\u00e9limine les coutures traditionnelles et les empi\\u00e8cements qui limitent la circulation d\\u2019air.</p>
-<p><strong>Syst\\u00e8me de ventilation 360 degr\\u00e9s</strong></p>
-<p>Contrairement aux chaussures avec mesh uniquement \\u00e0 l\\u2019avant-pied, Tricote Brise pr\\u00e9sente des zones de ventilation sur toute la tige.</p>
-<p><strong>Trois coloris frais</strong></p>
-<ul><li><strong>Bleu Oc\\u00e9an :</strong> Tons marins rafra\\u00eechissants inspir\\u00e9s des c\\u00f4tes estivales</li><li><strong>Corail :</strong> Couleurs chaudes de coucher de soleil</li><li><strong>Menthe :</strong> Verts printaniers frais parfaits pour l\\u2019athl\\u00e8te avant-gardiste</li></ul>
-<p><strong>Id\\u00e9ales pour les modes de vie actifs</strong></p>
-<p>La respirabilit\\u00e9 rend ces baskets particuli\\u00e8rement adapt\\u00e9es au temps chaud, aux climats humides et aux activit\\u00e9s de haute intensit\\u00e9.</p>
-<p><strong>Ajustement chaussette</strong></p>
-<p>Le mat\\u00e9riau flyknit extensible \\u00e9pouse votre pied comme une chaussette premium.</p>
-<p><strong>Parfaites pour</strong></p>
-<ul><li>Activit\\u00e9s estivales et temps chaud</li><li>Entra\\u00eenements en salle et cardio</li><li>Visites \\u00e0 pied et exploration urbaine</li><li>Personnes souffrant de pieds moites</li></ul>
-<p><strong>Lavables en machine</strong></p>
-<p>La tige tricot\\u00e9e peut \\u00eatre lav\\u00e9e en machine sur cycle d\\u00e9licat \\u00e0 froid. Disponibles du 7 au 12.</p>`),
+  "f56b4cb8-f630-4cb5-9002-aceadc3ef808": {
+    en: `<p>Conquer any surface with Trail Runner GT, the versatile running shoe that transitions seamlessly from paved roads to rugged trails. If your running route includes both asphalt and dirt, these shoes handle both with equal confidence and comfort.</p>
+<p><strong>Aggressive Lug Outsole</strong></p>
+<p>The 5mm multi-directional lugs dig into soft ground and grip loose surfaces while remaining comfortable on pavement. Unlike pure trail shoes that feel awkward on roads, Trail Runner GT is engineered for mixed-surface running.</p>
+<p><strong>Rock Plate Protection</strong></p>
+<p>A flexible rock plate embedded in the midsole shields your feet from sharp stones and roots without sacrificing the ground feel that trail runners rely on for confident foot placement on technical terrain.</p>
+<p><strong>Waterproof Membrane</strong></p>
+<p>The integrated waterproof membrane keeps water out while allowing moisture vapor to escape, keeping your feet dry when splashing through puddles, crossing streams, or running in rain. Your feet stay dry without overheating.</p>
+<p><strong>Three Trail-Ready Colorways</strong></p>
+<ul><li><strong>Forest:</strong> Natural camouflage for woodland trails</li><li><strong>Gray/Orange:</strong> High visibility for exposed mountain terrain</li><li><strong>Black:</strong> Versatile option for mixed use</li></ul>
+<p><strong>Perfect For Mixed Terrain</strong></p>
+<ul><li>Road-to-trail running adventures</li><li>Hiking and fast-packing</li><li>Muddy or wet trail conditions</li><li>Adventure races and obstacle courses</li><li>Light mountaineering approaches</li></ul>
+<p><strong>Sizing</strong></p>
+<p>Available in sizes 8-12. We recommend going half a size up from your road running size to accommodate thicker trail socks and foot swelling on longer adventures.</p>`,
+    fr: d(`<p>Conqu\\u00e9rez toutes les surfaces avec le Sentier Coureur GT, la chaussure polyvalente qui passe sans effort de la route aux sentiers accident\\u00e9s.</p>
+<p><strong>Semelle \\u00e0 crampons agressifs</strong></p>
+<p>Les crampons multidirectionnels de 5 mm s\\u2019enfoncent dans le sol meuble et agrippent les surfaces instables tout en restant confortables sur le bitume.</p>
+<p><strong>Plaque anti-roche</strong></p>
+<p>Une plaque flexible int\\u00e9gr\\u00e9e dans la semelle prot\\u00e8ge vos pieds des pierres tranchantes et des racines sans sacrifier le ressenti du sol.</p>
+<p><strong>Membrane imperm\\u00e9able</strong></p>
+<p>La membrane imperm\\u00e9able int\\u00e9gr\\u00e9e garde l\\u2019eau \\u00e0 l\\u2019ext\\u00e9rieur tout en laissant la vapeur d\\u2019humidit\\u00e9 s\\u2019\\u00e9chapper.</p>
+<p><strong>Trois coloris pr\\u00eats pour le sentier</strong></p>
+<ul><li><strong>For\\u00eat :</strong> Camouflage naturel pour les sentiers bois\\u00e9s</li><li><strong>Gris/Orange :</strong> Haute visibilit\\u00e9 pour la montagne</li><li><strong>Noir :</strong> Option polyvalente pour usage mixte</li></ul>
+<p><strong>Parfait pour terrain mixte</strong></p>
+<ul><li>Aventures course route-sentier</li><li>Randonn\\u00e9e et fast-packing</li><li>Conditions de sentier boueuses ou humides</li></ul>
+<p><strong>Taille</strong></p>
+<p>Disponibles du 8 au 12. Nous recommandons une demi-taille au-dessus de votre taille route.</p>`),
   },
 
-  "d7d745b3-7072-4ab2-84b6-387484c98fdb": {
-    en: `<p>Bridge the gap between corporate polish and athletic comfort with Metro Flex sneakers. Designed for professionals who navigate multiple environments daily, these shoes bring genuine leather sophistication to sneaker-style comfort.</p>
-<p><strong>Genuine Leather Construction</strong></p>
-<p>The upper features full-grain leather that develops a rich patina over time. Unlike synthetic alternatives that look worn after a few months, genuine leather ages beautifully and can last for years with proper care.</p>
-<p><strong>Memory Foam Insoles</strong></p>
-<p>Beneath the sophisticated exterior lies athletic-grade comfort technology. The memory foam insoles conform to the unique shape of your feet, providing customized support and cushioning that reduces fatigue during long days.</p>
-<p><strong>Smart Casual Perfection</strong></p>
-<p>These sneakers occupy the sweet spot between formal shoes and athletic footwear. They are refined enough for creative agencies and startups, but comfortable enough for weekend adventures. Perfect for the modern professional.</p>
+  "66ec11c0-7e3b-45ad-a36e-eac3e9674148": {
+    en: `<p>Born to race. SpeedStrike is the pinnacle of racing shoe technology, delivering the ultimate combination of carbon-plate propulsion, lightweight construction, and responsive cushioning for athletes pursuing their fastest times.</p>
+<p><strong>Carbon-Plate Midsole</strong></p>
+<p>The full-length carbon fiber plate embedded in the midsole acts as a lever, reducing energy loss at the ankle joint and creating a snappy toe-off that propels you forward with mechanical efficiency. Studies show this technology can improve running economy by 2-4 percent.</p>
+<p><strong>Ultra-Lightweight Construction</strong></p>
+<p>At just 185 grams per shoe in size 10, SpeedStrike is among the lightest performance running shoes available. Every gram saved is energy conserved over the course of a race, and SpeedStrike saves more grams than almost any competitor.</p>
+<p><strong>Race-Day Colorways</strong></p>
+<ul><li><strong>Volt/Black:</strong> Maximum visibility and aggressive styling</li><li><strong>Red/White:</strong> Classic racing aesthetic</li><li><strong>Blue/Silver:</strong> Cool confidence for championship events</li></ul>
+<p><strong>Competition Focused</strong></p>
+<ul><li>Marathon and half-marathon personal records</li><li>Track racing from 5K to 10K</li><li>Championship events and competitive series</li><li>Time trials and official race days</li><li>Speed sessions where every second counts</li></ul>
+<p><strong>Limited Lifespan by Design</strong></p>
+<p>Like all elite racing shoes, SpeedStrike prioritizes performance over durability. The responsive foam and lightweight construction are optimized for approximately 200 miles of racing and speed work. Reserve these for your most important sessions and races.</p>
+<p><strong>Sizing</strong></p>
+<p>Available in sizes 7-11. Runs true to size with a snug racing fit. The sock-like collar eliminates the need for a traditional tongue, reducing weight and improving comfort.</p>`,
+    fr: d(`<p>N\\u00e9e pour la course. SpeedStrike est le sommet de la technologie de chaussure de course, offrant la combinaison ultime de propulsion plaque carbone, construction l\\u00e9g\\u00e8re et amorti r\\u00e9actif.</p>
+<p><strong>Semelle plaque carbone</strong></p>
+<p>La plaque en fibre de carbone pleine longueur agit comme un levier, r\\u00e9duisant la perte d\\u2019\\u00e9nergie \\u00e0 la cheville et cr\\u00e9ant un d\\u00e9collage vif. Les \\u00e9tudes montrent une am\\u00e9lioration de 2 \\u00e0 4% de l\\u2019\\u00e9conomie de course.</p>
+<p><strong>Construction ultra-l\\u00e9g\\u00e8re</strong></p>
+<p>\\u00c0 seulement 185 grammes par chaussure en taille 10, SpeedStrike est parmi les plus l\\u00e9g\\u00e8res du march\\u00e9.</p>
+<p><strong>Coloris jour de course</strong></p>
+<ul><li><strong>Volt/Noir :</strong> Visibilit\\u00e9 maximale et style agressif</li><li><strong>Rouge/Blanc :</strong> Esth\\u00e9tique course classique</li><li><strong>Bleu/Argent :</strong> Confiance fra\\u00eeche pour les championnats</li></ul>
+<p><strong>Focalis\\u00e9es sur la comp\\u00e9tition</strong></p>
+<ul><li>Records personnels en marathon et semi-marathon</li><li>Courses sur piste du 5K au 10K</li><li>\\u00c9v\\u00e9nements de championnat</li></ul>
+<p><strong>Taille</strong></p>
+<p>Disponibles du 7 au 11. Fid\\u00e8les \\u00e0 la taille avec ajustement racing serr\\u00e9.</p>`),
+  },
+
+  // ==================== FORMAL ====================
+
+  "30509eaa-9666-4241-8aa3-bf909f3c5d4c": {
+    en: `<p>Invest in timeless elegance with Classic Leather Elite, handcrafted dress shoes that represent the pinnacle of traditional shoemaking. These are not merely shoes, they are heirloom-quality pieces designed to be worn, cherished, and even passed down through generations.</p>
+<p><strong>Premium Italian Leather</strong></p>
+<p>Sourced from the renowned tanneries of Tuscany, the full-grain calfskin leather used in Classic Leather Elite develops a beautiful patina over years of wear. Each pair tells its own story, becoming more distinguished and personal with time.</p>
+<p><strong>Handcrafted Excellence</strong></p>
+<p>Skilled artisans hand-finish every pair, applying multiple layers of color and polish to achieve the rich, multidimensional shine that distinguishes handmade shoes from factory-produced footwear. No two pairs are exactly alike.</p>
+<p><strong>Modern Comfort Inside</strong></p>
+<p>Despite the traditional exterior, hidden inside is a fully cushioned leather insole with arch support, a shock-absorbing heel pad, and breathable lining that keeps your feet comfortable through the longest business days and formal events.</p>
 <p><strong>Three Sophisticated Colorways</strong></p>
-<ul><li><strong>Tan:</strong> Warm neutral that pairs with browns, blues, and greens</li><li><strong>Navy:</strong> Deep classic tone that reads as an alternative to black</li><li><strong>Burgundy:</strong> Rich statement color for confident dressers</li></ul>
-<p><strong>From Subway to Boardroom</strong></p>
-<p>Whether you are commuting on public transit, walking client meetings, or attending after-work networking events, Metro Flex handles it all with style and comfort. No more carrying separate shoes for different parts of your day.</p>
-<p><strong>Business Casual Perfection</strong></p>
-<ul><li>Chinos and button-downs for the office</li><li>Dark jeans and blazers for client meetings</li><li>Quarter zips and joggers for creative days</li><li>Even suits in relaxed workplace environments</li></ul>
-<p><strong>Investment-Grade Quality</strong></p>
-<p>The combination of genuine leather and premium comfort technology means these are shoes you will own for years. Care for the leather occasionally, and they will look great long after fast-fashion alternatives have fallen apart. Available in sizes 7-12.</p>`,
-    fr: d(`<p>Comblez l\\u2019\\u00e9cart entre l\\u2019\\u00e9l\\u00e9gance corporate et le confort athl\\u00e9tique avec les baskets Metro Flex. Con\\u00e7ues pour les professionnels qui naviguent entre multiples environnements.</p>
-<p><strong>Construction en cuir v\\u00e9ritable</strong></p>
-<p>La tige pr\\u00e9sente un cuir pleine fleur qui d\\u00e9veloppe une riche patine avec le temps.</p>
-<p><strong>Semelles en mousse m\\u00e9moire</strong></p>
-<p>Sous l\\u2019ext\\u00e9rieur sophistiqu\\u00e9 se trouve une technologie de confort de grade athl\\u00e9tique.</p>
-<p><strong>Perfection smart casual</strong></p>
-<p>Ces baskets occupent la zone id\\u00e9ale entre chaussures formelles et chaussures athl\\u00e9tiques.</p>
+<ul><li><strong>Brown:</strong> Warm medium brown ideal for business and social occasions</li><li><strong>Black:</strong> The essential formal shoe for the most important events</li><li><strong>Tan:</strong> Light golden hue perfect for summer weddings and daytime events</li></ul>
+<p><strong>Dress Code Versatility</strong></p>
+<ul><li>Business professional meetings and presentations</li><li>Weddings and formal celebrations</li><li>Black tie events with the appropriate colorway</li><li>Job interviews where first impressions matter</li><li>Church services and religious ceremonies</li></ul>
+<p><strong>Care & Longevity</strong></p>
+<p>With proper care using quality shoe cream and regular polishing, these shoes will maintain their beauty for decades. Store on cedar shoe trees to maintain shape and absorb moisture. Available in sizes 8-12.</p>`,
+    fr: d(`<p>Investissez dans l\\u2019\\u00e9l\\u00e9gance intemporelle avec Cuir Classique Elite, des chaussures habill\\u00e9es manufactur\\u00e9es qui repr\\u00e9sentent le sommet de la cordonnerie traditionnelle.</p>
+<p><strong>Cuir italien premium</strong></p>
+<p>Provenant des tanneries renomm\\u00e9es de Toscane, le cuir pleine fleur de veau d\\u00e9veloppe une belle patine au fil des ann\\u00e9es de port. Chaque paire raconte sa propre histoire.</p>
+<p><strong>Excellence artisanale</strong></p>
+<p>Des artisans qualifi\\u00e9s finissent chaque paire \\u00e0 la main, appliquant plusieurs couches de couleur et de cirage pour obtenir le brillant multidimensionnel qui distingue les chaussures artisanales.</p>
+<p><strong>Confort moderne \\u00e0 l\\u2019int\\u00e9rieur</strong></p>
+<p>Malgr\\u00e9 l\\u2019ext\\u00e9rieur traditionnel, l\\u2019int\\u00e9rieur est enti\\u00e8rement rembourr\\u00e9 avec soutien de la vo\\u00fbte, talon absorbant les chocs et doublure respirante.</p>
 <p><strong>Trois coloris sophistiqu\\u00e9s</strong></p>
-<ul><li><strong>Beige :</strong> Neutre chaud qui s\\u2019associe aux bruns, bleus et verts</li><li><strong>Marine :</strong> Ton classique profond comme alternative au noir</li><li><strong>Bordeaux :</strong> Couleur statement riche pour les dresseurs confiants</li></ul>
-<p><strong>Du m\\u00e9tro au bureau</strong></p>
-<p>Que vous fassiez la navette en transports publics, marchiez vers des r\\u00e9unions clients, Metro Flex g\\u00e8re tout.</p>
-<p><strong>Perfection business casual</strong></p>
-<ul><li>Chinos et chemises pour le bureau</li><li>Jeans fonc\\u00e9s et blazers pour les r\\u00e9unions clients</li><li>Quarter zips et joggers pour les jours cr\\u00e9atifs</li></ul>
-<p><strong>Qualit\\u00e9 investissement</strong></p>
-<p>Ces chaussures vous accompagneront pendant des ann\\u00e9es. Disponibles du 7 au 12.</p>`),
+<ul><li><strong>Marron :</strong> Brun moyen chaud pour occasions professionnelles et sociales</li><li><strong>Noir :</strong> La chaussure formelle essentielle pour les \\u00e9v\\u00e9nements importants</li><li><strong>Beige :</strong> Teinte dor\\u00e9e claire pour mariages d\\u2019\\u00e9t\\u00e9</li></ul>
+<p><strong>Polyvalence vestimentaire</strong></p>
+<ul><li>R\\u00e9unions et pr\\u00e9sentations professionnelles</li><li>Mariages et c\\u00e9l\\u00e9brations formelles</li><li>\\u00c9v\\u00e9nements en tenue de soir\\u00e9e</li><li>Entretiens d\\u2019embauche</li></ul>
+<p><strong>Entretien et long\\u00e9vit\\u00e9</strong></p>
+<p>Avec un entretien r\\u00e9gulier au cirage de qualit\\u00e9, ces chaussures garderont leur beaut\\u00e9 pendant des d\\u00e9cennies. Disponibles du 8 au 12.</p>`),
+  },
+
+  "20a86447-3627-4e1d-aec5-1b14a59b818d": {
+    en: `<p>The Oxford Gentleman is the definitive gentleman shoe, the single pair every man should own. Built with Goodyear welt construction and full-grain leather, these Oxfords represent centuries of shoemaking tradition refined for the modern era.</p>
+<p><strong>Goodyear Welt Construction</strong></p>
+<p>The Goodyear welt method involves stitching the upper to a leather welt strip, which is then stitched to the outsole. This three-layer construction allows for resoling, meaning these shoes can literally last a lifetime with proper care. It also creates a natural water barrier around the foot.</p>
+<p><strong>Full-Grain Leather Excellence</strong></p>
+<p>The upper uses the finest grade of leather available, with the full natural grain intact. This material is stronger, more breathable, and develops a more beautiful patina than corrected-grain leather used in lesser shoes.</p>
+<p><strong>Closed-Lacing Oxford Design</strong></p>
+<p>The quintessential closed-lacing system, where the facing is stitched under the vamp, creates the clean, formal appearance that makes Oxfords the most appropriate shoe for formal occasions.</p>
+<p><strong>Three Distinguished Colorways</strong></p>
+<ul><li><strong>Black Polish:</strong> The most formal option, appropriate for black tie and boardrooms</li><li><strong>Cognac:</strong> Rich warm brown with amber undertones for daytime elegance</li><li><strong>Oxblood:</strong> Deep burgundy that commands attention while remaining refined</li></ul>
+<p><strong>When to Wear Oxfords</strong></p>
+<ul><li>Business suits in corporate environments</li><li>Weddings and formal social events</li><li>Black tie affairs paired with a tuxedo</li><li>Job interviews and important meetings</li><li>Religious ceremonies and memorial services</li></ul>
+<p><strong>Investment Value</strong></p>
+<p>A quality Goodyear-welted Oxford can be resoled 3-5 times during its lifetime, making the cost-per-wear remarkably low compared to cheaper shoes that need replacing annually. These are the most cost-effective dress shoes you will ever own.</p>
+<p><strong>Sizing</strong></p>
+<p>Available in sizes 8-12. Runs true to size. The leather will stretch slightly to conform to your foot shape during the first weeks of wear.</p>`,
+    fr: d(`<p>L\\u2019Oxford Gentleman est la chaussure d\\u00e9finitive de tout gentleman, la paire que chaque homme devrait poss\\u00e9der. Construite en Goodyear welt et cuir pleine fleur, elle repr\\u00e9sente des si\\u00e8cles de tradition cordonni\\u00e8re.</p>
+<p><strong>Construction Goodyear welt</strong></p>
+<p>La m\\u00e9thode Goodyear welt implique de coudre la tige \\u00e0 une bande tr\\u00e9pointe, puis \\u00e0 la semelle. Cette construction en trois couches permet le ressemelage, ce qui signifie que ces chaussures peuvent litt\\u00e9ralement durer toute une vie.</p>
+<p><strong>Excellence cuir pleine fleur</strong></p>
+<p>La tige utilise le grade le plus fin de cuir disponible, avec le grain naturel intact. Ce mat\\u00e9riau est plus r\\u00e9sistant, plus respirant et d\\u00e9veloppe une plus belle patine.</p>
+<p><strong>Design Oxford \\u00e0 lacets ferm\\u00e9s</strong></p>
+<p>Le syst\\u00e8me de lacets ferm\\u00e9s quintessentiel cr\\u00e9e l\\u2019apparence formelle propre qui fait des Oxfords la chaussure la plus appropri\\u00e9e pour les occasions formelles.</p>
+<p><strong>Trois coloris distingu\\u00e9s</strong></p>
+<ul><li><strong>Noir Poli :</strong> L\\u2019option la plus formelle, pour tenue de soir\\u00e9e et conseil d\\u2019administration</li><li><strong>Cognac :</strong> Brun chaud riche avec des sous-tons ambre</li><li><strong>Bordeaux :</strong> Bourgogne profond qui attire l\\u2019attention tout en restant raffin\\u00e9</li></ul>
+<p><strong>Quand porter des Oxfords</strong></p>
+<ul><li>Costumes d\\u2019affaires en environnement corporate</li><li>Mariages et \\u00e9v\\u00e9nements sociaux formels</li><li>Soir\\u00e9es en tenue de soir\\u00e9e avec smoking</li><li>Entretiens d\\u2019embauche et r\\u00e9unions importantes</li></ul>
+<p><strong>Valeur d\\u2019investissement</strong></p>
+<p>Une Oxford Goodyear-welt\\u00e9e de qualit\\u00e9 peut \\u00eatre ressemel\\u00e9e 3 \\u00e0 5 fois durant sa dur\\u00e9e de vie.</p>
+<p><strong>Taille</strong></p>
+<p>Disponibles du 8 au 12. Fid\\u00e8les \\u00e0 la taille.</p>`),
+  },
+
+  "cf3923ed-c866-4abf-9ada-265feeaad757": {
+    en: `<p>Step into professional elegance with Derby Prestige, the open-laced dress shoe that combines formal appearance with all-day wearing comfort. Unlike rigid traditional formal shoes, Derby Prestige features design innovations that make professional dressing a pleasure rather than a compromise.</p>
+<p><strong>Open-Lacing Versatility</strong></p>
+<p>The Derby open-lacing system, where the facing is stitched on top of the vamp, provides a wider opening for easy entry and allows adjustment throughout the day as your feet naturally swell. This construction is slightly less formal than an Oxford but significantly more comfortable for extended wear.</p>
+<p><strong>Padded Insole Technology</strong></p>
+<p>Hidden beneath the classic leather exterior is a fully cushioned insole with targeted arch support and heel padding. Unlike traditional dress shoes with hard leather soles, Derby Prestige provides athletic-grade comfort for professionals who spend their days on their feet.</p>
+<p><strong>Flexible Leather Construction</strong></p>
+<p>The specially treated leather upper is softer and more pliable than standard dress shoe leather, requiring virtually no break-in period. Most wearers report full comfort from day one, a rarity in the formal footwear world.</p>
+<p><strong>Two Essential Colorways</strong></p>
+<ul><li><strong>Black:</strong> The ultimate professional essential that pairs with every suit color</li><li><strong>Dark Brown:</strong> Warm versatility for business casual and formal settings alike</li></ul>
+<p><strong>Professional Wear Situations</strong></p>
+<ul><li>Daily office wear in corporate environments</li><li>Client meetings and business lunches</li><li>Conference presentations and networking events</li><li>Business casual offices seeking polish</li><li>Semi-formal social events</li></ul>
+<p><strong>Sizing</strong></p>
+<p>Available in sizes 8-11. True to size with a generous fit that accommodates most foot widths comfortably.</p>`,
+    fr: d(`<p>Entrez dans l\\u2019\\u00e9l\\u00e9gance professionnelle avec Derby Prestige, la chaussure habill\\u00e9e \\u00e0 lacets ouverts qui allie apparence formelle et confort toute la journ\\u00e9e.</p>
+<p><strong>Polyvalence des lacets ouverts</strong></p>
+<p>Le syst\\u00e8me \\u00e0 lacets ouverts du Derby offre une ouverture plus large pour un enfilage facile et un ajustement tout au long de la journ\\u00e9e lorsque vos pieds gonflent naturellement.</p>
+<p><strong>Technologie de semelle rembourr\\u00e9e</strong></p>
+<p>Cach\\u00e9e sous l\\u2019ext\\u00e9rieur en cuir classique se trouve une semelle enti\\u00e8rement rembourr\\u00e9e avec soutien de la vo\\u00fbte cibl\\u00e9 et rembourrage du talon.</p>
+<p><strong>Construction en cuir flexible</strong></p>
+<p>Le cuir sp\\u00e9cialement trait\\u00e9 est plus souple que le cuir standard des chaussures habill\\u00e9es, ne n\\u00e9cessitant pratiquement aucune p\\u00e9riode de rodage.</p>
+<p><strong>Deux coloris essentiels</strong></p>
+<ul><li><strong>Noir :</strong> L\\u2019essentiel professionnel qui s\\u2019accorde avec chaque couleur de costume</li><li><strong>Marron fonc\\u00e9 :</strong> Polyvalence chaleureuse pour les cadres business casual et formels</li></ul>
+<p><strong>Situations professionnelles</strong></p>
+<ul><li>Port quotidien au bureau corporate</li><li>R\\u00e9unions clients et d\\u00e9jeuners d\\u2019affaires</li><li>Pr\\u00e9sentations en conf\\u00e9rence</li><li>\\u00c9v\\u00e9nements sociaux semi-formels</li></ul>
+<p><strong>Taille</strong></p>
+<p>Disponibles du 8 au 11. Fid\\u00e8les \\u00e0 la taille avec un ajustement g\\u00e9n\\u00e9reux.</p>`),
+  },
+
+  "7af849d3-31b0-460c-81de-7ba9101a6bdd": {
+    en: `<p>Slip into effortless sophistication with Loafer Luxe, the penny loafer that elevates casual elegance to an art form. Handcrafted from butter-soft calfskin leather, these loafers deliver the kind of refined comfort that makes you want to wear them every single day.</p>
+<p><strong>Butter-Soft Calfskin</strong></p>
+<p>The upper is crafted from the finest calfskin leather, selected for its exceptionally soft hand feel and natural luster. Unlike stiff leather that requires weeks of painful break-in, calfskin molds to your foot shape almost immediately, providing a personalized fit from the first wear.</p>
+<p><strong>Hand-Stitched Penny Detail</strong></p>
+<p>The iconic penny strap is hand-stitched by skilled craftsmen, a time-consuming process that results in superior durability and aesthetic refinement compared to machine-stitched alternatives. This detail is the hallmark of genuine quality.</p>
+<p><strong>Slip-On Convenience</strong></p>
+<p>No laces, no buckles, no fuss. Simply slide your foot in and you are ready for whatever the day brings. The elasticized throat ensures a secure fit while making removal equally effortless at the end of a long day.</p>
+<p><strong>Three Luxury Colorways</strong></p>
+<ul><li><strong>Burgundy:</strong> Rich wine tones that command attention in any room</li><li><strong>Navy:</strong> Sophisticated alternative to black for creative professionals</li><li><strong>Camel:</strong> Warm tan perfect for summer suits and resort wear</li></ul>
+<p><strong>Styling Versatility</strong></p>
+<ul><li>Business casual with chinos and a blazer</li><li>Smart casual with tailored shorts</li><li>Weekend elegance with jeans and a polo</li><li>Resort wear with linen trousers</li><li>Sockless summer style for the confident dresser</li></ul>
+<p><strong>Sizing</strong></p>
+<p>Available in sizes 8-12. Loafers should fit snugly at first as the leather will stretch and mold. We recommend ordering your exact size or half a size down from your sneaker size.</p>`,
+    fr: d(`<p>Glissez dans une sophistication sans effort avec Loafer Luxe, le mocassin penny qui \\u00e9l\\u00e8ve l\\u2019\\u00e9l\\u00e9gance d\\u00e9contract\\u00e9e au rang d\\u2019art. Manufactur\\u00e9 en cuir de veau ultra-souple.</p>
+<p><strong>Cuir de veau ultra-souple</strong></p>
+<p>La tige est fabriqu\\u00e9e dans le plus fin cuir de veau, s\\u00e9lectionn\\u00e9 pour son toucher exceptionnellement doux et son lustre naturel. Contrairement au cuir rigide, le cuir de veau \\u00e9pouse la forme de votre pied presque imm\\u00e9diatement.</p>
+<p><strong>D\\u00e9tail penny cousu main</strong></p>
+<p>La bande penny iconique est cousue main par des artisans qualifi\\u00e9s, garantissant une durabilit\\u00e9 et un raffinement esth\\u00e9tique sup\\u00e9rieurs.</p>
+<p><strong>Commodit\\u00e9 slip-on</strong></p>
+<p>Pas de lacets, pas de boucles, aucun souci. Glissez simplement votre pied et vous \\u00eates pr\\u00eat.</p>
+<p><strong>Trois coloris luxueux</strong></p>
+<ul><li><strong>Bordeaux :</strong> Tons vin riches qui attirent l\\u2019attention</li><li><strong>Marine :</strong> Alternative sophistiqu\\u00e9e au noir</li><li><strong>Camel :</strong> Beige chaud parfait pour les costumes d\\u2019\\u00e9t\\u00e9</li></ul>
+<p><strong>Polyvalence de style</strong></p>
+<ul><li>Business casual avec chinos et blazer</li><li>Smart casual avec shorts sur mesure</li><li>\\u00c9l\\u00e9gance week-end avec jean et polo</li><li>Tenues de vill\\u00e9giature avec pantalons en lin</li></ul>
+<p><strong>Taille</strong></p>
+<p>Disponibles du 8 au 12. Les mocassins doivent \\u00eatre ajust\\u00e9s car le cuir va s\\u2019\\u00e9tirer.</p>`),
+  },
+
+  "18a3e8dd-a83a-4b97-8af3-757f4cf7cfdd": {
+    en: `<p>Command attention in the boardroom and beyond with Monk Strap Master, the double monk strap shoe that combines bold design with impeccable craftsmanship. For the professional who considers shoes a statement of character, these deliver authority and refinement in equal measure.</p>
+<p><strong>Double Monk Strap Design</strong></p>
+<p>Two adjustable buckle straps replace traditional laces, creating a distinctive silhouette that sets you apart from colleagues in conventional Oxfords and Derbies. The monk strap design is both fashion-forward and historically rooted, tracing its origins to 15th-century European monasteries.</p>
+<p><strong>Premium Buckle Hardware</strong></p>
+<p>The polished metal buckles are crafted from solid brass with premium plating, designed to resist tarnishing and maintain their shine through years of daily use. Each buckle is hand-set and tested for smooth operation.</p>
+<p><strong>Hand-Burnished Leather Finish</strong></p>
+<p>The leather undergoes a hand-burnishing process where craftsmen apply and blend multiple layers of pigment to create a rich, dimensional color that cannot be replicated by machines. The result is a finish with depth and character.</p>
+<p><strong>Two Statement Colorways</strong></p>
+<ul><li><strong>Mahogany:</strong> Deep reddish-brown with warm undertones for maximum visual impact</li><li><strong>Black:</strong> Formal and authoritative for the most important occasions</li></ul>
+<p><strong>Style Authority</strong></p>
+<ul><li>Corporate environments where you want to stand out tastefully</li><li>Client-facing roles where confidence matters</li><li>Fashion-forward professional settings</li><li>Evening events and cocktail parties</li><li>Creative industries that value personal expression</li></ul>
+<p><strong>Sizing</strong></p>
+<p>Available in sizes 8-11. The buckle closure allows for fit adjustment throughout the day. True to dress shoe sizing, order your normal formal shoe size.</p>`,
+    fr: d(`<p>Attirez l\\u2019attention dans la salle de conf\\u00e9rence et au-del\\u00e0 avec Monk Strap Master, la chaussure \\u00e0 double boucle qui allie design audacieux et artisanat impeccable.</p>
+<p><strong>Design double boucle monk strap</strong></p>
+<p>Deux brides \\u00e0 boucle ajustables remplacent les lacets traditionnels, cr\\u00e9ant une silhouette distinctive qui vous d\\u00e9marque. Le design monk strap est \\u00e0 la fois avant-gardiste et historiquement ancr\\u00e9, tra\\u00e7ant ses origines dans les monast\\u00e8res europ\\u00e9ens du XVe si\\u00e8cle.</p>
+<p><strong>Quincaillerie boucle premium</strong></p>
+<p>Les boucles en m\\u00e9tal poli sont fabriqu\\u00e9es en laiton massif avec plaquage premium, con\\u00e7ues pour r\\u00e9sister au ternissement.</p>
+<p><strong>Finition cuir bross\\u00e9 main</strong></p>
+<p>Le cuir subit un processus de brossage \\u00e0 la main o\\u00f9 les artisans appliquent plusieurs couches de pigment pour cr\\u00e9er une couleur riche et dimensionnelle.</p>
+<p><strong>Deux coloris statement</strong></p>
+<ul><li><strong>Acajou :</strong> Brun-rouge profond avec sous-tons chauds pour un impact visuel maximum</li><li><strong>Noir :</strong> Formel et autoritaire pour les occasions les plus importantes</li></ul>
+<p><strong>Autorit\\u00e9 de style</strong></p>
+<ul><li>Environnements corporate o\\u00f9 vous voulez vous d\\u00e9marquer avec go\\u00fbt</li><li>R\\u00f4les face au client o\\u00f9 la confiance compte</li><li>Industries cr\\u00e9atives valorisant l\\u2019expression personnelle</li></ul>
+<p><strong>Taille</strong></p>
+<p>Disponibles du 8 au 11. La fermeture \\u00e0 boucle permet un ajustement tout au long de la journ\\u00e9e.</p>`),
   },
 
 };
@@ -370,7 +513,7 @@ export async function GET(request: NextRequest) {
 
       if (!data) {
         skipped++;
-        results.push({ id: product.id, name: product.name, status: "skipped - no data yet", changes: [] });
+        results.push({ id: product.id, name: product.name, status: "skipped - batch 3", changes: [] });
         continue;
       }
 
@@ -388,7 +531,7 @@ export async function GET(request: NextRequest) {
 
       if (Object.keys(updates).length === 0) {
         skipped++;
-        results.push({ id: product.id, name: product.name, status: "already has long desc", changes: [] });
+        results.push({ id: product.id, name: product.name, status: "already has content", changes: [] });
         continue;
       }
 
@@ -406,7 +549,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      batch: 1,
+      batch: 2,
       summary: { total: allProducts.length, updated, skipped, errors },
       results,
     }, { status: 200 });
