@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Inter } from "next/font/google";
 import dynamic from "next/dynamic";
@@ -33,6 +33,14 @@ const StickyPromoBar = dynamic(() => import("@/components/StickyPromoBar"));
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.newdealzone.com";
 
+// Chrome mobile address bar color + PWA theme
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#CA3F2E" },
+    { media: "(prefers-color-scheme: dark)",  color: "#8B2A1E" },
+  ],
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
@@ -52,6 +60,10 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
   verification: {
     google: "JY5IqgH1P44E4yJsMaRCsPWYfixVcPNFrILitMmKzmg",
+  },
+  // Chrome / Safari mobile address bar color - matches brand
+  other: {
+    "theme-color": "#CA3F2E",
   },
   alternates: {
     canonical: siteUrl,
