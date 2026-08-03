@@ -16,26 +16,9 @@ export default function AboutPage() {
       <Navbar />
 
       {/* ============================================
-          HERO - matches FAQ style
+          FOUNDER CARD - big photo, warm note (first section)
           ============================================ */}
-      <section className="bg-gray-900 text-white pt-32 lg:pt-36 pb-20 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <span className="inline-block px-4 py-1.5 bg-white/10 rounded-full text-xs font-semibold tracking-widest uppercase mb-6">
-            {t("badge")}
-          </span>
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4">
-            {t("manifestoIntro")}
-          </h1>
-          <p className="text-gray-400 text-lg max-w-xl mx-auto">
-            {t("manifestoSub")}
-          </p>
-        </div>
-      </section>
-
-      {/* ============================================
-          FOUNDER CARD - big photo, warm note
-          ============================================ */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 lg:pt-32">
         <div className="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden">
           <div className="grid md:grid-cols-[minmax(280px,340px)_1fr]">
             {/* Photo */}
