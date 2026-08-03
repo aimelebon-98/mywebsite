@@ -11,6 +11,7 @@ import ShopSidebar from "@/components/ShopSidebar";
 import ShopTopBar from "@/components/ShopTopBar";
 import ActiveFilterChips from "@/components/ActiveFilterChips";
 import CategoryShowcase from "@/components/CategoryShowcase";
+import AnimatedNetwork from "@/components/AnimatedNetworkLazy";
 import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
@@ -158,6 +159,11 @@ export default async function ShopPage({ params, searchParams }: Props) {
       <div className="pt-24 lg:pt-28 relative overflow-hidden bg-[#0a0a0a]">
         {/* Layer 1: Deep gradient base */}
         <div className="absolute inset-0 bg-gradient-to-br from-black via-neutral-900 to-neutral-800" />
+
+        {/* Layer 1.5: Animated network (same as homepage hero) */}
+        <div className="absolute inset-0 pointer-events-none opacity-70">
+          <AnimatedNetwork />
+        </div>
 
         {/* Layer 2: Soft radial glows (ash / white light) */}
         <div
