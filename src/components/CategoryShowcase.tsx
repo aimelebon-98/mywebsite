@@ -89,13 +89,13 @@ export default function CategoryShowcase({ categories, activeCategory, speed = 4
 
   return (
     <div
-      className="relative w-full overflow-hidden group"
+      className="relative w-full overflow-x-hidden py-4 group"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
       {/* Edge fade masks - both sides fade so the loop point is invisible */}
-      <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-16 z-10 bg-gradient-to-r from-black to-transparent" />
-      <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-16 z-10 bg-gradient-to-l from-black to-transparent" />
+      <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-16 z-20 bg-gradient-to-r from-black to-transparent" />
+      <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-16 z-20 bg-gradient-to-l from-black to-transparent" />
 
       {/* Marquee track - moves -50% forever (which is exactly one full set width) */}
       <div
