@@ -591,3 +591,12 @@ div.tiptap-editor {
 .animate-blob-1 { animation: blob-float-1 20s ease-in-out infinite; }
 .animate-blob-2 { animation: blob-float-2 25s ease-in-out infinite; animation-delay: -5s; }
 .animate-blob-3 { animation: blob-float-3 30s ease-in-out infinite; animation-delay: -10s; }
+
+
+/* ============================================
+   CATEGORY MARQUEE - endless horizontal scroll
+   ============================================ */
+@keyframes category-marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}

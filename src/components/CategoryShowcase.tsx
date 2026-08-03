@@ -1,8 +1,8 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
-import { useRef, useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Package } from "lucide-react";
+import { useState } from "react";
+import { Package } from "lucide-react";
 import { useLocale } from "next-intl";
 
 interface Category {
@@ -14,9 +14,10 @@ interface Category {
 interface CategoryShowcaseProps {
   categories: Category[];
   activeCategory: string;
+  /** Seconds for one full loop. Higher = slower. Default 40s. */
+  speed?: number;
 }
 
-// Unsplash fallback images when no product image is available
 const fallbackImages: Record<string, string> = {
   sneakers: "https://images.unsplash.com/photo-1552346154-21d32810aba3?w=400&q=80",
   running:  "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=400&q=80",
@@ -27,118 +28,84 @@ const fallbackImages: Record<string, string> = {
   all:      "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=400&q=80",
 };
 
-export default function CategoryShowcase({ categories, activeCategory }: CategoryShowcaseProps) {
+export default function CategoryShowcase({ categories, activeCategory, speed = 40 }: CategoryShowcaseProps) {
   const locale = useLocale();
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
+  const [paused, setPaused] = useState(false);
   const [hoveredSlug, setHoveredSlug] = useState<string | null>(null);
 
   const visibleCategories = categories.filter(c => c.slug !== "all");
-
-  const checkScroll = () => {
-    const el = scrollRef.current;
-    if (!el) return;
-    setCanScrollLeft(el.scrollLeft > 5);
-    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 5);
-  };
-
-  useEffect(() => {
-    checkScroll();
-    const el = scrollRef.current;
-    if (!el) return;
-    el.addEventListener("scroll", checkScroll);
-    window.addEventListener("resize", checkScroll);
-    return () => {
-      el.removeEventListener("scroll", checkScroll);
-      window.removeEventListener("resize", checkScroll);
-    };
-  }, [visibleCategories.length]);
-
-  const scroll = (dir: "left" | "right") => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const amount = el.clientWidth * 0.7;
-    el.scrollBy({ left: dir === "left" ? -amount : amount, behavior: "smooth" });
-  };
-
   if (visibleCategories.length === 0) return null;
 
-  return (
-    <div className="relative w-full">
-      {canScrollLeft && (
-        <button
-          onClick={() => scroll("left")}
-          aria-label="Scroll left"
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-20 w-9 h-9 bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition"
-        >
-          <ChevronLeft className="w-5 h-5 text-gray-700" />
-        </button>
-      )}
+  // Duplicate the list so the marquee can loop seamlessly
+  const looped = [...visibleCategories, ...visibleCategories];
 
-      {canScrollRight && (
-        <button
-          onClick={() => scroll("right")}
-          aria-label="Scroll right"
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-9 h-9 bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition"
-        >
-          <ChevronRight className="w-5 h-5 text-gray-700" />
-        </button>
-      )}
+  const renderCard = (cat: Category, keyPrefix: string) => {
+    const isActive = activeCategory === cat.slug;
+    const isHovered = hoveredSlug === cat.slug;
+    const isDimmed = hoveredSlug !== null && hoveredSlug !== cat.slug;
+    const bgImg = cat.imageUrl || fallbackImages[cat.slug] || fallbackImages.all;
 
-      <div
-        ref={scrollRef}
-        className="flex gap-3 overflow-x-auto scrollbar-hide scroll-smooth px-1 py-2"
-        onMouseLeave={() => setHoveredSlug(null)}
+    return (
+      <Link
+        key={keyPrefix + "-" + cat.slug}
+        href={`/${locale}/shop?category=${cat.slug}`}
+        onMouseEnter={() => { setHoveredSlug(cat.slug); setPaused(true); }}
+        onMouseLeave={() => { setHoveredSlug(null); setPaused(false); }}
+        className={"relative flex-shrink-0 w-32 sm:w-36 lg:w-40 aspect-square rounded-2xl overflow-hidden group transition-all duration-300 border-2 " +
+          (isActive
+            ? "border-white shadow-[0_0_0_2px_rgba(255,255,255,0.3),0_10px_40px_-5px_rgba(255,255,255,0.4)]"
+            : "border-white/70 hover:border-white shadow-[0_4px_20px_-2px_rgba(0,0,0,0.5)]") +
+          (isHovered ? " scale-110 shadow-2xl z-10" : "") +
+          (isDimmed ? " opacity-50 scale-95" : "")
+        }
+        style={{
+          backgroundImage: `url(${bgImg})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundColor: "#f3f4f6",
+        }}
       >
-        {visibleCategories.map((cat) => {
-          const isActive = activeCategory === cat.slug;
-          const isHovered = hoveredSlug === cat.slug;
-          const isDimmed = hoveredSlug !== null && hoveredSlug !== cat.slug;
-          const bgImg = cat.imageUrl || fallbackImages[cat.slug] || fallbackImages.all;
+        <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/30 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
-          return (
-            <Link
-              key={cat.slug}
-              href={`/${locale}/shop?category=${cat.slug}`}
-              onMouseEnter={() => setHoveredSlug(cat.slug)}
-              className={`relative flex-shrink-0 w-32 sm:w-36 lg:w-40 aspect-square rounded-2xl overflow-hidden group transition-all duration-300 border-2 ${
-                isActive
-                  ? "border-white shadow-[0_0_0_2px_rgba(255,255,255,0.3),0_10px_40px_-5px_rgba(255,255,255,0.4)]"
-                  : "border-white/70 hover:border-white shadow-[0_4px_20px_-2px_rgba(0,0,0,0.5)]"
-              } ${
-                isHovered ? "scale-110 shadow-2xl z-10" : ""
-              } ${isDimmed ? "opacity-50 scale-95" : ""}`}
-              style={{
-                backgroundImage: `url(${bgImg})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                backgroundColor: "#f3f4f6",
-              }}
-            >
-              {/* Inner subtle white glow ring */}
-              <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/30 pointer-events-none" />
+        {!cat.imageUrl && !fallbackImages[cat.slug] && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Package className="w-10 h-10 text-gray-400" />
+          </div>
+        )}
 
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+        <div className="absolute bottom-3 left-3 right-3">
+          <p className="text-white font-bold text-sm sm:text-base drop-shadow-lg capitalize">
+            {cat.name}
+          </p>
+        </div>
 
-              {!cat.imageUrl && !fallbackImages[cat.slug] && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Package className="w-10 h-10 text-gray-400" />
-                </div>
-              )}
+        {isActive && (
+          <div className="absolute top-2 right-2 w-2.5 h-2.5 bg-white rounded-full shadow-lg ring-2 ring-white/40" />
+        )}
+      </Link>
+    );
+  };
 
-              <div className="absolute bottom-3 left-3 right-3">
-                <p className="text-white font-bold text-sm sm:text-base drop-shadow-lg capitalize">
-                  {cat.name}
-                </p>
-              </div>
+  return (
+    <div
+      className="relative w-full overflow-hidden group"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      {/* Edge fade masks - both sides fade so the loop point is invisible */}
+      <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-16 z-10 bg-gradient-to-r from-black to-transparent" />
+      <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-16 z-10 bg-gradient-to-l from-black to-transparent" />
 
-              {isActive && (
-                <div className="absolute top-2 right-2 w-2.5 h-2.5 bg-white rounded-full shadow-lg ring-2 ring-white/40" />
-              )}
-            </Link>
-          );
-        })}
+      {/* Marquee track - moves -50% forever (which is exactly one full set width) */}
+      <div
+        className="flex gap-3 w-max"
+        style={{
+          animation: `category-marquee ${speed}s linear infinite`,
+          animationPlayState: paused ? "paused" : "running",
+        }}
+      >
+        {looped.map((cat, i) => renderCard(cat, i < visibleCategories.length ? "a" : "b"))}
       </div>
     </div>
   );
