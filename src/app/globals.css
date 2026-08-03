@@ -645,3 +645,14 @@ div.tiptap-editor {
 .product-long-desc p:first-child {
   margin-top: 0 !important;
 }
+/* Currency selector mobile bottom-sheet slide-up */
+@keyframes slide-up {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.animate-slide-up {
+  animation: slide-up 0.25s ease-out;
+}
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0.75rem);
+}

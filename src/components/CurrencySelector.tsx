@@ -231,14 +231,36 @@ export default function CurrencySelector({ compact = false, className = "", dark
 
       {open && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full mt-1 w-56 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden">
-            <div className="p-2 border-b border-gray-100">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-gray-500 px-2 py-1">
+          {/* MOBILE: full-screen bottom sheet backdrop */}
+          <div
+            className="fixed inset-0 z-40 bg-black/40 sm:bg-transparent sm:pointer-events-none"
+            onClick={() => setOpen(false)}
+          />
+
+          {/* MOBILE bottom sheet | DESKTOP dropdown */}
+          <div className="fixed inset-x-0 bottom-0 z-50 sm:absolute sm:inset-x-auto sm:bottom-auto sm:right-0 sm:top-full sm:mt-1 sm:w-64 bg-white rounded-t-2xl sm:rounded-xl shadow-2xl sm:shadow-lg border-t sm:border border-gray-100 overflow-hidden animate-slide-up sm:animate-none max-h-[85vh] sm:max-h-none flex flex-col">
+
+            {/* Mobile drag handle */}
+            <div className="flex justify-center pt-2 pb-1 sm:hidden">
+              <div className="w-10 h-1 bg-gray-300 rounded-full" />
+            </div>
+
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 sm:p-2 sm:py-2 border-b border-gray-100 flex-shrink-0">
+              <div className="text-sm sm:text-[10px] font-bold uppercase tracking-wider text-gray-700 sm:text-gray-500 sm:px-2">
                 {isFr ? "Choisir la devise" : "Select Currency"}
               </div>
+              <button
+                onClick={() => setOpen(false)}
+                className="sm:hidden p-1 -mr-1 rounded-lg hover:bg-gray-100 transition"
+                aria-label="Close"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
             </div>
-            <div className="max-h-80 overflow-y-auto py-1">
+
+            {/* Currency list - scrollable */}
+            <div className="overflow-y-auto py-1 flex-1 sm:max-h-80">
               {(Object.keys(CURRENCIES) as CurrencyCode[]).map(code => {
                 const info = CURRENCIES[code];
                 const isActive = code === currency;
@@ -246,29 +268,31 @@ export default function CurrencySelector({ compact = false, className = "", dark
                   <button
                     key={code}
                     onClick={() => { setCurrency(code); setOpen(false); }}
-                    className={`w-full flex items-center gap-3 px-3 py-2 text-left transition ${
+                    className={`w-full flex items-center gap-3 px-4 sm:px-3 py-3 sm:py-2 text-left transition active:bg-gray-100 ${
                       isActive ? "bg-[#CA3F2E]/5" : "hover:bg-gray-50"
                     }`}
                   >
-                    <Flag code={code} xofCountry={visitorCountry} size={22} />
+                    <Flag code={code} xofCountry={visitorCountry} size={24} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className={`text-sm font-bold ${isActive ? "text-[#CA3F2E]" : "text-gray-900"}`}>
+                        <span className={`text-base sm:text-sm font-bold ${isActive ? "text-[#CA3F2E]" : "text-gray-900"}`}>
                           {code}
                         </span>
-                        <span className="text-xs text-gray-500">{info.symbol}</span>
+                        <span className="text-sm sm:text-xs text-gray-500">{info.symbol}</span>
                       </div>
-                      <div className="text-[11px] text-gray-500 truncate">
+                      <div className="text-xs sm:text-[11px] text-gray-500 truncate">
                         {isFr ? info.nameFr : info.name}
                       </div>
                     </div>
-                    {isActive && <Check className="w-4 h-4 text-[#CA3F2E] flex-shrink-0" />}
+                    {isActive && <Check className="w-5 h-5 sm:w-4 sm:h-4 text-[#CA3F2E] flex-shrink-0" />}
                   </button>
                 );
               })}
             </div>
-            <div className="p-2 border-t border-gray-100 bg-gray-50">
-              <p className="text-[10px] text-gray-500 leading-relaxed px-2">
+
+            {/* Footer note */}
+            <div className="p-3 sm:p-2 border-t border-gray-100 bg-gray-50 flex-shrink-0 pb-safe">
+              <p className="text-xs sm:text-[10px] text-gray-500 leading-relaxed sm:px-2">
                 {isFr
                   ? "Prix convertis automatiquement. Paiement final en USD."
                   : "Prices auto-converted. Final payment in USD."}
