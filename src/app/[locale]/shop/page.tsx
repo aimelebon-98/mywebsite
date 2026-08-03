@@ -206,7 +206,12 @@ export default async function ShopPage({ params, searchParams }: Props) {
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 relative">
+        {/* Layer 7: Animated network - ABOVE all bg layers, BEHIND content */}
+        <div className="absolute inset-0 pointer-events-none">
+          <AnimatedNetwork />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 relative z-10">
           <nav className="flex items-center gap-1.5 text-xs text-gray-400 mb-4">
             <Link href={`/${locale}`} className="flex items-center gap-1 hover:text-white transition">
               <Home className="w-3.5 h-3.5" />
