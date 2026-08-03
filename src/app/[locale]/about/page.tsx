@@ -50,9 +50,9 @@ export default function AboutPage() {
       {/* ============================================
           THREE CHAPTERS - numbered timeline
           ============================================ */}
-      <section className="py-16 lg:py-20 relative">
+      <section className="py-10 lg:py-12 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <div className="text-center mb-14">
+          <div className="text-center mb-8">
             <span className="inline-block text-[10px] font-black tracking-[0.2em] uppercase text-[#CA3F2E] mb-3">
               {t("chaptersBadge")}
             </span>
@@ -92,7 +92,7 @@ export default function AboutPage() {
           FOUNDER CARD (LEFT) + WE PROMISE (RIGHT)
           Replaces the "We refuse" spot
           ============================================ */}
-      <section className="py-16 lg:py-20 relative">
+      <section className="py-10 lg:py-12 relative">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-4 lg:gap-6 items-stretch">
 
           {/* Founder card - replaces We Refuse */}
@@ -141,7 +141,7 @@ export default function AboutPage() {
                 {t("promiseLabel")}
               </span>
             </div>
-            <ul className="space-y-5 flex-1">
+            <ul className="space-y-5">
               {[
                 { title: t("promise1Title"), body: t("promise1Body") },
                 { title: t("promise2Title"), body: t("promise2Body") },
@@ -156,6 +156,26 @@ export default function AboutPage() {
                 </li>
               ))}
             </ul>
+
+            {/* Fill space - closing CTA block */}
+            <div className="mt-auto pt-6">
+              <div className="rounded-xl bg-gradient-to-br from-[#CA3F2E] to-[#8B2A1E] p-5 text-white">
+                <div className="flex items-start gap-3 mb-3">
+                  <MessageCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <div className="text-sm font-black mb-1">{t("ctaTitle")}</div>
+                    <div className="text-xs text-white/80 leading-relaxed">{t("ctaDesc")}</div>
+                  </div>
+                </div>
+                <Link
+                  href="/shop"
+                  className="inline-flex items-center justify-center gap-1.5 w-full py-2.5 bg-white text-gray-900 rounded-lg text-xs font-black hover:bg-gray-100 transition"
+                >
+                  {t("ctaShop")}
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -163,22 +183,30 @@ export default function AboutPage() {
       {/* ============================================
           CTA - clean close
           ============================================ */}
-      <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20 text-center relative">
-        <h2 className="font-fancy text-3xl sm:text-4xl text-gray-900 mb-3 tracking-tight">
+      <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14 text-center relative">
+        <h2 className="text-2xl sm:text-3xl font-black text-gray-900 mb-3 tracking-tight">
           {t("signature")}
         </h2>
         <p className="text-gray-500 mb-6">
           {t("signatureSub")}
         </p>
 
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="w-8 h-0.5 bg-gray-200" />
-          <div className="flex items-baseline gap-1.5 font-black tracking-tight text-base">
-            <span className="text-gray-900">NewDeal</span>
-            <span className="text-gray-300 font-light">|</span>
-            <span className="text-[#CA3F2E] tracking-widest text-sm">ZONE</span>
+        <div className="flex items-center justify-center gap-3 mb-8">
+          <div className="w-10 h-0.5 bg-gray-200" />
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden shadow-md" style={{ background: "linear-gradient(135deg, #CA3F2E 0%, #8B2A1E 100%)" }}>
+              <svg viewBox="0 0 24 24" className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M12.5 2H4a2 2 0 00-2 2v8.5a2 2 0 00.59 1.41l8.5 8.5a2 2 0 002.82 0l8.5-8.5a2 2 0 000-2.82L13.91 2.59A2 2 0 0012.5 2z" fill="white" />
+                <circle cx="7.5" cy="7.5" r="1.6" fill="#CA3F2E" />
+              </svg>
+            </div>
+            <div className="flex items-baseline gap-1.5 font-black tracking-tight text-lg leading-none">
+              <span className="text-gray-900">NewDeal</span>
+              <span className="text-gray-300 font-light">|</span>
+              <span className="text-[#CA3F2E] tracking-widest text-base">ZONE</span>
+            </div>
           </div>
-          <div className="w-8 h-0.5 bg-gray-200" />
+          <div className="w-10 h-0.5 bg-gray-200" />
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
