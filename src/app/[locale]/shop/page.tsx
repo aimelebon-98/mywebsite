@@ -206,9 +206,21 @@ export default async function ShopPage({ params, searchParams }: Props) {
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
-        {/* Layer 7: Animated network - ABOVE all bg layers, BEHIND content */}
+        {/* Layer 7: Animated network - white dots, visible on dark bg */}
         <div className="absolute inset-0 pointer-events-none">
-          <AnimatedNetwork />
+          <AnimatedNetwork
+            className="w-full h-full block"
+            color="255, 255, 255"
+            dotColor="multi"
+            density={90}
+            maxDistance={160}
+            dotAlpha={0.9}
+            dotSizeMin={2}
+            dotSizeMax={3.5}
+            baseLineAlpha={0.25}
+            driftSpeed={0.3}
+            twinkle
+          />
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 relative z-10">

@@ -16,14 +16,18 @@ type Props = {
   maxDistance?: number;
   influenceRadius?: number;
   attractStrength?: number;
+  dotAlpha?: number;
+  dotSizeMin?: number;
+  dotSizeMax?: number;
+  baseLineAlpha?: number;
+  driftSpeed?: number;
+  twinkle?: boolean;
 };
 
 export default function AnimatedNetworkLazy(props: Props) {
   const [shouldLoad, setShouldLoad] = useState(false);
 
   useEffect(() => {
-    // Wait for the browser to be idle before starting the canvas animation
-    // This prevents blocking the main thread during initial paint
     const startWhenIdle = () => setShouldLoad(true);
 
     if ("requestIdleCallback" in window) {
@@ -34,7 +38,6 @@ export default function AnimatedNetworkLazy(props: Props) {
         }
       };
     } else {
-      // Fallback: wait 1.5s after mount
       const t = setTimeout(startWhenIdle, 1500);
       return () => clearTimeout(t);
     }
