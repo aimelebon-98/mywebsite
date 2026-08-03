@@ -40,7 +40,7 @@ export default async function TermsPage() {
     },
     {
       id: "orders",
-      title: "3. Orders &amp; Payment",
+      title: "3. Orders & Payment",
       content: (
         <>
           <p>All orders are subject to acceptance and availability. We reserve the right to refuse or cancel any order at our discretion.</p>
@@ -51,16 +51,16 @@ export default async function TermsPage() {
     },
     {
       id: "shipping",
-      title: "4. Shipping &amp; Delivery",
+      title: "4. Shipping & Delivery",
       content: (
         <p>Please refer to our <a href="/shipping" className="text-gray-900 underline font-medium">Shipping Policy</a> for details on delivery times, fees, and available regions.</p>
       ),
     },
     {
       id: "returns",
-      title: "5. Returns &amp; Refunds",
+      title: "5. Returns & Refunds",
       content: (
-        <p>Please refer to our <a href="/returns" className="text-gray-900 underline font-medium">Returns &amp; Refunds Policy</a> for details on returns, exchanges, and refunds.</p>
+        <p>Please refer to our <a href="/returns" className="text-gray-900 underline font-medium">Returns & Refunds Policy</a> for details on returns, exchanges, and refunds.</p>
       ),
     },
     {

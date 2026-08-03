@@ -36,8 +36,8 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.newdealzone.com
 // Chrome mobile address bar color + PWA theme
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#CA3F2E" },
-    { media: "(prefers-color-scheme: dark)",  color: "#8B2A1E" },
+    { media: "(prefers-color-scheme: light)", color: "#111827" },
+    { media: "(prefers-color-scheme: dark)",  color: "#000000" },
   ],
 };
 
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
   },
   // Chrome / Safari mobile address bar color - matches brand
   other: {
-    "theme-color": "#CA3F2E",
+    "theme-color": "#111827",
   },
   alternates: {
     canonical: siteUrl,
