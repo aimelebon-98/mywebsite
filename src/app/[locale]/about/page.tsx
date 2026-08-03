@@ -119,7 +119,13 @@ export default function AboutPage() {
                 {t("founderLabel")}
               </span>
               <p className="font-fancy text-lg md:text-xl lg:text-[22px] text-gray-800 leading-[1.45] mb-5 flex-1">
-                &ldquo;{t("founderNote")}&rdquo;
+                &ldquo;{t("founderNoteBefore")}
+                <span className="inline-flex items-baseline gap-1 font-black tracking-tight font-sans">
+                  <span className="text-gray-900">NewDeal</span>
+                  <span className="text-gray-300 font-light mx-0.5">|</span>
+                  <span className="text-[#CA3F2E] tracking-widest text-[0.9em]">ZONE</span>
+                </span>
+                {t("founderNoteAfter")}&rdquo;
               </p>
               <div className="flex items-center justify-between pt-4 border-t border-gray-100 flex-wrap gap-3">
                 <div>
@@ -141,7 +147,7 @@ export default function AboutPage() {
                 {t("promiseLabel")}
               </span>
             </div>
-            <ul className="space-y-5">
+            <ul className="space-y-5 flex-1">
               {[
                 { title: t("promise1Title"), body: t("promise1Body") },
                 { title: t("promise2Title"), body: t("promise2Body") },
