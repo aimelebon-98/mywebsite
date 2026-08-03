@@ -147,41 +147,24 @@ export default function AboutPage() {
                 {t("promiseLabel")}
               </span>
             </div>
-            <ul className="space-y-5 flex-1">
+            <ul className="space-y-7 lg:space-y-8 flex-1">
               {[
                 { title: t("promise1Title"), body: t("promise1Body") },
                 { title: t("promise2Title"), body: t("promise2Body") },
                 { title: t("promise3Title"), body: t("promise3Body") },
               ].map((p, i) => (
-                <li key={i} className="flex items-start gap-3">
-                  <Check className="w-4 h-4 text-[#CA3F2E] mt-0.5 flex-shrink-0" strokeWidth={3} />
+                <li key={i} className="flex items-start gap-3.5">
+                  <div className="w-6 h-6 rounded-full bg-[#CA3F2E]/10 flex items-center justify-center flex-shrink-0 mt-1">
+                    <Check className="w-3.5 h-3.5 text-[#CA3F2E]" strokeWidth={3} />
+                  </div>
                   <div>
-                    <div className="font-bold text-sm text-gray-900">{p.title}</div>
-                    <div className="text-xs text-gray-500 mt-0.5 leading-relaxed">{p.body}</div>
+                    <div className="font-black text-lg lg:text-xl text-gray-900 leading-tight mb-1.5">{p.title}</div>
+                    <div className="text-sm lg:text-base text-gray-500 leading-relaxed">{p.body}</div>
                   </div>
                 </li>
               ))}
             </ul>
 
-            {/* Fill space - closing CTA block */}
-            <div className="mt-auto pt-6">
-              <div className="rounded-xl bg-gradient-to-br from-[#CA3F2E] to-[#8B2A1E] p-5 text-white">
-                <div className="flex items-start gap-3 mb-3">
-                  <MessageCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <div className="text-sm font-black mb-1">{t("ctaTitle")}</div>
-                    <div className="text-xs text-white/80 leading-relaxed">{t("ctaDesc")}</div>
-                  </div>
-                </div>
-                <Link
-                  href="/shop"
-                  className="inline-flex items-center justify-center gap-1.5 w-full py-2.5 bg-white text-gray-900 rounded-lg text-xs font-black hover:bg-gray-100 transition"
-                >
-                  {t("ctaShop")}
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-            </div>
           </div>
         </div>
       </section>
