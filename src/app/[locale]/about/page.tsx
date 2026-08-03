@@ -4,7 +4,9 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { ArrowRight, X, Check } from "lucide-react";
+import { ArrowRight, X, Check, MessageCircle } from "lucide-react";
+
+const FOUNDER_AVATAR = "https://i.ibb.co/HTrQYdfK/Aime-komlan.jpg";
 
 export default function AboutPage() {
   const t = useTranslations("about");
@@ -14,159 +16,187 @@ export default function AboutPage() {
       <Navbar />
 
       {/* ============================================
-          OPENING STATEMENT
+          HERO - clean like contact page
           ============================================ */}
-      <section className="min-h-[80vh] flex items-center pt-24 pb-16 lg:pt-32 lg:pb-24 relative overflow-hidden">
-        {/* Subtle red glow bottom-right */}
-        <div className="absolute bottom-0 right-0 w-[600px] h-[600px] rounded-full bg-[#CA3F2E]/5 blur-3xl pointer-events-none" />
-
-        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-          <div className="inline-block mb-8">
-            <div className="text-[10px] font-black tracking-[0.3em] uppercase text-[#CA3F2E]">
-              {t("badge")}
-            </div>
-            <div className="mt-2 w-12 h-0.5 bg-[#CA3F2E]" />
-          </div>
-
-          <h1 className="text-[10vw] sm:text-6xl lg:text-8xl xl:text-9xl font-black leading-[0.9] tracking-[-0.03em] text-gray-900 max-w-5xl">
+      <section className="bg-gray-900 text-white pt-32 lg:pt-36 pb-20 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <span className="inline-block px-4 py-1.5 bg-white/10 rounded-full text-xs font-semibold tracking-widest uppercase mb-6">
+            {t("badge")}
+          </span>
+          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4">
             {t("manifestoIntro")}
           </h1>
-
-          <p className="mt-6 text-2xl lg:text-4xl font-light text-gray-500 tracking-tight max-w-3xl">
+          <p className="text-gray-400 text-lg max-w-xl mx-auto">
             {t("manifestoSub")}
           </p>
         </div>
       </section>
 
       {/* ============================================
-          WE BELIEVE - 3 core beliefs
+          WE BELIEVE - clean 3 cards
           ============================================ */}
-      <section className="py-24 lg:py-32 border-t border-gray-100">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-16 lg:mb-20">
-            <div className="text-[10px] font-black tracking-[0.3em] uppercase text-[#CA3F2E] mb-2">
-              {t("believeLabel")}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20">
+        <div className="text-center mb-10">
+          <span className="inline-block text-[10px] font-bold tracking-widest uppercase text-[#CA3F2E]">
+            {t("believeLabel")}
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2">
+            Our core beliefs
+          </h2>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-4 lg:gap-6">
+          {[
+            { title: t("believe1Title"), body: t("believe1Body"), n: "01" },
+            { title: t("believe2Title"), body: t("believe2Body"), n: "02" },
+            { title: t("believe3Title"), body: t("believe3Body"), n: "03" },
+          ].map((b) => (
+            <div key={b.n} className="bg-white rounded-2xl p-6 border border-gray-100 hover:border-gray-300 hover:shadow-md transition">
+              <div className="text-xs font-bold text-[#CA3F2E] tracking-widest mb-3">{b.n}</div>
+              <h3 className="font-bold text-gray-900 mb-2 leading-snug">{b.title}</h3>
+              <p className="text-sm text-gray-500 leading-relaxed">{b.body}</p>
             </div>
-            <div className="w-12 h-0.5 bg-[#CA3F2E]" />
+          ))}
+        </div>
+      </section>
+
+      {/* ============================================
+          WE REFUSE + WE PROMISE - side by side
+          ============================================ */}
+      <section className="bg-gray-50 py-16 lg:py-20 border-y border-gray-100">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-6 lg:gap-8">
+
+          {/* We refuse */}
+          <div className="bg-gray-900 text-white rounded-2xl p-6 lg:p-8">
+            <div className="flex items-center gap-2 mb-5 pb-5 border-b border-white/10">
+              <X className="w-4 h-4 text-[#CA3F2E]" strokeWidth={3} />
+              <span className="text-[10px] font-bold tracking-widest uppercase text-[#CA3F2E]">
+                {t("refuseLabel")}
+              </span>
+            </div>
+            <ul className="space-y-4">
+              {[t("refuse1"), t("refuse2"), t("refuse3")].map((line, i) => (
+                <li key={i} className="flex items-start gap-3">
+                  <X className="w-3.5 h-3.5 text-gray-500 mt-1 flex-shrink-0" />
+                  <span className="text-sm text-gray-300 line-through decoration-[#CA3F2E]/60">{line}</span>
+                </li>
+              ))}
+            </ul>
           </div>
 
-          <div className="space-y-20 lg:space-y-28">
-            {[
-              { title: t("believe1Title"), body: t("believe1Body"), n: "01" },
-              { title: t("believe2Title"), body: t("believe2Body"), n: "02" },
-              { title: t("believe3Title"), body: t("believe3Body"), n: "03" },
-            ].map((b) => (
-              <div key={b.n} className="grid md:grid-cols-[80px_1fr] gap-6 lg:gap-12 items-start">
-                <div className="text-4xl lg:text-6xl font-black text-gray-100 leading-none">
-                  {b.n}
-                </div>
-                <div>
-                  <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-gray-900 leading-tight mb-5 max-w-4xl">
-                    {b.title}
-                  </h2>
-                  <p className="text-lg lg:text-xl text-gray-500 leading-relaxed max-w-3xl">
-                    {b.body}
-                  </p>
-                </div>
-              </div>
-            ))}
+          {/* We promise */}
+          <div className="bg-white rounded-2xl p-6 lg:p-8 border border-gray-100">
+            <div className="flex items-center gap-2 mb-5 pb-5 border-b border-gray-100">
+              <Check className="w-4 h-4 text-[#CA3F2E]" strokeWidth={3} />
+              <span className="text-[10px] font-bold tracking-widest uppercase text-[#CA3F2E]">
+                {t("promiseLabel")}
+              </span>
+            </div>
+            <ul className="space-y-5">
+              {[
+                { title: t("promise1Title"), body: t("promise1Body") },
+                { title: t("promise2Title"), body: t("promise2Body") },
+                { title: t("promise3Title"), body: t("promise3Body") },
+              ].map((p, i) => (
+                <li key={i} className="flex items-start gap-3">
+                  <Check className="w-3.5 h-3.5 text-[#CA3F2E] mt-1 flex-shrink-0" strokeWidth={3} />
+                  <div>
+                    <div className="font-bold text-sm text-gray-900">{p.title}</div>
+                    <div className="text-xs text-gray-500 mt-0.5 leading-relaxed">{p.body}</div>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </section>
 
       {/* ============================================
-          WE REFUSE - contrast/edge in dark
+          FOUNDER CARD - personal note with photo
           ============================================ */}
-      <section className="py-24 lg:py-32 bg-gray-950 text-white relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-[500px] h-[500px] rounded-full bg-[#CA3F2E]/10 blur-3xl pointer-events-none" />
-
-        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-16">
-            <div className="text-[10px] font-black tracking-[0.3em] uppercase text-[#CA3F2E] mb-2">
-              {t("refuseLabel")}
-            </div>
-            <div className="w-12 h-0.5 bg-[#CA3F2E]" />
+      <section className="py-16 lg:py-20">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8">
+            <span className="inline-block text-[10px] font-bold tracking-widest uppercase text-[#CA3F2E]">
+              {t("founderLabel")}
+            </span>
           </div>
 
-          <div className="space-y-8 lg:space-y-12">
-            {[t("refuse1"), t("refuse2"), t("refuse3")].map((line, i) => (
-              <div key={i} className="flex items-start gap-5 lg:gap-8 border-b border-white/10 pb-8 lg:pb-12 last:border-0">
-                <X className="w-6 h-6 lg:w-8 lg:h-8 text-[#CA3F2E] flex-shrink-0 mt-2" strokeWidth={3} />
-                <p className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black tracking-tight leading-[1.1] text-white line-through decoration-[#CA3F2E] decoration-4">
-                  {line}
+          <div className="bg-gradient-to-br from-gray-50 to-white rounded-3xl p-6 lg:p-10 border border-gray-100 shadow-sm">
+            <div className="grid md:grid-cols-[180px_1fr] gap-6 lg:gap-8 items-start">
+              {/* Photo */}
+              <div className="flex justify-center md:justify-start">
+                <div className="relative">
+                  <div className="w-36 h-36 lg:w-44 lg:h-44 rounded-2xl overflow-hidden ring-4 ring-white shadow-lg">
+                    <img
+                      src={FOUNDER_AVATAR}
+                      alt={t("founderName")}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="absolute -bottom-2 -right-2 bg-[#CA3F2E] text-white text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-lg shadow-md">
+                    Founder
+                  </div>
+                </div>
+              </div>
+
+              {/* Note */}
+              <div>
+                <p className="text-base lg:text-lg text-gray-700 leading-relaxed mb-5 italic">
+                  &ldquo;{t("founderNote")}&rdquo;
                 </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      {/* ============================================
-          WE PROMISE - back to light
-          ============================================ */}
-      <section className="py-24 lg:py-32 bg-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-16 lg:mb-20">
-            <div className="text-[10px] font-black tracking-[0.3em] uppercase text-[#CA3F2E] mb-2">
-              {t("promiseLabel")}
-            </div>
-            <div className="w-12 h-0.5 bg-[#CA3F2E]" />
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 lg:gap-10">
-            {[
-              { title: t("promise1Title"), body: t("promise1Body") },
-              { title: t("promise2Title"), body: t("promise2Body") },
-              { title: t("promise3Title"), body: t("promise3Body") },
-            ].map((p, i) => (
-              <div key={i} className="relative pt-8 border-t-2 border-gray-900">
-                <div className="absolute -top-1.5 left-0 w-8 h-2.5 bg-[#CA3F2E]" />
-                <div className="flex items-center gap-2 mb-4">
-                  <Check className="w-5 h-5 text-[#CA3F2E]" strokeWidth={3} />
-                  <span className="text-[10px] font-black tracking-[0.2em] uppercase text-gray-400">0{i + 1}</span>
+                <div className="pt-4 border-t border-gray-200 flex items-center justify-between flex-wrap gap-3">
+                  <div>
+                    <div className="font-bold text-gray-900">{t("founderName")}</div>
+                    <div className="text-xs text-gray-500">{t("founderRole")}</div>
+                  </div>
+                  <div className="text-xs text-gray-400 italic">{t("founderSignature")}</div>
                 </div>
-                <h3 className="text-xl lg:text-2xl font-black tracking-tight text-gray-900 mb-3 leading-tight">
-                  {p.title}
-                </h3>
-                <p className="text-gray-500 leading-relaxed">
-                  {p.body}
-                </p>
               </div>
-            ))}
+            </div>
           </div>
         </div>
       </section>
 
       {/* ============================================
-          SIGNATURE - closing thought
+          SIGNATURE + CTA - clean close
           ============================================ */}
-      <section className="py-24 lg:py-32 border-t border-gray-100 bg-gradient-to-b from-white to-gray-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-gray-900 mb-4 leading-tight">
+      <section className="py-16 lg:py-20 border-t border-gray-100 bg-gray-50">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 tracking-tight">
             {t("signature")}
           </h2>
-          <p className="text-xl lg:text-2xl text-gray-500 font-light tracking-tight mb-10">
+          <p className="text-gray-500 mb-8">
             {t("signatureSub")}
           </p>
 
-          {/* Brand mark - minimal */}
-          <div className="flex items-center justify-center gap-2 mb-12">
+          <div className="flex items-center justify-center gap-2 mb-8">
             <div className="w-8 h-0.5 bg-gray-300" />
-            <div className="flex items-baseline gap-1.5 font-black tracking-tight text-lg">
+            <div className="flex items-baseline gap-1.5 font-black tracking-tight text-base">
               <span className="text-gray-900">NewDeal</span>
               <span className="text-gray-300 font-light">|</span>
-              <span className="text-[#CA3F2E] tracking-widest text-base">ZONE</span>
+              <span className="text-[#CA3F2E] tracking-widest text-sm">ZONE</span>
             </div>
             <div className="w-8 h-0.5 bg-gray-300" />
           </div>
 
-          <Link
-            href="/shop"
-            className="group inline-flex items-center gap-2 px-8 py-4 bg-gray-900 hover:bg-[#CA3F2E] text-white rounded-none font-black text-sm tracking-wide uppercase transition"
-          >
-            {t("ctaShop")}
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              href="/shop"
+              className="group inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-900 hover:bg-[#CA3F2E] text-white rounded-xl font-bold text-sm transition"
+            >
+              {t("ctaShop")}
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition" />
+            </Link>
+            <Link
+              href="/contact"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 border-2 border-gray-200 text-gray-900 rounded-xl font-bold text-sm hover:border-gray-900 transition"
+            >
+              <MessageCircle className="w-4 h-4" />
+              {t("ctaContact")}
+            </Link>
+          </div>
         </div>
       </section>
 
