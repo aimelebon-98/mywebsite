@@ -131,21 +131,35 @@ export default function WhatsAppButton({ blogPostTitle = "", blogPostUrl = "" }:
                 </div>
               )}
 
-              <div className={`space-y-1.5 ${isBlogPost ? "mt-0" : "mt-4"}`}>
-                {t.quick.map((msg, i) => (
-                  <button
-                    key={i}
-                    onClick={() => { setMessage(msg); }}
-                    className={
-                      isBlogPost
-                        ? "block w-full text-left px-4 py-3 bg-white rounded-xl text-sm text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition border border-gray-200 shadow-sm font-medium leading-relaxed"
-                        : "block w-full text-left px-3 py-2 bg-white/90 rounded-lg text-xs text-gray-700 hover:bg-white transition border border-white/50 line-clamp-2"
-                    }
-                  >
-                    {msg}
-                  </button>
-                ))}
-              </div>
+              {isBlogPost ? (
+                <button
+                  onClick={() => { setMessage(t.quick[0]); }}
+                  className="block w-full text-left p-4 bg-white rounded-xl hover:bg-gray-50 active:bg-gray-100 transition border border-gray-200 shadow-sm"
+                >
+                  <div className="flex items-start gap-2 mb-2">
+                    <svg className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M2.94 6.412A2 2 0 002 8.108V16a2 2 0 002 2h12a2 2 0 002-2V8.108a2 2 0 00-.94-1.696l-6-3.75a2 2 0 00-2.12 0l-6 3.75zm2.615 2.423a1 1 0 10-1.11 1.664l5 3.333a1 1 0 001.11 0l5-3.333a1 1 0 00-1.11-1.664L10 11.798 5.555 8.835z" clipRule="evenodd"/></svg>
+                    <p className="text-sm font-semibold text-gray-900 leading-snug">
+                      {isFr ? `Bonjour NewDeal | ZONE, je suis interesse par : ${blogPostTitle}` : `Hi NewDeal | ZONE, I am interested in: ${blogPostTitle}`}
+                    </p>
+                  </div>
+                  <div className="text-[11px] text-green-600 font-medium flex items-center gap-1">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
+                    {isFr ? "Envoyer sur WhatsApp" : "Send to WhatsApp"}
+                  </div>
+                </button>
+              ) : (
+                <div className="space-y-1.5 mt-4">
+                  {t.quick.map((msg, i) => (
+                    <button
+                      key={i}
+                      onClick={() => { setMessage(msg); }}
+                      className="block w-full text-left px-3 py-2 bg-white/90 rounded-lg text-xs text-gray-700 hover:bg-white transition border border-white/50 line-clamp-2"
+                    >
+                      {msg}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="p-3 bg-gray-50 border-t border-gray-200">
