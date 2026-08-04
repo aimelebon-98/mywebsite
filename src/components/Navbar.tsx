@@ -105,7 +105,7 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl border-b transition-colors ${navBg} ${isBlogPage ? "border-transparent" : ""}`}
+      className={`sticky top-0 left-0 right-0 z-50 backdrop-blur-xl border-b transition-colors ${navBg} ${isBlogPage ? "border-transparent" : ""}`}
       style={navStyle}
     >
       <div className={`text-center py-2 text-xs font-medium tracking-wide ${bannerBg}`} style={bannerStyle}>
