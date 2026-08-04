@@ -226,13 +226,13 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
   ];
 
   return (
-    <div>
+    <div className="pb-24 lg:pb-0">
       {/* HERO PRODUCT SECTION */}
       <div className="bg-gradient-to-b from-gray-50 to-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
+        <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 py-6 lg:py-10">
 
           {/* Breadcrumb */}
-          <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-gray-500 mb-6 flex-wrap">
+          <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-gray-500 mb-6 flex-wrap px-4 sm:px-0">
             <Link href={`/${locale}`} className="hover:text-gray-900 transition">{t("home")}</Link>
             <span className="text-gray-300">/</span>
             <Link href={`/${locale}/shop`} className="hover:text-gray-900 transition">{t("shop")}</Link>
@@ -285,7 +285,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               </div>
 
               {/* Quick highlights */}
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-3 px-4 sm:px-0">
                 {highlights.map((item, i) => (
                   <div key={i} className="flex items-center gap-2.5 p-3 bg-white rounded-xl border border-gray-100 shadow-sm">
                     <div className="w-9 h-9 bg-gray-50 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -300,7 +300,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               </div>
 
               {/* Share buttons */}
-              <div className="mt-6 flex items-center gap-3 flex-wrap">
+              <div className="mt-6 flex items-center gap-3 flex-wrap px-4 sm:px-0">
                 <span className="text-xs font-bold uppercase tracking-wider text-gray-500">{isFr ? "Partager :" : "Share:"}</span>
                 <a
                   href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(product.name)}`}
@@ -336,7 +336,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               </div>
 
               {/* Social proof */}
-              <div className="mt-6 flex items-center gap-3 p-4 rounded-2xl border border-gray-100" style={{ backgroundColor: "#CA3F2E08" }}>
+              <div className="mt-6 mx-4 sm:mx-0 flex items-center gap-3 p-4 rounded-2xl border border-gray-100" style={{ backgroundColor: "#CA3F2E08" }}>
                 <div className="flex -space-x-2 flex-shrink-0">
                   {["JW", "SC", "MT"].map((initials, i) => {
                     const colors = ["from-blue-400 to-blue-600", "from-pink-400 to-rose-600", "from-emerald-400 to-green-600"];
@@ -354,7 +354,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
 
               {/* Complete the Look */}
               {relatedProducts.length > 0 && (
-                <div className="mt-8">
+                <div className="mt-8 px-4 sm:px-0">
                   <h3 className="text-sm font-bold uppercase tracking-wider text-gray-700 mb-3">{isFr ? "Completez le look" : "Complete the Look"}</h3>
                   <div className="grid grid-cols-3 gap-3">
                     {relatedProducts.slice(0, 3).map((rp) => (
@@ -406,7 +406,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
             </div>
 
             {/* DETAILS */}
-            <div className="lg:py-2">
+            <div className="lg:py-2 px-4 sm:px-0">
               {/* Brand + Rating */}
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-sm text-gray-500 font-medium uppercase tracking-widest">{product.brand || product.category}</span>
@@ -723,26 +723,26 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
 
       {/* STICKY MOBILE BOTTOM BAR */}
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-2xl lg:hidden pb-safe">
-        <div className="px-4 py-3 flex items-center gap-3">
-          <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-gray-100 overflow-hidden">
+        <div className="px-3 py-2.5 flex items-center gap-2">
+          <div className="flex-shrink-0 w-11 h-11 rounded-lg bg-gray-100 overflow-hidden">
             {product.imageUrl && <img src={product.imageUrl} alt="" className="w-full h-full object-cover" />}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-semibold text-gray-900 truncate">{product.name}</div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-base font-black" style={{ color: "#CA3F2E" }}>{formatPrice(price)}</span>
+            <div className="text-[11px] font-semibold text-gray-900 truncate leading-tight">{product.name}</div>
+            <div className="flex items-baseline gap-1.5 mt-0.5">
+              <span className="text-sm font-black" style={{ color: "#CA3F2E" }}>{formatPrice(price)}</span>
               {comparePrice && comparePrice > price && (
-                <span className="text-xs text-gray-400 line-through">{formatPrice(comparePrice)}</span>
+                <span className="text-[10px] text-gray-400 line-through">{formatPrice(comparePrice)}</span>
               )}
             </div>
           </div>
           <button
             onClick={handleAddToCart}
             disabled={added}
-            className={`px-5 py-3 rounded-xl text-white font-bold text-xs uppercase tracking-wide transition-all active:scale-95 flex-shrink-0 ${added ? "bg-green-500" : ""}`}
+            className={`px-3.5 py-2.5 rounded-xl text-white font-bold text-[11px] uppercase tracking-wide transition-all active:scale-95 flex-shrink-0 flex items-center gap-1.5 ${added ? "bg-green-500" : ""}`}
             style={!added ? { backgroundColor: "#CA3F2E", boxShadow: "0 4px 14px rgba(202, 63, 46, 0.35)" } : undefined}
           >
-            {added ? <><Check className="w-4 h-4 inline" /> {isFr ? "Ajoute" : "Added"}</> : (isFr ? "Ajouter au panier" : "Add to Cart")}
+            {added ? <><Check className="w-3.5 h-3.5" /> {isFr ? "Ajout\u00e9" : "Added"}</> : <><ShoppingBag className="w-3.5 h-3.5" /> {isFr ? "Panier" : "Add"}</>}
           </button>
         </div>
       </div>
