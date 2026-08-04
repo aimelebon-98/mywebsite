@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useCurrency } from "@/lib/currency-context";
 import StockBadge from "@/components/StockBadge";
 import { trackEvent } from "@/components/AnalyticsTracker";
@@ -428,12 +428,12 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               <h1 className="text-3xl lg:text-4xl font-black tracking-tight mb-4 leading-tight">{product.name}</h1>
 
               {/* Price */}
-              <div className="flex items-end gap-3 mb-6 p-4 bg-gradient-to-r from-gray-50 to-transparent rounded-2xl -ml-4 pl-4">
-                <span className="text-4xl font-black text-gray-900">{formatPrice(price)}</span>
+              <div className="flex flex-wrap items-end gap-x-3 gap-y-2 mb-6 p-4 bg-gradient-to-r from-gray-50 to-transparent rounded-2xl -ml-4 pl-4">
+                <span className="text-2xl sm:text-3xl lg:text-4xl font-black text-gray-900 break-all">{formatPrice(price)}</span>
                 {comparePrice && (
-                  <div className="flex items-center gap-2 pb-1">
-                    <span className="text-lg text-gray-400 line-through">{formatPrice(comparePrice)}</span>
-                    <span className="px-2.5 py-1 bg-red-500 text-white text-xs font-bold rounded-lg">
+                  <div className="flex flex-wrap items-center gap-2 pb-1 min-w-0">
+                    <span className="text-base sm:text-lg text-gray-400 line-through break-all">{formatPrice(comparePrice)}</span>
+                    <span className="px-2.5 py-1 bg-red-500 text-white text-xs font-bold rounded-lg whitespace-nowrap">
                       {t("saveAmount", { amount: formatPrice(comparePrice - price) })}
                     </span>
                   </div>
@@ -499,7 +499,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                   <Truck className="w-4 h-4 flex-shrink-0" style={{ color: "#CA3F2E" }} />
                   <div className="min-w-0">
                     <div className="text-[11px] font-bold text-gray-900 leading-tight">{isFr ? "Livraison gratuite" : "Free Shipping"}</div>
-                    <div className="text-[10px] text-gray-500 leading-tight">{isFr ? `Plus de ${formatPrice(1000)}` : `Over ${formatPrice(1000)}`}</div>
+                    <div className="text-[10px] text-gray-500 leading-tight truncate">{isFr ? `Plus de ${formatPrice(1000)}` : `Over ${formatPrice(1000)}`}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 px-3 py-2.5 bg-gray-50 rounded-xl">
@@ -729,17 +729,17 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-[11px] font-semibold text-gray-900 truncate leading-tight">{product.name}</div>
-            <div className="flex items-baseline gap-1.5 mt-0.5">
-              <span className="text-sm font-black" style={{ color: "#CA3F2E" }}>{formatPrice(price)}</span>
+            <div className="flex items-baseline gap-1.5 mt-0.5 min-w-0">
+              <span className="text-sm font-black truncate" style={{ color: "#CA3F2E" }}>{formatPrice(price)}</span>
               {comparePrice && comparePrice > price && (
-                <span className="text-[10px] text-gray-400 line-through">{formatPrice(comparePrice)}</span>
+                <span className="text-[10px] text-gray-400 line-through truncate hidden xs:inline">{formatPrice(comparePrice)}</span>
               )}
             </div>
           </div>
           <button
             onClick={handleAddToCart}
             disabled={added}
-            className={`px-3.5 py-2.5 rounded-xl text-white font-bold text-[11px] uppercase tracking-wide transition-all active:scale-95 flex-shrink-0 flex items-center gap-1.5 ${added ? "bg-green-500" : ""}`}
+            className={`px-3 py-2.5 rounded-xl text-white font-bold text-[11px] uppercase tracking-wide transition-all active:scale-95 flex-shrink-0 flex items-center gap-1 ${added ? "bg-green-500" : ""}`}
             style={!added ? { backgroundColor: "#CA3F2E", boxShadow: "0 4px 14px rgba(202, 63, 46, 0.35)" } : undefined}
           >
             {added ? <><Check className="w-3.5 h-3.5" /> {isFr ? "Ajout\u00e9" : "Added"}</> : <><ShoppingBag className="w-3.5 h-3.5" /> {isFr ? "Panier" : "Add"}</>}
