@@ -350,6 +350,51 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
           </div>
 
           {/* SIDEBAR */}
+          {/* MOBILE Table of Contents - collapsible */}
+          {toc.length > 1 && (
+            <details className="lg:hidden mb-6 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden group">
+              <summary className="flex items-center gap-2 px-4 py-3 cursor-pointer bg-gray-50 border-b border-gray-100 list-none [&::-webkit-details-marker]:hidden">
+                <List className="w-4 h-4 text-[#CA3F2E]" />
+                <span className="font-black text-sm text-gray-900 flex-1">
+                  {isFr ? d("Table des mati\u00e8res") : "Table of Contents"}
+                </span>
+                <span className="text-xs text-gray-500 group-open:hidden">
+                  {toc.length} {isFr ? "sections" : "sections"}
+                </span>
+                <svg className="w-4 h-4 text-gray-500 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/></svg>
+              </summary>
+              <div className="p-4 max-h-80 overflow-y-auto">
+                <ul className="space-y-1">
+                  {toc.map((item) => (
+                    <li key={item.id} className={item.level === 3 ? "pl-4" : ""}>
+                      <a
+                        href={`#${item.id}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          const el = document.getElementById(item.id);
+                          if (el) {
+                            const y = el.getBoundingClientRect().top + window.scrollY - 80;
+                            window.scrollTo({ top: y, behavior: "smooth" });
+                          }
+                          // Close the details after clicking
+                          const details = (e.target as HTMLElement).closest("details");
+                          if (details) details.open = false;
+                        }}
+                        className={`block text-sm py-2 px-2 rounded-lg transition ${
+                          activeId === item.id
+                            ? "bg-[#CA3F2E]/5 text-[#CA3F2E] font-semibold"
+                            : "text-gray-700 hover:bg-gray-50"
+                        }`}
+                      >
+                        {item.text}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </details>
+          )}
+
           <aside className="hidden lg:block">
             <div className="sticky top-28 space-y-4">
               {/* Table of Contents */}

@@ -656,8 +656,8 @@ div.tiptap-editor {
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 0.75rem);
 }
-/* Prevent horizontal scrolling site-wide (mobile safety net) */
+/* Prevent horizontal scrolling site-wide - uses clip (not hidden) so position:sticky still works */
 html, body {
-  overflow-x: hidden;
+  overflow-x: clip;
   max-width: 100vw;
 }
