@@ -1,11 +1,11 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { useLocale } from "next-intl";
 import { useCustomer } from "@/lib/customer-context";
 import {
-  User, LogIn, LayoutDashboard, Package, LifeBuoy, Heart, Star, Gift,
+  User, LayoutDashboard, Package, LifeBuoy, Heart, Star, Gift,
   MapPin, User as UserIcon, Settings, Shield, LogOut, ChevronRight
 } from "lucide-react";
 
@@ -21,7 +21,6 @@ export default function AccountHoverMenu({ iconColor, iconHoverBg }: Props) {
   const [open, setOpen] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Open on hover, close after a small delay (so cursor can move to menu)
   const scheduleClose = () => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
     closeTimer.current = setTimeout(() => setOpen(false), 180);
@@ -36,15 +35,15 @@ export default function AccountHoverMenu({ iconColor, iconHoverBg }: Props) {
     };
   }, []);
 
-  // Not logged in: keep simple LOGIN link, no menu
+  // Not logged in: icon links directly to dashboard (which handles auth redirect)
   if (!customer) {
     return (
       <Link
-        href={`/${locale}/account/login`}
-        aria-label={isFr ? "Connexion" : "Login"}
-        className={"relative p-2 rounded-xl transition " + iconHoverBg}
+        href={`/${locale}/account/dashboard`}
+        aria-label={isFr ? "Compte" : "Account"}
+        className={"relative hidden md:inline-flex p-2 rounded-xl transition " + iconHoverBg}
       >
-        <LogIn className={"w-5 h-5 " + iconColor} />
+        <User className={"w-5 h-5 " + iconColor} />
       </Link>
     );
   }
@@ -68,27 +67,26 @@ export default function AccountHoverMenu({ iconColor, iconHoverBg }: Props) {
 
   return (
     <div
-      className="relative"
+      className="relative hidden md:block"
       onMouseEnter={() => { cancelClose(); setOpen(true); }}
       onMouseLeave={scheduleClose}
     >
       <Link
         href={`/${locale}/account/dashboard`}
         aria-label="Account"
-        className={"relative p-2 rounded-xl transition " + iconHoverBg}
+        className={"relative inline-flex p-2 rounded-xl transition " + iconHoverBg}
       >
         <User className={"w-5 h-5 " + iconColor} />
       </Link>
 
-      {/* Hover panel */}
+      {/* Hover panel - flush to navbar, no gap, no visible seam */}
       <div
-        className={"absolute right-0 top-full mt-1 w-72 z-50 transition-all duration-150 origin-top-right " +
+        className={"absolute right-0 top-full w-72 z-50 transition-all duration-150 origin-top-right " +
           (open ? "opacity-100 scale-100 pointer-events-auto" : "opacity-0 scale-95 pointer-events-none")}
+        onMouseEnter={cancelClose}
+        onMouseLeave={scheduleClose}
       >
-        {/* Invisible bridge so cursor can travel from icon to menu without gap */}
-        <div className="h-2 w-full" />
-
-        <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-b-2xl rounded-tl-2xl shadow-2xl border border-t-0 border-gray-100 overflow-hidden">
           {/* Header */}
           <div className="px-4 py-3 bg-gradient-to-br from-[#CA3F2E] to-[#8B2A1E] text-white">
             <div className="flex items-center gap-3">
