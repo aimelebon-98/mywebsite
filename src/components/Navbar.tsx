@@ -79,8 +79,8 @@ export default function Navbar() {
   };
 
   // Dynamic classes based on isBlogPage
-  const navBg = isBlogPage ? "" : "bg-black lg:bg-white/80 border-black lg:border-gray-100";
-  const navStyle = isBlogPage ? { backgroundColor: BRAND_RED } : undefined;
+  const navBg = isBlogPage ? "" : "bg-black lg:bg-white border-black lg:border-gray-100";
+  const navStyle = isBlogPage ? { backgroundColor: BRAND_RED } : { backgroundColor: "#ffffff" };
 
   const bannerBg = isBlogPage ? "text-white" : "bg-gray-900 text-white";
   const bannerStyle = isBlogPage ? { backgroundColor: BRAND_RED_DARK } : undefined;
@@ -105,7 +105,7 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`sticky top-0 left-0 right-0 z-50 backdrop-blur-xl border-b transition-colors ${navBg} ${isBlogPage ? "border-transparent" : ""}`}
+      className={`sticky top-0 left-0 right-0 z-50 border-b transition-colors ${navBg} ${isBlogPage ? "border-transparent" : ""}`}
       style={navStyle}
     >
       <div className={`text-center py-2 text-xs font-medium tracking-wide ${bannerBg}`} style={bannerStyle}>
