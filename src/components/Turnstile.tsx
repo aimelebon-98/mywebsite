@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useRef, useState } from "react";
 
@@ -10,14 +10,16 @@ interface TurnstileProps {
   className?: string;
   /**
    * "auto" (default): runs immediately when mounted, no user interaction.
-   *   Best for invisible or non-interactive site keys.
    * "interactive": shows managed widget (may include checkbox challenge).
    */
   mode?: "auto" | "interactive";
-  /**
-   * Optional action label sent to Cloudflare analytics (login, register, etc.)
-   */
+  /** Optional action label sent to Cloudflare analytics */
   action?: string;
+  /**
+   * Change this number to force the widget to re-execute (get a fresh token).
+   * Useful right before form submission to avoid expired tokens.
+   */
+  resetKey?: number;
 }
 
 declare global {
@@ -38,6 +40,7 @@ export default function Turnstile({
   onVerify, onError, onExpire,
   theme = "auto", className = "",
   mode = "interactive", action,
+  resetKey = 0,
 }: TurnstileProps) {
   const ref = useRef<HTMLDivElement>(null);
   const widgetId = useRef<string | null>(null);
@@ -76,11 +79,10 @@ export default function Turnstile({
       theme,
       callback: (token: string) => onVerify(token),
       "error-callback": () => onError?.(),
-      "expired-callback": () => onExpire?.(),
+      "expired-callback": () => { onExpire?.(); onVerify(""); },
     };
 
     if (mode === "auto") {
-      // Invisible / non-interactive mode - auto executes
       opts.execution = "execute";
       opts.appearance = "interaction-only";
     } else {
@@ -91,7 +93,6 @@ export default function Turnstile({
 
     widgetId.current = window.turnstile.render(ref.current, opts);
 
-    // For auto mode, trigger execution right away
     if (mode === "auto" && widgetId.current) {
       try { window.turnstile.execute(widgetId.current); } catch { /* ignore */ }
     }
@@ -102,6 +103,18 @@ export default function Turnstile({
       }
     };
   }, [scriptLoaded, theme, mode, action, onVerify, onError, onExpire]);
+
+  // Re-execute when resetKey changes (get a fresh token before submit)
+  useEffect(() => {
+    if (resetKey === 0) return;
+    if (!widgetId.current || !window.turnstile) return;
+    try {
+      window.turnstile.reset(widgetId.current);
+      if (mode === "auto") {
+        window.turnstile.execute(widgetId.current);
+      }
+    } catch { /* ignore */ }
+  }, [resetKey, mode]);
 
   if (!SITE_KEY) {
     return (
