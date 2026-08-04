@@ -158,7 +158,9 @@ export default function Navbar() {
               />
             </div>
 
-            <CurrencySelector compact={isBlogPage} dark={isBlogPage} />
+            <div className="[&_button>span]:!text-white lg:[&_button>span]:!text-inherit [&_button>svg]:!text-white lg:[&_button>svg]:!text-inherit [&_button]:hover:!bg-white/10 lg:[&_button]:hover:!bg-inherit">
+              <CurrencySelector compact={isBlogPage} dark={isBlogPage} />
+            </div>
 
             <div className="relative">
               <button
