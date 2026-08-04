@@ -5,8 +5,7 @@ import { useState, useRef, useEffect } from "react";
 import { useLocale } from "next-intl";
 import { useCustomer } from "@/lib/customer-context";
 import {
-  User, LayoutDashboard, Package, LifeBuoy, Star, Gift,
-  MapPin, User as UserIcon, Settings, Shield, LogOut
+  User, LayoutDashboard, Package, Settings, LogOut
 } from "lucide-react";
 
 interface Props {
@@ -48,19 +47,11 @@ export default function AccountHoverMenu({ iconColor, iconHoverBg }: Props) {
     );
   }
 
-  const accountItems = [
+  // Max 4 items total including logout
+  const items = [
     { href: `/${locale}/account/dashboard`, icon: LayoutDashboard, label: isFr ? "Tableau de bord" : "Dashboard" },
     { href: `/${locale}/account/orders`,    icon: Package,         label: isFr ? "Mes commandes"   : "My Orders" },
-    { href: `/${locale}/account/reviews`,   icon: Star,            label: isFr ? "Mes avis"        : "My Reviews" },
-    { href: `/${locale}/account/rewards`,   icon: Gift,            label: isFr ? "R\u00e9compenses" : "Rewards" },
-  ];
-
-  const settingsItems = [
-    { href: `/${locale}/account/addresses`,   icon: MapPin,   label: isFr ? "Adresses"       : "Addresses" },
-    { href: `/${locale}/account/profile`,     icon: UserIcon, label: isFr ? "Profil"         : "Profile" },
-    { href: `/${locale}/account/preferences`, icon: Settings, label: isFr ? "Pr\u00e9f\u00e9rences" : "Preferences" },
-    { href: `/${locale}/account/security`,    icon: Shield,   label: isFr ? "S\u00e9curit\u00e9"   : "Security" },
-    { href: `/${locale}/account/tickets`,     icon: LifeBuoy, label: isFr ? "Support"        : "Support" },
+    { href: `/${locale}/account/profile`,   icon: User,            label: isFr ? "Profil"          : "Profile" },
   ];
 
   const firstName = customer.name ? customer.name.split(" ")[0] : (isFr ? "Compte" : "Account");
@@ -79,7 +70,7 @@ export default function AccountHoverMenu({ iconColor, iconHoverBg }: Props) {
         <User className={"w-5 h-5 " + iconColor} />
       </Link>
 
-      {/* Dropdown panel - right aligned to icon, no gap */}
+      {/* Dropdown panel - right aligned to icon */}
       <div
         className={"absolute right-0 top-full w-64 z-50 transition-all duration-150 origin-top-right pt-2 " +
           (open ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-1 pointer-events-none")}
@@ -90,7 +81,7 @@ export default function AccountHoverMenu({ iconColor, iconHoverBg }: Props) {
         <div className="absolute right-3 top-1 w-3 h-3 bg-white border-l border-t border-gray-100 rotate-45" />
 
         <div className="relative bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] border border-gray-100 overflow-hidden">
-          {/* Header - subtle, clean */}
+          {/* Header */}
           <div className="px-4 pt-3.5 pb-3 border-b border-gray-100">
             <div className="text-[10px] font-semibold tracking-wider text-gray-400 uppercase mb-0.5">
               {isFr ? "Connect\u00e9 en tant que" : "Signed in as"}
@@ -99,53 +90,27 @@ export default function AccountHoverMenu({ iconColor, iconHoverBg }: Props) {
             <div className="text-xs text-gray-500 truncate">{customer.email}</div>
           </div>
 
-          {/* Account section */}
+          {/* Menu items - 4 total including logout */}
           <div className="py-1.5">
-            <div className="px-4 pt-1.5 pb-1 text-[10px] font-semibold tracking-wider text-gray-400 uppercase">
-              {isFr ? "Compte" : "Account"}
-            </div>
-            {accountItems.map(item => {
+            {items.map(item => {
               const Icon = item.icon;
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-[#CA3F2E] transition group"
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-[#CA3F2E] transition group"
                 >
                   <Icon className="w-4 h-4 flex-shrink-0 text-gray-400 group-hover:text-[#CA3F2E]" strokeWidth={1.75} />
                   <span className="truncate">{item.label}</span>
                 </Link>
               );
             })}
-          </div>
 
-          {/* Settings section */}
-          <div className="py-1.5 border-t border-gray-100">
-            <div className="px-4 pt-1.5 pb-1 text-[10px] font-semibold tracking-wider text-gray-400 uppercase">
-              {isFr ? "Param\u00e8tres" : "Settings"}
-            </div>
-            {settingsItems.map(item => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-[#CA3F2E] transition group"
-                >
-                  <Icon className="w-4 h-4 flex-shrink-0 text-gray-400 group-hover:text-[#CA3F2E]" strokeWidth={1.75} />
-                  <span className="truncate">{item.label}</span>
-                </Link>
-              );
-            })}
-          </div>
-
-          {/* Logout */}
-          <div className="border-t border-gray-100">
+            {/* Logout as 4th item */}
             <button
               onClick={() => { setOpen(false); logout(); }}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-[#CA3F2E] transition group"
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-[#CA3F2E] transition group"
             >
               <LogOut className="w-4 h-4 flex-shrink-0 text-gray-400 group-hover:text-[#CA3F2E]" strokeWidth={1.75} />
               <span>{isFr ? "Se d\u00e9connecter" : "Log out"}</span>
