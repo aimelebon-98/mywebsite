@@ -186,7 +186,7 @@ export default async function HomePage() {
       </section>
 
       {/* FEATURES BAR */}
-      <section className="bg-gray-900 text-white">
+      <section className="hidden lg:block bg-gray-900 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((item, i) => (
@@ -206,7 +206,7 @@ export default async function HomePage() {
 
       {/* CATEGORIES */}
       {categories.length > 0 && (
-        <section className="py-8 lg:py-12 bg-gray-50">
+        <section className="hidden lg:block py-8 lg:py-12 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <h2 className="text-3xl lg:text-4xl font-bold mb-3">{t("shopByCategory")}</h2>
