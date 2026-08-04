@@ -1,10 +1,11 @@
-﻿"use client";
+"use client";
 import CurrencySelector from "./CurrencySelector";
 import { useCurrency } from "@/lib/currency-context";
 
 import { useTranslations, useLocale } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/routing";
-import { ShoppingBag, Menu, X, Heart, Globe } from "lucide-react";
+import { ShoppingBag, Menu, X, Heart, Globe, LogIn, LogOut, LayoutDashboard, UserPlus } from "lucide-react";
+import { useCustomer } from "@/lib/customer-context";
 import { useCart } from "@/lib/cart-context";
 import AccountHoverMenu from "@/components/AccountHoverMenu";
 import { useWishlist } from "@/lib/wishlist-context";
@@ -24,6 +25,7 @@ export default function Navbar() {
   const { format: fmtPrice } = useCurrency();
   const isFr = locale === "fr";
   const { count: wishlistCount } = useWishlist();
+  const { customer, logout } = useCustomer();
   const [menuOpen, setMenuOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
 
@@ -256,6 +258,54 @@ export default function Navbar() {
                 {item.label}
               </Link>
             ))}
+
+            {/* Auth section */}
+            <div className="pt-2 mt-2 border-t border-gray-100 space-y-1">
+              {customer ? (
+                <>
+                  <div className="px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                    {isFr ? "Connect\u00e9 en tant que" : "Signed in as"}
+                  </div>
+                  <div className="px-4 pb-2 text-sm font-semibold text-gray-900 truncate">
+                    {customer.name || customer.email}
+                  </div>
+                  <Link
+                    href="/account/dashboard"
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+                  >
+                    <LayoutDashboard className="w-4 h-4 text-gray-500" />
+                    {isFr ? "Tableau de bord" : "Dashboard"}
+                  </Link>
+                  <button
+                    onClick={() => { setMenuOpen(false); logout(); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    {isFr ? "Se d\u00e9connecter" : "Log out"}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/account/login"
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+                  >
+                    <LogIn className="w-4 h-4 text-gray-500" />
+                    {isFr ? "Connexion" : "Login"}
+                  </Link>
+                  <Link
+                    href="/account/register"
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-[#CA3F2E] hover:bg-red-50 transition"
+                  >
+                    <UserPlus className="w-4 h-4" />
+                    {isFr ? "S\u0027inscrire" : "Sign up"}
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}
