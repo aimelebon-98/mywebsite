@@ -5,28 +5,58 @@ import { useEffect } from "react";
 
 // Colors match Navbar.tsx promo bar
 const HOME_COLOR = "#111827";      // gray-900 (homepage promo bar)
-const OTHER_COLOR = "#8B2A1E";     // BRAND_RED_DARK (all non-home pages promo bar)
+const OTHER_COLOR = "#8B2A1E";     // BRAND_RED_DARK (non-home pages promo bar)
 
-function setThemeColor(color: string) {
+function applyThemeColor(color: string) {
   if (typeof document === "undefined") return;
-  // Remove any dynamic meta first to avoid duplicates
-  document.querySelectorAll('meta[name="theme-color"]').forEach((el) => {
-    if (el.hasAttribute("data-dynamic")) el.remove();
+
+  // 1. Find ALL existing theme-color meta tags (Next.js injects multiple with media queries)
+  const existing = document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]');
+
+  if (existing.length === 0) {
+    // No existing tag - create one
+    const meta = document.createElement("meta");
+    meta.name = "theme-color";
+    meta.content = color;
+    document.head.appendChild(meta);
+    return;
+  }
+
+  // 2. Update every existing one - remove media attr so it always applies
+  existing.forEach((el) => {
+    el.setAttribute("content", color);
+    el.removeAttribute("media");
   });
-  const meta = document.createElement("meta");
-  meta.name = "theme-color";
-  meta.content = color;
-  meta.setAttribute("data-dynamic", "true");
-  document.head.appendChild(meta);
 }
 
 export default function ThemeColorSwitcher() {
   const pathname = usePathname();
 
   useEffect(() => {
-    // Homepage = /, /en, /fr (with or without trailing slash)
     const isHome = /^\/(en|fr)?\/?$/.test(pathname);
-    setThemeColor(isHome ? HOME_COLOR : OTHER_COLOR);
+    const color = isHome ? HOME_COLOR : OTHER_COLOR;
+
+    // Apply immediately
+    applyThemeColor(color);
+
+    // Re-apply after a tick in case Next.js overrides after our first attempt
+    const t1 = setTimeout(() => applyThemeColor(color), 50);
+    const t2 = setTimeout(() => applyThemeColor(color), 300);
+
+    // Watch <head> for any new theme-color meta tags that Next injects and override them
+    const observer = new MutationObserver(() => {
+      const currentTag = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+      if (currentTag && currentTag.getAttribute("content") !== color) {
+        applyThemeColor(color);
+      }
+    });
+    observer.observe(document.head, { childList: true, subtree: true, attributes: true });
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      observer.disconnect();
+    };
   }, [pathname]);
 
   return null;
