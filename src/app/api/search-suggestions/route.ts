@@ -1,7 +1,7 @@
 ﻿import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { products } from "@/db/schema";
-import { and, eq, ilike } from "drizzle-orm";
+import { and, eq, ilike, or } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
@@ -18,13 +18,23 @@ export async function GET(request: Request) {
       .select({
         id: products.id,
         name: products.name,
+        nameFr: products.nameFr,
         slug: products.slug,
+        slugFr: products.slugFr,
+        imageUrl: products.imageUrl,
+        price: products.price,
+        category: products.category,
       })
       .from(products)
       .where(
         and(
           eq(products.active, true),
-          ilike(products.name, `%${query.trim()}%`)
+          or(
+            ilike(products.name, `%${query.trim()}%`),
+            ilike(products.nameFr, `%${query.trim()}%`),
+            ilike(products.brand, `%${query.trim()}%`),
+            ilike(products.category, `%${query.trim()}%`)
+          )
         )
       )
       .limit(6);

@@ -1,9 +1,10 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import Image from "next/image";
 import { useLocale } from "next-intl";
-import { Star, Truck, Shield, RotateCcw, Headphones } from "lucide-react";
+import { Star, Truck, Shield, RotateCcw, Headphones, Search } from "lucide-react";
+import SearchAutocomplete from "@/components/SearchAutocomplete";
 
 const HERO_IMAGE = "https://images.unsplash.com/photo-1588361861040-ac9b1018f6d5?w=800&q=80";
 
@@ -37,6 +38,16 @@ export default function MobileHomeHero() {
             <span className="text-xs font-semibold text-gray-700">2,400+ {isFr ? "clients satisfaits" : "happy customers"}</span>
           </div>
         </div>
+      </div>
+
+      {/* Search bar with autocomplete */}
+      <div className="px-4 pb-3">
+        <SearchAutocomplete
+          placeholder={isFr ? "Rechercher des chaussures..." : "Search shoes..."}
+          inputClassName="w-full pl-10 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#CA3F2E] focus:border-transparent transition"
+          iconClassName="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+          showClearButton
+        />
       </div>
 
       {/* Product image card */}

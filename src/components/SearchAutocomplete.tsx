@@ -1,5 +1,6 @@
-"use client";
+﻿"use client";
 import { trackEvent } from "@/components/AnalyticsTracker";
+import { useCurrency } from "@/lib/currency-context";
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -10,7 +11,12 @@ import { useLocale } from "next-intl";
 interface Suggestion {
   id: string | number;
   name: string;
+  nameFr?: string | null;
   slug?: string;
+  slugFr?: string | null;
+  imageUrl?: string | null;
+  price?: string | null;
+  category?: string | null;
 }
 
 interface SearchAutocompleteProps {
@@ -34,6 +40,8 @@ export default function SearchAutocomplete({
 }: SearchAutocompleteProps) {
   const tc = useTranslations("common");
   const locale = useLocale();
+  const isFr = locale === "fr";
+  const { format: formatPrice } = useCurrency();
   const resolvedPlaceholder = placeholder ?? tc("search");
 
   const [query, setQuery] = useState(initialValue);
@@ -58,7 +66,6 @@ export default function SearchAutocomplete({
         const data = await res.json();
         setSuggestions(data.suggestions || []);
         setShowDropdown(true);
-        // Analytics: track query after user has stopped typing (2+ chars)
         try {
           if (query.trim().length >= 2) {
             trackEvent({ eventType: "search", searchQuery: query.trim() });
@@ -69,7 +76,7 @@ export default function SearchAutocomplete({
       } finally {
         setLoading(false);
       }
-    }, 800);
+    }, 400);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [query]);
 
@@ -95,14 +102,18 @@ export default function SearchAutocomplete({
     }
   };
 
+  const getDisplayName = (s: Suggestion) => (isFr && s.nameFr ? s.nameFr : s.name);
+  const getSlug = (s: Suggestion) => (isFr && s.slugFr ? s.slugFr : s.slug);
+
   const handleSelectSuggestion = (s: Suggestion) => {
-    try { trackEvent({ eventType: "search", searchQuery: query.trim() || s.name }); } catch {}
-    setQuery(s.name);
+    try { trackEvent({ eventType: "search", searchQuery: query.trim() || getDisplayName(s) }); } catch {}
+    setQuery(getDisplayName(s));
     setShowDropdown(false);
-    if (s.slug) {
-      router.push(`/${locale}/product/${s.slug}`);
+    const slug = getSlug(s);
+    if (slug) {
+      router.push(`/${locale}/product/${slug}`);
     } else {
-      router.push(`/${locale}/shop?search=${encodeURIComponent(s.name)}`);
+      router.push(`/${locale}/shop?search=${encodeURIComponent(getDisplayName(s))}`);
     }
   };
 
@@ -140,23 +151,44 @@ export default function SearchAutocomplete({
       </form>
 
       {showDropdown && (suggestions.length > 0 || loading) && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden max-h-80 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-xl z-50 overflow-hidden max-h-96 overflow-y-auto">
           {loading && suggestions.length === 0 ? (
-            <div className="px-4 py-3 text-sm text-gray-400">{tc("searching")}</div>
+            <div className="px-4 py-4 text-sm text-gray-400 flex items-center gap-2">
+              <div className="w-3 h-3 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+              {tc("searching")}
+            </div>
           ) : (
-            <ul>
+            <ul className="py-1">
               {suggestions.map((s, idx) => (
                 <li key={s.id}>
                   <button
                     type="button"
                     onClick={() => handleSelectSuggestion(s)}
                     onMouseEnter={() => setActiveIndex(idx)}
-                    className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 transition ${
-                      activeIndex === idx ? "bg-gray-100 text-gray-900" : "text-gray-700 hover:bg-gray-50"
+                    className={`w-full text-left px-3 py-2.5 flex items-center gap-3 transition ${
+                      activeIndex === idx ? "bg-gray-50" : "hover:bg-gray-50"
                     }`}
                   >
-                    <Search className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                    <span className="truncate">{s.name}</span>
+                    <div className="w-11 h-11 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">
+                      {s.imageUrl ? (
+                        <img src={s.imageUrl} alt={getDisplayName(s)} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Search className="w-4 h-4 text-gray-400" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold text-gray-900 truncate">{getDisplayName(s)}</div>
+                      {s.category && (
+                        <div className="text-[10px] text-gray-400 uppercase tracking-wider truncate">{s.category}</div>
+                      )}
+                    </div>
+                    {s.price && (
+                      <div className="text-sm font-bold flex-shrink-0" style={{ color: "#CA3F2E" }}>
+                        {formatPrice(parseFloat(s.price))}
+                      </div>
+                    )}
                   </button>
                 </li>
               ))}
