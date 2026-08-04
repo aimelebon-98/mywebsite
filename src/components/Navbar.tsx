@@ -4,7 +4,7 @@ import { useCurrency } from "@/lib/currency-context";
 
 import { useTranslations, useLocale } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/routing";
-import { ShoppingBag, Menu, X, Heart, Globe, User, LogIn } from "lucide-react";
+import { ShoppingBag, Menu, X, Heart, Globe } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
 import { useCustomer } from "@/lib/customer-context";
 import AccountHoverMenu from "@/components/AccountHoverMenu";
@@ -29,18 +29,16 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
 
-  // Apply brand red styling to all pages EXCEPT homepage
+  // Only the homepage gets the dark/white treatment; everything else gets brand red
   const isHomepage = pathname === "/" || pathname === "";
   const isBlogPage = !isHomepage;
 
   const switchLocale = async (nextLocale: "en" | "fr") => {
     setLangOpen(false);
 
-    // Read TRUE current path from browser (not next-intl cache)
     const currentPath = typeof window !== "undefined" ? window.location.pathname : pathname;
     const withoutLocale = currentPath.replace(/^\/(en|fr)(?=\/|$)/, "") || "/";
 
-    // Handle product pages
     const productMatch = withoutLocale.match(/^\/product\/([^/?]+)\/?$/);
     if (productMatch) {
       const currentSlug = productMatch[1];
@@ -57,7 +55,6 @@ export default function Navbar() {
       } catch { /* ignore */ }
     }
 
-    // Handle blog pages
     const blogPostMatch = withoutLocale.match(/^\/blog\/([^/?]+)\/?$/);
     if (blogPostMatch) {
       const currentSlug = blogPostMatch[1];
@@ -74,71 +71,136 @@ export default function Navbar() {
       } catch { /* ignore */ }
     }
 
-    // Default: use next-intl router for regular pages
     router.replace(pathname, { locale: nextLocale });
   };
 
-  // Dynamic classes based on isBlogPage
-  const navBg = isBlogPage ? "" : "bg-black lg:bg-white border-black lg:border-gray-100";
-  const navStyle = isBlogPage ? { backgroundColor: BRAND_RED } : { backgroundColor: "#ffffff" };
+  // ─── HOMEPAGE: black on mobile, white on desktop ──────────────────────────
+  // ─── ALL OTHER PAGES: brand red everywhere ────────────────────────────────
+  //
+  // KEY FIX: We no longer use a single navStyle that overrides Tailwind classes.
+  // Instead we use Tailwind responsive classes so mobile/desktop are distinct.
 
-  const bannerBg = isBlogPage ? "text-white" : "bg-gray-900 text-white";
-  const bannerStyle = isBlogPage ? { backgroundColor: BRAND_RED_DARK } : undefined;
+  const navBgClass = isHomepage
+    ? "bg-black lg:bg-white border-b border-transparent lg:border-gray-100"
+    : "border-b border-transparent";
 
-  const logoText = isBlogPage ? "text-white" : "text-white lg:text-gray-900";
-  const linkClass = isBlogPage
-    ? "text-sm font-medium text-white/90 hover:text-white transition"
-    : "text-sm font-medium text-gray-600 hover:text-gray-900 transition";
+  const navInlineStyle = isHomepage
+    ? undefined                                    // Tailwind handles it
+    : { backgroundColor: BRAND_RED };             // Brand red on non-homepage
 
-  const iconColor = isBlogPage ? "text-white" : "text-white lg:text-gray-600";
-  const iconHoverBg = isBlogPage ? "hover:bg-white/10" : "hover:bg-white/10 lg:hover:bg-gray-100";
-  const localeText = isBlogPage ? "text-white" : "text-white lg:text-gray-700";
-  const heartClass = isBlogPage
-    ? wishlistCount > 0 ? "text-white fill-white" : "text-white"
+  const bannerBgClass = isHomepage
+    ? "bg-gray-900 text-white"
+    : "text-white";
+  const bannerInlineStyle = isHomepage
+    ? undefined
+    : { backgroundColor: BRAND_RED_DARK };
+
+  // Logo text: homepage mobile=white (black bg), homepage desktop=gray-900 (white bg)
+  // Non-homepage: always white (red bg)
+  const logoTextClass = isHomepage
+    ? "text-white lg:text-gray-900"
+    : "text-white";
+
+  const logoSeparatorClass = isHomepage
+    ? "text-white/40 lg:text-gray-300 font-light text-[15px]"
+    : "text-white/40 font-light text-[15px]";
+
+  const logoZoneClass = isHomepage
+    ? "tracking-widest text-[15px] text-white/85 lg:text-[#CA3F2E]"
+    : "tracking-widest text-[15px] text-white/85";
+
+  // Nav links (desktop only)
+  const linkClass = isHomepage
+    ? "text-sm font-medium text-gray-600 hover:text-gray-900 transition"
+    : "text-sm font-medium text-white/90 hover:text-white transition";
+
+  // Icons: homepage mobile=white (on black), homepage desktop=gray-600 (on white)
+  // Non-homepage: always white (on red)
+  const iconColorClass = isHomepage
+    ? "text-white lg:text-gray-600"
+    : "text-white";
+
+  const iconHoverBgClass = isHomepage
+    ? "hover:bg-white/10 lg:hover:bg-gray-100"
+    : "hover:bg-white/10";
+
+  const localeTextClass = isHomepage
+    ? "text-white lg:text-gray-700"
+    : "text-white";
+
+  const heartClass = isHomepage
+    ? wishlistCount > 0
+      ? "text-white fill-white lg:text-gray-900 lg:fill-gray-900"
+      : "text-white lg:text-gray-600"
     : wishlistCount > 0
-        ? "text-white fill-white lg:text-gray-900 lg:fill-gray-900"
-        : "text-white lg:text-gray-600";
+      ? "text-white fill-white"
+      : "text-white";
 
-  const badgeBg = isBlogPage
-    ? "bg-white text-gray-900"
-    : "bg-gray-900 text-white";
+  const badgeBgClass = isHomepage
+    ? "bg-white text-gray-900 lg:bg-gray-900 lg:text-white"
+    : "bg-white text-gray-900";
+
+  // Mobile menu always opens as white bg with dark text regardless of page
+  const mobileMenuIconClass = "text-gray-700";
+  const mobileMenuHoverBg = "hover:bg-gray-50";
 
   return (
     <nav
-      className={`sticky top-0 left-0 right-0 z-50 border-b transition-colors ${navBg} ${isBlogPage ? "border-transparent" : ""}`}
-      style={navStyle}
+      className={`sticky top-0 left-0 right-0 z-50 transition-colors ${navBgClass}`}
+      style={navInlineStyle}
     >
-      <div className={`text-center py-2 text-xs font-medium tracking-wide ${bannerBg}`} style={bannerStyle}>
-        <span>{isFr ? `LIVRAISON GRATUITE pour les commandes de plus de ${fmtPrice(1000)}` : `FREE SHIPPING on orders over ${fmtPrice(1000)}`}</span> - <Link href="/shop" className="underline underline-offset-2">{t("shopNow")}</Link>
+      {/* Promo banner */}
+      <div
+        className={`text-center py-2 text-xs font-medium tracking-wide ${bannerBgClass}`}
+        style={bannerInlineStyle}
+      >
+        <span>
+          {isFr
+            ? `LIVRAISON GRATUITE pour les commandes de plus de ${fmtPrice(1000)}`
+            : `FREE SHIPPING on orders over ${fmtPrice(1000)}`}
+        </span>{" "}
+        -{" "}
+        <Link href="/shop" className="underline underline-offset-2">
+          {t("shopNow")}
+        </Link>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14 lg:h-16 gap-4">
+
+          {/* Logo */}
           <Link href="/" className="group flex items-center gap-2.5 flex-shrink-0">
-            {/* Brand icon - stylized N monogram */}
-            <div className="relative w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden shadow-md group-hover:shadow-lg transition-all group-hover:scale-105"
-                 style={{ background: "linear-gradient(135deg, #CA3F2E 0%, #8B2A1E 100%)" }}>
+            <div
+              className="relative w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden shadow-md group-hover:shadow-lg transition-all group-hover:scale-105"
+              style={{ background: "linear-gradient(135deg, #CA3F2E 0%, #8B2A1E 100%)" }}
+            >
               <svg viewBox="0 0 24 24" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M12.5 2H4a2 2 0 00-2 2v8.5a2 2 0 00.59 1.41l8.5 8.5a2 2 0 002.82 0l8.5-8.5a2 2 0 000-2.82L13.91 2.59A2 2 0 0012.5 2z" fill="white" stroke="white" strokeWidth="0.5" strokeLinejoin="round"/>
-                <circle cx="7.5" cy="7.5" r="1.6" fill="#CA3F2E"/>
+                <path
+                  d="M12.5 2H4a2 2 0 00-2 2v8.5a2 2 0 00.59 1.41l8.5 8.5a2 2 0 002.82 0l8.5-8.5a2 2 0 000-2.82L13.91 2.59A2 2 0 0012.5 2z"
+                  fill="white" stroke="white" strokeWidth="0.5" strokeLinejoin="round"
+                />
+                <circle cx="7.5" cy="7.5" r="1.6" fill="#CA3F2E" />
               </svg>
               <span className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
-
-            {/* Brand wordmark - two weights + subtle underline */}
-            <div className={`hidden sm:flex items-baseline gap-1.5 text-[19px] font-black tracking-tight leading-none ${logoText}`}>
+            <div className={`hidden sm:flex items-baseline gap-1.5 text-[19px] font-black tracking-tight leading-none ${logoTextClass}`}>
               <span>NewDeal</span>
-              <span className={isBlogPage ? "text-white/40 font-light text-[15px]" : "text-white/40 lg:text-gray-300 font-light text-[15px]"}>|</span>
-              <span className={`tracking-widest text-[15px] ${isBlogPage ? "text-white/85" : "text-white/85 lg:text-[#CA3F2E]"}`}>ZONE</span>
+              <span className={logoSeparatorClass}>|</span>
+              <span className={logoZoneClass}>ZONE</span>
             </div>
           </Link>
 
+          {/* Desktop nav links */}
           <div className="hidden lg:flex items-center gap-5">
             <Link href="/" className={linkClass}>{t("home")}</Link>
             <Link href="/shop" className={linkClass}>{t("shopAll")}</Link>
             <Link
               href="/blog"
-              className={isBlogPage ? "text-sm font-bold text-white transition" : linkClass}
+              className={
+                !isHomepage
+                  ? "text-sm font-bold text-white transition"
+                  : linkClass
+              }
             >
               Blog
             </Link>
@@ -147,35 +209,40 @@ export default function Navbar() {
             <Link href="/faq" className={linkClass}>{t("faq")}</Link>
           </div>
 
-          <div className="group flex items-center gap-1 sm:gap-2.5 flex-shrink-0">
+          {/* Right side icons */}
+          <div className="flex items-center gap-1 sm:gap-2.5 flex-shrink-0">
+
+            {/* Search (desktop only) */}
             <div className="hidden md:block">
               <SearchAutocomplete
                 placeholder={tCommon("search")}
                 className="w-48 lg:w-56"
                 inputClassName={`w-full pl-9 pr-3 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 transition placeholder-gray-400 ${
-                  isBlogPage
+                  !isHomepage
                     ? "bg-white/20 text-white placeholder-white/60 focus:bg-white focus:text-gray-900 focus:ring-white"
                     : "bg-gray-100 focus:ring-gray-900 focus:bg-white"
                 }`}
               />
             </div>
 
-            {isBlogPage ? (
-              <CurrencySelector compact={isBlogPage} dark={isBlogPage} />
+            {/* Currency selector */}
+            {!isHomepage ? (
+              <CurrencySelector compact={true} dark={true} />
             ) : (
               <div className="[&_button>span]:!text-white lg:[&_button>span]:!text-inherit [&_button>svg]:!text-white lg:[&_button>svg]:!text-inherit [&_button]:hover:!bg-white/10 lg:[&_button]:hover:!bg-inherit">
-                <CurrencySelector compact={isBlogPage} dark={isBlogPage} />
+                <CurrencySelector compact={false} dark={false} />
               </div>
             )}
 
+            {/* Language switcher */}
             <div className="relative">
               <button
                 onClick={() => setLangOpen(!langOpen)}
                 aria-label="Change language"
-                className={`flex items-center gap-1 p-1.5 sm:p-2 rounded-xl transition ${iconHoverBg}`}
+                className={`flex items-center gap-1 p-1.5 sm:p-2 rounded-xl transition ${iconHoverBgClass}`}
               >
-              <Globe className={`w-5 h-5 ${iconColor}`} />
-                <span className={`text-xs font-bold uppercase ${localeText}`}>{locale}</span>
+                <Globe className={`w-5 h-5 ${iconColorClass}`} />
+                <span className={`text-xs font-bold uppercase ${localeTextClass}`}>{locale}</span>
               </button>
               {langOpen && (
                 <>
@@ -185,52 +252,83 @@ export default function Navbar() {
                       onClick={() => switchLocale("en")}
                       className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition flex items-center gap-2 ${locale === "en" ? "font-bold bg-gray-50" : ""}`}
                     >
-                      <svg width="20" height="14" viewBox="0 0 60 42" xmlns="http://www.w3.org/2000/svg" className="rounded-sm flex-shrink-0"><rect width="60" height="42" fill="#B22234"/><rect y="3.23" width="60" height="3.23" fill="#fff"/><rect y="9.69" width="60" height="3.23" fill="#fff"/><rect y="16.15" width="60" height="3.23" fill="#fff"/><rect y="22.62" width="60" height="3.23" fill="#fff"/><rect y="29.08" width="60" height="3.23" fill="#fff"/><rect y="35.54" width="60" height="3.23" fill="#fff"/><rect width="24" height="22.62" fill="#3C3B6E"/></svg> English
+                      <svg width="20" height="14" viewBox="0 0 60 42" xmlns="http://www.w3.org/2000/svg" className="rounded-sm flex-shrink-0">
+                        <rect width="60" height="42" fill="#B22234"/>
+                        <rect y="3.23" width="60" height="3.23" fill="#fff"/>
+                        <rect y="9.69" width="60" height="3.23" fill="#fff"/>
+                        <rect y="16.15" width="60" height="3.23" fill="#fff"/>
+                        <rect y="22.62" width="60" height="3.23" fill="#fff"/>
+                        <rect y="29.08" width="60" height="3.23" fill="#fff"/>
+                        <rect y="35.54" width="60" height="3.23" fill="#fff"/>
+                        <rect width="24" height="22.62" fill="#3C3B6E"/>
+                      </svg>
+                      English
                     </button>
                     <button
                       onClick={() => switchLocale("fr")}
                       className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition flex items-center gap-2 ${locale === "fr" ? "font-bold bg-gray-50" : ""}`}
                     >
-                      <svg width="20" height="14" viewBox="0 0 3 2" xmlns="http://www.w3.org/2000/svg" className="rounded-sm flex-shrink-0"><rect width="1" height="2" x="0" fill="#0055A4"/><rect width="1" height="2" x="1" fill="#fff"/><rect width="1" height="2" x="2" fill="#EF4135"/></svg> Francais
+                      <svg width="20" height="14" viewBox="0 0 3 2" xmlns="http://www.w3.org/2000/svg" className="rounded-sm flex-shrink-0">
+                        <rect width="1" height="2" x="0" fill="#0055A4"/>
+                        <rect width="1" height="2" x="1" fill="#fff"/>
+                        <rect width="1" height="2" x="2" fill="#EF4135"/>
+                      </svg>
+                      Francais
                     </button>
                   </div>
                 </>
               )}
             </div>
 
-            <AccountHoverMenu iconColor={iconColor} iconHoverBg={iconHoverBg} />
+            {/* Account */}
+            <AccountHoverMenu iconColor={iconColorClass} iconHoverBg={iconHoverBgClass} />
 
-            <Link href="/wishlist" aria-label={t("wishlist")} className={`relative p-1.5 sm:p-2 rounded-xl transition ${iconHoverBg}`}>
+            {/* Wishlist */}
+            <Link
+              href="/wishlist"
+              aria-label={t("wishlist")}
+              className={`relative p-1.5 sm:p-2 rounded-xl transition ${iconHoverBgClass}`}
+            >
               <Heart className={`w-5 h-5 ${heartClass}`} />
               {wishlistCount > 0 && (
-                <span className={`absolute -top-0.5 -right-0.5 w-5 h-5 text-[10px] font-bold rounded-full flex items-center justify-center ${badgeBg}`}>
+                <span className={`absolute -top-0.5 -right-0.5 w-5 h-5 text-[10px] font-bold rounded-full flex items-center justify-center ${badgeBgClass}`}>
                   {wishlistCount > 9 ? "9+" : wishlistCount}
                 </span>
               )}
             </Link>
 
+            {/* Cart */}
             <button
               onClick={openDrawer}
               aria-label={t("cart")}
-              className={`relative p-1.5 sm:p-2 rounded-xl transition ${iconHoverBg}`}
+              className={`relative p-1.5 sm:p-2 rounded-xl transition ${iconHoverBgClass}`}
             >
-              <ShoppingBag className={`w-5 h-5 ${iconColor}`} />
+              <ShoppingBag className={`w-5 h-5 ${iconColorClass}`} />
               {totalItems > 0 && (
-                <span className={`absolute -top-0.5 -right-0.5 w-5 h-5 text-[10px] font-bold rounded-full flex items-center justify-center ${badgeBg}`}>
+                <span className={`absolute -top-0.5 -right-0.5 w-5 h-5 text-[10px] font-bold rounded-full flex items-center justify-center ${badgeBgClass}`}>
                   {totalItems > 9 ? "9+" : totalItems}
                 </span>
               )}
             </button>
 
-            <button onClick={() => setMenuOpen(!menuOpen)} className={`lg:hidden p-1.5 sm:p-2 rounded-xl transition ${iconHoverBg}`}>
-              {menuOpen ? <X className={`w-5 h-5 ${iconColor}`} /> : <Menu className={`w-5 h-5 ${iconColor}`} />}
+            {/* Hamburger - always visible on mobile with proper contrast */}
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
+              className={`lg:hidden p-1.5 sm:p-2 rounded-xl transition ${iconHoverBgClass}`}
+            >
+              {menuOpen
+                ? <X className={`w-5 h-5 ${iconColorClass}`} />
+                : <Menu className={`w-5 h-5 ${iconColorClass}`} />
+              }
             </button>
           </div>
         </div>
       </div>
 
+      {/* Mobile menu - always white bg with dark text for readability */}
       {menuOpen && (
-        <div className="lg:hidden bg-white border-t border-gray-100 animate-slide-in shadow-lg">
+        <div className="lg:hidden bg-white border-t border-gray-100 shadow-lg">
           <div className="px-4 py-3 space-y-1">
             <div className="mb-2">
               <SearchAutocomplete
@@ -240,20 +338,20 @@ export default function Navbar() {
               />
             </div>
             {[
-              { href: "/", label: t("home") },
-              { href: "/shop", label: t("shopAll") },
-              { href: "/blog", label: "Blog" },
-              { href: "/about", label: t("about") },
-              { href: "/contact", label: t("contact") },
-              { href: "/faq", label: t("faq") },
+              { href: "/",         label: t("home") },
+              { href: "/shop",     label: t("shopAll") },
+              { href: "/blog",     label: "Blog" },
+              { href: "/about",    label: t("about") },
+              { href: "/contact",  label: t("contact") },
+              { href: "/faq",      label: t("faq") },
               { href: "/wishlist", label: `${t("wishlist")}${wishlistCount > 0 ? ` (${wishlistCount})` : ""}` },
-              { href: "/cart", label: t("cart") },
+              { href: "/cart",     label: t("cart") },
             ].map((item) => (
               <Link
                 key={item.href + item.label}
                 href={item.href}
                 onClick={() => setMenuOpen(false)}
-                className="block px-4 py-3 rounded-xl text-sm font-medium hover:bg-gray-50 transition"
+                className="block px-4 py-3 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
               >
                 {item.label}
               </Link>
