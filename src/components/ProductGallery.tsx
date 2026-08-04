@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { ShoppingBag, ChevronLeft, ChevronRight, ZoomIn, X } from "lucide-react";
@@ -16,6 +16,7 @@ export default function ProductGallery({ images, productName }: Props) {
   const [loaded, setLoaded] = useState<Record<number, boolean>>({});
   const [zoomOpen, setZoomOpen] = useState(false);
   const [showHint, setShowHint] = useState(false);
+  const [canHover, setCanHover] = useState(false);
 
   const mainRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef<number | null>(null);
@@ -28,6 +29,16 @@ export default function ProductGallery({ images, productName }: Props) {
     setActiveIdx(0);
     setLoaded({});
   }, [productName]);
+
+  // Detect hover-capable device (desktop with mouse)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
+    setCanHover(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setCanHover(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
 
   // Keyboard nav
   useEffect(() => {
@@ -56,7 +67,7 @@ export default function ProductGallery({ images, productName }: Props) {
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!mainRef.current) return;
+    if (!canHover || !mainRef.current) return;
     const rect = mainRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
@@ -64,17 +75,16 @@ export default function ProductGallery({ images, productName }: Props) {
   };
 
   useEffect(() => {
-    // Show zoom hint on first load for desktop
-    if (hasImages && window.matchMedia("(hover: hover)").matches) {
+    if (hasImages && canHover) {
       setShowHint(true);
       const t = setTimeout(() => setShowHint(false), 2500);
       return () => clearTimeout(t);
     }
-  }, [hasImages]);
+  }, [hasImages, canHover]);
 
   if (!hasImages) {
     return (
-      <div className="relative aspect-square rounded-3xl overflow-hidden bg-gray-100 flex items-center justify-center">
+      <div className="relative w-full max-w-full aspect-square rounded-3xl overflow-hidden bg-gray-100 flex items-center justify-center">
         <ShoppingBag className="w-24 h-24 text-gray-200" />
       </div>
     );
@@ -84,15 +94,15 @@ export default function ProductGallery({ images, productName }: Props) {
 
   return (
     <>
-      <div className="space-y-3">
+      <div className="space-y-3 w-full max-w-full min-w-0 overflow-hidden">
         {/* MAIN IMAGE */}
         <div
           ref={mainRef}
-          className="relative aspect-square rounded-3xl overflow-hidden bg-gray-100 group cursor-zoom-in"
+          className={`relative w-full max-w-full aspect-square rounded-2xl md:rounded-3xl overflow-hidden bg-gray-100 group ${canHover ? "cursor-zoom-in" : ""}`}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
-          onMouseEnter={() => setIsHovering(true)}
-          onMouseLeave={() => setIsHovering(false)}
+          onMouseEnter={() => canHover && setIsHovering(true)}
+          onMouseLeave={() => canHover && setIsHovering(false)}
           onMouseMove={handleMouseMove}
           onClick={() => setZoomOpen(true)}
         >
@@ -102,14 +112,13 @@ export default function ProductGallery({ images, productName }: Props) {
             alt={`${productName} - image ${activeIdx + 1}`}
             className={`w-full h-full object-cover transition-transform duration-500 ${loaded[activeIdx] ? "opacity-100" : "opacity-0"}`}
             style={
-              isHovering
+              canHover && isHovering
                 ? { transform: `scale(2)`, transformOrigin: `${zoomPos.x}% ${zoomPos.y}%` }
                 : undefined
             }
             onLoad={() => setLoaded(l => ({ ...l, [activeIdx]: true }))}
             onError={() => setLoaded(l => ({ ...l, [activeIdx]: true }))}
             ref={(el) => {
-              // Handle cached images: if already loaded by the time ref attaches, mark loaded manually
               if (el && el.complete && el.naturalWidth > 0) {
                 setLoaded(l => l[activeIdx] ? l : { ...l, [activeIdx]: true });
               }
@@ -121,7 +130,7 @@ export default function ProductGallery({ images, productName }: Props) {
             <div className="absolute inset-0 bg-gray-100 animate-pulse" />
           )}
 
-          {/* Zoom hint (fades out) */}
+          {/* Zoom hint (fades out) - desktop only */}
           {showHint && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 backdrop-blur text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 animate-fade-in pointer-events-none">
               <ZoomIn className="w-3.5 h-3.5" />
