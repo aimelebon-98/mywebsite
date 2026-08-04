@@ -656,3 +656,8 @@ div.tiptap-editor {
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 0.75rem);
 }
+/* Prevent horizontal scrolling site-wide (mobile safety net) */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
