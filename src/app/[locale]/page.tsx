@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import HomeProducts from "@/components/HomeProducts";
 import HomeBlogSection from "@/components/HomeBlogSection";
+import MobileHomeHero from "@/components/MobileHomeHero";
 import AnimatedNetwork from "@/components/AnimatedNetworkLazy";
 import TypingText from "@/components/TypingText";
 import { ArrowRight, Truck, Shield, RotateCcw, Headphones, Star } from "lucide-react";
@@ -73,8 +74,11 @@ export default async function HomePage() {
     <main className="min-h-screen">
       <Navbar />
 
-      {/* HERO */}
-      <section className="relative overflow-hidden">
+      {/* MOBILE HERO */}
+      <MobileHomeHero />
+
+      {/* HERO (desktop) */}
+      <section className="hidden lg:block relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-100" />
         <div className="absolute inset-0 opacity-[0.6]">
           <AnimatedNetwork
