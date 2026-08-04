@@ -244,8 +244,8 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
 
           <div className="grid lg:grid-cols-[1fr_1fr_320px] gap-8 lg:gap-10">
             {/* IMAGE GALLERY */}
-            <div className="space-y-4">
-              <div className="relative">
+            <div className="space-y-4 w-full">
+              <div className="relative w-full">
                 <ProductGallery
                   images={(() => {
                     const arr: string[] = [];
