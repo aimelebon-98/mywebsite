@@ -47,7 +47,7 @@ export default function CartPage() {
     return (
       <main className="min-h-screen bg-white">
         <Navbar />
-        <div className="pt-32 text-center">
+        <div className="pt-10 text-center">
           <div className="animate-pulse text-gray-400">{t("loadingCart")}</div>
         </div>
       </main>

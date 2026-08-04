@@ -372,7 +372,7 @@ export default function CheckoutPage() {
     return (
       <main className="min-h-screen bg-white">
         <Navbar />
-        <div className="pt-32 text-center"><Loader2 className="w-8 h-8 animate-spin text-[#CA3F2E] mx-auto" /></div>
+        <div className="pt-10 text-center"><Loader2 className="w-8 h-8 animate-spin text-[#CA3F2E] mx-auto" /></div>
       </main>
     );
   }
@@ -457,7 +457,7 @@ export default function CheckoutPage() {
     return (
       <main className="min-h-screen bg-gray-50">
         <Navbar />
-        <div className="pt-32 pb-16 flex items-center justify-center">
+        <div className="pt-10 pb-16 flex items-center justify-center">
           <div className="bg-white rounded-3xl shadow-xl p-8 text-center max-w-sm">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center">
               <CheckCircle className="w-8 h-8 text-white" />
