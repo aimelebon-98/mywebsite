@@ -157,7 +157,7 @@ export default async function ShippingPage() {
   return (
     <main className="min-h-screen bg-white">
       <Navbar />
-      <div className="pt-20">
+      <div>
         <LegalPageLayout
           title={isFr ? "Politique de livraison" : "Shipping Policy"}
           subtitle={isFr ? "Delais, frais et zones de livraison." : "Delivery times, fees, and available regions."}

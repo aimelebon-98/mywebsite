@@ -195,7 +195,7 @@ export default async function ReturnsPage() {
   return (
     <main className="min-h-screen bg-white">
       <Navbar />
-      <div className="pt-20">
+      <div>
         <LegalPageLayout
           title={isFr ? "Retours et remboursements" : "Returns & Refunds"}
           subtitle={isFr ? "Notre politique de retours et remboursements." : "Our returns and refunds policy."}

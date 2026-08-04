@@ -203,7 +203,7 @@ export default async function TermsPage() {
   return (
     <main className="min-h-screen bg-white">
       <Navbar />
-      <div className="pt-20">
+      <div>
         <LegalPageLayout
           title={isFr ? "Conditions generales" : "Terms of Service"}
           subtitle={isFr ? "Les regles qui regissent votre utilisation de NewDealZone." : "The rules governing your use of NewDealZone."}

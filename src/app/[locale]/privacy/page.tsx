@@ -270,7 +270,7 @@ export default async function PrivacyPage() {
   return (
     <main className="min-h-screen bg-white">
       <Navbar />
-      <div className="pt-20">
+      <div>
         <LegalPageLayout
           title={isFr ? "Politique de confidentialite" : "Privacy Policy"}
           subtitle={isFr ? "Comment nous protegeons vos donnees personnelles." : "How we collect, use, and protect your personal information."}

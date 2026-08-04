@@ -107,7 +107,7 @@ export default async function AuthorPage({ params }: Props) {
       <Navbar />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      <div className="pt-20">
+      <div>
         {/* Header */}
         <section className="bg-gradient-to-b from-gray-50 to-white py-14 lg:py-20 border-b border-gray-100">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
