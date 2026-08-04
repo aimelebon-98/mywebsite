@@ -41,12 +41,7 @@ export default function WhatsAppButton({ blogPostTitle = "", blogPostUrl = "" }:
           ? blogPostMessageFr
           : "Bonjour ! Je suis interesse par vos chaussures. Pouvez-vous m'aider ?",
         quick: isBlogPost
-          ? [
-              blogPostMessageFr,
-              `Pouvez-vous m'en dire plus sur ${blogPostTitle} ?`,
-              "Avez-vous des recommandations similaires ?",
-              "Je souhaite en savoir plus.",
-            ]
+          ? [blogPostMessageFr]
           : [
               "Bonjour ! J'ai besoin d'aide pour choisir des chaussures.",
               "Avez-vous ceci dans ma taille ?",
@@ -66,12 +61,7 @@ export default function WhatsAppButton({ blogPostTitle = "", blogPostUrl = "" }:
           ? blogPostMessageEn
           : "Hi! I'm interested in your shoes. Can you help me?",
         quick: isBlogPost
-          ? [
-              blogPostMessageEn,
-              `Can you tell me more about ${blogPostTitle}?`,
-              "Do you have similar recommendations?",
-              "I would like to learn more.",
-            ]
+          ? [blogPostMessageEn]
           : [
               "Hi! I need help choosing shoes.",
               "Do you have this in my size?",
