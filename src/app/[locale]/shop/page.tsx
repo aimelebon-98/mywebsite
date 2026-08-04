@@ -156,7 +156,7 @@ export default async function ShopPage({ params, searchParams }: Props) {
     <main className="min-h-screen bg-white">
       <Navbar />
 
-      <div className="pt-12 lg:pt-16 relative overflow-hidden bg-[#0a0a0a]">
+      <div className="pt-4 lg:pt-6 relative overflow-hidden bg-[#0a0a0a]">
         {/* Layer 1: Deep gradient base */}
         <div className="absolute inset-0 bg-gradient-to-br from-black via-neutral-900 to-neutral-800" />
 

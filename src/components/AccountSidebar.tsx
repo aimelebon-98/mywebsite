@@ -116,7 +116,7 @@ export default function AccountSidebar({ mobileOpen = false, onClose, variant }:
           >
             <X className="w-5 h-5 text-gray-500" />
           </button>
-          <div className="pt-6 flex flex-col flex-1 min-h-0">
+          <div className="pt-2 flex flex-col flex-1 min-h-0">
             {inner}
           </div>
         </aside>
