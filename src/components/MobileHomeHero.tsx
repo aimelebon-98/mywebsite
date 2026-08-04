@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useLocale } from "next-intl";
-import { Star, Truck, Shield, RotateCcw, Headphones, Search } from "lucide-react";
+import { Star, Truck } from "lucide-react";
 import SearchAutocomplete from "@/components/SearchAutocomplete";
 
 const HERO_IMAGE = "https://images.unsplash.com/photo-1588361861040-ac9b1018f6d5?w=800&q=80";
@@ -12,12 +12,6 @@ export default function MobileHomeHero() {
   const locale = useLocale();
   const isFr = locale === "fr";
 
-  const features = [
-    { icon: Truck,      title: isFr ? "Livraison gratuite"  : "Free Shipping",   sub: isFr ? "Commandes 1000$+"      : "On orders over $1000" },
-    { icon: Shield,     title: isFr ? "Paiement s\u00e9curis\u00e9" : "Secure Payment",  sub: isFr ? "100% prot\u00e9g\u00e9"          : "100% protected" },
-    { icon: RotateCcw,  title: isFr ? "Retours faciles"     : "Easy Returns",    sub: isFr ? "14 jours"              : "14-day return policy" },
-    { icon: Headphones, title: isFr ? "Support 24/7"        : "24/7 Support",    sub: isFr ? "Via WhatsApp"          : "Via WhatsApp" },
-  ];
 
   return (
     <section className="lg:hidden bg-white">
@@ -86,25 +80,7 @@ export default function MobileHomeHero() {
         </div>
       </div>
 
-      {/* Feature strip - dark card with 4 icons */}
-      <div className="px-4 pb-6">
-        <div className="grid grid-cols-2 gap-px bg-gray-800 rounded-2xl overflow-hidden">
-          {features.map((f, i) => {
-            const Icon = f.icon;
-            return (
-              <div key={i} className="bg-gray-900 p-3.5 flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
-                  <Icon className="w-4 h-4 text-white" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-[11px] font-bold text-white leading-tight truncate">{f.title}</div>
-                  <div className="text-[9px] text-gray-400 leading-tight truncate">{f.sub}</div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+
     </section>
   );
 }
