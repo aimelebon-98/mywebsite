@@ -28,7 +28,7 @@ export default function ContactPage() {
     <main className="min-h-screen">
       <Navbar />
 
-      <section className="bg-gray-900 text-white pt-10 lg:pt-14 pb-20 px-4">
+      <section className="bg-gray-900 text-white pt-20 lg:pt-28 pb-20 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <span className="inline-block px-4 py-1.5 bg-white/10 rounded-full text-xs font-semibold tracking-widest uppercase mb-6">
             {t("badge")}

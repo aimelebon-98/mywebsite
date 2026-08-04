@@ -28,7 +28,7 @@ export default function AboutPage() {
       {/* ============================================
           HERO STATEMENT - big and bold
           ============================================ */}
-      <section className="pt-8 lg:pt-12 pb-12 lg:pb-16 relative">
+      <section className="pt-16 lg:pt-24 pb-12 lg:pb-16 relative">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/70 backdrop-blur-sm border border-gray-200/60 rounded-full mb-6 shadow-sm">
             <div className="w-1.5 h-1.5 rounded-full bg-[#CA3F2E] animate-pulse" />
