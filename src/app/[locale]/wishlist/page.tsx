@@ -28,7 +28,7 @@ export default function WishlistPage() {
     if (!loaded) return;
     const vid = localStorage.getItem("solevault-visitor-id");
     if (!vid && !customer) { setLoading(false); return; }
-    fetch("/api/wishlist/products?visitorId=" + (vid || ""))
+    fetch("/api/wishlist/products?visitorId=" + (vid || ""), { credentials: "include" })
       .then(r => r.json())
       .then(data => setProducts(data.products || []))
       .catch(() => setProducts([]))
