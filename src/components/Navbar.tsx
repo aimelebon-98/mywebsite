@@ -79,20 +79,20 @@ export default function Navbar() {
   };
 
   // Dynamic classes based on isBlogPage
-  const navBg = isBlogPage ? "" : "bg-white/80 border-gray-100";
+  const navBg = isBlogPage ? "" : "bg-black lg:bg-white/80 border-black lg:border-gray-100";
   const navStyle = isBlogPage ? { backgroundColor: BRAND_RED } : undefined;
 
   const bannerBg = isBlogPage ? "text-white" : "bg-gray-900 text-white";
   const bannerStyle = isBlogPage ? { backgroundColor: BRAND_RED_DARK } : undefined;
 
-  const logoText = isBlogPage ? "text-white" : "";
+  const logoText = isBlogPage ? "text-white" : "text-white lg:text-gray-900";
   const linkClass = isBlogPage
     ? "text-sm font-medium text-white/90 hover:text-white transition"
     : "text-sm font-medium text-gray-600 hover:text-gray-900 transition";
 
-  const iconColor = isBlogPage ? "text-white" : "text-gray-600";
-  const iconHoverBg = isBlogPage ? "hover:bg-white/10" : "hover:bg-gray-100";
-  const localeText = isBlogPage ? "text-white" : "text-gray-700";
+  const iconColor = isBlogPage ? "text-white" : "text-white lg:text-gray-600";
+  const iconHoverBg = isBlogPage ? "hover:bg-white/10" : "hover:bg-white/10 lg:hover:bg-gray-100";
+  const localeText = isBlogPage ? "text-white" : "text-white lg:text-gray-700";
   const heartClass = isBlogPage
     ? wishlistCount > 0 ? "text-white fill-white" : "text-white"
     : wishlistCount > 0 ? "text-gray-900 fill-gray-900" : "text-gray-600";
@@ -126,8 +126,8 @@ export default function Navbar() {
             {/* Brand wordmark - two weights + subtle underline */}
             <div className={`hidden sm:flex items-baseline gap-1.5 text-[19px] font-black tracking-tight leading-none ${logoText}`}>
               <span>NewDeal</span>
-              <span className={isBlogPage ? "text-white/40 font-light text-[15px]" : "text-gray-300 font-light text-[15px]"}>|</span>
-              <span className={`tracking-widest text-[15px] ${isBlogPage ? "text-white/85" : "text-[#CA3F2E]"}`}>ZONE</span>
+              <span className={isBlogPage ? "text-white/40 font-light text-[15px]" : "text-white/40 lg:text-gray-300 font-light text-[15px]"}>|</span>
+              <span className={`tracking-widest text-[15px] ${isBlogPage ? "text-white/85" : "text-white/85 lg:text-[#CA3F2E]"}`}>ZONE</span>
             </div>
           </Link>
 
