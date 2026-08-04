@@ -12,7 +12,7 @@ export default function AboutPage() {
   const t = useTranslations("about");
 
   return (
-    <main className="min-h-screen relative overflow-hidden">
+    <main className="min-h-screen relative overflow-x-hidden">
       {/* ============================================
           ANIMATED BACKGROUND
           ============================================ */}
