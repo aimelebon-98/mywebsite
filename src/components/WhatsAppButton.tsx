@@ -4,13 +4,29 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { X, MessageCircle } from "lucide-react";
 
-export default function WhatsAppButton() {
+interface Props {
+  blogPostTitle?: string;
+  blogPostUrl?: string;
+}
+
+export default function WhatsAppButton({ blogPostTitle = "", blogPostUrl = "" }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [whatsappNumber, setWhatsappNumber] = useState("");
   const [message, setMessage] = useState("");
   const [showBubble, setShowBubble] = useState(false);
   const pathname = usePathname();
   const isFr = pathname?.startsWith("/fr");
+  const isBlogPost = Boolean(blogPostTitle);
+
+  // Build the default/prefilled message
+  // If on blog post: use "Hi, NewDeal | ZONE, I am interested in {title}. {url}"
+  // Otherwise: use generic default
+  const blogPostMessageEn = blogPostTitle
+    ? `Hi, NewDeal | ZONE, I am interested in ${blogPostTitle}.${blogPostUrl ? ` ${blogPostUrl}` : ""}`
+    : "";
+  const blogPostMessageFr = blogPostTitle
+    ? `Bonjour, NewDeal | ZONE, je suis interesse par ${blogPostTitle}.${blogPostUrl ? ` ${blogPostUrl}` : ""}`
+    : "";
 
   const t = isFr
     ? {
@@ -21,13 +37,22 @@ export default function WhatsAppButton() {
         placeholder: "Ecrivez un message...",
         needHelp: "Besoin d'aide ?",
         chatWithUs: "Discutez avec nous sur WhatsApp",
-        defaultMsg: "Bonjour ! Je suis interesse par vos chaussures. Pouvez-vous m'aider ?",
-        quick: [
-          "Bonjour ! J'ai besoin d'aide pour choisir des chaussures.",
-          "Avez-vous ceci dans ma taille ?",
-          "Quelles sont vos meilleures offres aujourd'hui ?",
-          "J'ai une question concernant ma commande.",
-        ],
+        defaultMsg: isBlogPost
+          ? blogPostMessageFr
+          : "Bonjour ! Je suis interesse par vos chaussures. Pouvez-vous m'aider ?",
+        quick: isBlogPost
+          ? [
+              blogPostMessageFr,
+              `Pouvez-vous m'en dire plus sur ${blogPostTitle} ?`,
+              "Avez-vous des recommandations similaires ?",
+              "Je souhaite en savoir plus.",
+            ]
+          : [
+              "Bonjour ! J'ai besoin d'aide pour choisir des chaussures.",
+              "Avez-vous ceci dans ma taille ?",
+              "Quelles sont vos meilleures offres aujourd'hui ?",
+              "J'ai une question concernant ma commande.",
+            ],
       }
     : {
         supportName: "NewDealZone Support",
@@ -37,13 +62,22 @@ export default function WhatsAppButton() {
         placeholder: "Type a message...",
         needHelp: "Need help?",
         chatWithUs: "Chat with us on WhatsApp",
-        defaultMsg: "Hi! I'm interested in your shoes. Can you help me?",
-        quick: [
-          "Hi! I need help choosing shoes.",
-          "Do you have this in my size?",
-          "What are your best deals today?",
-          "I have a question about my order.",
-        ],
+        defaultMsg: isBlogPost
+          ? blogPostMessageEn
+          : "Hi! I'm interested in your shoes. Can you help me?",
+        quick: isBlogPost
+          ? [
+              blogPostMessageEn,
+              `Can you tell me more about ${blogPostTitle}?`,
+              "Do you have similar recommendations?",
+              "I would like to learn more.",
+            ]
+          : [
+              "Hi! I need help choosing shoes.",
+              "Do you have this in my size?",
+              "What are your best deals today?",
+              "I have a question about my order.",
+            ],
       };
 
   useEffect(() => {
@@ -58,6 +92,13 @@ export default function WhatsAppButton() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Auto-fill the input with blog post message when it becomes available
+  useEffect(() => {
+    if (isBlogPost && blogPostMessageEn && !message) {
+      setMessage(isFr ? blogPostMessageFr : blogPostMessageEn);
+    }
+  }, [isBlogPost, blogPostMessageEn, blogPostMessageFr, isFr, message]);
+
   const handleSend = () => {
     const phone = whatsappNumber.replace(/\D/g, "");
     const text = message || t.defaultMsg;
@@ -69,11 +110,9 @@ export default function WhatsAppButton() {
 
   return (
     <>
-      {/* Chat popup */}
       {isOpen && (
         <div className="fixed bottom-24 right-4 sm:right-6 z-50 w-[340px] max-w-[calc(100vw-2rem)] animate-slide-in-left">
           <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
-            {/* Header */}
             <div className="bg-green-500 px-5 py-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
@@ -94,23 +133,18 @@ export default function WhatsAppButton() {
               </button>
             </div>
 
-            {/* Body */}
             <div className="p-4 bg-[#e5ddd5] min-h-[180px]">
-              {/* Welcome message bubble */}
               <div className="bg-white rounded-xl rounded-tl-none px-4 py-3 shadow-sm max-w-[85%] mb-3">
-                <p className="text-sm text-gray-800">
-                  {t.welcome}
-                </p>
+                <p className="text-sm text-gray-800">{t.welcome}</p>
                 <p className="text-[10px] text-gray-400 mt-1 text-right">{t.justNow}</p>
               </div>
 
-              {/* Quick replies */}
               <div className="space-y-1.5 mt-4">
                 {t.quick.map((msg, i) => (
                   <button
                     key={i}
                     onClick={() => { setMessage(msg); }}
-                    className="block w-full text-left px-3 py-2 bg-white/90 rounded-lg text-xs text-gray-700 hover:bg-white transition border border-white/50"
+                    className="block w-full text-left px-3 py-2 bg-white/90 rounded-lg text-xs text-gray-700 hover:bg-white transition border border-white/50 line-clamp-2"
                   >
                     {msg}
                   </button>
@@ -118,7 +152,6 @@ export default function WhatsAppButton() {
               </div>
             </div>
 
-            {/* Input */}
             <div className="p-3 bg-gray-50 border-t border-gray-200">
               <div className="flex gap-2">
                 <input
@@ -143,7 +176,6 @@ export default function WhatsAppButton() {
         </div>
       )}
 
-      {/* Notification bubble */}
       {showBubble && !isOpen && (
         <div
           onClick={() => { setIsOpen(true); setShowBubble(false); }}
@@ -160,7 +192,6 @@ export default function WhatsAppButton() {
         </div>
       )}
 
-      {/* FAB Button */}
       <button
         onClick={() => { setIsOpen(!isOpen); setShowBubble(false); }}
         className={`fixed bottom-6 right-4 sm:right-6 z-50 w-14 h-14 rounded-full flex items-center justify-center shadow-xl transition-all hover:scale-110 ${
