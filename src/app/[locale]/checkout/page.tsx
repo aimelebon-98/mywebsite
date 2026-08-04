@@ -162,11 +162,28 @@ export default function CheckoutPage() {
     if (mode === "login" && !password) { setAuthError(isFr ? "Mot de passe requis" : "Password required"); return; }
 
     setLoading(true);
+
+    // Get a fresh Turnstile token to avoid stale/expired ones
+    let freshToken = turnstileTokenRef.current;
+    if (!freshToken) {
+      setTurnstileResetKey(k => k + 1);
+      const start = Date.now();
+      while (!turnstileTokenRef.current && Date.now() - start < 5000) {
+        await new Promise(r => setTimeout(r, 100));
+      }
+      freshToken = turnstileTokenRef.current;
+      if (!freshToken) {
+        setAuthError(isFr ? "V\u00e9rification de s\u00e9curit\u00e9 \u00e9chou\u00e9e. Veuillez rafra\u00eechir." : "Security check failed. Please refresh and try again.");
+        setLoading(false);
+        return;
+      }
+    }
+
     try {
       const url = mode === "signup" ? "/api/customer/register" : "/api/customer/login";
       const body = mode === "signup"
-        ? { name: name.trim(), email: email.trim().toLowerCase(), password, locale, turnstileToken }
-        : { email: email.trim().toLowerCase(), password, turnstileToken };
+        ? { name: name.trim(), email: email.trim().toLowerCase(), password, locale, turnstileToken: freshToken }
+        : { email: email.trim().toLowerCase(), password, turnstileToken: freshToken };
 
       const res = await fetch(url, {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -184,6 +201,10 @@ export default function CheckoutPage() {
           setStage("details");
         }
       } else {
+        // Clear stale token + refresh for next attempt
+        turnstileTokenRef.current = "";
+        setTurnstileToken("");
+        setTurnstileResetKey(k => k + 1);
         setAuthError(data.error || (isFr ? "Erreur" : "Error"));
       }
     } catch {
