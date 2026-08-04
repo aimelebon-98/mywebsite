@@ -1,4 +1,4 @@
-﻿@import "tailwindcss";
+@import "tailwindcss";
 /* Use self-hosted Inter font via next/font */
 html {
   font-family: var(--font-inter), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -672,3 +672,8 @@ main > nav[data-site-navbar="true"] + * > :first-child {
   margin-top: 0 !important;
 }
 
+/* Prevent horizontal scroll on mobile - global fix */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
