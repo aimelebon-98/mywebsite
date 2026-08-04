@@ -13,8 +13,9 @@ export async function POST(req: NextRequest) {
     const turnstileToken = String(body.turnstileToken || "");
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "";
 
-    // Verify Turnstile if configured (non-fatal if secret missing - helper returns true then)
-    if (process.env.TURNSTILE_SECRET_KEY) {
+    // Only enforce Turnstile if secret is configured AND a token was submitted
+    // (allows checkout auth flow to work without token; still protects login page which always sends one)
+    if (process.env.TURNSTILE_SECRET_KEY && turnstileToken) {
       const ok = await verifyTurnstile(turnstileToken, ip);
       if (!ok) return NextResponse.json({ error: "Security check failed. Please refresh and try again." }, { status: 403 });
     }

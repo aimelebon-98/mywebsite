@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const turnstileToken = String(body.turnstileToken || "");
     const ipReq = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "";
-    if (process.env.TURNSTILE_SECRET_KEY) {
+    if (process.env.TURNSTILE_SECRET_KEY && turnstileToken) {
       const ok = await verifyTurnstile(turnstileToken, ipReq);
       if (!ok) return NextResponse.json({ error: "Security check failed. Please refresh and try again." }, { status: 403 });
     }

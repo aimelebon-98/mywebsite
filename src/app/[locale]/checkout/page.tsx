@@ -10,7 +10,6 @@ import { useCurrency } from "@/lib/currency-context";
 import { computeShipping } from "@/lib/shipping";
 import { findApplicableBundle, calcDiscount, type Bundle } from "@/lib/bundles";
 import { trackEvent } from "@/components/AnalyticsTracker";
-import Turnstile from "@/components/Turnstile";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import {
@@ -57,10 +56,6 @@ export default function CheckoutPage() {
   const [authError, setAuthError] = useState("");
   const [welcomeCode, setWelcomeCode] = useState("");
   const [mounted, setMounted] = useState(false);
-  const [turnstileToken, setTurnstileToken] = useState("");
-  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
-  const turnstileTokenRef = useRef("");
-
   const [whatsappNumber, setWhatsappNumber] = useState("");
   const [bundles, setBundles] = useState<Bundle[]>([]);
   const [couponCode, setCouponCode] = useState("");
@@ -163,27 +158,12 @@ export default function CheckoutPage() {
 
     setLoading(true);
 
-    // Get a fresh Turnstile token to avoid stale/expired ones
-    let freshToken = turnstileTokenRef.current;
-    if (!freshToken) {
-      setTurnstileResetKey(k => k + 1);
-      const start = Date.now();
-      while (!turnstileTokenRef.current && Date.now() - start < 5000) {
-        await new Promise(r => setTimeout(r, 100));
-      }
-      freshToken = turnstileTokenRef.current;
-      if (!freshToken) {
-        setAuthError(isFr ? "V\u00e9rification de s\u00e9curit\u00e9 \u00e9chou\u00e9e. Veuillez rafra\u00eechir." : "Security check failed. Please refresh and try again.");
-        setLoading(false);
-        return;
-      }
-    }
 
     try {
       const url = mode === "signup" ? "/api/customer/register" : "/api/customer/login";
       const body = mode === "signup"
-        ? { name: name.trim(), email: email.trim().toLowerCase(), password, locale, turnstileToken: freshToken }
-        : { email: email.trim().toLowerCase(), password, turnstileToken: freshToken };
+        ? { name: name.trim(), email: email.trim().toLowerCase(), password, locale }
+        : { email: email.trim().toLowerCase(), password };
 
       const res = await fetch(url, {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -521,8 +501,7 @@ export default function CheckoutPage() {
               {stage === "auth" && (
                 <div className="bg-white rounded-2xl border border-gray-200 p-6 lg:p-8">
 
-                  {/* Invisible Turnstile - only in auth stage */}
-                  <div className="mb-4 flex justify-center"><Turnstile mode="interactive" action="customer-checkout-auth" resetKey={turnstileResetKey} onVerify={(t) => { setTurnstileToken(t); turnstileTokenRef.current = t; }} theme="light" /></div>
+
 
                   {/* Mode tabs */}
                   <div className="grid grid-cols-3 gap-1 p-1 bg-gray-100 rounded-xl mb-6">
