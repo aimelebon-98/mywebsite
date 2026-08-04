@@ -34,7 +34,7 @@ export default function AccountMobileBar({ title, onOpen }: Props) {
 
   return (
     <div
-      className="lg:hidden sticky z-30 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 mb-4 shadow-sm -mx-4 sm:-mx-6"
+      className="lg:hidden sticky z-30 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 mb-3 shadow-sm -mx-4 sm:-mx-6"
       style={{ top: `${topOffset}px` }}
     >
       <button
