@@ -229,10 +229,10 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
     <div className="pb-24 lg:pb-0 overflow-x-hidden">
       {/* HERO PRODUCT SECTION */}
       <div className="bg-gradient-to-b from-gray-50 to-white">
-        <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 py-6 lg:py-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
 
           {/* Breadcrumb */}
-          <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-gray-500 mb-6 flex-wrap px-4 sm:px-0">
+          <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-gray-500 mb-6 flex-wrap">
             <Link href={`/${locale}`} className="hover:text-gray-900 transition">{t("home")}</Link>
             <span className="text-gray-300">/</span>
             <Link href={`/${locale}/shop`} className="hover:text-gray-900 transition">{t("shop")}</Link>
@@ -300,7 +300,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               </div>
 
               {/* Share buttons */}
-              <div className="mt-6 flex items-center gap-3 flex-wrap px-4 sm:px-0">
+              <div className="mt-6 flex items-center gap-3 flex-wrap">
                 <span className="text-xs font-bold uppercase tracking-wider text-gray-500">{isFr ? "Partager :" : "Share:"}</span>
                 <a
                   href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(product.name)}`}
@@ -336,7 +336,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               </div>
 
               {/* Social proof */}
-              <div className="mt-6 mx-4 sm:mx-0 flex items-center gap-3 p-4 rounded-2xl border border-gray-100" style={{ backgroundColor: "#CA3F2E08" }}>
+              <div className="mt-6 flex items-center gap-3 p-4 rounded-2xl border border-gray-100" style={{ backgroundColor: "#CA3F2E08" }}>
                 <div className="flex -space-x-2 flex-shrink-0">
                   {["JW", "SC", "MT"].map((initials, i) => {
                     const colors = ["from-blue-400 to-blue-600", "from-pink-400 to-rose-600", "from-emerald-400 to-green-600"];
@@ -354,7 +354,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
 
               {/* Complete the Look */}
               {relatedProducts.length > 0 && (
-                <div className="mt-8 px-4 sm:px-0">
+                <div className="mt-8">
                   <h3 className="text-sm font-bold uppercase tracking-wider text-gray-700 mb-3">{isFr ? "Completez le look" : "Complete the Look"}</h3>
                   <div className="grid grid-cols-3 gap-3">
                     {relatedProducts.slice(0, 3).map((rp) => (
@@ -406,7 +406,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
             </div>
 
             {/* DETAILS */}
-            <div className="lg:py-2 px-4 sm:px-0">
+            <div className="lg:py-2">
               {/* Brand + Rating */}
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-sm text-gray-500 font-medium uppercase tracking-widest">{product.brand || product.category}</span>
@@ -742,7 +742,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
             className={`px-3.5 py-2.5 rounded-xl text-white font-bold text-[11px] uppercase tracking-wide transition-all active:scale-95 flex-shrink-0 flex items-center gap-1.5 ${added ? "bg-green-500" : ""}`}
             style={!added ? { backgroundColor: "#CA3F2E", boxShadow: "0 4px 14px rgba(202, 63, 46, 0.35)" } : undefined}
           >
-            {added ? <><Check className="w-3.5 h-3.5" /> {isFr ? "Ajout\u00e9" : "Added"}</> : <><ShoppingBag className="w-3.5 h-3.5" /> {isFr ? "Panier" : "Add"}</>}
+            {added ? <><Check className="w-3.5 h-3.5" /> {isFr ? "Ajout\u00e9" : "Added"}</> : <><ShoppingBag className="w-3.5 h-3.5" /> {isFr ? "Ajouter au panier" : "Add to Cart"}</>}
           </button>
         </div>
       </div>
