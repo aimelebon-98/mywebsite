@@ -71,8 +71,9 @@ export default function LoginPage() {
     <TurnstileGate action="customer-login" isFr={isFr} locale={locale} onVerify={setTurnstileToken}>
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
-          <Link href={`/${locale}`} className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 mb-6 transition">
-            <ArrowLeft className="w-4 h-4" /> {isFr ? "Retour" : "Back"}
+          <Link href={`/${locale}`} className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-[#CA3F2E] mb-6 transition group">
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition" />
+            {isFr ? "Visiter la page d\u0027accueil" : "Visit Home Page"}
           </Link>
           <div className="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm">
             <div className="text-center mb-6">

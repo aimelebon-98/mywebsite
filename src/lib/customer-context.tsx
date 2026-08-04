@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
@@ -38,7 +38,11 @@ export function CustomerProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     await fetch("/api/customer/logout", { method: "POST" });
     setCustomer(null);
-    window.location.href = "/";
+    // Redirect to login page, preserving current locale from URL
+    const currentPath = typeof window !== "undefined" ? window.location.pathname : "/";
+    const localeMatch = currentPath.match(/^\/(en|fr)(\/|$)/);
+    const currentLocale = localeMatch ? localeMatch[1] : "en";
+    window.location.href = `/${currentLocale}/account/login`;
   };
 
   useEffect(() => { refresh(); }, []);
