@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useCurrency } from "@/lib/currency-context";
 import StockBadge from "@/components/StockBadge";
 import { trackEvent } from "@/components/AnalyticsTracker";
@@ -226,7 +226,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
   ];
 
   return (
-    <div className="pb-24 lg:pb-0">
+    <div className="pb-24 lg:pb-0 overflow-x-hidden">
       {/* HERO PRODUCT SECTION */}
       <div className="bg-gradient-to-b from-gray-50 to-white">
         <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 py-6 lg:py-10">
@@ -285,15 +285,15 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               </div>
 
               {/* Quick highlights */}
-              <div className="grid grid-cols-3 gap-3 px-4 sm:px-0">
+              <div className="grid grid-cols-3 gap-2 sm:gap-3 px-4 sm:px-0">
                 {highlights.map((item, i) => (
-                  <div key={i} className="flex items-center gap-2.5 p-3 bg-white rounded-xl border border-gray-100 shadow-sm">
-                    <div className="w-9 h-9 bg-gray-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <div key={i} className="flex items-center gap-1.5 sm:gap-2.5 p-2 sm:p-3 bg-white rounded-xl border border-gray-100 shadow-sm min-w-0">
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 bg-gray-50 rounded-lg flex items-center justify-center flex-shrink-0">
                       <item.icon className="w-4 h-4 text-gray-600" />
                     </div>
-                    <div>
-                      <p className="text-xs font-semibold text-gray-900 leading-tight">{item.label}</p>
-                      <p className="text-[10px] text-gray-400">{item.sub}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11px] sm:text-xs font-semibold text-gray-900 leading-tight truncate">{item.label}</p>
+                      <p className="text-[9px] sm:text-[10px] text-gray-400 truncate">{item.sub}</p>
                     </div>
                   </div>
                 ))}
