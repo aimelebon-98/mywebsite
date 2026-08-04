@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from "react";
 import { useLocale } from "next-intl";
 import { useCustomer } from "@/lib/customer-context";
 import {
-  User, LayoutDashboard, Package, Settings, LogOut, LogIn, UserPlus
+  User, LayoutDashboard, Package, LogOut, LogIn
 } from "lucide-react";
 
 interface Props {
@@ -34,13 +34,10 @@ export default function AccountHoverMenu({ iconColor, iconHoverBg }: Props) {
     };
   }, []);
 
-  // ===== NOT LOGGED IN =====
-  // Mobile: icon links straight to login (no hover menu)
-  // Desktop: hover shows dropdown with Login + Dashboard
   if (!customer) {
     const guestItems = [
-      { href: `/${locale}/account/login`,     icon: LogIn,            label: isFr ? "Connexion"       : "Login" },
-      { href: `/${locale}/account/dashboard`, icon: LayoutDashboard,  label: isFr ? "Tableau de bord" : "Dashboard" },
+      { href: `/${locale}/account/login`,     icon: LogIn,           label: isFr ? "Connexion"       : "Login" },
+      { href: `/${locale}/account/dashboard`, icon: LayoutDashboard, label: isFr ? "Tableau de bord" : "Dashboard" },
     ];
 
     return (
@@ -57,7 +54,6 @@ export default function AccountHoverMenu({ iconColor, iconHoverBg }: Props) {
           <User className={"w-5 h-5 " + iconColor} />
         </Link>
 
-        {/* Guest dropdown panel */}
         <div
           className={"absolute right-0 top-full w-56 z-50 transition-all duration-150 origin-top-right pt-2 " +
             (open ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-1 pointer-events-none")}
@@ -111,7 +107,6 @@ export default function AccountHoverMenu({ iconColor, iconHoverBg }: Props) {
     );
   }
 
-  // ===== LOGGED IN =====
   const items = [
     { href: `/${locale}/account/dashboard`, icon: LayoutDashboard, label: isFr ? "Tableau de bord" : "Dashboard" },
     { href: `/${locale}/account/orders`,    icon: Package,         label: isFr ? "Mes commandes"   : "My Orders" },
