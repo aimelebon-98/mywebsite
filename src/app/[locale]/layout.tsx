@@ -10,6 +10,7 @@ import { WishlistProvider } from "@/lib/wishlist-context";
 import { CurrencyProvider } from "@/lib/currency-context";
 import { CustomerProvider } from "@/lib/customer-context";
 import ConditionalWidgets from "@/components/ConditionalWidgets";
+import ThemeColorSwitcher from "@/components/ThemeColorSwitcher";
 import FloatingCartPill from "@/components/FloatingCartPill";
 import PageViewTracker from "@/components/AnalyticsTracker";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -134,6 +135,7 @@ export default async function LocaleLayout({
         <PageViewTracker />
         <ExitIntentPopup />
         <SpeedInsights />
+        <ThemeColorSwitcher />
       </body>
     </html>
   );
