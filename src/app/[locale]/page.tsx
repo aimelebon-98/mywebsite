@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import HomeProducts from "@/components/HomeProducts";
 import HomeBlogSection from "@/components/HomeBlogSection";
 import MobileHomeHero from "@/components/MobileHomeHero";
+import MobileHomeSections from "@/components/MobileHomeSections";
 import AnimatedNetwork from "@/components/AnimatedNetworkLazy";
 import TypingText from "@/components/TypingText";
 import { ArrowRight, Truck, Shield, RotateCcw, Headphones, Star } from "lucide-react";

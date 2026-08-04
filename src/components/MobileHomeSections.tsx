@@ -1,0 +1,410 @@
+﻿"use client";
+
+import Link from "next/link";
+import Image from "next/image";
+import { useEffect, useState } from "react";
+import { useLocale } from "next-intl";
+import { useCurrency } from "@/lib/currency-context";
+import { ChevronRight, Heart, Flame, Sparkles, TrendingUp } from "lucide-react";
+
+interface Product {
+  id: string;
+  name: string;
+  nameFr?: string | null;
+  slug: string;
+  slugFr?: string | null;
+  imageUrl: string;
+  price: string;
+  comparePrice?: string | null;
+  category: string;
+  brand?: string | null;
+  featured?: boolean | null;
+  rating?: string | null;
+  tags?: string | null;
+}
+
+interface CategoryItem {
+  slug: string;
+  nameEn: string;
+  nameFr?: string | null;
+  imageUrl?: string;
+}
+
+const CAT_IMAGES: Record<string, string> = {
+  sneakers: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80",
+  running:  "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400&q=80",
+  formal:   "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=400&q=80",
+  boots:    "https://images.unsplash.com/photo-1520639888713-7851133b1ed0?w=400&q=80",
+  sandals:  "https://images.unsplash.com/photo-1603487742131-4160ec999306?w=400&q=80",
+  casual:   "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=400&q=80",
+};
+
+const CAT_TINTS: Record<string, string> = {
+  sneakers: "bg-blue-50",
+  running:  "bg-emerald-50",
+  formal:   "bg-amber-50",
+  boots:    "bg-orange-50",
+  sandals:  "bg-cyan-50",
+  casual:   "bg-purple-50",
+};
+
+// Horizontal scrolling product row (3 visible at a time)
+function ProductScroll({ products, title, badge, badgeColor, locale, isFr, formatPrice, viewAllHref }: {
+  products: Product[];
+  title: string;
+  badge?: string;
+  badgeColor?: string;
+  locale: string;
+  isFr: boolean;
+  formatPrice: (n: number) => string;
+  viewAllHref: string;
+}) {
+  if (products.length === 0) return null;
+
+  return (
+    <div className="bg-white pt-3 pb-3 border-t-4 border-gray-100">
+      <div className="flex items-center justify-between px-3 mb-3">
+        <div className="flex items-center gap-2">
+          {badge && (
+            <div className="px-2 py-1 rounded" style={{ backgroundColor: badgeColor || "#CA3F2E" }}>
+              <span className="text-white text-[10px] font-black tracking-wide">{badge}</span>
+            </div>
+          )}
+          <span className="text-sm font-bold text-gray-900">{title}</span>
+        </div>
+        <Link href={viewAllHref} className="text-xs font-semibold text-gray-500 hover:text-[#CA3F2E] flex items-center gap-0.5">
+          {isFr ? "Voir tout" : "See all"}
+          <ChevronRight className="w-3 h-3" />
+        </Link>
+      </div>
+
+      <div className="overflow-x-auto scrollbar-hide">
+        <div className="flex gap-2 px-3 pb-1 min-w-max">
+          {products.map(p => {
+            const displayName = (isFr && p.nameFr) ? p.nameFr : p.name;
+            const displaySlug = (isFr && p.slugFr) ? p.slugFr : p.slug;
+            const price = parseFloat(p.price);
+            const comparePrice = p.comparePrice ? parseFloat(p.comparePrice) : null;
+            const discount = comparePrice && comparePrice > price
+              ? Math.round(((comparePrice - price) / comparePrice) * 100)
+              : 0;
+            const rating = parseFloat(p.rating || "0");
+            return (
+              <Link
+                key={p.id}
+                href={`/${locale}/product/${displaySlug}`}
+                className="w-[110px] flex-shrink-0 bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm active:scale-95 transition"
+              >
+                <div className="relative aspect-square bg-gray-50">
+                  {p.imageUrl && <Image src={p.imageUrl} alt={displayName} fill sizes="110px" className="object-cover" />}
+                  {discount > 0 && (
+                    <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-black rounded">
+                      -{discount}%
+                    </div>
+                  )}
+                </div>
+                <div className="p-1.5">
+                  <div className="text-[10px] font-semibold text-gray-900 line-clamp-2 leading-tight mb-1 h-7">{displayName}</div>
+                  <div className="text-xs font-black" style={{ color: "#CA3F2E" }}>{formatPrice(price)}</div>
+                  {comparePrice && comparePrice > price && (
+                    <div className="text-[9px] text-gray-400 line-through leading-tight">{formatPrice(comparePrice)}</div>
+                  )}
+                  {rating > 0 && (
+                    <div className="flex items-center gap-0.5 mt-1">
+                      {[1,2,3,4,5].map(i => (
+                        <span key={i} className={"text-[9px] " + (i <= Math.round(rating) ? "text-amber-400" : "text-gray-200")}>*</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 2-column grid section
+function ProductGrid({ products, title, locale, isFr, formatPrice, viewAllHref, bgTint }: {
+  products: Product[];
+  title: string;
+  locale: string;
+  isFr: boolean;
+  formatPrice: (n: number) => string;
+  viewAllHref: string;
+  bgTint?: string;
+}) {
+  if (products.length === 0) return null;
+
+  return (
+    <div className={"pt-4 pb-4 border-t-4 border-gray-100 " + (bgTint || "bg-white")}>
+      <div className="flex items-center justify-between px-3 mb-3">
+        <span className="text-sm font-bold text-gray-900">{title}</span>
+        <Link href={viewAllHref} className="text-xs font-semibold text-gray-500 hover:text-[#CA3F2E] flex items-center gap-0.5">
+          {isFr ? "Voir tout" : "See all"}
+          <ChevronRight className="w-3 h-3" />
+        </Link>
+      </div>
+      <div className="grid grid-cols-2 gap-2 px-3">
+        {products.slice(0, 6).map(p => {
+          const displayName = (isFr && p.nameFr) ? p.nameFr : p.name;
+          const displaySlug = (isFr && p.slugFr) ? p.slugFr : p.slug;
+          const price = parseFloat(p.price);
+          const comparePrice = p.comparePrice ? parseFloat(p.comparePrice) : null;
+          const discount = comparePrice && comparePrice > price
+            ? Math.round(((comparePrice - price) / comparePrice) * 100) : 0;
+          return (
+            <Link
+              key={p.id}
+              href={`/${locale}/product/${displaySlug}`}
+              className="bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm active:scale-95 transition"
+            >
+              <div className="relative aspect-square bg-gray-50">
+                {p.imageUrl && <Image src={p.imageUrl} alt={displayName} fill sizes="50vw" className="object-cover" />}
+                {discount > 0 && (
+                  <div className="absolute top-2 left-2 px-2 py-0.5 bg-red-500 text-white text-[10px] font-black rounded">
+                    -{discount}%
+                  </div>
+                )}
+                <button
+                  className="absolute top-2 right-2 w-7 h-7 bg-white/90 rounded-full flex items-center justify-center shadow"
+                  aria-label="Wishlist"
+                  onClick={(e) => e.preventDefault()}
+                >
+                  <Heart className="w-3.5 h-3.5 text-gray-400" />
+                </button>
+              </div>
+              <div className="p-2">
+                <div className="text-[11px] font-semibold text-gray-900 line-clamp-2 leading-tight mb-1 h-8">{displayName}</div>
+                <div className="text-sm font-black" style={{ color: "#CA3F2E" }}>{formatPrice(price)}</div>
+                {comparePrice && comparePrice > price && (
+                  <div className="text-[10px] text-gray-400 line-through leading-tight">{formatPrice(comparePrice)}</div>
+                )}
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export default function MobileHomeSections() {
+  const locale = useLocale();
+  const isFr = locale === "fr";
+  const { format: formatPrice } = useCurrency();
+
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const url = isFr ? "/api/products?locale=fr" : "/api/products";
+    fetch(url).then(r => r.ok ? r.json() : []).then(data => {
+      if (Array.isArray(data)) setProducts(data);
+    }).catch(() => {}).finally(() => setLoading(false));
+
+    fetch("/api/categories").then(r => r.ok ? r.json() : null).then(data => {
+      if (Array.isArray(data) && data.length > 0) {
+        setCategories(data.map((c: { slug: string; nameEn: string; nameFr?: string }) => ({
+          slug: c.slug, nameEn: c.nameEn, nameFr: c.nameFr, imageUrl: CAT_IMAGES[c.slug],
+        })));
+      } else {
+        setCategories([
+          { slug: "sneakers", nameEn: "Sneakers", nameFr: "Baskets",       imageUrl: CAT_IMAGES.sneakers },
+          { slug: "running",  nameEn: "Running",  nameFr: "Course",        imageUrl: CAT_IMAGES.running  },
+          { slug: "formal",   nameEn: "Formal",   nameFr: "Habill\u00e9",  imageUrl: CAT_IMAGES.formal   },
+          { slug: "boots",    nameEn: "Boots",    nameFr: "Bottes",        imageUrl: CAT_IMAGES.boots    },
+          { slug: "sandals",  nameEn: "Sandals",  nameFr: "Sandales",      imageUrl: CAT_IMAGES.sandals  },
+          { slug: "casual",   nameEn: "Casual",   nameFr: "D\u00e9contract\u00e9", imageUrl: CAT_IMAGES.casual },
+        ]);
+      }
+    }).catch(() => {});
+  }, [isFr]);
+
+  const featured    = products.filter(p => p.featured).slice(0, 10);
+  const newArrivals = products.filter(p => (p.tags || "").includes("new-arrival")).slice(0, 10);
+  if (newArrivals.length < 4) newArrivals.push(...products.slice(0, 10 - newArrivals.length));
+  const onSale      = products.filter(p => p.comparePrice).slice(0, 10);
+  const topRated    = products.filter(p => parseFloat(p.rating ?? "0") > 4.0)
+    .sort((a, b) => parseFloat(b.rating ?? "0") - parseFloat(a.rating ?? "0")).slice(0, 10);
+  if (topRated.length < 4) topRated.push(...products.slice(0, 10 - topRated.length));
+
+  // Unique brands from products
+  const brands = Array.from(new Set(products.map(p => p.brand).filter(Boolean) as string[])).slice(0, 12);
+
+  if (loading) {
+    return (
+      <div className="lg:hidden py-8">
+        <div className="grid grid-cols-2 gap-3 px-3">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="animate-pulse">
+              <div className="aspect-square bg-gray-200 rounded-xl mb-2" />
+              <div className="h-3 bg-gray-200 rounded w-3/4 mb-1" />
+              <div className="h-3 bg-gray-200 rounded w-1/2" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="lg:hidden">
+      {/* FEATURED - horizontal scroll */}
+      <ProductScroll
+        products={featured}
+        title={isFr ? "Produits vedettes" : "Featured Products"}
+        badge={isFr ? "VEDETTE" : "FEATURED"}
+        badgeColor="#f59e0b"
+        locale={locale}
+        isFr={isFr}
+        formatPrice={formatPrice}
+        viewAllHref={`/${locale}/shop`}
+      />
+
+      {/* PROMO BANNER 1 - brand red */}
+      <div className="bg-white pt-3 pb-3">
+        <Link href={`/${locale}/shop?onSale=1`} className="block mx-3">
+          <div className="relative rounded-2xl overflow-hidden h-24 shadow-md" style={{ background: "linear-gradient(135deg, #CA3F2E 0%, #8B2A1E 100%)" }}>
+            <div className="absolute inset-0 flex items-center justify-between px-4 text-white">
+              <div>
+                <div className="text-[10px] font-black tracking-widest opacity-90">{isFr ? "GRANDE VENTE" : "MEGA SALE"}</div>
+                <div className="text-xl font-black leading-tight">{isFr ? "Jusqu\u0027\u00e0 -50%" : "Up to 50% OFF"}</div>
+                <div className="text-[11px] opacity-90 mt-0.5">{isFr ? "Livraison gratuite +$1000" : "Free shipping over $1000"}</div>
+              </div>
+              <div className="text-4xl font-black opacity-30">%</div>
+            </div>
+          </div>
+        </Link>
+      </div>
+
+      {/* BIG CATEGORY GRID - 2 columns with images */}
+      {categories.length > 0 && (
+        <div className="bg-white pt-4 pb-4 border-t-4 border-gray-100">
+          <div className="px-3 mb-3">
+            <span className="text-sm font-bold text-gray-900">{isFr ? "Acheter par cat\u00e9gorie" : "Shop by Category"}</span>
+          </div>
+          <div className="grid grid-cols-2 gap-2 px-3">
+            {categories.map(cat => (
+              <Link
+                key={cat.slug}
+                href={`/${locale}/shop?category=${cat.slug}`}
+                className={"relative rounded-xl overflow-hidden aspect-[4/3] shadow-sm active:scale-95 transition " + (CAT_TINTS[cat.slug] || "bg-gray-100")}
+              >
+                {cat.imageUrl && (
+                  <Image src={cat.imageUrl} alt={cat.nameEn} fill sizes="50vw" className="object-cover" />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-2.5">
+                  <div className="text-white text-xs font-black uppercase tracking-wide drop-shadow">
+                    {isFr && cat.nameFr ? cat.nameFr : cat.nameEn}
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* NEW ARRIVALS - horizontal scroll */}
+      <ProductScroll
+        products={newArrivals}
+        title={isFr ? "Nouveaut\u00e9s" : "New Arrivals"}
+        badge={isFr ? "NOUVEAU" : "NEW"}
+        badgeColor="#10b981"
+        locale={locale}
+        isFr={isFr}
+        formatPrice={formatPrice}
+        viewAllHref={`/${locale}/shop?sort=newest`}
+      />
+
+      {/* PROMO BANNER 2 - dark */}
+      <div className="bg-white pt-3 pb-3">
+        <Link href={`/${locale}/blog`} className="block mx-3">
+          <div className="relative rounded-2xl overflow-hidden h-24 shadow-md bg-gradient-to-r from-gray-900 to-gray-700">
+            <div className="absolute inset-0 flex items-center justify-between px-4 text-white">
+              <div>
+                <div className="text-[10px] font-black tracking-widest opacity-90 text-amber-300">{isFr ? "GUIDE STYLE" : "STYLE GUIDE"}</div>
+                <div className="text-base font-black leading-tight">{isFr ? "Conseils d\u0027experts" : "Expert Tips"}</div>
+                <div className="text-[11px] opacity-90 mt-0.5">{isFr ? "Lisez notre blog" : "Read our blog"}</div>
+              </div>
+              <ChevronRight className="w-8 h-8 opacity-60" />
+            </div>
+          </div>
+        </Link>
+      </div>
+
+      {/* ON SALE - 2-column grid */}
+      <ProductGrid
+        products={onSale}
+        title={isFr ? "En solde" : "On Sale"}
+        locale={locale}
+        isFr={isFr}
+        formatPrice={formatPrice}
+        viewAllHref={`/${locale}/shop?onSale=1`}
+        bgTint="bg-red-50/30"
+      />
+
+      {/* TOP RATED - horizontal scroll */}
+      <ProductScroll
+        products={topRated}
+        title={isFr ? "Meilleures ventes" : "Best Selling Products"}
+        badge={isFr ? "TOP" : "TOP"}
+        badgeColor="#ec4899"
+        locale={locale}
+        isFr={isFr}
+        formatPrice={formatPrice}
+        viewAllHref={`/${locale}/shop?sort=rating`}
+      />
+
+      {/* SHOP BY BRAND */}
+      {brands.length > 0 && (
+        <div className="bg-white pt-4 pb-6 border-t-4 border-gray-100">
+          <div className="flex items-center justify-between px-3 mb-3">
+            <div className="flex items-center gap-2">
+              <div className="px-2 py-1 rounded bg-amber-400">
+                <span className="text-gray-900 text-[10px] font-black tracking-wide">{isFr ? "MARQUES OFFICIELLES" : "OFFICIAL BRANDS"}</span>
+              </div>
+            </div>
+            <Link href={`/${locale}/shop`} className="text-xs font-semibold text-gray-500 hover:text-[#CA3F2E] flex items-center gap-0.5">
+              {isFr ? "Voir tout" : "See all"}
+              <ChevronRight className="w-3 h-3" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-3 gap-2 px-3">
+            {brands.map((brand, i) => (
+              <Link
+                key={brand}
+                href={`/${locale}/shop?brand=${encodeURIComponent(brand)}`}
+                className="aspect-square bg-gray-900 rounded-xl flex items-center justify-center p-2 shadow-sm active:scale-95 transition group"
+              >
+                <span className="text-white text-xs font-black text-center leading-tight uppercase tracking-wide truncate group-hover:text-amber-400 transition">
+                  {brand}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* FINAL CTA */}
+      <div className="bg-white pt-4 pb-6">
+        <Link href={`/${locale}/shop`} className="block mx-3">
+          <div className="relative rounded-2xl overflow-hidden p-5 shadow-md" style={{ background: "linear-gradient(135deg, #1f2937 0%, #111827 100%)" }}>
+            <div className="text-center text-white">
+              <div className="text-[10px] font-black tracking-widest text-amber-400 mb-1">{isFr ? "PARCOURIR TOUT" : "BROWSE ALL"}</div>
+              <div className="text-lg font-black mb-2">{isFr ? "D\u00e9couvrez notre collection compl\u00e8te" : "Explore Our Full Collection"}</div>
+              <div className="inline-flex items-center gap-1 px-4 py-2 bg-white rounded-full text-xs font-bold" style={{ color: "#CA3F2E" }}>
+                {isFr ? "Voir tous les produits" : "See All Products"}
+                <ChevronRight className="w-3 h-3" />
+              </div>
+            </div>
+          </div>
+        </Link>
+      </div>
+    </div>
+  );
+}
