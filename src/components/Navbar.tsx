@@ -145,7 +145,7 @@ export default function Navbar() {
             <Link href="/faq" className={linkClass}>{t("faq")}</Link>
           </div>
 
-          <div className="group flex items-center gap-2.5 flex-shrink-0">
+          <div className="group flex items-center gap-1 sm:gap-2.5 flex-shrink-0">
             <div className="hidden md:block">
               <SearchAutocomplete
                 placeholder={tCommon("search")}
@@ -166,7 +166,7 @@ export default function Navbar() {
               <button
                 onClick={() => setLangOpen(!langOpen)}
                 aria-label="Change language"
-                className={`flex items-center gap-1 p-2 rounded-xl transition ${iconHoverBg}`}
+                className={`flex items-center gap-1 p-1.5 sm:p-2 rounded-xl transition ${iconHoverBg}`}
               >
               <Globe className={`w-5 h-5 ${iconColor}`} />
                 <span className={`text-xs font-bold uppercase ${localeText}`}>{locale}</span>
@@ -194,7 +194,7 @@ export default function Navbar() {
 
             <AccountHoverMenu iconColor={iconColor} iconHoverBg={iconHoverBg} />
 
-            <Link href="/wishlist" aria-label={t("wishlist")} className={`relative p-2 rounded-xl transition ${iconHoverBg}`}>
+            <Link href="/wishlist" aria-label={t("wishlist")} className={`relative p-1.5 sm:p-2 rounded-xl transition ${iconHoverBg}`}>
               <Heart className={`w-5 h-5 ${heartClass}`} />
               {wishlistCount > 0 && (
                 <span className={`absolute -top-0.5 -right-0.5 w-5 h-5 text-[10px] font-bold rounded-full flex items-center justify-center ${badgeBg}`}>
@@ -206,7 +206,7 @@ export default function Navbar() {
             <button
               onClick={openDrawer}
               aria-label={t("cart")}
-              className={`relative p-2 rounded-xl transition ${iconHoverBg}`}
+              className={`relative p-1.5 sm:p-2 rounded-xl transition ${iconHoverBg}`}
             >
               <ShoppingBag className={`w-5 h-5 ${iconColor}`} />
               {totalItems > 0 && (
@@ -216,7 +216,7 @@ export default function Navbar() {
               )}
             </button>
 
-            <button onClick={() => setMenuOpen(!menuOpen)} className={`lg:hidden p-2 rounded-xl transition ${iconHoverBg}`}>
+            <button onClick={() => setMenuOpen(!menuOpen)} className={`lg:hidden p-1.5 sm:p-2 rounded-xl transition ${iconHoverBg}`}>
               {menuOpen ? <X className={`w-5 h-5 ${iconColor}`} /> : <Menu className={`w-5 h-5 ${iconColor}`} />}
             </button>
           </div>
