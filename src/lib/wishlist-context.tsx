@@ -1,5 +1,6 @@
 "use client";
 import { trackEvent } from "@/components/AnalyticsTracker";
+import { useCustomer } from "@/lib/customer-context";
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 
@@ -24,40 +25,74 @@ function getVisitorId(): string {
 }
 
 export function WishlistProvider({ children }: { children: ReactNode }) {
+  const { customer, loading: customerLoading } = useCustomer();
   const [ids, setIds] = useState<string[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [prevCustomerId, setPrevCustomerId] = useState<string | null>(null);
 
-  useEffect(() => {
+  // Load wishlist from server (uses customer session cookie automatically)
+  const loadWishlist = useCallback(async () => {
     const vid = getVisitorId();
     if (!vid) return;
-    fetch(`/api/wishlist?visitorId=${vid}`)
-      .then(r => r.json())
-      .then(data => {
-        if (Array.isArray(data.ids)) setIds(data.ids);
-      })
-      .catch(() => {})
-      .finally(() => setLoaded(true));
+    try {
+      const res = await fetch(`/api/wishlist?visitorId=${vid}`, { credentials: "include" });
+      const data = await res.json();
+      if (Array.isArray(data.ids)) setIds(data.ids);
+    } catch { /* ignore */ }
+    finally { setLoaded(true); }
   }, []);
+
+  // Merge guest wishlist into customer account after login
+  const mergeGuestToCustomer = useCallback(async () => {
+    const vid = getVisitorId();
+    if (!vid) return;
+    try {
+      await fetch("/api/wishlist/merge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ visitorId: vid }),
+      });
+    } catch { /* ignore */ }
+  }, []);
+
+  // Initial load + reload when customer changes (login / logout)
+  useEffect(() => {
+    if (customerLoading) return;
+
+    const currentCustomerId = customer?.id || null;
+
+    // Detect login (transition from null to customer id)
+    if (currentCustomerId && !prevCustomerId) {
+      // Merge guest wishlist then reload
+      mergeGuestToCustomer().then(() => loadWishlist());
+    } else if (!currentCustomerId && prevCustomerId) {
+      // Logout: clear wishlist to prevent leaking between accounts
+      setIds([]);
+      loadWishlist();
+    } else {
+      // Normal load (page refresh, no state change)
+      loadWishlist();
+    }
+
+    setPrevCustomerId(currentCustomerId);
+  }, [customer, customerLoading, prevCustomerId, loadWishlist, mergeGuestToCustomer]);
 
   const toggle = useCallback(async (productId: string) => {
     const vid = getVisitorId();
     const wished = ids.includes(productId);
-    // Analytics: track only when adding (not when removing)
     if (!wished) {
-      try {
-        trackEvent({ eventType: "wishlist_add", productId });
-      } catch { /* ignore */ }
+      try { trackEvent({ eventType: "wishlist_add", productId }); } catch { /* ignore */ }
     }
-    // optimistic update
     setIds(prev => wished ? prev.filter(x => x !== productId) : [...prev, productId]);
     try {
       await fetch("/api/wishlist", {
         method: wished ? "DELETE" : "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ visitorId: vid, productId }),
       });
     } catch {
-      // revert on failure
       setIds(prev => wished ? [...prev, productId] : prev.filter(x => x !== productId));
     }
   }, [ids]);
