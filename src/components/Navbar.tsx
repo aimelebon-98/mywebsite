@@ -95,7 +95,9 @@ export default function Navbar() {
   const localeText = isBlogPage ? "text-white" : "text-white lg:text-gray-700";
   const heartClass = isBlogPage
     ? wishlistCount > 0 ? "text-white fill-white" : "text-white"
-    : wishlistCount > 0 ? "text-gray-900 fill-gray-900" : "text-gray-600";
+    : wishlistCount > 0
+        ? "text-white fill-white lg:text-gray-900 lg:fill-gray-900"
+        : "text-white lg:text-gray-600";
 
   const badgeBg = isBlogPage
     ? "bg-white text-gray-900"
