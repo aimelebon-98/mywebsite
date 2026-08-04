@@ -522,7 +522,7 @@ export default function CheckoutPage() {
                 <div className="bg-white rounded-2xl border border-gray-200 p-6 lg:p-8">
 
                   {/* Invisible Turnstile - only in auth stage */}
-                  <Turnstile mode="auto" action="customer-checkout-auth" resetKey={turnstileResetKey} onVerify={(t) => { setTurnstileToken(t); turnstileTokenRef.current = t; }} className="hidden" />
+                  <div className="mb-4 flex justify-center"><Turnstile mode="interactive" action="customer-checkout-auth" resetKey={turnstileResetKey} onVerify={(t) => { setTurnstileToken(t); turnstileTokenRef.current = t; }} theme="light" /></div>
 
                   {/* Mode tabs */}
                   <div className="grid grid-cols-3 gap-1 p-1 bg-gray-100 rounded-xl mb-6">
