@@ -382,7 +382,7 @@ export default function CheckoutPage() {
     return (
       <main className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
         <Navbar />
-        <div className="pt-20 lg:pt-24 pb-16">
+        <div className="pt-20 pb-16">
           <div className="max-w-lg mx-auto px-4 py-12">
             <div className="bg-white rounded-3xl shadow-xl p-8 lg:p-10 text-center">
               <div className="w-20 h-20 mx-auto mb-5 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center animate-bounce-in">
@@ -483,7 +483,7 @@ export default function CheckoutPage() {
     <main className="min-h-screen bg-gray-50">
       <Navbar />
 
-      <div className="pt-20 lg:pt-24 pb-16">
+      <div className="pt-20 pb-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Link href={`/${locale}/cart`} className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-6 transition">
             <ArrowLeft className="w-4 h-4" /> {isFr ? "Retour au panier" : "Back to cart"}

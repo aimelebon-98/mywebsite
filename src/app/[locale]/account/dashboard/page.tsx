@@ -56,7 +56,7 @@ export default function DashboardPage() {
     <>
       <Navbar />
       <AccountSidebar mobileOpen={menuOpen} onClose={() => setMenuOpen(false)} />
-      <main className="min-h-screen bg-gray-50 pt-20 lg:pt-24">
+      <main className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-8">
           <div className="lg:grid lg:grid-cols-[260px_1fr] lg:gap-8">
             <div className="hidden lg:block"><AccountSidebar /></div>

@@ -97,7 +97,7 @@ export default async function BlogPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <div className="pt-20 lg:pt-24">
+      <div className="pt-20">
         <BlogListingClient posts={posts} authors={authorsList} locale={locale} />
       </div>
       <Footer />

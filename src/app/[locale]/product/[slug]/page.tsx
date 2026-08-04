@@ -309,7 +309,7 @@ export default async function ProductPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
 
-      <div className="pt-20 lg:pt-24">
+      <div className="pt-20">
         <ProductDetails product={product} initialReviews={productReviews} relatedProducts={relatedProducts} locale={locale} />
 
         {relatedProducts.length > 0 && (

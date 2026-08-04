@@ -74,7 +74,7 @@ export default async function HomePage() {
       <Navbar />
 
       {/* HERO */}
-      <section className="relative pt-20 lg:pt-24 overflow-hidden">
+      <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-100" />
         <div className="absolute inset-0 opacity-[0.6]">
           <AnimatedNetwork
