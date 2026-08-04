@@ -181,10 +181,6 @@ export default function CheckoutPage() {
           setStage("details");
         }
       } else {
-        // Clear stale token + refresh for next attempt
-        turnstileTokenRef.current = "";
-        setTurnstileToken("");
-        setTurnstileResetKey(k => k + 1);
         setAuthError(data.error || (isFr ? "Erreur" : "Error"));
       }
     } catch {
