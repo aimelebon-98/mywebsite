@@ -124,17 +124,23 @@ export default function WhatsAppButton({ blogPostTitle = "", blogPostUrl = "" }:
             </div>
 
             <div className="p-4 bg-[#e5ddd5] min-h-[180px]">
-              <div className="bg-white rounded-xl rounded-tl-none px-4 py-3 shadow-sm max-w-[85%] mb-3">
-                <p className="text-sm text-gray-800">{t.welcome}</p>
-                <p className="text-[10px] text-gray-400 mt-1 text-right">{t.justNow}</p>
-              </div>
+              {!isBlogPost && (
+                <div className="bg-white rounded-xl rounded-tl-none px-4 py-3 shadow-sm max-w-[85%] mb-3">
+                  <p className="text-sm text-gray-800">{t.welcome}</p>
+                  <p className="text-[10px] text-gray-400 mt-1 text-right">{t.justNow}</p>
+                </div>
+              )}
 
-              <div className="space-y-1.5 mt-4">
+              <div className={`space-y-1.5 ${isBlogPost ? "mt-0" : "mt-4"}`}>
                 {t.quick.map((msg, i) => (
                   <button
                     key={i}
                     onClick={() => { setMessage(msg); }}
-                    className="block w-full text-left px-3 py-2 bg-white/90 rounded-lg text-xs text-gray-700 hover:bg-white transition border border-white/50 line-clamp-2"
+                    className={
+                      isBlogPost
+                        ? "block w-full text-left px-4 py-3 bg-white rounded-xl text-sm text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition border border-gray-200 shadow-sm font-medium leading-relaxed"
+                        : "block w-full text-left px-3 py-2 bg-white/90 rounded-lg text-xs text-gray-700 hover:bg-white transition border border-white/50 line-clamp-2"
+                    }
                   >
                     {msg}
                   </button>
