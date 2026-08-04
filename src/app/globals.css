@@ -1,4 +1,4 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 /* Use self-hosted Inter font via next/font */
 html {
   font-family: var(--font-inter), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -660,4 +660,14 @@ div.tiptap-editor {
 html, body {
   overflow-x: clip;
   max-width: 100vw;
+}
+
+/* navbar-gap-fix */
+main > nav[data-site-navbar="true"] + * {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+main > nav[data-site-navbar="true"] + * > :first-child {
+  margin-top: 0 !important;
 }
