@@ -29,9 +29,9 @@ export default function ShopTopBar(props: ShopTopBarProps) {
   const [localMinPrice, setLocalMinPrice] = useState(minPrice);
   const [localMaxPrice, setLocalMaxPrice] = useState(maxPrice);
 
-  // Listen for floating filter button clicks
+  // Listen for floating filter button clicks - toggle open/close
   useEffect(() => {
-    const handler = () => setMobileFiltersOpen(true);
+    const handler = () => setMobileFiltersOpen(prev => !prev);
     window.addEventListener("open-shop-filters", handler);
     return () => window.removeEventListener("open-shop-filters", handler);
   }, []);
