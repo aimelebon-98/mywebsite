@@ -153,8 +153,8 @@ export default function Navbar() {
 
   const logoText = (isHomepage || isBlogPage) ? "text-white" : "text-white lg:text-gray-900";
   const linkClass = (isHomepage || isBlogPage)
-    ? "text-sm font-medium text-white/90 hover:text-white transition"
-    : "text-sm font-medium text-gray-600 hover:text-gray-900 transition";
+    ? "text-sm font-medium text-white/90 hover:text-white transition whitespace-nowrap"
+    : "text-sm font-medium text-gray-600 hover:text-gray-900 transition whitespace-nowrap";
 
   const iconColor = (isHomepage || isBlogPage) ? "text-white" : "text-white lg:text-gray-600";
   const iconHoverBg = (isHomepage || isBlogPage) ? "hover:bg-white/10" : "hover:bg-white/10 lg:hover:bg-gray-100";
@@ -199,7 +199,7 @@ export default function Navbar() {
             </div>
           </Link>
 
-          <div className="hidden lg:flex items-center gap-5">
+          <div className="hidden lg:flex items-center gap-4">
             <Link href="/" className={linkClass}>{t("home")}</Link>
             <div
               className="relative"
@@ -218,7 +218,7 @@ export default function Navbar() {
             </div>
             <Link
               href="/blog"
-              className={(isHomepage || isBlogPage) ? "text-sm font-bold text-white/90 hover:text-white transition" : linkClass}
+              className={(isHomepage || isBlogPage) ? "text-sm font-bold text-white/90 hover:text-white transition whitespace-nowrap" : linkClass}
             >
               Blog
             </Link>
