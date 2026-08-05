@@ -22,12 +22,12 @@ export async function POST(req: Request) {
     const authorId = "c412acd2-68c5-4105-8869-b143400d244a";
     const coverImage = "https://images.unsplash.com/photo-1718010571964-bac048b9ded0?q=80&w=1200&auto=format&fit=crop";
     const coverImageAlt = "POS terminal machine used for mobile banking and cash withdrawal transactions in Nigeria";
-    const coverImageAltFr = d("Terminal POS utilis\\u00e9 pour les transactions bancaires mobiles et les retraits d\\u0027esp\\u00e8ces au Nig\\u00e9ria");
+    const coverImageAltFr = d("Terminal de paiement \\u00e9lectronique utilis\\u00e9 pour les services bancaires mobiles et les retraits d\\u0027esp\\u00e8ces");
 
-    // Delete old bad-slug version + current slug (idempotent seed)
+    // Delete both slugs (idempotent seed)
     await db.delete(blogPosts).where(or(eq(blogPosts.slug, slug), eq(blogPosts.slug, oldSlug)));
 
-    // ============ ENGLISH CONTENT ============
+    // ============ ENGLISH: Nigeria-focused (unchanged) ============
     const title = "How to Start a POS Business in Nigeria: The Complete 2026 Guide";
     const excerpt = "Learn how to start a profitable POS business in Nigeria from scratch. Discover requirements, startup costs, top providers, and how to earn up to N15,000 daily.";
 
@@ -164,91 +164,83 @@ export async function POST(req: Request) {
 <p>Even if you already own a business, adding POS services is a powerful way to expand your revenue streams and keep customers coming back. Start small, stay consistent, and scale as your customer base grows.</p>
     `.trim();
 
-    // ============ FRENCH CONTENT ============
-    const titleFr = d("Comment D\\u00e9marrer une Entreprise POS au Nig\\u00e9ria : Le Guide Complet 2026");
-    const excerptFr = d("Apprenez \\u00e0 lancer une entreprise POS rentable au Nig\\u00e9ria \\u00e0 partir de z\\u00e9ro. D\\u00e9couvrez les exigences, les co\\u00fbts, les meilleurs fournisseurs et comment gagner jusqu\\u0027\\u00e0 15 000 nairas par jour.");
+    // ============ FRENCH: Global / Generic (NO Nigeria references) ============
+    const titleFr = d("Comment Lancer une Activit\\u00e9 de Terminal de Paiement \\u00c9lectronique : Guide Complet 2026");
+    const excerptFr = d("Apprenez \\u00e0 lancer une activit\\u00e9 rentable de terminal de paiement \\u00e9lectronique (TPE) \\u00e0 partir de z\\u00e9ro. D\\u00e9couvrez les exigences, les co\\u00fbts de d\\u00e9marrage et comment g\\u00e9n\\u00e9rer un revenu quotidien solide.");
 
     const contentFr = d(`
-<p>L\\u0027entreprise POS, qui signifie <strong>Point Of Sale</strong> ou point de vente, est aujourd\\u0027hui l\\u0027une des activit\\u00e9s les plus lucratives et l\\u00e9gitimes au Nig\\u00e9ria. Elle est facile \\u00e0 lancer, n\\u00e9cessite un capital relativement faible et offre un fort potentiel de profit \\u2014 contrairement \\u00e0 de nombreuses entreprises qui exigent un investissement initial important.</p>
+<p>Une activit\\u00e9 de <strong>terminal de paiement \\u00e9lectronique</strong> (TPE), \\u00e9galement appel\\u00e9e activit\\u00e9 POS (Point Of Sale), est aujourd\\u0027hui l\\u0027une des opportunit\\u00e9s entrepreneuriales les plus accessibles et rentables. Elle est facile \\u00e0 lancer, n\\u00e9cessite un capital relativement faible et offre un fort potentiel de profit \\u2014 contrairement \\u00e0 de nombreuses entreprises qui exigent un investissement initial important.</p>
 
-<p>Dans ce guide complet, nous aborderons les opportunit\\u00e9s du POS, les exigences, les avantages et inconv\\u00e9nients, ainsi que les b\\u00e9n\\u00e9fices r\\u00e9alistes que vous pouvez g\\u00e9n\\u00e9rer. Saviez-vous qu\\u0027avec la bonne configuration, vous pouvez gagner jusqu\\u0027\\u00e0 <strong>15 000 nairas de b\\u00e9n\\u00e9fice par jour</strong> ? D\\u00e9composons cela ensemble.</p>
+<p>Dans ce guide complet, nous aborderons les opportunit\\u00e9s de cette activit\\u00e9, les exigences, les avantages et inconv\\u00e9nients, ainsi que les revenus r\\u00e9alistes que vous pouvez g\\u00e9n\\u00e9rer. Avec la bonne configuration, un op\\u00e9rateur TPE peut d\\u00e9gager un revenu quotidien tr\\u00e8s int\\u00e9ressant. D\\u00e9composons cela ensemble.</p>
 
-<h2>1. Qu\\u0027est-ce qu\\u0027une Entreprise POS ?</h2>
-<p>Une entreprise POS consiste \\u00e0 offrir les services suivants aux clients moyennant des frais modiques :</p>
+<h2>1. Qu\\u0027est-ce qu\\u0027une Activit\\u00e9 de Terminal de Paiement ?</h2>
+<p>Une activit\\u00e9 TPE consiste \\u00e0 offrir les services suivants aux clients moyennant des frais modiques :</p>
 <ul>
   <li>Retraits d\\u0027esp\\u00e8ces</li>
   <li>D\\u00e9p\\u00f4ts d\\u0027esp\\u00e8ces</li>
   <li>Transferts d\\u0027argent</li>
-  <li>Vente de cr\\u00e9dit t\\u00e9l\\u00e9phonique et de donn\\u00e9es</li>
-  <li>Paiement de factures (GoTV, DSTV, \\u00e9lectricit\\u00e9, eau, etc.)</li>
+  <li>Vente de cr\\u00e9dit t\\u00e9l\\u00e9phonique et de donn\\u00e9es mobiles</li>
+  <li>Paiement de factures (\\u00e9lectricit\\u00e9, eau, t\\u00e9l\\u00e9vision, internet, etc.)</li>
 </ul>
 
-<h2>2. L\\u0027\\u00c9norme Opportunit\\u00e9 du POS</h2>
-<p>Avez-vous d\\u00e9j\\u00e0 fait la queue dans une banque pendant plus d\\u0027une heure juste pour effectuer un d\\u00e9p\\u00f4t ? Ou vous \\u00eates-vous tenu devant un distributeur pour voir le message redout\\u00e9 <em>\\u00ab hors service \\u00bb</em> ou <em>\\u00ab momentan\\u00e9ment incapable de distribuer \\u00bb</em> ?</p>
-<p>Les humains sont impatients par nature. La plupart des gens sauteraient volontiers les longues files d\\u0027attente s\\u0027il existait une option plus rapide et plus proche \\u2014 et c\\u0027est exactement l\\u00e0 qu\\u0027intervient votre entreprise POS. Vous devenez le pont entre les banques et les personnes qui ont besoin de services financiers instantan\\u00e9s.</p>
+<h2>2. Une Opportunit\\u00e9 \\u00c9norme</h2>
+<p>Avez-vous d\\u00e9j\\u00e0 fait la queue dans une banque pendant plus d\\u0027une heure juste pour effectuer un d\\u00e9p\\u00f4t ? Ou vous \\u00eates-vous tenu devant un distributeur automatique pour voir le message redout\\u00e9 <em>\\u00ab hors service \\u00bb</em> ou <em>\\u00ab momentan\\u00e9ment indisponible \\u00bb</em> ?</p>
+<p>Les humains sont impatients par nature. La plupart des gens sauteraient volontiers les longues files d\\u0027attente s\\u0027il existait une option plus rapide et plus proche \\u2014 et c\\u0027est exactement l\\u00e0 qu\\u0027intervient votre activit\\u00e9 TPE. Vous devenez le pont entre les institutions financi\\u00e8res et les personnes qui ont besoin de services financiers instantan\\u00e9s.</p>
 
 <h2>3. Les Exigences \\u00e0 Remplir</h2>
 <p>Toute activit\\u00e9 impliquant des transactions financi\\u00e8res doit \\u00eatre prise au s\\u00e9rieux. Voici ce dont vous avez besoin :</p>
 
-<h3>A. Avoir une Entreprise \\u00c9tablie</h3>
-<p>Les institutions financi\\u00e8res doivent vous faire confiance avant de vous confier un terminal POS. Vous devez disposer d\\u0027une entreprise enregistr\\u00e9e aupr\\u00e8s de la <strong>Corporate Affairs Commission (CAC)</strong>. Si votre entreprise n\\u0027est pas correctement enregistr\\u00e9e, votre demande sera probablement refus\\u00e9e.</p>
+<h3>A. Avoir une Entreprise Enregistr\\u00e9e</h3>
+<p>Les institutions financi\\u00e8res doivent vous faire confiance avant de vous confier un terminal de paiement. Vous devez disposer d\\u0027une entreprise enregistr\\u00e9e aupr\\u00e8s de l\\u0027organisme comp\\u00e9tent de votre pays (par exemple, le registre du commerce ou la chambre de commerce locale). Sans enregistrement l\\u00e9gal, votre demande sera probablement refus\\u00e9e.</p>
 
 <h3>B. Contacter les Institutions Financi\\u00e8res</h3>
-<p>Vous aurez besoin d\\u0027un terminal POS, et pour en obtenir un, vous devez approcher une banque ou une fintech. La plupart des banques exigent que vous soyez d\\u00e9j\\u00e0 client avec un compte actif.</p>
-<p>Au-del\\u00e0 des banques traditionnelles, voici les principaux fournisseurs POS au Nig\\u00e9ria :</p>
+<p>Vous aurez besoin d\\u0027un terminal TPE, et pour en obtenir un, vous devez approcher une banque ou une soci\\u00e9t\\u00e9 fintech. La plupart des banques exigent que vous soyez d\\u00e9j\\u00e0 client avec un compte professionnel actif.</p>
+<p>Selon votre pays, vous pouvez approcher :</p>
 <ul>
-  <li>OPay</li>
-  <li>Moniepoint</li>
-  <li>PalmPay</li>
-  <li>Paga</li>
-  <li>Baxi</li>
-  <li>Quickteller</li>
-  <li>Firstmonie (First Bank)</li>
-  <li>PocketMoni</li>
-  <li>PayCentre</li>
-  <li>Nexgo POS</li>
-  <li>CitiServe</li>
+  <li>Les grandes banques commerciales locales</li>
+  <li>Les banques mobiles et n\\u00e9obanques (Orange Money, Wave, MTN Mobile Money, etc.)</li>
+  <li>Les agr\\u00e9gateurs fintech proposant des solutions marchand</li>
+  <li>Les op\\u00e9rateurs de paiement r\\u00e9gionaux</li>
 </ul>
 
-<h3>C. Documents Requis</h3>
-<p>Les exigences varient l\\u00e9g\\u00e8rement selon le fournisseur, mais vous aurez g\\u00e9n\\u00e9ralement besoin de :</p>
+<h3>C. Documents G\\u00e9n\\u00e9ralement Requis</h3>
+<p>Les exigences varient selon le pays et le fournisseur, mais vous aurez g\\u00e9n\\u00e9ralement besoin de :</p>
 <ul>
-  <li>Une pi\\u00e8ce d\\u0027identit\\u00e9 valide (permis de conduire, carte nationale, passeport ou carte d\\u0027\\u00e9lecteur)</li>
-  <li>BVN (Bank Verification Number)</li>
+  <li>Une pi\\u00e8ce d\\u0027identit\\u00e9 valide (carte nationale d\\u0027identit\\u00e9, passeport ou permis de conduire)</li>
+  <li>Un num\\u00e9ro d\\u0027identification bancaire ou fiscal</li>
   <li>2 photos d\\u0027identit\\u00e9 r\\u00e9centes</li>
-  <li>2 r\\u00e9f\\u00e9rences de compte courant</li>
-  <li>Certificat CAC (preuve d\\u0027enregistrement de l\\u0027entreprise)</li>
-  <li>Num\\u00e9ro d\\u0027identification fiscale (TIN)</li>
-  <li>Statuts et acte constitutif</li>
-  <li>Rapport du bureau de cr\\u00e9dit</li>
-  <li>Capital de d\\u00e9part minimum de 50 000 nairas</li>
+  <li>Des r\\u00e9f\\u00e9rences de compte courant</li>
+  <li>Le certificat d\\u0027enregistrement de votre entreprise</li>
+  <li>Un num\\u00e9ro d\\u0027identification fiscale</li>
+  <li>Les statuts de l\\u0027entreprise</li>
+  <li>Un capital de d\\u00e9part minimum (variable selon le fournisseur)</li>
 </ul>
 
 <h2>4. Comment D\\u00e9marrer</h2>
 
 <h3>A. Se Procurer les Outils N\\u00e9cessaires</h3>
 <ul>
-  <li>Un terminal POS (l\\u0027outil le plus important)</li>
+  <li>Un terminal TPE (l\\u0027outil le plus important)</li>
   <li>Un lecteur de carte</li>
   <li>Un scanner de codes-barres (pour les paiements de factures)</li>
-  <li>Un smartphone fiable avec donn\\u00e9es mobiles</li>
+  <li>Un smartphone fiable avec forfait de donn\\u00e9es mobiles</li>
 </ul>
 
 <h3>B. Choisir un Emplacement</h3>
-<p>Vous n\\u0027avez pas besoin d\\u0027une grande boutique. En r\\u00e9alit\\u00e9, de nombreux op\\u00e9rateurs g\\u00e8rent un POS depuis un petit conteneur ou un kiosque. Si vous poss\\u00e9dez d\\u00e9j\\u00e0 un commerce, ajoutez simplement le POS comme source de revenus suppl\\u00e9mentaire.</p>
+<p>Vous n\\u0027avez pas besoin d\\u0027une grande boutique. En r\\u00e9alit\\u00e9, de nombreux op\\u00e9rateurs g\\u00e8rent leur TPE depuis un petit kiosque, un conteneur ou m\\u00eame un simple stand. Si vous poss\\u00e9dez d\\u00e9j\\u00e0 un commerce, ajoutez simplement le service TPE comme source de revenus suppl\\u00e9mentaire.</p>
 
 <h3>C. Trouver le Bon Endroit</h3>
 <p>L\\u0027emplacement est primordial. Consid\\u00e9rez ces facteurs :</p>
 <ul>
   <li><strong>Accessibilit\\u00e9 :</strong> Les clients peuvent-ils vous atteindre facilement ?</li>
-  <li><strong>Achalandage :</strong> La zone est-elle anim\\u00e9e ? Les march\\u00e9s, arr\\u00eats de bus et quartiers r\\u00e9sidentiels sont des mines d\\u0027or.</li>
-  <li><strong>Concurrence :</strong> Combien d\\u0027op\\u00e9rateurs POS y a-t-il d\\u00e9j\\u00e0 ? Pouvez-vous offrir mieux \\u2014 service plus rapide, frais r\\u00e9duits, horaires \\u00e9tendus ?</li>
+  <li><strong>Achalandage :</strong> La zone est-elle anim\\u00e9e ? Les march\\u00e9s, gares routi\\u00e8res, quartiers r\\u00e9sidentiels denses et zones commerciales sont des emplacements id\\u00e9aux.</li>
+  <li><strong>Concurrence :</strong> Combien d\\u0027op\\u00e9rateurs TPE y a-t-il d\\u00e9j\\u00e0 ? Pouvez-vous offrir mieux \\u2014 service plus rapide, frais r\\u00e9duits, horaires \\u00e9tendus ?</li>
   <li><strong>S\\u00e9curit\\u00e9 :</strong> La zone est-elle s\\u00fbre ? Vous manipulerez des esp\\u00e8ces au quotidien.</li>
 </ul>
 
-<h2>5. D\\u00e9marrer un POS avec un Petit Budget</h2>
-<p>Les terminaux POS co\\u00fbtent g\\u00e9n\\u00e9ralement <strong>45 000, 65 000 ou 75 000 nairas</strong>, selon les fonctionnalit\\u00e9s et la vitesse. Les machines plus ch\\u00e8res sont plus rapides et plus fiables.</p>
-<p><strong>Pas de machine ? Pas de probl\\u00e8me.</strong> Vous pouvez commencer en acceptant des virements bancaires sur votre compte personnel et en remettant les esp\\u00e8ces aux clients. C\\u0027est le moyen le plus rapide de tester le march\\u00e9 avant d\\u0027investir dans une machine.</p>
+<h2>5. D\\u00e9marrer avec un Petit Budget</h2>
+<p>Le co\\u00fbt d\\u0027un terminal TPE varie selon le mod\\u00e8le et les fonctionnalit\\u00e9s \\u2014 les mod\\u00e8les d\\u0027entr\\u00e9e de gamme sont plus abordables mais plus lents, tandis que les mod\\u00e8les haut de gamme sont plus rapides et plus fiables.</p>
+<p><strong>Pas de machine ? Pas de probl\\u00e8me.</strong> Vous pouvez commencer en acceptant des virements bancaires ou paiements mobiles sur votre compte, puis en remettant les esp\\u00e8ces aux clients. C\\u0027est le moyen le plus rapide de tester le march\\u00e9 avant d\\u0027investir dans un terminal.</p>
 
 <h2>6. Avantages et Inconv\\u00e9nients</h2>
 
@@ -269,15 +261,15 @@ export async function POST(req: Request) {
 </ul>
 
 <h2>7. Combien Pouvez-vous Gagner ?</h2>
-<p>Vos revenus quotidiens d\\u00e9pendent du volume de transactions. Frais typiques :</p>
+<p>Vos revenus quotidiens d\\u00e9pendent du volume de transactions et de vos frais de service. En g\\u00e9n\\u00e9ral :</p>
 <ul>
-  <li>Retrait de 10 000 nairas \\u2192 facturez 150 \\u00e0 200 nairas</li>
-  <li>Retraits plus importants (50 000+ nairas) \\u2192 jusqu\\u0027\\u00e0 500 \\u00e0 2 000 nairas</li>
-  <li>Paiement de factures \\u2192 100 \\u00e0 300 nairas par transaction</li>
+  <li>Petits retraits \\u2192 frais fixes r\\u00e9duits</li>
+  <li>Retraits importants \\u2192 frais proportionnels plus \\u00e9lev\\u00e9s</li>
+  <li>Paiement de factures \\u2192 commission fixe par transaction</li>
 </ul>
-<p>Si vous servez <strong>50 clients par jour</strong>, gagner <strong>10 000 \\u00e0 15 000 nairas quotidiennement est tout \\u00e0 fait r\\u00e9aliste</strong>. Cela repr\\u00e9sente plus de 300 000 nairas par mois.</p>
+<p>Si vous servez <strong>50 clients par jour</strong> avec un bon m\\u00e9lange de d\\u00e9p\\u00f4ts, retraits et paiements de factures, vous pouvez g\\u00e9n\\u00e9rer un revenu quotidien confortable \\u2014 souvent \\u00e9quivalent \\u00e0 plusieurs fois le salaire minimum local.</p>
 
-<h2>8. Comment R\\u00e9ussir dans le POS</h2>
+<h2>8. Comment R\\u00e9ussir dans cette Activit\\u00e9</h2>
 <ul>
   <li>Gardez vos frais \\u00e9quitables \\u2014 des prix comp\\u00e9titifs fid\\u00e9lisent les clients</li>
   <li>Op\\u00e9rez dans une zone s\\u00fbre</li>
@@ -286,18 +278,18 @@ export async function POST(req: Request) {
   <li>Ayez un r\\u00e9seau de secours (double SIM, WiFi) contre les pannes</li>
 </ul>
 
-<h2>9. Pourquoi Lancer un POS D\\u00e8s Aujourd\\u0027hui</h2>
+<h2>9. Pourquoi Lancer une Activit\\u00e9 TPE D\\u00e8s Aujourd\\u0027hui</h2>
 <ul>
   <li>Capital de d\\u00e9part faible par rapport \\u00e0 la plupart des entreprises</li>
   <li>Fort potentiel de b\\u00e9n\\u00e9fice d\\u00e8s le premier jour</li>
   <li>Vous cr\\u00e9ez un emploi stable pour vous-m\\u00eame</li>
   <li>Aucune expertise technique requise</li>
-  <li>L\\u0027\\u00e9conomie de tr\\u00e9sorerie au Nig\\u00e9ria maintient une forte demande</li>
+  <li>La demande de services financiers de proximit\\u00e9 reste forte dans de nombreuses r\\u00e9gions</li>
 </ul>
 
 <h2>Conclusion</h2>
-<p>L\\u0027entreprise POS est l\\u0027une des mani\\u00e8res les plus intelligentes de g\\u00e9n\\u00e9rer un revenu stable et croissant au Nig\\u00e9ria aujourd\\u0027hui. Que ce soit comme activit\\u00e9 secondaire ou principale, c\\u0027est une excellente opportunit\\u00e9 accessible \\u00e0 toute personne disposant d\\u0027un capital de base et du bon emplacement.</p>
-<p>M\\u00eame si vous poss\\u00e9dez d\\u00e9j\\u00e0 une entreprise, ajouter des services POS est un moyen puissant d\\u0027\\u00e9largir vos sources de revenus et de fid\\u00e9liser vos clients. Commencez petit, restez constant et \\u00e9voluez avec votre client\\u00e8le.</p>
+<p>L\\u0027activit\\u00e9 de terminal de paiement \\u00e9lectronique est l\\u0027une des mani\\u00e8res les plus intelligentes de g\\u00e9n\\u00e9rer un revenu stable et croissant aujourd\\u0027hui. Que ce soit comme activit\\u00e9 secondaire ou principale, c\\u0027est une excellente opportunit\\u00e9 accessible \\u00e0 toute personne disposant d\\u0027un capital de base et du bon emplacement.</p>
+<p>M\\u00eame si vous poss\\u00e9dez d\\u00e9j\\u00e0 une entreprise, ajouter des services TPE est un moyen puissant d\\u0027\\u00e9largir vos sources de revenus et de fid\\u00e9liser vos clients. Commencez petit, restez constant et \\u00e9voluez avec votre client\\u00e8le.</p>
     `.trim());
 
     // SEO metadata
@@ -305,11 +297,11 @@ export async function POST(req: Request) {
     const metaDescription = "Complete guide to starting a profitable POS business in Nigeria. Requirements, costs, top providers, and how to earn up to N15,000 daily. Read now.";
     const focusKeyphrase = "POS business Nigeria";
 
-    const seoTitleFr = d("Comment D\\u00e9marrer une Entreprise POS au Nig\\u00e9ria (Guide 2026) | New Deal Zone");
-    const metaDescriptionFr = d("Guide complet pour lancer une entreprise POS rentable au Nig\\u00e9ria. Exigences, co\\u00fbts, meilleurs fournisseurs et comment gagner 15 000 nairas par jour.");
-    const focusKeyphraseFr = d("entreprise POS Nig\\u00e9ria");
+    // FR SEO - global focus, NO Nigeria mention
+    const seoTitleFr = d("Comment Lancer une Activit\\u00e9 de Terminal de Paiement (Guide 2026) | New Deal Zone");
+    const metaDescriptionFr = d("Guide complet pour lancer une activit\\u00e9 rentable de terminal de paiement \\u00e9lectronique. Exigences, co\\u00fbts, outils et strat\\u00e9gies pour g\\u00e9n\\u00e9rer un revenu quotidien.");
+    const focusKeyphraseFr = d("activit\\u00e9 terminal de paiement");
 
-    // Tags stored as JSON string
     const tags = JSON.stringify(["pos business", "nigeria", "entrepreneurship", "small business", "fintech", "side hustle"]);
 
     const inserted = await db.insert(blogPosts).values({
@@ -344,7 +336,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "POS post seeded successfully with clean slug + alt text",
+      message: "POS post updated: EN Nigeria-focused, FR globalized",
       post: inserted[0],
       urls: {
         en: `https://newdealzone.com/en/blog/${slug}`,
