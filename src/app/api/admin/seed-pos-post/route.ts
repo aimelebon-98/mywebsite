@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { blogPosts } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 
 // Runtime French accent decoder (avoids PowerShell UTF-8 corruption)
 function d(s: string): string {
@@ -17,12 +17,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "unauthorized" }, { status: 401 });
     }
 
-    const slug = "how-to-start-a-pos-business-in-nigeria";
+    const slug = "pos-business-nigeria";
+    const oldSlug = "how-to-start-a-pos-business-in-nigeria";
     const authorId = "c412acd2-68c5-4105-8869-b143400d244a";
     const coverImage = "https://images.unsplash.com/photo-1718010571964-bac048b9ded0?q=80&w=1200&auto=format&fit=crop";
+    const coverImageAlt = "POS terminal machine used for mobile banking and cash withdrawal transactions in Nigeria";
+    const coverImageAltFr = d("Terminal POS utilis\\u00e9 pour les transactions bancaires mobiles et les retraits d\\u0027esp\\u00e8ces au Nig\\u00e9ria");
 
-    // Delete if already exists (idempotent seed)
-    await db.delete(blogPosts).where(eq(blogPosts.slug, slug));
+    // Delete old bad-slug version + current slug (idempotent seed)
+    await db.delete(blogPosts).where(or(eq(blogPosts.slug, slug), eq(blogPosts.slug, oldSlug)));
 
     // ============ ENGLISH CONTENT ============
     const title = "How to Start a POS Business in Nigeria: The Complete 2026 Guide";
@@ -161,7 +164,7 @@ export async function POST(req: Request) {
 <p>Even if you already own a business, adding POS services is a powerful way to expand your revenue streams and keep customers coming back. Start small, stay consistent, and scale as your customer base grows.</p>
     `.trim();
 
-    // ============ FRENCH CONTENT (with accents via decoder) ============
+    // ============ FRENCH CONTENT ============
     const titleFr = d("Comment D\\u00e9marrer une Entreprise POS au Nig\\u00e9ria : Le Guide Complet 2026");
     const excerptFr = d("Apprenez \\u00e0 lancer une entreprise POS rentable au Nig\\u00e9ria \\u00e0 partir de z\\u00e9ro. D\\u00e9couvrez les exigences, les co\\u00fbts, les meilleurs fournisseurs et comment gagner jusqu\\u0027\\u00e0 15 000 nairas par jour.");
 
@@ -300,13 +303,13 @@ export async function POST(req: Request) {
     // SEO metadata
     const seoTitle = "How to Start a POS Business in Nigeria (2026 Guide) | New Deal Zone";
     const metaDescription = "Complete guide to starting a profitable POS business in Nigeria. Requirements, costs, top providers, and how to earn up to N15,000 daily. Read now.";
-    const focusKeyphrase = "how to start a POS business in Nigeria";
+    const focusKeyphrase = "POS business Nigeria";
 
     const seoTitleFr = d("Comment D\\u00e9marrer une Entreprise POS au Nig\\u00e9ria (Guide 2026) | New Deal Zone");
     const metaDescriptionFr = d("Guide complet pour lancer une entreprise POS rentable au Nig\\u00e9ria. Exigences, co\\u00fbts, meilleurs fournisseurs et comment gagner 15 000 nairas par jour.");
-    const focusKeyphraseFr = d("comment d\\u00e9marrer une entreprise POS au Nig\\u00e9ria");
+    const focusKeyphraseFr = d("entreprise POS Nig\\u00e9ria");
 
-    // Tags stored as JSON string (schema expects text/string)
+    // Tags stored as JSON string
     const tags = JSON.stringify(["pos business", "nigeria", "entrepreneurship", "small business", "fintech", "side hustle"]);
 
     const inserted = await db.insert(blogPosts).values({
@@ -318,6 +321,8 @@ export async function POST(req: Request) {
       excerptFr,
       contentFr,
       coverImage,
+      coverImageAlt,
+      coverImageAltFr,
       category: "business",
       tags,
       authorId,
@@ -339,7 +344,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "POS post seeded successfully",
+      message: "POS post seeded successfully with clean slug + alt text",
       post: inserted[0],
       urls: {
         en: `https://newdealzone.com/en/blog/${slug}`,
