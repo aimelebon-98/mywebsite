@@ -6,7 +6,11 @@ export const BLOG_CATEGORIES = [
   { slug: "buying-guides",   name: "Buying Guides",    nameFr: "Guides d'achat",         color: "bg-amber-100 text-amber-700" },
   { slug: "brand-stories",   name: "Brand Stories",    nameFr: "Histoires de marques",   color: "bg-pink-100 text-pink-700" },
   { slug: "business",        name: "Business",         nameFr: "Business",               color: "bg-indigo-100 text-indigo-700" },
-];
+  {
+    slug: "finance",
+    name: "Finance",
+    nameFr: "Finance",
+  },];
 
 export function getCategoryLabel(slug: string, isFr: boolean): string {
   const cat = BLOG_CATEGORIES.find(c => c.slug === slug);
