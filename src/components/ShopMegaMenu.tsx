@@ -81,11 +81,11 @@ export default function ShopMegaMenu({ onClose }: { onClose: () => void }) {
 
   return (
     <div
-      className="absolute left-0 top-full pt-2 w-[min(1100px,calc(100vw-2rem))] z-[100]"
+      className="fixed left-1/2 -translate-x-1/2 top-auto pt-2 w-[min(1100px,calc(100vw-2rem))] z-[100]"
+      style={{ top: "var(--navbar-bottom, 100px)" }}
       onMouseLeave={onClose}
     >
-      {/* Caret */}
-      <div className="absolute left-8 top-1 w-3 h-3 bg-white border-l border-t border-gray-100 rotate-45" />
+      {/* Caret - hidden since menu is now centered, not tied to Shop All */}
 
       <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
         <div className="grid grid-cols-[240px_1fr_280px]">

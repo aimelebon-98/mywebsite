@@ -34,6 +34,7 @@ export default function Navbar() {
   const [isMac, setIsMac] = useState(false);
   const megaCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchInputRef = useRef<HTMLDivElement | null>(null);
+  const navRef = useRef<HTMLElement | null>(null);
 
   // Detect scroll for shrink effect
   useEffect(() => {
@@ -41,6 +42,26 @@ export default function Navbar() {
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Publish navbar bottom position for mega menu to use
+  useEffect(() => {
+    const update = () => {
+      if (navRef.current) {
+        const rect = navRef.current.getBoundingClientRect();
+        document.documentElement.style.setProperty("--navbar-bottom", `${rect.bottom}px`);
+      }
+    };
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    const observer = new ResizeObserver(update);
+    if (navRef.current) observer.observe(navRef.current);
+    return () => {
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+      observer.disconnect();
+    };
   }, []);
 
   // Detect Mac for keyboard shortcut display
@@ -150,6 +171,7 @@ export default function Navbar() {
 
   return (
     <nav
+      ref={navRef}
       data-site-navbar="true"
       className={`sticky top-0 left-0 right-0 z-50 border-b transition-colors ${navBg} ${isBlogPage ? "border-transparent" : ""}`}
       style={navStyle}
