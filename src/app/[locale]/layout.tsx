@@ -41,19 +41,20 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
+  applicationName: "New Deal | ZONE",
   title: {
     default: "New Deal | ZONE - Premium Footwear | Sneakers, Boots, Formal Shoes",
     template: "%s | New Deal | ZONE",
   },
   description: "Discover premium shoes for every occasion at New Deal | ZONE. Shop sneakers, running shoes, boots, formal shoes, sandals and more. Free shipping on orders over $1000.",
-  keywords: ["shoes", "sneakers", "boots", "running shoes", "formal shoes", "footwear", "NewDealZone"],
-  authors: [{ name: "NewDealZone" }],
+  keywords: ["shoes", "sneakers", "boots", "running shoes", "formal shoes", "footwear", "New Deal ZONE", "NewDealZone"],
+  authors: [{ name: "New Deal | ZONE" }],
   openGraph: {
     type: "website",
     siteName: "New Deal | ZONE",
     title: "New Deal | ZONE - Premium Footwear",
     description: "Discover premium shoes for every occasion.",
-    images: [{ url: "/images/hero-shoe.jpg", width: 1200, height: 630, alt: "NewDealZone" }],
+    images: [{ url: "/images/hero-shoe.jpg", width: 1200, height: 630, alt: "New Deal | ZONE" }],
   },
   robots: { index: true, follow: true },
   verification: {
@@ -88,14 +89,52 @@ export default async function LocaleLayout({
 
   const messages = (await import(`../../../messages/${locale}.json`)).default;
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Store",
-    name: "NewDealZone",
-    description: "Premium footwear for every occasion",
-    url: siteUrl,
-    priceRange: "$$",
-  };
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "@id": `${siteUrl}/#website`,
+      name: "New Deal | ZONE",
+      alternateName: ["NewDealZone", "New Deal Zone", "NewDeal Zone", "NDZ"],
+      url: siteUrl,
+      inLanguage: locale,
+      potentialAction: {
+        "@type": "SearchAction",
+        target: {
+          "@type": "EntryPoint",
+          urlTemplate: `${siteUrl}/${locale}/shop?search={search_term_string}`,
+        },
+        "query-input": "required name=search_term_string",
+      },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "@id": `${siteUrl}/#organization`,
+      name: "New Deal | ZONE",
+      alternateName: ["NewDealZone", "New Deal Zone", "NDZ"],
+      url: siteUrl,
+      logo: {
+        "@type": "ImageObject",
+        url: `${siteUrl}/apple-touch-icon.svg`,
+        width: 512,
+        height: 512,
+      },
+      description: "Premium footwear for every occasion",
+      sameAs: [],
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "Store",
+      "@id": `${siteUrl}/#store`,
+      name: "New Deal | ZONE",
+      alternateName: ["NewDealZone", "New Deal Zone"],
+      description: "Premium footwear for every occasion",
+      url: siteUrl,
+      priceRange: "$",
+      image: `${siteUrl}/apple-touch-icon.svg`,
+    },
+  ];
 
   return (
     <html lang={locale} className={inter.variable}>
