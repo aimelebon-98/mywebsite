@@ -18,16 +18,23 @@ export async function POST(req: Request) {
     }
 
     const slug = "pos-business-nigeria";
+    const slugFr = "terminal-paiement-electronique";
     const oldSlug = "how-to-start-a-pos-business-in-nigeria";
     const authorId = "c412acd2-68c5-4105-8869-b143400d244a";
     const coverImage = "https://images.unsplash.com/photo-1718010571964-bac048b9ded0?q=80&w=1200&auto=format&fit=crop";
     const coverImageAlt = "POS terminal machine used for mobile banking and cash withdrawal transactions in Nigeria";
     const coverImageAltFr = d("Terminal de paiement \\u00e9lectronique utilis\\u00e9 pour les services bancaires mobiles et les retraits d\\u0027esp\\u00e8ces");
 
-    // Delete both slugs (idempotent seed)
-    await db.delete(blogPosts).where(or(eq(blogPosts.slug, slug), eq(blogPosts.slug, oldSlug)));
+    // Delete any existing versions (idempotent seed)
+    await db.delete(blogPosts).where(
+      or(
+        eq(blogPosts.slug, slug),
+        eq(blogPosts.slug, oldSlug),
+        eq(blogPosts.slugFr, slugFr)
+      )
+    );
 
-    // ============ ENGLISH: Nigeria-focused (unchanged) ============
+    // ============ ENGLISH: Nigeria-focused ============
     const title = "How to Start a POS Business in Nigeria: The Complete 2026 Guide";
     const excerpt = "Learn how to start a profitable POS business in Nigeria from scratch. Discover requirements, startup costs, top providers, and how to earn up to N15,000 daily.";
 
@@ -164,7 +171,7 @@ export async function POST(req: Request) {
 <p>Even if you already own a business, adding POS services is a powerful way to expand your revenue streams and keep customers coming back. Start small, stay consistent, and scale as your customer base grows.</p>
     `.trim();
 
-    // ============ FRENCH: Global / Generic (NO Nigeria references) ============
+    // ============ FRENCH: Global / Generic ============
     const titleFr = d("Comment Lancer une Activit\\u00e9 de Terminal de Paiement \\u00c9lectronique : Guide Complet 2026");
     const excerptFr = d("Apprenez \\u00e0 lancer une activit\\u00e9 rentable de terminal de paiement \\u00e9lectronique (TPE) \\u00e0 partir de z\\u00e9ro. D\\u00e9couvrez les exigences, les co\\u00fbts de d\\u00e9marrage et comment g\\u00e9n\\u00e9rer un revenu quotidien solide.");
 
@@ -297,15 +304,16 @@ export async function POST(req: Request) {
     const metaDescription = "Complete guide to starting a profitable POS business in Nigeria. Requirements, costs, top providers, and how to earn up to N15,000 daily. Read now.";
     const focusKeyphrase = "POS business Nigeria";
 
-    // FR SEO - global focus, NO Nigeria mention
     const seoTitleFr = d("Comment Lancer une Activit\\u00e9 de Terminal de Paiement (Guide 2026) | New Deal Zone");
     const metaDescriptionFr = d("Guide complet pour lancer une activit\\u00e9 rentable de terminal de paiement \\u00e9lectronique. Exigences, co\\u00fbts, outils et strat\\u00e9gies pour g\\u00e9n\\u00e9rer un revenu quotidien.");
-    const focusKeyphraseFr = d("activit\\u00e9 terminal de paiement");
+    const focusKeyphraseFr = d("terminal de paiement \\u00e9lectronique");
 
     const tags = JSON.stringify(["pos business", "nigeria", "entrepreneurship", "small business", "fintech", "side hustle"]);
+    const tagsFr = JSON.stringify(["terminal de paiement", "TPE", "entrepreneuriat", "petite entreprise", "fintech", "revenu compl\\u00e9mentaire".replace(/\\u([0-9a-fA-F]{4})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))]);
 
     const inserted = await db.insert(blogPosts).values({
       slug,
+      slugFr,
       title,
       excerpt,
       content,
@@ -317,6 +325,7 @@ export async function POST(req: Request) {
       coverImageAltFr,
       category: "business",
       tags,
+      tagsFr,
       authorId,
       readTime: 8,
       published: true,
@@ -336,11 +345,11 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "POS post updated: EN Nigeria-focused, FR globalized",
+      message: "POS post seeded with locale-specific slugs",
       post: inserted[0],
       urls: {
         en: `https://newdealzone.com/en/blog/${slug}`,
-        fr: `https://newdealzone.com/fr/blog/${slug}`,
+        fr: `https://newdealzone.com/fr/blog/${slugFr}`,
       }
     });
   } catch (error) {
