@@ -306,7 +306,8 @@ export async function POST(req: Request) {
     const metaDescriptionFr = d("Guide complet pour lancer une entreprise POS rentable au Nig\\u00e9ria. Exigences, co\\u00fbts, meilleurs fournisseurs et comment gagner 15 000 nairas par jour.");
     const focusKeyphraseFr = d("comment d\\u00e9marrer une entreprise POS au Nig\\u00e9ria");
 
-    const tags = ["pos business", "nigeria", "entrepreneurship", "small business", "fintech", "side hustle"];
+    // Tags stored as JSON string (schema expects text/string)
+    const tags = JSON.stringify(["pos business", "nigeria", "entrepreneurship", "small business", "fintech", "side hustle"]);
 
     const inserted = await db.insert(blogPosts).values({
       slug,
