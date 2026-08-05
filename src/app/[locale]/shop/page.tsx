@@ -223,8 +223,8 @@ export default async function ShopPage({ params, searchParams }: Props) {
           />
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-6 relative z-10">
-          <nav className="hidden lg:flex items-center gap-1.5 text-xs text-gray-400 mb-2">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 lg:py-3 relative z-10">
+          <nav className="hidden items-center gap-1.5 text-xs text-gray-400 mb-2">
             <Link href={`/${locale}`} className="flex items-center gap-1 hover:text-white transition">
               <Home className="w-3.5 h-3.5" />
               {tNav("home")}
