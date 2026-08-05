@@ -113,30 +113,38 @@ export default function Navbar() {
     router.replace(pathname, { locale: nextLocale });
   };
 
-  const navBg = isBlogPage
+  const navBg = isHomepage
     ? "border-transparent"
-    : "bg-black lg:bg-white border-transparent lg:border-gray-100";
+    : (isBlogPage
+      ? "border-transparent"
+      : "bg-black lg:bg-white border-transparent lg:border-gray-100");
 
-  const navStyle = isBlogPage ? { backgroundColor: BRAND_RED } : undefined;
+  const navStyle = isHomepage
+    ? { backgroundColor: "#524947" }
+    : (isBlogPage ? { backgroundColor: BRAND_RED } : undefined);
 
-  const bannerBg = isBlogPage ? "text-white" : "bg-gray-900 text-white";
-  const bannerStyle = isBlogPage ? { backgroundColor: BRAND_RED_DARK } : undefined;
+  const bannerBg = isHomepage
+    ? "text-white"
+    : (isBlogPage ? "text-white" : "bg-gray-900 text-white");
+  const bannerStyle = isHomepage
+    ? { backgroundColor: "#3d3735" }
+    : (isBlogPage ? { backgroundColor: BRAND_RED_DARK } : undefined);
 
-  const logoText = isBlogPage ? "text-white" : "text-white lg:text-gray-900";
-  const linkClass = isBlogPage
+  const logoText = (isHomepage || isBlogPage) ? "text-white" : "text-white lg:text-gray-900";
+  const linkClass = (isHomepage || isBlogPage)
     ? "text-sm font-medium text-white/90 hover:text-white transition"
     : "text-sm font-medium text-gray-600 hover:text-gray-900 transition";
 
-  const iconColor = isBlogPage ? "text-white" : "text-white lg:text-gray-600";
-  const iconHoverBg = isBlogPage ? "hover:bg-white/10" : "hover:bg-white/10 lg:hover:bg-gray-100";
-  const localeText = isBlogPage ? "text-white" : "text-white lg:text-gray-700";
-  const heartClass = isBlogPage
+  const iconColor = (isHomepage || isBlogPage) ? "text-white" : "text-white lg:text-gray-600";
+  const iconHoverBg = (isHomepage || isBlogPage) ? "hover:bg-white/10" : "hover:bg-white/10 lg:hover:bg-gray-100";
+  const localeText = (isHomepage || isBlogPage) ? "text-white" : "text-white lg:text-gray-700";
+  const heartClass = (isHomepage || isBlogPage)
     ? wishlistCount > 0 ? "text-white fill-white" : "text-white"
     : wishlistCount > 0
         ? "text-white fill-white lg:text-gray-900 lg:fill-gray-900"
         : "text-white lg:text-gray-600";
 
-  const badgeBg = isBlogPage
+  const badgeBg = (isHomepage || isBlogPage)
     ? "bg-white text-gray-900"
     : "bg-white text-gray-900 lg:bg-gray-900 lg:text-white";
 
@@ -164,8 +172,8 @@ export default function Navbar() {
 
             <div className={`hidden sm:flex items-baseline gap-1.5 text-[19px] font-black tracking-tight leading-none ${logoText}`}>
               <span>NewDeal</span>
-              <span className={isBlogPage ? "text-white/40 font-light text-[15px]" : "text-white/40 lg:text-gray-300 font-light text-[15px]"}>|</span>
-              <span className={`tracking-widest text-[15px] ${isBlogPage ? "text-white/85" : "text-white/85 lg:text-[#CA3F2E]"}`}>ZONE</span>
+              <span className={(isHomepage || isBlogPage) ? "text-white/40 font-light text-[15px]" : "text-white/40 lg:text-gray-300 font-light text-[15px]"}>|</span>
+              <span className={`tracking-widest text-[15px] ${(isHomepage || isBlogPage) ? "text-white/85" : "text-white/85 lg:text-[#CA3F2E]"}`}>ZONE</span>
             </div>
           </Link>
 
@@ -188,7 +196,7 @@ export default function Navbar() {
             </div>
             <Link
               href="/blog"
-              className={isBlogPage ? "text-sm font-bold text-white transition" : linkClass}
+              className={(isHomepage || isBlogPage) ? "text-sm font-bold text-white/90 hover:text-white transition" : linkClass}
             >
               Blog
             </Link>
@@ -203,13 +211,13 @@ export default function Navbar() {
                 placeholder={tCommon("search")}
                 className="w-56 lg:w-80"
                 inputClassName={`w-full pl-9 pr-14 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 transition placeholder-gray-400 shadow-inner ${
-                  isBlogPage
+                  (isHomepage || isBlogPage)
                     ? "bg-white/20 text-white placeholder-white/60 focus:bg-white focus:text-gray-900 focus:ring-white"
                     : "bg-gray-100 focus:ring-gray-900 focus:bg-white border border-gray-200/50"
                 }`}
               />
               <kbd className={`absolute right-2.5 top-1/2 -translate-y-1/2 hidden lg:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded border text-[10px] font-semibold pointer-events-none ${
-                isBlogPage
+                (isHomepage || isBlogPage)
                   ? "border-white/30 text-white/70 bg-white/10"
                   : "border-gray-300 text-gray-500 bg-white"
               }`}>
@@ -217,8 +225,8 @@ export default function Navbar() {
               </kbd>
             </div>
 
-            {isBlogPage ? (
-              <CurrencySelector compact={isBlogPage} dark={isBlogPage} />
+            {(isHomepage || isBlogPage) ? (
+              <CurrencySelector compact={true} dark={true} />
             ) : (
               <div className="[&_button>span]:!text-white lg:[&_button>span]:!text-inherit [&_button>svg]:!text-white lg:[&_button>svg]:!text-inherit [&_button]:hover:!bg-white/10 lg:[&_button]:hover:!bg-inherit">
                 <CurrencySelector compact={isBlogPage} dark={isBlogPage} />

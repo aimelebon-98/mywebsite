@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -81,11 +81,11 @@ export default function ShopMegaMenu({ onClose }: { onClose: () => void }) {
 
   return (
     <div
-      className="absolute right-0 top-full pt-2 w-[min(1100px,calc(100vw-2rem))] z-[100]"
+      className="absolute left-0 top-full pt-2 w-[min(1100px,calc(100vw-2rem))] z-[100]"
       onMouseLeave={onClose}
     >
       {/* Caret */}
-      <div className="absolute right-24 top-1 w-3 h-3 bg-white border-l border-t border-gray-100 rotate-45" />
+      <div className="absolute left-8 top-1 w-3 h-3 bg-white border-l border-t border-gray-100 rotate-45" />
 
       <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
         <div className="grid grid-cols-[240px_1fr_280px]">
