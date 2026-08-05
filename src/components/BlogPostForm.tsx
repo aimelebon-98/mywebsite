@@ -366,18 +366,64 @@ export default function BlogPostForm({ post, onSave, onCancel, loading }: Props)
 
           {/* Cover image */}
           <SidebarCard title="Cover Image" icon={ImageIcon}>
-            <input
-              type="url"
-              value={coverImage}
-              onChange={(e) => setCoverImage(e.target.value)}
-              placeholder="https://images.unsplash.com/..."
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gray-900 transition"
-            />
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Image URL</label>
+              <input
+                type="url"
+                value={coverImage}
+                onChange={(e) => setCoverImage(e.target.value)}
+                placeholder="https://images.unsplash.com/..."
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gray-900 transition"
+              />
+            </div>
+
             {coverImage && (
               <div className="aspect-[16/9] bg-gray-100 rounded-lg overflow-hidden mt-2">
-                <img src={coverImage} alt="Cover preview" className="w-full h-full object-cover" />
+                <img src={coverImage} alt={coverImageAlt || "Cover preview"} className="w-full h-full object-cover" />
               </div>
             )}
+
+            {/* Alt text EN */}
+            <div className="mt-3">
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  Alt Text (English) <span className="text-red-500">*</span>
+                </label>
+                <span className={`text-[10px] font-medium ${coverImageAlt.length > 125 ? "text-red-500" : coverImageAlt.length >= 10 ? "text-green-600" : "text-gray-400"}`}>
+                  {coverImageAlt.length}/125
+                </span>
+              </div>
+              <input
+                type="text"
+                value={coverImageAlt}
+                onChange={(e) => setCoverImageAlt(e.target.value)}
+                placeholder="Describe the image for SEO and screen readers"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gray-900 transition"
+                maxLength={200}
+              />
+              <p className="text-[11px] text-gray-400 mt-1">Describe what is in the image. Improves SEO and accessibility.</p>
+            </div>
+
+            {/* Alt text FR */}
+            <div className="mt-3">
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  Alt Text (French)
+                </label>
+                <span className={`text-[10px] font-medium ${coverImageAltFr.length > 125 ? "text-red-500" : coverImageAltFr.length >= 10 ? "text-green-600" : "text-gray-400"}`}>
+                  {coverImageAltFr.length}/125
+                </span>
+              </div>
+              <input
+                type="text"
+                value={coverImageAltFr}
+                onChange={(e) => setCoverImageAltFr(e.target.value)}
+                placeholder="Decrivez l'image pour le SEO et l'accessibilite"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 transition"
+                maxLength={200}
+              />
+              <p className="text-[11px] text-gray-400 mt-1">Version francaise du texte alternatif.</p>
+            </div>
           </SidebarCard>
 
           {/* Tags */}
