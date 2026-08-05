@@ -11,6 +11,7 @@ import AccountHoverMenu from "@/components/AccountHoverMenu";
 import { useWishlist } from "@/lib/wishlist-context";
 import { useState, useEffect, useRef } from "react";
 import SearchAutocomplete from "@/components/SearchAutocomplete";
+import ShopMegaMenu from "@/components/ShopMegaMenu";
 
 const BRAND_RED = "#CA3F2E";
 const BRAND_RED_DARK = "#8B2A1E";
