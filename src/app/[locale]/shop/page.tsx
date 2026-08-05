@@ -224,7 +224,7 @@ export default async function ShopPage({ params, searchParams }: Props) {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 relative z-10">
-          <nav className="flex items-center gap-1.5 text-xs text-gray-400 mb-4">
+          <nav className="hidden lg:flex items-center gap-1.5 text-xs text-gray-400 mb-4">
             <Link href={`/${locale}`} className="flex items-center gap-1 hover:text-white transition">
               <Home className="w-3.5 h-3.5" />
               {tNav("home")}
@@ -242,7 +242,7 @@ export default async function ShopPage({ params, searchParams }: Props) {
           </nav>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-            <div className="lg:col-span-4">
+            <div className="hidden lg:block lg:col-span-4">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[10px] font-semibold uppercase tracking-widest text-white/80 mb-4">
                 <Sparkles className="w-3 h-3" />
                 Premium Collection
@@ -256,7 +256,7 @@ export default async function ShopPage({ params, searchParams }: Props) {
               </p>
             </div>
 
-            <div className="lg:col-span-8 relative">
+            <div className="col-span-1 lg:col-span-8 relative">
               <CategoryShowcase
                 categories={categoryOptions}
                 activeCategory={category}
