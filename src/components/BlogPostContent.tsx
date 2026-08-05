@@ -152,13 +152,6 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
 
   return (
     <>
-      {/* Reading progress bar */}
-      <div className="fixed top-[88px] lg:top-[96px] left-0 right-0 h-1 bg-gray-100 z-30">
-        <div
-          className="h-full transition-all duration-100"
-          style={{ width: `${progress}%`, background: "linear-gradient(90deg, #CA3F2E 0%, #f97316 100%)", boxShadow: "0 0 12px rgba(202, 63, 46, 0.6)" }}
-        />
-      </div>
 
       <article className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
         {/* Breadcrumb */}
