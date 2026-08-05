@@ -42,16 +42,16 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "NewDealZone - Premium Footwear | Sneakers, Boots, Formal Shoes",
-    template: "%s | NewDealZone",
+    default: "New Deal | ZONE - Premium Footwear | Sneakers, Boots, Formal Shoes",
+    template: "%s | New Deal | ZONE",
   },
-  description: "Discover premium shoes for every occasion at NewDealZone. Shop sneakers, running shoes, boots, formal shoes, sandals and more. Free shipping on orders over $1000.",
+  description: "Discover premium shoes for every occasion at New Deal | ZONE. Shop sneakers, running shoes, boots, formal shoes, sandals and more. Free shipping on orders over $1000.",
   keywords: ["shoes", "sneakers", "boots", "running shoes", "formal shoes", "footwear", "NewDealZone"],
   authors: [{ name: "NewDealZone" }],
   openGraph: {
     type: "website",
-    siteName: "NewDealZone",
-    title: "NewDealZone - Premium Footwear",
+    siteName: "New Deal | ZONE",
+    title: "New Deal | ZONE - Premium Footwear",
     description: "Discover premium shoes for every occasion.",
     images: [{ url: "/images/hero-shoe.jpg", width: 1200, height: 630, alt: "NewDealZone" }],
   },
