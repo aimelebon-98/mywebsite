@@ -232,7 +232,8 @@ export default async function HomePage() {
         </section>
       )}
 
-      <HomeProducts />
+      <MobileHomeSections />
+      <div className="hidden lg:block"><HomeProducts /></div>
         <HomeBlogSection />
 
         <Footer />
