@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -232,8 +232,15 @@ export default function MobileHomeSections() {
     .sort((a, b) => parseFloat(b.rating ?? "0") - parseFloat(a.rating ?? "0")).slice(0, 10);
   if (topRated.length < 4) topRated.push(...products.slice(0, 10 - topRated.length));
 
-  // Unique brands from products
-  const brands = Array.from(new Set(products.map(p => p.brand).filter(Boolean) as string[])).slice(0, 12);
+  // Popular shoe brands - hardcoded for consistent branding
+  const brands = [
+    { name: "Nike",       tagline: isFr ? "Just Do It" : "Just Do It" },
+    { name: "Adidas",     tagline: isFr ? "Impossible n\u0027est rien" : "Impossible is Nothing" },
+    { name: "Puma",       tagline: isFr ? "Forever Faster" : "Forever Faster" },
+    { name: "New Balance",tagline: isFr ? "Fearlessly Independent" : "Fearlessly Independent" },
+    { name: "Reebok",     tagline: isFr ? "Sois toi-m\u00eame" : "Be More Human" },
+    { name: "Converse",   tagline: isFr ? "Cr\u00e9\u00e9 par toi" : "Made by You" },
+  ];
 
   if (loading) {
     return (
@@ -361,7 +368,7 @@ export default function MobileHomeSections() {
       />
 
       {/* SHOP BY BRAND */}
-      {brands.length > 0 && (
+      {true && (
         <div className="bg-white pt-4 pb-6 border-t-4 border-gray-100">
           <div className="flex items-center justify-between px-3 mb-3">
             <div className="flex items-center gap-2">
@@ -375,14 +382,17 @@ export default function MobileHomeSections() {
             </Link>
           </div>
           <div className="grid grid-cols-3 gap-2 px-3">
-            {brands.map((brand, i) => (
+            {brands.map((brand) => (
               <Link
-                key={brand}
-                href={`/${locale}/shop?brand=${encodeURIComponent(brand)}`}
-                className="aspect-square bg-gray-900 rounded-xl flex items-center justify-center p-2 shadow-sm active:scale-95 transition group"
+                key={brand.name}
+                href={`/${locale}/shop?brand=${encodeURIComponent(brand.name)}`}
+                className="aspect-square bg-gray-900 rounded-xl flex flex-col items-center justify-center p-2 shadow-sm active:scale-95 transition group border border-gray-800 hover:border-amber-400"
               >
-                <span className="text-white text-xs font-black text-center leading-tight uppercase tracking-wide truncate group-hover:text-amber-400 transition">
-                  {brand}
+                <span className="text-white text-sm font-black text-center leading-tight tracking-wide group-hover:text-amber-400 transition">
+                  {brand.name}
+                </span>
+                <span className="text-[8px] text-gray-400 mt-1 text-center leading-tight line-clamp-1 group-hover:text-gray-300 transition">
+                  {brand.tagline}
                 </span>
               </Link>
             ))}
