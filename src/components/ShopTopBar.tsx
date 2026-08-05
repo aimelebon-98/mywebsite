@@ -1,7 +1,7 @@
-﻿"use client";
+"use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SlidersHorizontal, ChevronDown, X, Star, Tag, Search, LayoutGrid } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
@@ -29,6 +29,13 @@ export default function ShopTopBar(props: ShopTopBarProps) {
   const [localMinPrice, setLocalMinPrice] = useState(minPrice);
   const [localMaxPrice, setLocalMaxPrice] = useState(maxPrice);
 
+  // Listen for floating filter button clicks
+  useEffect(() => {
+    const handler = () => setMobileFiltersOpen(true);
+    window.addEventListener("open-shop-filters", handler);
+    return () => window.removeEventListener("open-shop-filters", handler);
+  }, []);
+
   const buildUrl = (overrides: Record<string, string>) => {
     const params = new URLSearchParams();
     const merged = { category, search, sort, minPrice, maxPrice, brand, rating, onSale, ...overrides };
@@ -43,7 +50,7 @@ export default function ShopTopBar(props: ShopTopBarProps) {
 
   return (
     <>
-      <div className="flex items-center justify-between mb-5 gap-3 flex-wrap">
+      <div data-shop-topbar className="flex items-center justify-between mb-5 gap-3 flex-wrap">
         <div className="flex items-baseline gap-2">
           <p className="text-lg font-bold text-gray-900">{totalResults}</p>
           <p className="text-sm text-gray-500">{totalResults === 1 ? t("resultLabel") : t("resultsLabel")}</p>
