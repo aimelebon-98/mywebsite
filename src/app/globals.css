@@ -661,3 +661,42 @@ html, body {
   overflow-x: clip;
   max-width: 100vw;
 }
+
+
+/* Responsive iframe (YouTube, Vimeo, embeds) inside blog content */
+#blog-content iframe,
+.blog-body iframe {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  border: 0;
+  border-radius: 12px;
+  margin: 2em 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  background: #000;
+}
+
+#blog-content .video-wrapper,
+.blog-body .video-wrapper {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%;
+  margin: 2em 0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+#blog-content .video-wrapper iframe,
+.blog-body .video-wrapper iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: unset;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
