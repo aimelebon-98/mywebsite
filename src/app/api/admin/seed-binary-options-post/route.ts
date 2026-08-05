@@ -27,14 +27,6 @@ export async function POST(req: Request) {
       or(eq(blogPosts.slug, slug), eq(blogPosts.slugFr, slugFr))
     );
 
-    // Image URLs from Unsplash (charts, trading, financial themes)
-    const imgTrends = "https://images.unsplash.com/photo-1642790551116-18e150f248e5?q=80&w=1200&auto=format&fit=crop";
-    const imgUptrend = "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?q=80&w=1200&auto=format&fit=crop";
-    const imgDowntrend = "https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?q=80&w=1200&auto=format&fit=crop";
-    const imgSupportResistance = "https://images.unsplash.com/photo-1621761191319-c6fb62004040?q=80&w=1200&auto=format&fit=crop";
-    const imgVolatility = "https://images.unsplash.com/photo-1607921072772-7025cc563a2f?q=80&w=1200&auto=format&fit=crop";
-    const imgSessions = "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?q=80&w=1200&auto=format&fit=crop";
-
     // ============ ENGLISH ============
     const title = "How to Make Money Trading Binary Options: The Complete 2026 Guide";
     const excerpt = "Learn how to trade binary options profitably in 2026. Discover proven strategies (trend following, support/resistance), risk management rules, and trading psychology to become consistently profitable.";
@@ -45,16 +37,16 @@ export async function POST(req: Request) {
   <p style="margin: 8px 0 0 0; color: #78350F; font-size: 14px;">Binary options trading involves substantial risk of loss. It is banned or restricted in the EU, UK, Australia, Canada, and Israel. This content is for educational purposes only and does not constitute financial advice. Never trade with money you cannot afford to lose. Consult a licensed financial advisor before investing.</p>
 </div>
 
-<p>Have you tried making money in binary options without much success? If yes, you are not alone. Many traders spend years testing strategies before finding what works. I struggled for 5 years searching for consistent profit before finally cracking the code — and even then, I lost profits back to brokers multiple times before understanding the real principles behind consistent trading.</p>
+<p>Have you tried making money in binary options without much success? If yes, you are not alone. Many traders spend years testing strategies before finding what works. I struggled for 5 years searching for consistent profit before finally cracking the code, and even then, I lost profits back to brokers multiple times before understanding the real principles behind consistent trading.</p>
 
 <p>If this story sounds familiar, this guide will save you time and money. Let us break down what actually works in <strong>binary options trading</strong>: strategies, risk management, and the psychology that separates profitable traders from the 90% who lose.</p>
 
 <h2>1. What Are Binary Options?</h2>
-<p>A <strong>binary option</strong> is a financial exotic option where the payoff is either a fixed monetary amount or nothing at all. Unlike traditional trading, you know exactly what you stand to win or lose before entering a trade — hence the name "binary" (two outcomes).</p>
+<p>A <strong>binary option</strong> is a financial exotic option where the payoff is either a fixed monetary amount or nothing at all. Unlike traditional trading, you know exactly what you stand to win or lose before entering a trade, hence the name "binary" (two outcomes).</p>
 
 <p><strong>Example:</strong> If an asset has an 80% payout and you stake $10 with a 1-minute expiration time, you either win $8 or lose the full $10 when the timer expires.</p>
 
-<p>This simplicity attracts many beginners — but do not confuse "simple" with "easy." The vast majority of retail binary options traders lose money because they treat it like gambling instead of a skill-based activity.</p>
+<p>This simplicity attracts many beginners, but do not confuse "simple" with "easy." The vast majority of retail binary options traders lose money because they treat it like gambling instead of a skill-based activity.</p>
 
 <h2>2. Choosing a Binary Options Broker</h2>
 <p>There are many binary options brokers globally, including PocketOption, Quotex, BinaryCent, and IQ Option. Personal experience will differ, but common factors to evaluate include:</p>
@@ -79,10 +71,10 @@ export async function POST(req: Request) {
   <li><strong>Correct trading psychology</strong> (emotional discipline)</li>
 </ol>
 
-<p>Miss any one of these and you will lose money — even with the best strategy in the world. Let us break each one down.</p>
+<p>Miss any one of these and you will lose money, even with the best strategy in the world. Let us break each one down.</p>
 
 <h2>4. Strategy 1: Trend Following</h2>
-<p>This is my personal favorite strategy — it delivers a <strong>60-80% win rate</strong> when applied correctly. As the famous saying goes: <em>"The trend is your friend."</em></p>
+<p>This is my personal favorite strategy. It delivers a <strong>60-80% win rate</strong> when applied correctly. As the famous saying goes: <em>"The trend is your friend."</em></p>
 
 <p>A trend is simply the overall direction of the market. There are three possible states:</p>
 <ul>
@@ -91,29 +83,16 @@ export async function POST(req: Request) {
   <li><strong>Sideways / Consolidation:</strong> Prices moving horizontally with no clear direction</li>
 </ul>
 
-<div style="margin: 24px 0;">
-  <img src="${imgTrends}" alt="Financial market showing different chart trend patterns for analysis" style="width: 100%; border-radius: 12px;" />
-  <p style="text-align: center; font-size: 13px; color: #6B7280; margin-top: 8px;"><em>The three market states: uptrend, sideways, and downtrend</em></p>
-</div>
-
 <p><strong>Golden rule:</strong> Never trade during sideways consolidation. The market is unpredictable in this state. Wait for a clear trend to form.</p>
 
 <h3>How to Identify an Uptrend</h3>
 <p>Visually, look for <strong>consecutive higher highs and higher lows</strong>. The price is climbing a "staircase" upward. Each pullback should end at a level higher than the previous pullback.</p>
 
-<div style="margin: 24px 0;">
-  <img src="${imgUptrend}" alt="Bull market uptrend showing rising price action on financial chart" style="width: 100%; border-radius: 12px;" />
-</div>
-
 <h3>How to Identify a Downtrend</h3>
 <p>The exact opposite: <strong>consecutive lower highs and lower lows</strong>. The price is descending a staircase downward.</p>
 
-<div style="margin: 24px 0;">
-  <img src="${imgDowntrend}" alt="Bear market downtrend showing declining price action on financial chart" style="width: 100%; border-radius: 12px;" />
-</div>
-
 <h3>How to Identify Sideways Movement</h3>
-<p>Sideways movement occurs when supply and demand are roughly equal. Price moves within a narrow horizontal channel. <strong>Do not trade this — wait for a breakout.</strong></p>
+<p>Sideways movement occurs when supply and demand are roughly equal. Price moves within a narrow horizontal channel. <strong>Do not trade this. Wait for a breakout.</strong></p>
 
 <h3>My Preferred Indicators for Trend Confirmation</h3>
 <p>I combine two indicators available on most trading platforms:</p>
@@ -137,17 +116,12 @@ export async function POST(req: Request) {
 <p>Every trend has small pullbacks (retracements). Advanced traders enter during these pullbacks for better prices, but this requires experience. Beginners should focus on trading the main trend direction only.</p>
 
 <h2>6. Strategy 2: Support and Resistance</h2>
-
-<div style="margin: 24px 0;">
-  <img src="${imgSupportResistance}" alt="Support and resistance levels marked on a candlestick trading chart" style="width: 100%; border-radius: 12px;" />
-</div>
-
 <p><strong>Support</strong> is a price level where falling prices tend to stop, reverse, and rise again. Think of it as the "floor" holding prices up.</p>
 
 <p><strong>Resistance</strong> is a price level where rising prices tend to stop, reverse, and fall. Think of it as the "ceiling" pushing prices back down.</p>
 
 <h3>How to Trade Support and Resistance</h3>
-<p>When price approaches a strong resistance level after rising, you anticipate a reversal downward — enter "Put/Lower". When price approaches a strong support level after falling, you anticipate a reversal upward — enter "Call/Higher".</p>
+<p>When price approaches a strong resistance level after rising, you anticipate a reversal downward, enter "Put/Lower". When price approaches a strong support level after falling, you anticipate a reversal upward, enter "Call/Higher".</p>
 
 <p><strong>The critical question:</strong> How do you know if the price will bounce or break through the level?</p>
 
@@ -168,7 +142,7 @@ export async function POST(req: Request) {
 <p>So how do they make money? <strong>Risk management</strong>.</p>
 
 <h3>The 0.1% Rule</h3>
-<p>Never risk more than <strong>0.1% of your total capital per trade</strong>. If you have $10,000, that is $10 per trade. This sounds small — but it is the difference between profitable trading and blowing your account.</p>
+<p>Never risk more than <strong>0.1% of your total capital per trade</strong>. If you have $10,000, that is $10 per trade. This sounds small, but it is the difference between profitable trading and blowing your account.</p>
 
 <h3>The Compounding Trick</h3>
 <p>Believe it or not, you can have a <strong>20% win rate and still be profitable</strong> in binary options if you use progressive stake sizing (Martingale-style, but with strict rules).</p>
@@ -228,10 +202,10 @@ export async function POST(req: Request) {
 <h2>8. Trading Psychology: The Hidden Killer</h2>
 <p>Most traders win consistently on demo accounts but lose real money. Why?</p>
 
-<p><strong>Psychology.</strong> The pain of real losses triggers emotional decisions — revenge trading, over-sizing, chasing losses, abandoning strategy. Winning on demo requires none of these emotional muscles.</p>
+<p><strong>Psychology.</strong> The pain of real losses triggers emotional decisions: revenge trading, over-sizing, chasing losses, abandoning strategy. Winning on demo requires none of these emotional muscles.</p>
 
 <h3>The $10,000 Test</h3>
-<p>Imagine you have $10,000 in your pocket. On the way to the mall, you drop $1. Would you feel real pain? Of course not — it is negligible. Now imagine losing $5,000 the same way. Very different feeling.</p>
+<p>Imagine you have $10,000 in your pocket. On the way to the mall, you drop $1. Would you feel real pain? Of course not, it is negligible. Now imagine losing $5,000 the same way. Very different feeling.</p>
 
 <p><strong>Lesson for trading:</strong> If your position size is 0.1% of your account, losing that trade should feel as insignificant as losing $1 out of $10,000. Your emotions stay calm. Your decisions stay rational. Your next trade is not driven by fear or greed.</p>
 
@@ -239,24 +213,14 @@ export async function POST(req: Request) {
 <p>Do not fund your demo account with $10,000 if you can only realistically afford to fund your real account with $200. Practice with realistic amounts. This trains your emotions correctly.</p>
 
 <h2>9. Best Times to Trade</h2>
-
-<div style="margin: 24px 0;">
-  <img src="${imgSessions}" alt="Global forex market trading sessions clock showing overlap times" style="width: 100%; border-radius: 12px;" />
-</div>
-
 <p>Not every hour is equally good for trading. The best trading times are:</p>
 <ul>
   <li><strong>London Session:</strong> 8:00 AM to 5:00 PM GMT (highest liquidity)</li>
   <li><strong>New York Session:</strong> 1:00 PM to 10:00 PM GMT</li>
-  <li><strong>London-New York Overlap:</strong> 1:00 PM to 5:00 PM GMT (highest volume of the day — best trading window)</li>
+  <li><strong>London-New York Overlap:</strong> 1:00 PM to 5:00 PM GMT (highest volume of the day, best trading window)</li>
 </ul>
 
 <h3>Avoid These Market Conditions</h3>
-
-<div style="margin: 24px 0;">
-  <img src="${imgVolatility}" alt="Extreme market volatility shown with sharp price movement on candlestick chart" style="width: 100%; border-radius: 12px;" />
-</div>
-
 <ul>
   <li><strong>High volatility periods:</strong> Price jumping wildly in both directions makes prediction impossible</li>
   <li><strong>Extremely low volatility:</strong> When price barely moves, patterns fail to form</li>
@@ -265,23 +229,23 @@ export async function POST(req: Request) {
 </ul>
 
 <h2>10. How News Affects Binary Options</h2>
-<p>Economic news releases (NFP, CPI, FOMC meetings, interest rate decisions) cause massive volatility in forex pairs. Track upcoming news events on <strong>ForexFactory.com</strong> — the industry-standard economic calendar.</p>
+<p>Economic news releases (NFP, CPI, FOMC meetings, interest rate decisions) cause massive volatility in forex pairs. Track upcoming news events on <strong>ForexFactory.com</strong>, the industry-standard economic calendar.</p>
 
 <p><strong>Strategy:</strong></p>
 <ul>
-  <li><strong>Before news release (15 min):</strong> Stop trading — market becomes unpredictable</li>
-  <li><strong>During news:</strong> Do not trade — spreads widen dramatically</li>
+  <li><strong>Before news release (15 min):</strong> Stop trading. Market becomes unpredictable</li>
+  <li><strong>During news:</strong> Do not trade. Spreads widen dramatically</li>
   <li><strong>After news (30-60 min):</strong> Wait for the direction to stabilize, then trade the new trend</li>
 </ul>
 
 <p>High-impact news events (marked with red icons on ForexFactory) are the most dangerous. Yellow and orange are less impactful.</p>
 
 <h2>11. Should You Trade OTC Markets?</h2>
-<p>OTC (Over-the-Counter) markets are always available — including weekends and outside main trading hours. But there is a critical question:</p>
+<p>OTC (Over-the-Counter) markets are always available, including weekends and outside main trading hours. But there is a critical question:</p>
 
 <p><strong>Who determines the OTC price?</strong> Unlike real forex markets where prices come from banks, financial institutions, and interbank exchanges, OTC prices on binary options platforms are determined by the broker themselves. This creates a potential conflict of interest.</p>
 
-<p>Ask yourself: Is EUR/USD OTC on Broker A the same as EUR/USD OTC on Broker B? Usually not — because each broker generates its own OTC price feed.</p>
+<p>Ask yourself: Is EUR/USD OTC on Broker A the same as EUR/USD OTC on Broker B? Usually not, because each broker generates its own OTC price feed.</p>
 
 <p><strong>My honest take:</strong> You can win money on OTC, but you can also lose predictably. Some traders swear by it; others avoid it entirely. Trade OTC with smaller stakes and never as your primary strategy.</p>
 
@@ -294,7 +258,7 @@ export async function POST(req: Request) {
   <li><strong>Chasing trades:</strong> Entering late in a move instead of at proper setups</li>
   <li><strong>Ignoring the news calendar:</strong> Getting caught by unexpected volatility</li>
   <li><strong>Trading during boredom:</strong> Overtrading kills more accounts than losing streaks</li>
-  <li><strong>Depositing more after losses:</strong> Never fund losses — walk away, reassess</li>
+  <li><strong>Depositing more after losses:</strong> Never fund losses. Walk away, reassess</li>
   <li><strong>Trading with borrowed money:</strong> Emotional pressure guarantees failure</li>
   <li><strong>Believing in "signal groups":</strong> Most are scams designed to funnel you to referral broker links</li>
 </ul>
@@ -317,7 +281,7 @@ export async function POST(req: Request) {
 <p>Be extremely cautious. Most "signal providers" are affiliates earning commissions when you deposit through their broker link. Their real motivation is your deposit, not your profits. Learn to trade yourself instead.</p>
 
 <h3>Is a demo account enough to practice?</h3>
-<p>Demo accounts teach mechanics and strategies but do NOT train emotional discipline. Transition to a small real account (with amounts you can afford to lose entirely) as soon as you have a consistent demo strategy — real money is the only true teacher of trading psychology.</p>
+<p>Demo accounts teach mechanics and strategies but do NOT train emotional discipline. Transition to a small real account (with amounts you can afford to lose entirely) as soon as you have a consistent demo strategy. Real money is the only true teacher of trading psychology.</p>
 
 <h3>What is the difference between binary options and regular forex trading?</h3>
 <p>Binary options have fixed outcomes (win or lose predetermined amounts) with fixed expiration times. Forex trading has variable outcomes based on how much the price moves, with no fixed expiration. Regular forex is more flexible and generally more accepted by regulators worldwide.</p>
@@ -325,17 +289,17 @@ export async function POST(req: Request) {
 <h2>Getting Started</h2>
 <p>If you decide to explore binary options despite the risks:</p>
 <ol>
-  <li><strong>Open a demo account first:</strong> Any reputable broker offers free demos — use them for at least 3 months</li>
+  <li><strong>Open a demo account first:</strong> Any reputable broker offers free demos. Use them for at least 3 months</li>
   <li><strong>Master ONE strategy first:</strong> Trend following OR support/resistance, not both</li>
   <li><strong>Journal every single trade:</strong> Entry reason, exit reason, emotional state, result</li>
   <li><strong>Only fund a real account with money you can lose completely</strong></li>
   <li><strong>Start with 0.1% position sizing</strong> and never deviate</li>
-  <li><strong>Limit yourself to 4 trades maximum per day</strong> — quality over quantity</li>
-  <li><strong>Stop trading immediately after 4 consecutive losses</strong> — return the next day</li>
+  <li><strong>Limit yourself to 4 trades maximum per day</strong>. Quality over quantity</li>
+  <li><strong>Stop trading immediately after 4 consecutive losses</strong>. Return the next day</li>
 </ol>
 
 <h2>Conclusion</h2>
-<p>Binary options trading is not gambling — but it becomes gambling the moment you abandon strategy, risk management, or emotional discipline. The 10% who succeed treat it as a serious skill. The 90% who lose treat it as a lottery.</p>
+<p>Binary options trading is not gambling, but it becomes gambling the moment you abandon strategy, risk management, or emotional discipline. The 10% who succeed treat it as a serious skill. The 90% who lose treat it as a lottery.</p>
 
 <p><strong>Quick recap:</strong></p>
 <ul>
@@ -344,7 +308,7 @@ export async function POST(req: Request) {
   <li>Even a 20% win rate can be profitable with correct sizing</li>
   <li>Trade during high-liquidity sessions (London-NY overlap)</li>
   <li>Avoid news events and volatile market conditions</li>
-  <li>Keep your emotions in check — trade small amounts that do not hurt when lost</li>
+  <li>Keep your emotions in check. Trade small amounts that do not hurt when lost</li>
   <li>Know when to quit for the day</li>
 </ul>
 
@@ -365,12 +329,12 @@ export async function POST(req: Request) {
   <p style="margin: 8px 0 0 0; color: #78350F; font-size: 14px;">Le trading d\\u0027options binaires comporte un risque substantiel de perte. Il est <strong>interdit ou restreint dans l\\u0027UE, au Royaume-Uni, en Australie, au Canada et en Isra\\u00ebl</strong>. Ce contenu est fourni \\u00e0 des fins \\u00e9ducatives uniquement et ne constitue pas un conseil financier. Ne tradez jamais avec de l\\u0027argent que vous ne pouvez pas vous permettre de perdre. Consultez un conseiller financier agr\\u00e9\\u00e9 avant d\\u0027investir.</p>
 </div>
 
-<p>Avez-vous essay\\u00e9 de gagner de l\\u0027argent en options binaires sans grand succ\\u00e8s ? Vous n\\u0027\\u00eates pas seul. De nombreux traders passent des ann\\u00e9es \\u00e0 tester des strat\\u00e9gies avant de trouver ce qui fonctionne. J\\u0027ai lutt\\u00e9 pendant 5 ans avant de trouver la constance \\u2014 et m\\u00eame apr\\u00e8s cela, j\\u0027ai perdu mes gains plusieurs fois avant de comprendre les vrais principes du trading r\\u00e9ussi.</p>
+<p>Avez-vous essay\\u00e9 de gagner de l\\u0027argent en options binaires sans grand succ\\u00e8s ? Vous n\\u0027\\u00eates pas seul. De nombreux traders passent des ann\\u00e9es \\u00e0 tester des strat\\u00e9gies avant de trouver ce qui fonctionne. J\\u0027ai lutt\\u00e9 pendant 5 ans avant de trouver la constance, et m\\u00eame apr\\u00e8s cela, j\\u0027ai perdu mes gains plusieurs fois avant de comprendre les vrais principes du trading r\\u00e9ussi.</p>
 
 <p>Si cette histoire vous parle, ce guide vous fera gagner du temps et de l\\u0027argent. D\\u00e9composons ce qui fonctionne vraiment en <strong>trading d\\u0027options binaires</strong> : strat\\u00e9gies, gestion du risque, et la psychologie qui s\\u00e9pare les traders rentables des 90 % qui perdent.</p>
 
 <h2>1. Que Sont les Options Binaires ?</h2>
-<p>Une <strong>option binaire</strong> est un produit financier exotique o\\u00f9 le paiement est soit un montant fixe soit rien du tout. Contrairement au trading traditionnel, vous savez exactement ce que vous pouvez gagner ou perdre avant d\\u0027entrer dans un trade \\u2014 d\\u0027o\\u00f9 le nom \\u00ab binaire \\u00bb (deux r\\u00e9sultats).</p>
+<p>Une <strong>option binaire</strong> est un produit financier exotique o\\u00f9 le paiement est soit un montant fixe soit rien du tout. Contrairement au trading traditionnel, vous savez exactement ce que vous pouvez gagner ou perdre avant d\\u0027entrer dans un trade, d\\u0027o\\u00f9 le nom \\u00ab binaire \\u00bb (deux r\\u00e9sultats).</p>
 
 <p><strong>Exemple :</strong> Si un actif a un paiement de 80 % et que vous misez 10 dollars avec une expiration de 1 minute, vous gagnez soit 8 dollars, soit vous perdez les 10 dollars \\u00e0 l\\u0027expiration.</p>
 
@@ -399,10 +363,10 @@ export async function POST(req: Request) {
   <li><strong>Une psychologie de trading correcte</strong> (discipline \\u00e9motionnelle)</li>
 </ol>
 
-<p>Manquez l\\u0027un de ces trois \\u00e9l\\u00e9ments et vous perdrez de l\\u0027argent \\u2014 m\\u00eame avec la meilleure strat\\u00e9gie du monde.</p>
+<p>Manquez l\\u0027un de ces trois \\u00e9l\\u00e9ments et vous perdrez de l\\u0027argent, m\\u00eame avec la meilleure strat\\u00e9gie du monde.</p>
 
 <h2>4. Strat\\u00e9gie 1 : Le Suivi de Tendance</h2>
-<p>C\\u0027est ma strat\\u00e9gie pr\\u00e9f\\u00e9r\\u00e9e \\u2014 elle offre un <strong>taux de r\\u00e9ussite de 60-80 %</strong> lorsqu\\u0027elle est appliqu\\u00e9e correctement. Comme le dit l\\u0027adage : <em>\\u00ab La tendance est votre amie. \\u00bb</em></p>
+<p>C\\u0027est ma strat\\u00e9gie pr\\u00e9f\\u00e9r\\u00e9e. Elle offre un <strong>taux de r\\u00e9ussite de 60-80 %</strong> lorsqu\\u0027elle est appliqu\\u00e9e correctement. Comme le dit l\\u0027adage : <em>\\u00ab La tendance est votre amie. \\u00bb</em></p>
 
 <p>Une tendance est simplement la direction g\\u00e9n\\u00e9rale du march\\u00e9. Il y a trois \\u00e9tats possibles :</p>
 <ul>
@@ -411,25 +375,13 @@ export async function POST(req: Request) {
   <li><strong>Consolidation lat\\u00e9rale :</strong> Les prix se d\\u00e9placent horizontalement sans direction claire</li>
 </ul>
 
-<div style="margin: 24px 0;">
-  <img src="${imgTrends}" alt="March\\u00e9 financier montrant diff\\u00e9rents motifs de tendance graphique pour analyse" style="width: 100%; border-radius: 12px;" />
-</div>
-
 <p><strong>R\\u00e8gle d\\u0027or :</strong> Ne jamais trader pendant la consolidation lat\\u00e9rale. Le march\\u00e9 est impr\\u00e9visible dans cet \\u00e9tat. Attendez qu\\u0027une tendance claire se forme.</p>
 
 <h3>Identifier une Tendance Haussi\\u00e8re</h3>
 <p>Visuellement, cherchez des <strong>sommets plus hauts et creux plus hauts cons\\u00e9cutifs</strong>. Le prix monte un escalier vers le haut.</p>
 
-<div style="margin: 24px 0;">
-  <img src="${imgUptrend}" alt="March\\u00e9 haussier montrant une action de prix en hausse sur graphique financier" style="width: 100%; border-radius: 12px;" />
-</div>
-
 <h3>Identifier une Tendance Baissi\\u00e8re</h3>
 <p>L\\u0027exact oppos\\u00e9 : <strong>sommets plus bas et creux plus bas cons\\u00e9cutifs</strong>. Le prix descend un escalier.</p>
-
-<div style="margin: 24px 0;">
-  <img src="${imgDowntrend}" alt="March\\u00e9 baissier montrant une action de prix en baisse sur graphique financier" style="width: 100%; border-radius: 12px;" />
-</div>
 
 <h3>Mes Indicateurs Pr\\u00e9f\\u00e9r\\u00e9s pour Confirmer la Tendance</h3>
 <ul>
@@ -447,11 +399,6 @@ export async function POST(req: Request) {
 <p><strong>Astuce pro :</strong> Tradez dans la direction du dernier mouvement de l\\u0027indicateur Zig-Zag. C\\u0027est votre signal de confirmation le plus simple.</p>
 
 <h2>6. Strat\\u00e9gie 2 : Support et R\\u00e9sistance</h2>
-
-<div style="margin: 24px 0;">
-  <img src="${imgSupportResistance}" alt="Niveaux de support et r\\u00e9sistance marqu\\u00e9s sur un graphique de trading en chandeliers" style="width: 100%; border-radius: 12px;" />
-</div>
-
 <p>Le <strong>support</strong> est un niveau de prix o\\u00f9 la baisse tend \\u00e0 s\\u0027arr\\u00eater, s\\u0027inverser et remonter. Pensez-y comme un \\u00ab plancher \\u00bb qui soutient les prix.</p>
 
 <p>La <strong>r\\u00e9sistance</strong> est un niveau o\\u00f9 la hausse tend \\u00e0 s\\u0027arr\\u00eater, s\\u0027inverser et redescendre. Pensez-y comme un \\u00ab plafond \\u00bb.</p>
@@ -476,7 +423,7 @@ export async function POST(req: Request) {
 <p>Alors comment font-ils de l\\u0027argent ? <strong>Gestion du risque.</strong></p>
 
 <h3>La R\\u00e8gle des 0,1 %</h3>
-<p>Ne risquez jamais plus de <strong>0,1 % de votre capital total par trade</strong>. Si vous avez 10 000 dollars, c\\u0027est 10 dollars par trade. \\u00c7a semble petit \\u2014 mais c\\u0027est la diff\\u00e9rence entre le trading rentable et l\\u0027explosion de votre compte.</p>
+<p>Ne risquez jamais plus de <strong>0,1 % de votre capital total par trade</strong>. Si vous avez 10 000 dollars, c\\u0027est 10 dollars par trade. \\u00c7a semble petit, mais c\\u0027est la diff\\u00e9rence entre le trading rentable et l\\u0027explosion de votre compte.</p>
 
 <h3>L\\u0027Astuce du Compound</h3>
 <p>Croyez-le ou non, vous pouvez avoir un <strong>taux de r\\u00e9ussite de 20 % et \\u00eatre quand m\\u00eame rentable</strong> en options binaires si vous utilisez un dimensionnement progressif contr\\u00f4l\\u00e9.</p>
@@ -511,7 +458,7 @@ export async function POST(req: Request) {
 <h2>8. Psychologie du Trading : Le Tueur Cach\\u00e9</h2>
 <p>La plupart des traders gagnent en d\\u00e9mo mais perdent en r\\u00e9el. Pourquoi ?</p>
 
-<p><strong>La psychologie.</strong> La douleur des pertes r\\u00e9elles d\\u00e9clenche des d\\u00e9cisions \\u00e9motionnelles \\u2014 trading de vengeance, sur-dimensionnement, chasser les pertes, abandonner la strat\\u00e9gie.</p>
+<p><strong>La psychologie.</strong> La douleur des pertes r\\u00e9elles d\\u00e9clenche des d\\u00e9cisions \\u00e9motionnelles : trading de vengeance, sur-dimensionnement, chasser les pertes, abandonner la strat\\u00e9gie.</p>
 
 <h3>Le Test des 10 000 Dollars</h3>
 <p>Imaginez avoir 10 000 dollars en poche. En allant au centre commercial, vous perdez 1 dollar. Ressentiriez-vous une vraie douleur ? Bien s\\u00fbr que non. Maintenant, imaginez perdre 5 000 dollars de la m\\u00eame fa\\u00e7on. Sentiment tr\\u00e8s diff\\u00e9rent.</p>
@@ -519,11 +466,6 @@ export async function POST(req: Request) {
 <p><strong>Le\\u00e7on :</strong> Si votre position est \\u00e0 0,1 % de votre compte, perdre ce trade devrait para\\u00eetre aussi insignifiant que perdre 1 dollar sur 10 000. Vos \\u00e9motions restent calmes. Vos d\\u00e9cisions restent rationnelles.</p>
 
 <h2>9. Meilleurs Moments pour Trader</h2>
-
-<div style="margin: 24px 0;">
-  <img src="${imgSessions}" alt="Horloge des sessions de trading forex mondiales montrant les temps de chevauchement" style="width: 100%; border-radius: 12px;" />
-</div>
-
 <ul>
   <li><strong>Session de Londres :</strong> 8h00 \\u00e0 17h00 GMT</li>
   <li><strong>Session de New York :</strong> 13h00 \\u00e0 22h00 GMT</li>
@@ -531,11 +473,6 @@ export async function POST(req: Request) {
 </ul>
 
 <h3>\\u00c9vitez Ces Conditions de March\\u00e9</h3>
-
-<div style="margin: 24px 0;">
-  <img src="${imgVolatility}" alt="Volatilit\\u00e9 de march\\u00e9 extr\\u00eame montr\\u00e9e avec des mouvements de prix brusques" style="width: 100%; border-radius: 12px;" />
-</div>
-
 <ul>
   <li><strong>P\\u00e9riodes de haute volatilit\\u00e9 :</strong> Prix sautant dans les deux directions rend la pr\\u00e9diction impossible</li>
   <li><strong>Volatilit\\u00e9 extr\\u00eamement faible :</strong> Quand le prix bouge \\u00e0 peine, les motifs \\u00e9chouent</li>
@@ -548,13 +485,13 @@ export async function POST(req: Request) {
 
 <p><strong>Strat\\u00e9gie :</strong></p>
 <ul>
-  <li><strong>Avant la nouvelle (15 min) :</strong> Arr\\u00eatez de trader \\u2014 le march\\u00e9 devient impr\\u00e9visible</li>
-  <li><strong>Pendant la nouvelle :</strong> Ne tradez pas \\u2014 les spreads s\\u0027\\u00e9largissent dramatiquement</li>
+  <li><strong>Avant la nouvelle (15 min) :</strong> Arr\\u00eatez de trader. Le march\\u00e9 devient impr\\u00e9visible</li>
+  <li><strong>Pendant la nouvelle :</strong> Ne tradez pas. Les spreads s\\u0027\\u00e9largissent dramatiquement</li>
   <li><strong>Apr\\u00e8s la nouvelle (30-60 min) :</strong> Attendez que la direction se stabilise, puis tradez la nouvelle tendance</li>
 </ul>
 
 <h2>11. Faut-il Trader les March\\u00e9s OTC ?</h2>
-<p>Les march\\u00e9s OTC (Over-the-Counter) sont toujours disponibles \\u2014 y compris les week-ends. Mais il y a une question critique :</p>
+<p>Les march\\u00e9s OTC (Over-the-Counter) sont toujours disponibles, y compris les week-ends. Mais il y a une question critique :</p>
 
 <p><strong>Qui d\\u00e9termine le prix OTC ?</strong> Contrairement aux vrais march\\u00e9s forex o\\u00f9 les prix viennent des banques et des \\u00e9changes interbancaires, les prix OTC sur les plateformes d\\u0027options binaires sont d\\u00e9termin\\u00e9s par le courtier lui-m\\u00eame. Cela cr\\u00e9e un conflit d\\u0027int\\u00e9r\\u00eat potentiel.</p>
 
@@ -568,7 +505,7 @@ export async function POST(req: Request) {
   <li><strong>Trader sans strat\\u00e9gie :</strong> Entr\\u00e9es al\\u00e9atoires bas\\u00e9es sur le feeling</li>
   <li><strong>Ignorer le calendrier des nouvelles :</strong> Se faire prendre par une volatilit\\u00e9 inattendue</li>
   <li><strong>Trader par ennui :</strong> Le surtrading tue plus de comptes que les s\\u00e9ries perdantes</li>
-  <li><strong>Red\\u00e9poser apr\\u00e8s des pertes :</strong> Ne financez jamais les pertes \\u2014 partez, r\\u00e9\\u00e9valuez</li>
+  <li><strong>Red\\u00e9poser apr\\u00e8s des pertes :</strong> Ne financez jamais les pertes. Partez, r\\u00e9\\u00e9valuez</li>
   <li><strong>Trader avec de l\\u0027argent emprunt\\u00e9 :</strong> La pression \\u00e9motionnelle garantit l\\u0027\\u00e9chec</li>
   <li><strong>Croire aux \\u00ab groupes de signaux \\u00bb :</strong> La plupart sont des arnaques con\\u00e7ues pour vous envoyer vers des liens d\\u0027affiliation</li>
 </ul>
@@ -596,17 +533,17 @@ export async function POST(req: Request) {
 <h2>Pour Commencer</h2>
 <p>Si vous d\\u00e9cidez d\\u0027explorer les options binaires malgr\\u00e9 les risques :</p>
 <ol>
-  <li><strong>Ouvrez d\\u0027abord un compte d\\u00e9mo :</strong> Tout courtier r\\u00e9put\\u00e9 offre des d\\u00e9mos gratuites \\u2014 utilisez-les au moins 3 mois</li>
+  <li><strong>Ouvrez d\\u0027abord un compte d\\u00e9mo :</strong> Tout courtier r\\u00e9put\\u00e9 offre des d\\u00e9mos gratuites. Utilisez-les au moins 3 mois</li>
   <li><strong>Ma\\u00eetrisez UNE strat\\u00e9gie d\\u0027abord :</strong> Suivi de tendance OU support/r\\u00e9sistance, pas les deux</li>
   <li><strong>Journalisez chaque trade :</strong> Raison d\\u0027entr\\u00e9e, raison de sortie, \\u00e9tat \\u00e9motionnel, r\\u00e9sultat</li>
   <li><strong>Ne financez un compte r\\u00e9el qu\\u0027avec de l\\u0027argent que vous pouvez perdre compl\\u00e8tement</strong></li>
   <li><strong>Commencez avec un dimensionnement de 0,1 %</strong> et ne d\\u00e9viez jamais</li>
   <li><strong>Limitez-vous \\u00e0 4 trades maximum par jour</strong></li>
-  <li><strong>Arr\\u00eatez imm\\u00e9diatement apr\\u00e8s 4 pertes cons\\u00e9cutives</strong> \\u2014 revenez le lendemain</li>
+  <li><strong>Arr\\u00eatez imm\\u00e9diatement apr\\u00e8s 4 pertes cons\\u00e9cutives</strong>. Revenez le lendemain</li>
 </ol>
 
 <h2>Conclusion</h2>
-<p>Le trading d\\u0027options binaires n\\u0027est pas du jeu \\u2014 mais il le devient au moment o\\u00f9 vous abandonnez la strat\\u00e9gie, la gestion du risque ou la discipline \\u00e9motionnelle. Les 10 % qui r\\u00e9ussissent le traitent comme une comp\\u00e9tence s\\u00e9rieuse. Les 90 % qui perdent le traitent comme une loterie.</p>
+<p>Le trading d\\u0027options binaires n\\u0027est pas du jeu, mais il le devient au moment o\\u00f9 vous abandonnez la strat\\u00e9gie, la gestion du risque ou la discipline \\u00e9motionnelle. Les 10 % qui r\\u00e9ussissent le traitent comme une comp\\u00e9tence s\\u00e9rieuse. Les 90 % qui perdent le traitent comme une loterie.</p>
 
 <p><strong>R\\u00e9cap rapide :</strong></p>
 <ul>
@@ -615,7 +552,7 @@ export async function POST(req: Request) {
   <li>M\\u00eame un taux de r\\u00e9ussite de 20 % peut \\u00eatre rentable avec le bon dimensionnement</li>
   <li>Tradez pendant les sessions \\u00e0 haute liquidit\\u00e9 (chevauchement Londres-NY)</li>
   <li>\\u00c9vitez les \\u00e9v\\u00e9nements de nouvelles et les conditions de march\\u00e9 volatiles</li>
-  <li>Gardez vos \\u00e9motions en check \\u2014 tradez de petits montants qui ne font pas mal quand perdus</li>
+  <li>Gardez vos \\u00e9motions en check. Tradez de petits montants qui ne font pas mal quand perdus</li>
   <li>Sachez quand arr\\u00eater pour la journ\\u00e9e</li>
 </ul>
 
@@ -682,7 +619,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "Binary options post seeded successfully",
+      message: "Binary options post updated - internal images removed",
       post: inserted[0],
       urls: {
         en: `https://newdealzone.com/en/blog/${slug}`,
