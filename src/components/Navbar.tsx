@@ -28,6 +28,45 @@ export default function Navbar() {
   const { customer, logout } = useCustomer();
   const [menuOpen, setMenuOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
+  const [megaOpen, setMegaOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [isMac, setIsMac] = useState(false);
+  const megaCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchInputRef = useRef<HTMLDivElement | null>(null);
+
+  // Detect scroll for shrink effect
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 80);
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Detect Mac for keyboard shortcut display
+  useEffect(() => {
+    setIsMac(typeof navigator !== "undefined" && /Mac|iPod|iPhone|iPad/.test(navigator.platform));
+  }, []);
+
+  // Cmd+K / Ctrl+K to focus search
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        const input = searchInputRef.current?.querySelector("input");
+        if (input) input.focus();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
+
+  const scheduleMegaClose = () => {
+    if (megaCloseTimer.current) clearTimeout(megaCloseTimer.current);
+    megaCloseTimer.current = setTimeout(() => setMegaOpen(false), 150);
+  };
+  const cancelMegaClose = () => {
+    if (megaCloseTimer.current) { clearTimeout(megaCloseTimer.current); megaCloseTimer.current = null; }
+  };
 
   const isHomepage = pathname === "/" || pathname === "";
   const isBlogPage = !isHomepage;
@@ -106,12 +145,12 @@ export default function Navbar() {
       className={`sticky top-0 left-0 right-0 z-50 border-b transition-colors ${navBg} ${isBlogPage ? "border-transparent" : ""}`}
       style={navStyle}
     >
-      <div className={`text-center py-2 text-xs font-medium tracking-wide ${bannerBg}`} style={bannerStyle}>
+      <div className={`text-center text-xs font-medium tracking-wide overflow-hidden transition-all duration-300 ${bannerBg} ${scrolled ? "max-h-0 py-0" : "max-h-10 py-2"}`} style={bannerStyle}>
         <span>{isFr ? `LIVRAISON GRATUITE pour les commandes de plus de ${fmtPrice(1000)}` : `FREE SHIPPING on orders over ${fmtPrice(1000)}`}</span> - <Link href="/shop" className="underline underline-offset-2">{t("shopNow")}</Link>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14 lg:h-16 gap-4">
+        <div className={"flex items-center justify-between gap-4 transition-all duration-300 " + (scrolled ? "h-12 lg:h-14" : "h-14 lg:h-16")}>
           <Link href="/" className="group flex items-center gap-2.5 flex-shrink-0">
             <div className="relative w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden shadow-md group-hover:shadow-lg transition-all group-hover:scale-105"
                  style={{ background: "linear-gradient(135deg, #CA3F2E 0%, #8B2A1E 100%)" }}>
@@ -131,7 +170,21 @@ export default function Navbar() {
 
           <div className="hidden lg:flex items-center gap-5">
             <Link href="/" className={linkClass}>{t("home")}</Link>
-            <Link href="/shop" className={linkClass}>{t("shopAll")}</Link>
+            <div
+              className="relative"
+              onMouseEnter={() => { cancelMegaClose(); setMegaOpen(true); }}
+              onMouseLeave={scheduleMegaClose}
+            >
+              <Link href="/shop" className={linkClass + " inline-flex items-center gap-1"}>
+                {t("shopAll")}
+                <svg className={"w-3 h-3 transition-transform " + (megaOpen ? "rotate-180" : "")} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+              </Link>
+              {megaOpen && (
+                <div onMouseEnter={cancelMegaClose} onMouseLeave={scheduleMegaClose}>
+                  <ShopMegaMenu onClose={() => setMegaOpen(false)} />
+                </div>
+              )}
+            </div>
             <Link
               href="/blog"
               className={isBlogPage ? "text-sm font-bold text-white transition" : linkClass}
@@ -144,16 +197,23 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-1 sm:gap-2.5 flex-shrink-0">
-            <div className="hidden md:block">
+            <div className="hidden md:block relative" ref={searchInputRef}>
               <SearchAutocomplete
                 placeholder={tCommon("search")}
-                className="w-48 lg:w-56"
-                inputClassName={`w-full pl-9 pr-3 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 transition placeholder-gray-400 ${
+                className="w-56 lg:w-80"
+                inputClassName={`w-full pl-9 pr-14 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 transition placeholder-gray-400 shadow-inner ${
                   isBlogPage
                     ? "bg-white/20 text-white placeholder-white/60 focus:bg-white focus:text-gray-900 focus:ring-white"
-                    : "bg-gray-100 focus:ring-gray-900 focus:bg-white"
+                    : "bg-gray-100 focus:ring-gray-900 focus:bg-white border border-gray-200/50"
                 }`}
               />
+              <kbd className={`absolute right-2.5 top-1/2 -translate-y-1/2 hidden lg:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded border text-[10px] font-semibold pointer-events-none ${
+                isBlogPage
+                  ? "border-white/30 text-white/70 bg-white/10"
+                  : "border-gray-300 text-gray-500 bg-white"
+              }`}>
+                {isMac ? "\u2318" : "Ctrl"}<span>K</span>
+              </kbd>
             </div>
 
             {isBlogPage ? (
