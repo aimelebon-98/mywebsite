@@ -9,7 +9,7 @@ import { useCustomer } from "@/lib/customer-context";
 import { useCart } from "@/lib/cart-context";
 import AccountHoverMenu from "@/components/AccountHoverMenu";
 import { useWishlist } from "@/lib/wishlist-context";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import SearchAutocomplete from "@/components/SearchAutocomplete";
 
 const BRAND_RED = "#CA3F2E";
