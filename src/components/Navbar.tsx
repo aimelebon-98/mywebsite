@@ -176,7 +176,7 @@ export default function Navbar() {
       className={`sticky top-0 left-0 right-0 z-50 border-b transition-colors ${navBg} ${isBlogPage ? "border-transparent" : ""}`}
       style={navStyle}
     >
-      <div className={`text-center text-xs font-medium tracking-wide overflow-hidden transition-all duration-300 ${bannerBg} ${scrolled ? "max-h-0 py-0" : "max-h-10 py-2"}`} style={bannerStyle}>
+      <div className={`text-center py-2 text-xs font-medium tracking-wide ${bannerBg}`} style={bannerStyle}>
         <span>{isFr ? `LIVRAISON GRATUITE pour les commandes de plus de ${fmtPrice(1000)}` : `FREE SHIPPING on orders over ${fmtPrice(1000)}`}</span> - <Link href="/shop" className="underline underline-offset-2">{t("shopNow")}</Link>
       </div>
 
