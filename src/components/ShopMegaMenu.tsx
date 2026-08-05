@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useLocale } from "next-intl";
 import { useCurrency } from "@/lib/currency-context";
-import { ArrowRight, Truck, Sparkles, Zap, Tag } from "lucide-react";
+import { ArrowRight, Truck, Sparkles, Zap, Tag, ShoppingBag, Footprints, Star, Sun, Package, Briefcase } from "lucide-react";
 
 interface Product {
   id: string;
@@ -34,13 +34,13 @@ const FALLBACK_CATS: CategoryItem[] = [
   { slug: "casual",   nameEn: "Casual",   nameFr: "D\u00e9contract\u00e9" },
 ];
 
-const CAT_ICONS: Record<string, string> = {
-  sneakers: "\ud83d\udc5f",  // sneaker
-  running:  "\ud83c\udfc3",  // runner
-  formal:   "\ud83d\udc54",  // suit
-  boots:    "\ud83e\udd7e",  // boot
-  sandals:  "\ud83e\ude74",  // sandal
-  casual:   "\ud83d\udc5f",
+const CAT_ICON_MAP: Record<string, typeof ShoppingBag> = {
+  sneakers: Footprints,
+  running:  Star,
+  formal:   Briefcase,
+  boots:    Package,
+  sandals:  Sun,
+  casual:   ShoppingBag,
 };
 
 export default function ShopMegaMenu({ onClose }: { onClose: () => void }) {
@@ -52,33 +52,40 @@ export default function ShopMegaMenu({ onClose }: { onClose: () => void }) {
   const [featured, setFeatured] = useState<Product[]>([]);
 
   useEffect(() => {
-    fetch("/api/categories").then(r => r.ok ? r.json() : null).then(data => {
-      if (Array.isArray(data) && data.length > 0) {
-        setCategories(data.map((c: { slug: string; nameEn: string; nameFr?: string }) => ({
-          slug: c.slug, nameEn: c.nameEn, nameFr: c.nameFr,
-        })));
-      }
-    }).catch(() => {});
+    fetch("/api/categories")
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          setCategories(data.map((c: { slug: string; nameEn: string; nameFr?: string }) => ({
+            slug: c.slug, nameEn: c.nameEn, nameFr: c.nameFr,
+          })));
+        }
+        // Otherwise keep FALLBACK_CATS
+      })
+      .catch(() => { /* keep fallback */ });
 
     const url = isFr ? "/api/products?locale=fr" : "/api/products";
-    fetch(url).then(r => r.ok ? r.json() : []).then(data => {
-      if (Array.isArray(data)) {
-        const feat = data.filter((p: Product) => p.featured).slice(0, 3);
-        if (feat.length < 3) {
-          feat.push(...data.slice(0, 3 - feat.length));
+    fetch(url)
+      .then(r => r.ok ? r.json() : [])
+      .then(data => {
+        if (Array.isArray(data)) {
+          const feat = data.filter((p: Product) => p.featured).slice(0, 3);
+          if (feat.length < 3) {
+            feat.push(...data.slice(0, 3 - feat.length));
+          }
+          setFeatured(feat.slice(0, 3));
         }
-        setFeatured(feat.slice(0, 3));
-      }
-    }).catch(() => {});
+      })
+      .catch(() => {});
   }, [isFr]);
 
   return (
     <div
-      className="absolute left-1/2 -translate-x-1/2 top-full pt-2 w-[min(1100px,calc(100vw-2rem))] z-50"
+      className="absolute right-0 top-full pt-2 w-[min(1100px,calc(100vw-2rem))] z-[100]"
       onMouseLeave={onClose}
     >
       {/* Caret */}
-      <div className="absolute left-1/2 -translate-x-1/2 top-1 w-3 h-3 bg-white border-l border-t border-gray-100 rotate-45" />
+      <div className="absolute right-24 top-1 w-3 h-3 bg-white border-l border-t border-gray-100 rotate-45" />
 
       <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
         <div className="grid grid-cols-[240px_1fr_280px]">
@@ -89,24 +96,27 @@ export default function ShopMegaMenu({ onClose }: { onClose: () => void }) {
               {isFr ? "Cat\u00e9gories" : "Categories"}
             </div>
             <div className="space-y-0.5">
-              {categories.map(cat => (
-                <Link
-                  key={cat.slug}
-                  href={`/${locale}/shop?category=${cat.slug}`}
-                  onClick={onClose}
-                  className="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-white hover:text-[#CA3F2E] hover:shadow-sm transition group"
-                >
-                  <span className="flex items-center gap-2.5">
-                    <span className="text-base">{CAT_ICONS[cat.slug] || "\u2b50"}</span>
-                    {isFr && cat.nameFr ? cat.nameFr : cat.nameEn}
-                  </span>
-                  <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all" />
-                </Link>
-              ))}
+              {categories.map(cat => {
+                const Icon = CAT_ICON_MAP[cat.slug] || ShoppingBag;
+                return (
+                  <Link
+                    key={cat.slug}
+                    href={`/${locale}/shop?category=${cat.slug}`}
+                    onClick={onClose}
+                    className="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-white hover:text-[#CA3F2E] hover:shadow-sm transition group"
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <Icon className="w-4 h-4 text-gray-400 group-hover:text-[#CA3F2E] transition" strokeWidth={1.75} />
+                      <span>{isFr && cat.nameFr ? cat.nameFr : cat.nameEn}</span>
+                    </span>
+                    <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all" />
+                  </Link>
+                );
+              })}
               <Link
                 href={`/${locale}/shop`}
                 onClick={onClose}
-                className="flex items-center justify-between px-3 py-2.5 mt-2 rounded-lg text-sm font-bold text-white shadow-md transition"
+                className="flex items-center justify-between px-3 py-2.5 mt-2 rounded-lg text-sm font-bold text-white shadow-md transition hover:brightness-110"
                 style={{ backgroundColor: "#CA3F2E" }}
               >
                 <span>{isFr ? "Voir tout" : "Shop All"}</span>
@@ -128,37 +138,49 @@ export default function ShopMegaMenu({ onClose }: { onClose: () => void }) {
                 {isFr ? "Voir plus" : "See more"}
               </Link>
             </div>
-            <div className="grid grid-cols-3 gap-3">
-              {featured.map(p => {
-                const displayName = (isFr && p.nameFr) ? p.nameFr : p.name;
-                const displaySlug = (isFr && p.slugFr) ? p.slugFr : p.slug;
-                const price = parseFloat(p.price);
-                const comparePrice = p.comparePrice ? parseFloat(p.comparePrice) : null;
-                const discount = comparePrice && comparePrice > price
-                  ? Math.round(((comparePrice - price) / comparePrice) * 100) : 0;
-                return (
-                  <Link
-                    key={p.id}
-                    href={`/${locale}/product/${displaySlug}`}
-                    onClick={onClose}
-                    className="group block"
-                  >
-                    <div className="relative aspect-square bg-gray-50 rounded-xl overflow-hidden mb-2">
-                      {p.imageUrl && (
-                        <Image src={p.imageUrl} alt={displayName} fill sizes="150px" className="object-cover group-hover:scale-105 transition-transform duration-300" />
-                      )}
-                      {discount > 0 && (
-                        <div className="absolute top-2 left-2 px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-black rounded">
-                          -{discount}%
-                        </div>
-                      )}
-                    </div>
-                    <div className="text-xs font-semibold text-gray-900 line-clamp-1 group-hover:text-[#CA3F2E] transition">{displayName}</div>
-                    <div className="text-sm font-black mt-0.5" style={{ color: "#CA3F2E" }}>{formatPrice(price)}</div>
-                  </Link>
-                );
-              })}
-            </div>
+            {featured.length === 0 ? (
+              <div className="grid grid-cols-3 gap-3">
+                {[1,2,3].map(i => (
+                  <div key={i} className="animate-pulse">
+                    <div className="aspect-square bg-gray-100 rounded-xl mb-2" />
+                    <div className="h-3 bg-gray-100 rounded w-3/4 mb-1" />
+                    <div className="h-3 bg-gray-100 rounded w-1/2" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-3">
+                {featured.map(p => {
+                  const displayName = (isFr && p.nameFr) ? p.nameFr : p.name;
+                  const displaySlug = (isFr && p.slugFr) ? p.slugFr : p.slug;
+                  const price = parseFloat(p.price);
+                  const comparePrice = p.comparePrice ? parseFloat(p.comparePrice) : null;
+                  const discount = comparePrice && comparePrice > price
+                    ? Math.round(((comparePrice - price) / comparePrice) * 100) : 0;
+                  return (
+                    <Link
+                      key={p.id}
+                      href={`/${locale}/product/${displaySlug}`}
+                      onClick={onClose}
+                      className="group block"
+                    >
+                      <div className="relative aspect-square bg-gray-50 rounded-xl overflow-hidden mb-2">
+                        {p.imageUrl && (
+                          <Image src={p.imageUrl} alt={displayName} fill sizes="150px" className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                        )}
+                        {discount > 0 && (
+                          <div className="absolute top-2 left-2 px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-black rounded">
+                            -{discount}%
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-xs font-semibold text-gray-900 line-clamp-1 group-hover:text-[#CA3F2E] transition">{displayName}</div>
+                      <div className="text-sm font-black mt-0.5" style={{ color: "#CA3F2E" }}>{formatPrice(price)}</div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* RIGHT: Promo Panel */}
