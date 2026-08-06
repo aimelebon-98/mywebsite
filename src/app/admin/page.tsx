@@ -404,20 +404,27 @@ export default function AdminPage() {
             </p>
           </div>
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <div className={`flex justify-center transition-opacity duration-300 ${turnstileToken ? "opacity-50 pointer-events-none" : ""}`}>
-              <Turnstile
-                onVerify={(token) => {
-                  setTurnstileToken(token);
-                  setAuthError("");
-                  // Auto-advance after 800ms to show success state briefly
-                  setTimeout(() => {
-                    setAuthStep(requiresAccessCode ? "access-code" : "password");
-                  }, 800);
-                }}
-                onExpire={() => setTurnstileToken("")}
-                onError={() => setTurnstileToken("")}
-                theme="light"
-              />
+            <div className={`flex justify-center items-center min-h-[65px] relative transition-opacity duration-300 ${turnstileToken ? "opacity-50 pointer-events-none" : ""}`}>
+              {!turnstileToken && (
+                <div className="absolute inset-0 flex items-center justify-center gap-2 text-gray-400 pointer-events-none">
+                  <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                  <span className="text-xs">Loading...</span>
+                </div>
+              )}
+              <div className="relative z-10">
+                <Turnstile
+                  onVerify={(token) => {
+                    setTurnstileToken(token);
+                    setAuthError("");
+                    setTimeout(() => {
+                      setAuthStep(requiresAccessCode ? "access-code" : "password");
+                    }, 800);
+                  }}
+                  onExpire={() => setTurnstileToken("")}
+                  onError={() => setTurnstileToken("")}
+                  theme="light"
+                />
+              </div>
             </div>
             {authError && <p className="text-red-500 text-sm mt-4 text-center">{authError}</p>}
           </div>
