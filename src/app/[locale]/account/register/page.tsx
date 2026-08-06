@@ -60,7 +60,7 @@ export default function RegisterPage() {
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin text-[#CA3F2E] mx-auto mb-3" />
           <p className="text-sm text-gray-500">
-            {customer ? (isFr ? "Redirection..." : "Redirecting...") : (isFr ? "Chargement..." : "Loading...")}
+            {isFr ? "Redirection..." : "Redirecting..."}
           </p>
         </div>
       </div>
