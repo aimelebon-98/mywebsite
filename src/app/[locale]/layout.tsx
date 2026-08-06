@@ -14,6 +14,7 @@ import ThemeColorSwitcher from "@/components/ThemeColorSwitcher";
 import FloatingCartPill from "@/components/FloatingCartPill";
 import PageViewTracker from "@/components/AnalyticsTracker";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 
 // Self-hosted Inter font (eliminates render-blocking Google Fonts request)
 const inter = Inter({
@@ -168,6 +169,7 @@ export default async function LocaleLayout({
         <PageViewTracker />
         <ExitIntentPopup />
         <SpeedInsights />
+        <GoogleAnalytics />
         <ThemeColorSwitcher />
       </body>
     </html>
