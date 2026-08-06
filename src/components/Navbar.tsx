@@ -135,7 +135,7 @@ export default function Navbar() {
   };
 
   const navBg = isHomepage
-    ? "bg-black lg:bg-[#524947] border-transparent"
+    ? "bg-black lg:bg-transparent border-transparent"
     : (isBlogPage
       ? "border-transparent"
       : "bg-black lg:bg-white border-transparent lg:border-gray-100");
@@ -145,7 +145,7 @@ export default function Navbar() {
     : (isBlogPage ? { backgroundColor: BRAND_RED } : undefined);
 
   const bannerBg = isHomepage
-    ? "bg-black lg:bg-[#3d3735] text-white"
+    ? "bg-black lg:bg-transparent text-white"
     : (isBlogPage ? "text-white" : "bg-gray-900 text-white");
   const bannerStyle = isHomepage
     ? undefined
