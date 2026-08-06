@@ -49,41 +49,48 @@ export default function TurnstileGate({ children, action = "page-access", isFr =
           </div>
           <h1 className="text-2xl font-bold">
             {errored
-              ? (isFr ? "Verification echouee" : "Verification failed")
-              : (isFr ? "Verification de securite" : "Security Verification")}
+              ? (isFr ? "V\u00e9rification \u00e9chou\u00e9e" : "Verification failed")
+              : (isFr ? "V\u00e9rification de s\u00e9curit\u00e9" : "Security Verification")}
           </h1>
           <p className="text-gray-500 text-sm mt-1">
             {errored
-              ? (isFr ? "Rechargez pour reessayer." : "Please refresh to try again.")
-              : (isFr ? "Verification que vous etes humain..." : "Verifying you are human...")}
+              ? (isFr ? "Rechargez pour r\u00e9essayer." : "Please refresh to try again.")
+              : (isFr ? "V\u00e9rification que vous \u00eates humain..." : "Verifying you are human...")}
           </p>
         </div>
 
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <div className="flex justify-center">
-            <Turnstile
-              onVerify={handleVerify}
-              onError={handleError}
-              onExpire={handleError}
-              theme="light"
-            />
+          <div className="flex justify-center items-center min-h-[65px] relative">
+            {/* Skeleton spinner shown until Turnstile widget renders on top */}
+            <div className="absolute inset-0 flex items-center justify-center gap-2 text-gray-400 pointer-events-none">
+              <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+              <span className="text-xs">{isFr ? "Chargement..." : "Loading..."}</span>
+            </div>
+            <div className="relative z-10">
+              <Turnstile
+                onVerify={handleVerify}
+                onError={handleError}
+                onExpire={handleError}
+                theme="light"
+              />
+            </div>
           </div>
           {errored && (
             <button
               onClick={() => window.location.reload()}
               className="mt-4 w-full py-2.5 bg-gray-900 text-white rounded-xl text-sm font-bold hover:bg-gray-800 transition"
             >
-              {isFr ? "Rafraichir" : "Refresh"}
+              {isFr ? "Rafra\u00eechir" : "Refresh"}
             </button>
           )}
         </div>
 
         <p className="text-center text-xs text-gray-400 mt-4">
-          {isFr ? "Protege par Cloudflare Turnstile" : "Protected by Cloudflare Turnstile"}
+          {isFr ? "Prot\u00e9g\u00e9 par Cloudflare Turnstile" : "Protected by Cloudflare Turnstile"}
         </p>
         <div className="text-center mt-4">
           <Link href={`/${locale}`} className="text-sm text-gray-500 hover:text-gray-900 transition">
-            {isFr ? "Retour a la boutique" : "Back to Store"}
+            {isFr ? "Retour \u00e0 la boutique" : "Back to Store"}
           </Link>
         </div>
       </div>
