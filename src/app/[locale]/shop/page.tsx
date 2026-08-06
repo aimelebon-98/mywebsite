@@ -11,6 +11,7 @@ import ShopSidebar from "@/components/ShopSidebar";
 import ShopTopBar from "@/components/ShopTopBar";
 import ActiveFilterChips from "@/components/ActiveFilterChips";
 import CategoryShowcase from "@/components/CategoryShowcase";
+import SearchAutocomplete from "@/components/SearchAutocomplete";
 import AnimatedNetwork from "@/components/AnimatedNetworkLazy";
 import { getTranslations } from "next-intl/server";
 
