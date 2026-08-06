@@ -5,6 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 
 const GA_ID = "G-60GBMLBCFM";
+const CONSENT_KEY = "sv_cookie_consent";
 
 declare global {
   interface Window {
@@ -40,28 +41,24 @@ export default function GoogleAnalytics() {
   const [consentGiven, setConsentGiven] = useState(false);
 
   useEffect(() => {
-    // Check existing consent
     const check = () => {
       try {
-        const stored = localStorage.getItem("solevault-cookie-consent");
+        const stored = localStorage.getItem(CONSENT_KEY);
         if (stored) {
-          const parsed = JSON.parse(stored);
-          if (parsed?.analytics === true || parsed === "accepted" || parsed === true) {
-            setConsentGiven(true);
-          }
+          setConsentGiven(true);
         }
       } catch { /* ignore */ }
     };
 
     check();
 
-    // Listen for consent changes
+    // Listen for consent update event dispatched by CookieConsent component
     const onConsent = () => check();
-    window.addEventListener("cookie-consent-updated", onConsent);
+    window.addEventListener("cookieConsentUpdated", onConsent);
     window.addEventListener("storage", onConsent);
 
     return () => {
-      window.removeEventListener("cookie-consent-updated", onConsent);
+      window.removeEventListener("cookieConsentUpdated", onConsent);
       window.removeEventListener("storage", onConsent);
     };
   }, []);
