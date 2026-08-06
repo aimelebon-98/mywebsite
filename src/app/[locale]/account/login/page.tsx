@@ -53,15 +53,14 @@ export default function LoginPage() {
     setLoading(false);
   };
 
-  // Skip gate entirely for logged-in users (they will be redirected)
-  if (authLoading || customer) {
+  // Only show loader if a logged-in customer is being redirected (very brief)
+  // Guests go straight to the Turnstile gate + login form
+  if (customer) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin text-[#CA3F2E] mx-auto mb-3" />
-          <p className="text-sm text-gray-500">
-            {customer ? (isFr ? "Redirection..." : "Redirecting...") : (isFr ? "Chargement..." : "Loading...")}
-          </p>
+          <p className="text-sm text-gray-500">{isFr ? "Redirection..." : "Redirecting..."}</p>
         </div>
       </div>
     );
