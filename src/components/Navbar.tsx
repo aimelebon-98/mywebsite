@@ -135,7 +135,7 @@ export default function Navbar() {
   };
 
   const navBg = isHomepage
-    ? "bg-black lg:bg-transparent border-transparent"
+    ? "bg-black lg:bg-black/60 lg:backdrop-blur-md border-transparent"
     : (isBlogPage
       ? "border-transparent"
       : "bg-black lg:bg-white border-transparent lg:border-gray-100");
@@ -144,12 +144,8 @@ export default function Navbar() {
     ? undefined
     : (isBlogPage ? { backgroundColor: BRAND_RED } : undefined);
 
-  const bannerBg = isHomepage
-    ? "bg-black lg:bg-transparent text-white"
-    : (isBlogPage ? "text-white" : "bg-gray-900 text-white");
-  const bannerStyle = isHomepage
-    ? undefined
-    : (isBlogPage ? { backgroundColor: BRAND_RED_DARK } : undefined);
+  const bannerBg = isBlogPage ? "text-white" : "bg-gray-900 text-white";
+  const bannerStyle = isBlogPage ? { backgroundColor: BRAND_RED_DARK } : undefined;
 
   const logoText = (isHomepage || isBlogPage) ? "text-white" : "text-white lg:text-gray-900";
   const linkClass = (isHomepage || isBlogPage)
