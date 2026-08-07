@@ -434,7 +434,7 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
                 onChange={(url) => {
                   if (url && !extraImages.includes(url) && url !== imageUrl) {
                     setExtraImages([...extraImages, url]);
-                    setNewImageUrl(```);
+                    setNewImageUrl("");
                   } else {
                     setNewImageUrl(url);
                   }
