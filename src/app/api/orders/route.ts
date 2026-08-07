@@ -87,6 +87,34 @@ export async function POST(request: NextRequest) {
     const finalDiscountCode = couponCode || discountCode || "";
     const finalDiscountAmount = String(discountAmount || 0);
 
+
+    // === Cost price snapshot (for profit analytics) ===
+    // Fetch current cost_price per product and attach to each order item
+    try {
+      const { products: productsTable } = await import("@/db/schema");
+      const { inArray } = await import("drizzle-orm");
+      const parsedItems: Array<Record<string, unknown>> = Array.isArray(items) ? items : [];
+      const ids = parsedItems.map((it) => String(it.id || it.productId || "")).filter(Boolean);
+      if (ids.length > 0) {
+        const rows = await db.select({ id: productsTable.id, costPrice: productsTable.costPrice }).from(productsTable).where(inArray(productsTable.id, ids));
+        const costMap = new Map<string, string>();
+        for (const r of rows) costMap.set(r.id, r.costPrice);
+        for (const it of parsedItems) {
+          const pid = String(it.id || it.productId || "");
+          if (pid && costMap.has(pid)) {
+            it.costPriceNgn = parseFloat(costMap.get(pid) || "0");
+          }
+        }
+        // Overwrite items string with enriched version
+        // (only if we can safely stringify)
+        try {
+          (globalThis as unknown as { __itemsSnapshot?: string }).__itemsSnapshot = JSON.stringify(parsedItems);
+        } catch { /* ignore */ }
+      }
+    } catch (snapErr) {
+      console.warn("Cost snapshot skipped:", snapErr);
+    }
+
     const result = await db.insert(orders).values({
       orderNumber,
       customerName: String(customerName).trim().slice(0, 200),

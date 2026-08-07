@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     const {
       name, slug: slugInput, slugFr, description, shortDescription, longDescription,
       nameFr, descriptionFr, shortDescriptionFr, longDescriptionFr, tagsFr,
-      price, comparePrice, category, brand, sizes, colors,
+      price, comparePrice, costPrice, category, brand, sizes, colors,
       imageUrl, images, stock, featured, active, material, sku, tags, saleEndsAt,
       seoTitle, metaDescription, focusKeyphrase, ogImage, canonicalUrl, noIndex,
       seoTitleFr, metaDescriptionFr, focusKeyphraseFr,
@@ -79,6 +79,7 @@ export async function POST(request: NextRequest) {
       tagsFr: tagsFr ? JSON.stringify(Array.isArray(tagsFr) ? tagsFr : []) : null,
       price: String(price),
       comparePrice: comparePrice ? String(comparePrice) : null,
+      costPrice: costPrice ? String(costPrice) : "0",
       category: category || "sneakers",
       brand: brand || "",
       sizes: JSON.stringify(sizes || []),

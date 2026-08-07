@@ -23,6 +23,7 @@ type ProductLike = {
   tagsFr?: string | null;
   price?: string;
   comparePrice?: string | null;
+  costPrice?: string | null;
   category?: string;
   brand?: string;
   sizes?: string;
@@ -126,6 +127,7 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
     const converted = usd * r;
     return currencyInfo?.decimals === 0 ? Math.round(converted).toString() : converted.toFixed(2);
   });
+  const [costPrice, setCostPrice] = useState(product?.costPrice || "");
   const [comparePrice, setComparePrice] = useState(() => {
     const usd = parseFloat(product?.comparePrice || "0");
     if (!usd) return "";
@@ -188,6 +190,7 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
       tagsFr: tagsFr.length > 0 ? tagsFr : null,
       price: rate > 0 ? (parseFloat(price) || 0) / rate : (parseFloat(price) || 0),
       comparePrice: comparePrice ? (rate > 0 ? parseFloat(comparePrice) / rate : parseFloat(comparePrice)) : null,
+      costPrice: costPrice ? parseFloat(costPrice) : 0,
       saleEndsAt: saleEndsAt ? new Date(saleEndsAt).toISOString() : null,
       category, brand, sizes, colors: JSON.parse(colorsSerialized),
       imageUrl,
@@ -637,6 +640,20 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Compare Price ({currencyInfo?.symbol} {currency})</label>
               <input type="number" step="0.01" value={comparePrice} onChange={(e) => setComparePrice(e.target.value)} placeholder="Original price (for discounts)" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gray-900 transition" />
               <p className="text-[11px] text-gray-400 mt-1">Shown crossed out</p>
+              </div>
+              <div className="border-t border-gray-100 pt-4">
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                  Cost Price (NGN) <span className="text-amber-600 normal-case font-normal">Admin only</span>
+                </label>
+                <input
+                  type="number"
+                  step="1"
+                  value={costPrice}
+                  onChange={(e) => setCostPrice(e.target.value)}
+                  placeholder="18000"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-amber-500 transition"
+                />
+                <p className="text-[11px] text-gray-400 mt-1">Your buying cost in Naira. Used for profit tracking. Never shown to customers.</p>
             </div>
           </SidebarCard>
 

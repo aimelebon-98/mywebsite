@@ -24,6 +24,7 @@ import DashboardOrderStats from "@/components/DashboardOrderStats";
 import ProductFaqsManager from "@/components/ProductFaqsManager";
 import Turnstile from "@/components/Turnstile";
 import AnalyticsDashboard from "@/components/AnalyticsDashboard";
+import ProfitDashboard from "@/components/ProfitDashboard";
 import BundlesManager from "@/components/BundlesManager";
 import CurrencySelector from "@/components/CurrencySelector";
 import CouponsManager from "@/components/CouponsManager";
@@ -90,7 +91,7 @@ interface StoreSettings {
   lockoutMinutes: number;
 }
 
-type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments" | "orders" | "product-faqs" | "analytics" | "newsletter" | "bundles" | "blog-categories" | "customers" | "tickets" | "coupons";
+type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments" | "orders" | "product-faqs" | "analytics" | "newsletter" | "bundles" | "blog-categories" | "customers" | "tickets" | "coupons" | "profit";
 
 export default function AdminPage() {
   const [authStep, setAuthStep] = useState<"loading" | "verify" | "access-code" | "password" | "authenticated">("loading");
@@ -123,7 +124,7 @@ export default function AdminPage() {
       const hash = typeof window !== "undefined" ? window.location.hash.replace("#", "") : "";
       const stored = typeof window !== "undefined" ? localStorage.getItem("sv_admin_tab") : null;
       const candidate = hash || stored || "";
-      const validTabs: Tab[] = ["dashboard","products","add","edit","categories","reviews","settings","security","blog","blog-add","blog-edit","authors","comments","orders","analytics","product-faqs","newsletter","customers","tickets","bundles","blog-categories","coupons"];
+      const validTabs: Tab[] = ["dashboard","products","add","edit","categories","reviews","settings","security","blog","blog-add","blog-edit","authors","comments","orders","analytics","product-faqs","newsletter","customers","tickets","bundles","blog-categories","coupons","profit"];
       console.log("[Admin] Restoring tab. hash=" + hash + ", stored=" + stored + ", candidate=" + candidate);
       if (candidate && validTabs.includes(candidate as Tab)) {
         if (candidate === "edit") setActiveTabRaw("products");
@@ -1026,7 +1027,8 @@ export default function AdminPage() {
             </div>
           )}
 
-          {activeTab === "analytics" && (
+          {activeTab === "profit" && <ProfitDashboard />}
+              {activeTab === "analytics" && (
             <AnalyticsDashboard />
           )}
 

@@ -14,6 +14,7 @@ export const products = pgTable("products", {
   longDescriptionFr: text("long_description_fr"),
   tagsFr: text("tags_fr"),
   price: numeric("price", { precision: 10, scale: 2 }).notNull(),
+  costPrice: numeric("cost_price", { precision: 12, scale: 2 }).notNull().default("0"),
   comparePrice: numeric("compare_price", { precision: 10, scale: 2 }),
   category: text("category").notNull().default("sneakers"),
   brand: text("brand").notNull().default(""),
