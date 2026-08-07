@@ -4,6 +4,7 @@ import BlogEditor from "./BlogEditor";
 import { useState, useMemo } from "react";
 import { useCurrency } from "@/lib/currency-context";
 import { CURRENCIES } from "@/lib/currency";
+import { parseColorVariants, serializeColorVariants, type ColorVariant } from "@/lib/color-variants";
 // Structural types (accept both schema types and local admin types)
 type ProductLike = {
   id?: string;
@@ -133,7 +134,7 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
   const [category, setCategory] = useState(product?.category || (categories[0]?.slug ?? "sneakers"));
   const [brand, setBrand] = useState(product?.brand || "");
   const [sizesStr, setSizesStr] = useState(product ? (JSON.parse(product.sizes || "[]") as string[]).join(", ") : "7, 8, 9, 10, 11, 12");
-  const [colorsStr, setColorsStr] = useState(product ? (JSON.parse(product.colors || "[]") as string[]).join(", ") : "");
+  const [colorVariants, setColorVariants] = useState<ColorVariant[]>(() => parseColorVariants(product?.colors || ""));
 
   // Images
   const [imageUrl, setImageUrl] = useState(product?.imageUrl || "");
@@ -170,7 +171,7 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const sizes = sizesStr.split(",").map((s) => s.trim()).filter(Boolean);
-    const colors = colorsStr.split(",").map((c) => c.trim()).filter(Boolean);
+    const colorsSerialized = serializeColorVariants(colorVariants);
     const tags = tagsStr.split(",").map((t) => t.trim()).filter(Boolean);
     const tagsFr = tagsFrStr.split(",").map((t) => t.trim()).filter(Boolean);
 
@@ -186,7 +187,7 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
       price: rate > 0 ? (parseFloat(price) || 0) / rate : (parseFloat(price) || 0),
       comparePrice: comparePrice ? (rate > 0 ? parseFloat(comparePrice) / rate : parseFloat(comparePrice)) : null,
       saleEndsAt: saleEndsAt ? new Date(saleEndsAt).toISOString() : null,
-      category, brand, sizes, colors,
+      category, brand, sizes, colors: JSON.parse(colorsSerialized),
       imageUrl,
       images: [imageUrl, ...extraImages].filter(Boolean),
       stock: parseInt(stock) || 0,
@@ -506,11 +507,60 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
                 <input type="text" value={sizesStr} onChange={(e) => setSizesStr(e.target.value)} placeholder="7, 8, 9, 10, 11, 12" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gray-900 transition" />
                 <p className="text-[11px] text-gray-400 mt-1">Comma separated</p>
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Colors</label>
-                <input type="text" value={colorsStr} onChange={(e) => setColorsStr(e.target.value)} placeholder="Black, White, Red" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gray-900 transition" />
-                <p className="text-[11px] text-gray-400 mt-1">Comma separated</p>
-              </div>
+<div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Color Variants</label>
+                  <div className="space-y-2">
+                    {colorVariants.map((cv, idx) => (
+                      <div key={idx} className="flex gap-2 items-start p-2 border border-gray-200 rounded-lg bg-gray-50">
+                        {cv.image ? (
+                          <img src={cv.image} alt={cv.name} className="w-12 h-12 rounded-md object-cover border border-gray-200 flex-shrink-0" />
+                        ) : (
+                          <div className="w-12 h-12 rounded-md bg-gray-200 flex items-center justify-center text-[10px] text-gray-400 flex-shrink-0">no img</div>
+                        )}
+                        <div className="flex-1 space-y-1.5 min-w-0">
+                          <input
+                            type="text"
+                            value={cv.name}
+                            onChange={(e) => {
+                              const next = [...colorVariants];
+                              next[idx] = { ...next[idx], name: e.target.value };
+                              setColorVariants(next);
+                            }}
+                            placeholder="Color name (e.g. Black/Grey)"
+                            className="w-full px-2 py-1.5 border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-gray-900"
+                          />
+                          <input
+                            type="url"
+                            value={cv.image}
+                            onChange={(e) => {
+                              const next = [...colorVariants];
+                              next[idx] = { ...next[idx], image: e.target.value };
+                              setColorVariants(next);
+                            }}
+                            placeholder="Image URL for this color (optional)"
+                            className="w-full px-2 py-1.5 border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-gray-900"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setColorVariants(colorVariants.filter((_, i) => i !== idx))}
+                          className="px-2 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 rounded transition flex-shrink-0"
+                          title="Remove"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setColorVariants([...colorVariants, { name: "", image: "" }])}
+                    className="mt-2 px-3 py-1.5 text-xs font-semibold border border-gray-300 rounded-lg hover:bg-gray-900 hover:text-white hover:border-gray-900 transition"
+                  >
+                    + Add Color Variant
+                  </button>
+                  <p className="text-[11px] text-gray-400 mt-1.5">Each color can have its own image. Clicking a color on the product page will swap the main image.</p>
+                </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Material</label>
                 <input type="text" value={material} onChange={(e) => setMaterial(e.target.value)} placeholder="Leather, Mesh, Suede..." className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gray-900 transition" />

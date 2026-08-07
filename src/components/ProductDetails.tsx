@@ -1,5 +1,6 @@
 "use client";
 import { useCurrency } from "@/lib/currency-context";
+import { parseColorVariants } from "@/lib/color-variants";
 import StockBadge from "@/components/StockBadge";
 import { trackEvent } from "@/components/AnalyticsTracker";
 import ProductFaqDisplay from "@/components/ProductFaqDisplay";
@@ -52,7 +53,8 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
   const price = parseFloat(product.price);
   const comparePrice = product.comparePrice ? parseFloat(product.comparePrice) : null;
   const sizes: string[] = JSON.parse(product.sizes || "[]");
-  const colors: string[] = JSON.parse(product.colors || "[]");
+  const colorVariants = parseColorVariants(product.colors);
+  const colors: string[] = colorVariants.map(v => v.name);
   const rating = parseFloat(product.rating ?? "0");
 
   const [selectedSize, setSelectedSize] = useState(sizes[0] || "");
@@ -480,7 +482,13 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {colors.map(c => (
-                      <button key={c} onClick={() => setSelectedColor(c)} className={`px-4 py-2.5 rounded-xl text-sm font-medium border-2 transition-all ${selectedColor === c ? "border-gray-900 bg-gray-900 text-white shadow-lg shadow-gray-900/20" : "border-gray-200 hover:border-gray-400"}`}>{c}</button>
+                      <button key={c} onClick={() => {
+                          setSelectedColor(c);
+                          const variant = colorVariants.find(v => v.name === c);
+                          if (variant && variant.image) {
+                            window.dispatchEvent(new CustomEvent("swap-main-image", { detail: { url: variant.image } }));
+                          }
+                        }} className={`px-4 py-2.5 rounded-xl text-sm font-medium border-2 transition-all ${selectedColor === c ? "border-gray-900 bg-gray-900 text-white shadow-lg shadow-gray-900/20" : "border-gray-200 hover:border-gray-400"}`}>{c}</button>
                     ))}
                   </div>
                 </div>
