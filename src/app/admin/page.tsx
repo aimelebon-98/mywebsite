@@ -577,7 +577,7 @@ export default function AdminPage() {
           {[
             { id: "dashboard" as Tab, icon: BarChart3, label: "Dashboard", badge: 0 },
             { id: "analytics" as Tab, icon: TrendingUp, label: "Analytics", badge: 0 },
-            { id: "profit" as Tab, icon: TrendingUp, label: "Profit & Sales", badge: 0 },
+            { id: "profit" as Tab, icon: DollarSign, label: "Profit & Sales", badge: 0 },
           ].map((item) => (
             <button
               key={item.id}
