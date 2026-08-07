@@ -59,7 +59,7 @@ function ProductScroll({ products, title, badge, badgeColor, locale, isFr, forma
   formatPrice: (n: number) => string;
   viewAllHref: string;
 }) {
-  if (products.length === 0) return null;
+  // Always render section (with reserved space) to prevent layout shift when products load
 
   return (
     <div className="bg-white pt-3 pb-3 border-t-4 border-gray-100 min-h-[220px]">
@@ -136,7 +136,7 @@ function ProductGrid({ products, title, locale, isFr, formatPrice, viewAllHref, 
   viewAllHref: string;
   bgTint?: string;
 }) {
-  if (products.length === 0) return null;
+  // Always render section (with reserved space) to prevent layout shift when products load
 
   return (
     <div className={"pt-4 pb-4 border-t-4 border-gray-100 min-h-[400px] " + (bgTint || "bg-white")}>
@@ -242,21 +242,9 @@ export default function MobileHomeSections() {
     { name: "Converse",   tagline: isFr ? "Cr\u00e9\u00e9 par toi" : "Made by You" },
   ];
 
-  if (loading) {
-    return (
-      <div className="lg:hidden py-8 min-h-[600px]">
-        <div className="grid grid-cols-2 gap-3 px-3">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="animate-pulse">
-              <div className="aspect-square bg-gray-200 rounded-xl mb-2" />
-              <div className="h-3 bg-gray-200 rounded w-3/4 mb-1" />
-              <div className="h-3 bg-gray-200 rounded w-1/2" />
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  // Render nothing while loading - prevents skeleton->content layout shift.
+  // Container below reserves space so LCP element doesnt shift.
+  if (loading) return <div className="lg:hidden min-h-[2200px]" />;
 
   return (
     <div className="lg:hidden">

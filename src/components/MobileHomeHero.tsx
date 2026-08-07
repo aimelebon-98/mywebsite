@@ -183,7 +183,7 @@ export default function MobileHomeHero() {
       )}
 
       {/* HERO CAROUSEL */}
-      <div className="px-3 py-3">
+      <div className="px-3 py-3 min-h-[184px]">
         <div className="relative rounded-2xl overflow-hidden shadow-md" style={{ background: slides[slideIdx].bg }}>
           <Link href={slides[slideIdx].href} className="block relative h-40">
             <div className="absolute inset-0 flex items-center">
