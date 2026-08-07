@@ -175,7 +175,7 @@ export default function ProfitDashboard() {
   const [data, setData] = useState<Data | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const { currency, format: formatPrice } = useCurrency();
+  const { currency, format: formatPrice, visitorCountry } = useCurrency();
   const info = CURRENCIES[currency];
 
   useEffect(() => {
@@ -208,7 +208,7 @@ export default function ProfitDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2 text-xs bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
-          <CountryFlag country={currencyToCountry(currency)} className="w-5 h-3.5 rounded-sm" title={currency} />
+          <CountryFlag country={currencyToCountry(currency, visitorCountry)} className="w-5 h-3.5 rounded-sm" title={currency} />
           <span className="text-gray-500">Rate: 1 USD =</span>
           <strong className="text-gray-900">
             {(() => {
