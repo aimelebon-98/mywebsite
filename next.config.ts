@@ -1,4 +1,4 @@
-// BUILD-MARKER: 2026-08-07T21:11:39.5163349+00:00
+// BUILD-MARKER: 2026-08-07T21:44:25.5425433+00:00
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 
