@@ -11,15 +11,15 @@ import { CurrencyProvider } from "@/lib/currency-context";
 import { CustomerProvider } from "@/lib/customer-context";
 import ConditionalWidgets from "@/components/ConditionalWidgets";
 import ThemeColorSwitcher from "@/components/ThemeColorSwitcher";
-import FloatingCartPill from "@/components/FloatingCartPill";
-import PageViewTracker from "@/components/AnalyticsTracker";
+const FloatingCartPill = dynamic(() => import("@/components/FloatingCartPill"), { ssr: false });
+const PageViewTracker = dynamic(() => import("@/components/AnalyticsTracker"), { ssr: false });
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import GoogleAnalytics from "@/components/GoogleAnalytics";
+const GoogleAnalytics = dynamic(() => import("@/components/GoogleAnalytics"), { ssr: false });
 
 // Self-hosted Inter font (eliminates render-blocking Google Fonts request)
 const inter = Inter({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "900"],
+  weight: ["400", "600", "800"],
   display: "swap",
   variable: "--font-inter",
   preload: true,
