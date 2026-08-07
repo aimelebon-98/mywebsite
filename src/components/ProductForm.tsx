@@ -488,13 +488,13 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
                   <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Color Variants</label>
                   <div className="space-y-2">
                     {colorVariants.map((cv, idx) => (
-                      <div key={idx} className="flex gap-2 items-start p-2 border border-gray-200 rounded-lg bg-gray-50">
-                        {cv.image ? (
-                          <img src={cv.image} alt={cv.name} className="w-12 h-12 rounded-md object-cover border border-gray-200 flex-shrink-0" />
-                        ) : (
-                          <div className="w-12 h-12 rounded-md bg-gray-200 flex items-center justify-center text-[10px] text-gray-400 flex-shrink-0">no img</div>
-                        )}
-                        <div className="flex-1 space-y-1.5 min-w-0">
+                      <div key={idx} className="p-3 border border-gray-200 rounded-lg bg-gray-50 space-y-2">
+                        <div className="flex gap-2 items-center">
+                          {cv.image ? (
+                            <img src={cv.image} alt={cv.name} className="w-12 h-12 rounded-md object-cover border border-gray-200 flex-shrink-0" />
+                          ) : (
+                            <div className="w-12 h-12 rounded-md bg-gray-200 flex items-center justify-center text-[10px] text-gray-400 flex-shrink-0">no img</div>
+                          )}
                           <input
                             type="text"
                             value={cv.name}
@@ -503,40 +503,40 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
                               next[idx] = { ...next[idx], name: e.target.value };
                               setColorVariants(next);
                             }}
-                            placeholder="Color name (e.g. Black/Grey)"
-                            className="w-full px-2 py-1.5 border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-gray-900"
+                            placeholder="Color name"
+                            className="flex-1 min-w-0 px-2 py-1.5 border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-gray-900"
                           />
-                          <ImageUploader
-                            value={cv.image}
-                            onChange={async (url) => {
-                              const next = [...colorVariants];
-                              next[idx] = { ...next[idx], image: url };
-                              setColorVariants(next);
-                              if (url && !next[idx].name) {
-                                const detected = await detectColorsFromUrl(url, 2);
-                                if (detected) {
-                                  setColorVariants((prev) => {
-                                    const arr = [...prev];
-                                    if (arr[idx] && !arr[idx].name) {
-                                      arr[idx] = { ...arr[idx], name: detected };
-                                    }
-                                    return arr;
-                                  });
-                                }
-                              }
-                            }}
-                            placeholder="Paste URL or upload image for this color"
-                            compact
-                          />
+                          <button
+                            type="button"
+                            onClick={() => setColorVariants(colorVariants.filter((_, i) => i !== idx))}
+                            className="px-2 py-1.5 text-[11px] font-semibold text-red-600 hover:bg-red-50 rounded transition flex-shrink-0"
+                            title="Remove"
+                          >
+                            Remove
+                          </button>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => setColorVariants(colorVariants.filter((_, i) => i !== idx))}
-                          className="px-2 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 rounded transition flex-shrink-0"
-                          title="Remove"
-                        >
-                          Remove
-                        </button>
+                        <ImageUploader
+                          value={cv.image}
+                          onChange={async (url) => {
+                            const next = [...colorVariants];
+                            next[idx] = { ...next[idx], image: url };
+                            setColorVariants(next);
+                            if (url && !next[idx].name) {
+                              const detected = await detectColorsFromUrl(url, 2);
+                              if (detected) {
+                                setColorVariants((prev) => {
+                                  const arr = [...prev];
+                                  if (arr[idx] && !arr[idx].name) {
+                                    arr[idx] = { ...arr[idx], name: detected };
+                                  }
+                                  return arr;
+                                });
+                              }
+                            }
+                          }}
+                          placeholder="Paste URL or upload"
+                          compact
+                        />
                       </div>
                     ))}
                   </div>
