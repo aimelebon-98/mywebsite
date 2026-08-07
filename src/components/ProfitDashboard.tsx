@@ -180,7 +180,7 @@ export default function ProfitDashboard() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-black mb-1">Profit & Sales Analytics</h1>
-        <p className="text-sm text-gray-500">Live margin tracking. All figures in Naira. Base rate: 1 USD = \u20a6{data.usdToNgn.toLocaleString()}</p>
+        <p className="text-sm text-gray-500">Live margin tracking. All figures in Naira. Base rate: 1 USD = \u20a6{data.usdToNgn.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-green-600">(live)</span></p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
