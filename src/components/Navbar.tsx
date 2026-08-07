@@ -7,7 +7,6 @@ import { Link, usePathname, useRouter } from "@/i18n/routing";
 import { ShoppingBag, Menu, X, Heart, Globe, LogIn, LogOut, LayoutDashboard, UserPlus } from "lucide-react";
 import { useCustomer } from "@/lib/customer-context";
 import { useCart } from "@/lib/cart-context";
-import AccountHoverMenu from "@/components/AccountHoverMenu";
 import { useWishlist } from "@/lib/wishlist-context";
 import { useState, useEffect, useRef } from "react";
 import SearchAutocomplete from "@/components/SearchAutocomplete";
