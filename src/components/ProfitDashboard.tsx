@@ -2,13 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { TrendingUp, TrendingDown, DollarSign, Package, ShoppingBag, Percent } from "lucide-react";
+import { useCurrency } from "@/lib/currency-context";
+import { CURRENCIES } from "@/lib/currency";
+import CountryFlag, { currencyToCountry } from "@/components/CountryFlag";
 
 interface Metric {
-  orders: number;
+  ordersCount: number;
   units: number;
-  revenueNgn: number;
-  costNgn: number;
-  profitNgn: number;
+  revenueUsd: number;
+  costUsd: number;
+  profitUsd: number;
   marginPct: number;
   vsPrev?: { orders: number; units: number; revenue: number; profit: number };
 }
@@ -18,20 +21,21 @@ interface Seller {
   name: string;
   imageUrl: string;
   units: number;
-  revenueNgn: number;
-  profitNgn: number;
+  revenueUsd: number;
+  profitUsd: number;
   marginPct?: number;
 }
 
 interface Daily {
   date: string;
-  revenueNgn: number;
-  profitNgn: number;
+  revenueUsd: number;
+  profitUsd: number;
   orders: number;
 }
 
 interface Data {
   usdToNgn: number;
+  rateSource: string;
   periods: {
     today: Metric;
     yesterday: Metric;
@@ -43,12 +47,6 @@ interface Data {
   topSellers: Seller[];
   topMargins: Seller[];
   daily: Daily[];
-}
-
-function fmt(n: number): string {
-  if (n >= 1_000_000) return `\u20a6${(n / 1_000_000).toFixed(2)}M`;
-  if (n >= 1_000) return `\u20a6${(n / 1_000).toFixed(1)}k`;
-  return `\u20a6${Math.round(n).toLocaleString()}`;
 }
 
 function ChangeBadge({ pct }: { pct?: number }) {
@@ -63,7 +61,19 @@ function ChangeBadge({ pct }: { pct?: number }) {
   );
 }
 
-function MetricCard({ title, current, previous, previousLabel }: { title: string; current: Metric; previous: Metric; previousLabel: string }) {
+function MetricCard({
+  title,
+  current,
+  previous,
+  previousLabel,
+  formatMoney,
+}: {
+  title: string;
+  current: Metric;
+  previous: Metric;
+  previousLabel: string;
+  formatMoney: (usd: number) => string;
+}) {
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-5">
       <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-4">{title}</h3>
@@ -73,7 +83,7 @@ function MetricCard({ title, current, previous, previousLabel }: { title: string
             <ShoppingBag className="w-3.5 h-3.5" />Orders
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-lg font-black">{current.orders}</span>
+            <span className="text-lg font-black">{current.ordersCount}</span>
             <ChangeBadge pct={current.vsPrev?.orders} />
           </div>
         </div>
@@ -91,18 +101,18 @@ function MetricCard({ title, current, previous, previousLabel }: { title: string
             <DollarSign className="w-3.5 h-3.5" />Revenue
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-lg font-black">{fmt(current.revenueNgn)}</span>
+            <span className="text-lg font-black">{formatMoney(current.revenueUsd)}</span>
             <ChangeBadge pct={current.vsPrev?.revenue} />
           </div>
         </div>
         <div className="flex items-center justify-between">
           <div className="text-xs text-gray-500">Cost</div>
-          <span className="text-sm font-semibold text-red-600">-{fmt(current.costNgn)}</span>
+          <span className="text-sm font-semibold text-red-600">-{formatMoney(current.costUsd)}</span>
         </div>
         <div className="flex items-center justify-between bg-green-50 -mx-5 px-5 py-3 border-t border-b border-green-100">
           <div className="text-xs font-bold text-green-900 uppercase">Profit</div>
           <div className="flex items-center gap-2">
-            <span className="text-xl font-black text-green-700">{fmt(current.profitNgn)}</span>
+            <span className="text-xl font-black text-green-700">{formatMoney(current.profitUsd)}</span>
             <ChangeBadge pct={current.vsPrev?.profit} />
           </div>
         </div>
@@ -112,31 +122,40 @@ function MetricCard({ title, current, previous, previousLabel }: { title: string
           </div>
           <span className="font-semibold text-gray-700">{current.marginPct.toFixed(1)}%</span>
         </div>
-        <div className="text-[10px] text-gray-400 text-center pt-1">vs {previousLabel}: {fmt(previous.profitNgn)} profit</div>
+        <div className="text-[10px] text-gray-400 text-center pt-1">
+          vs {previousLabel}: {formatMoney(previous.profitUsd)} profit
+        </div>
       </div>
     </div>
   );
 }
 
-function MiniChart({ data }: { data: Daily[] }) {
+function MiniChart({ data, formatMoney }: { data: Daily[]; formatMoney: (usd: number) => string }) {
   if (!data || data.length === 0) return null;
-  const maxRev = Math.max(...data.map(d => d.revenueNgn), 1);
-  const maxProf = Math.max(...data.map(d => d.profitNgn), 1);
-  const max = Math.max(maxRev, maxProf, 1);
+  const max = Math.max(...data.map(d => Math.max(d.revenueUsd, d.profitUsd)), 1);
   const W = 800;
   const H = 200;
   const step = W / (data.length - 1 || 1);
 
-  const pathRev = data.map((d, i) => `${i === 0 ? "M" : "L"}${i * step},${H - (d.revenueNgn / max) * (H - 20) - 10}`).join(" ");
-  const pathProf = data.map((d, i) => `${i === 0 ? "M" : "L"}${i * step},${H - (d.profitNgn / max) * (H - 20) - 10}`).join(" ");
+  const pathRev = data.map((d, i) => `${i === 0 ? "M" : "L"}${i * step},${H - (d.revenueUsd / max) * (H - 20) - 10}`).join(" ");
+  const pathProf = data.map((d, i) => `${i === 0 ? "M" : "L"}${i * step},${H - (d.profitUsd / max) * (H - 20) - 10}`).join(" ");
+
+  const totalRev = data.reduce((s, d) => s + d.revenueUsd, 0);
+  const totalProf = data.reduce((s, d) => s + d.profitUsd, 0);
 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-5">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <h3 className="font-bold text-base">30-Day Trend</h3>
         <div className="flex items-center gap-4 text-xs">
-          <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-0.5 bg-gray-900"></span>Revenue</span>
-          <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-0.5 bg-green-600"></span>Profit</span>
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block w-3 h-0.5 bg-gray-900"></span>
+            Revenue ({formatMoney(totalRev)})
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block w-3 h-0.5 bg-green-600"></span>
+            Profit ({formatMoney(totalProf)})
+          </span>
         </div>
       </div>
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-40">
@@ -156,6 +175,8 @@ export default function ProfitDashboard() {
   const [data, setData] = useState<Data | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const { currency, format: formatPrice } = useCurrency();
+  const info = CURRENCIES[currency];
 
   useEffect(() => {
     const load = async () => {
@@ -176,20 +197,31 @@ export default function ProfitDashboard() {
   if (error) return <div className="p-6 text-red-600">Error: {error}</div>;
   if (!data) return null;
 
+  // formatPrice from useCurrency takes USD input and returns formatted target-currency string
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-black mb-1">Profit & Sales Analytics</h1>
-        <p className="text-sm text-gray-500">Live margin tracking. All figures in Naira. Base rate: 1 USD = \u20a6{data.usdToNgn.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-green-600">(live)</span></p>
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-black mb-1">Profit & Sales Analytics</h1>
+          <p className="text-sm text-gray-500">
+            Live margin tracking. Displaying in <strong className="text-gray-900">{info.name} ({currency})</strong>.
+          </p>
+        </div>
+        <div className="flex items-center gap-2 text-xs bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+          <CountryFlag country={currencyToCountry(currency)} className="w-5 h-3.5 rounded-sm" title={currency} />
+          <span className="text-gray-500">Rate: 1 USD =</span>
+          <strong className="text-gray-900">{formatPrice(1)}</strong>
+          <span className="text-green-600 font-semibold ml-1">(live)</span>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <MetricCard title="Today" current={data.periods.today} previous={data.periods.yesterday} previousLabel="yesterday" />
-        <MetricCard title="This Week" current={data.periods.thisWeek} previous={data.periods.lastWeek} previousLabel="last week" />
-        <MetricCard title="This Month" current={data.periods.thisMonth} previous={data.periods.lastMonth} previousLabel="last month" />
+        <MetricCard title="Today" current={data.periods.today} previous={data.periods.yesterday} previousLabel="yesterday" formatMoney={formatPrice} />
+        <MetricCard title="This Week" current={data.periods.thisWeek} previous={data.periods.lastWeek} previousLabel="last week" formatMoney={formatPrice} />
+        <MetricCard title="This Month" current={data.periods.thisMonth} previous={data.periods.lastMonth} previousLabel="last month" formatMoney={formatPrice} />
       </div>
 
-      <MiniChart data={data.daily} />
+      <MiniChart data={data.daily} formatMoney={formatPrice} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
@@ -211,7 +243,7 @@ export default function ProfitDashboard() {
                   <div className="text-xs text-gray-500">{p.units} sold</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm font-bold text-green-700">{fmt(p.profitNgn)}</div>
+                  <div className="text-sm font-bold text-green-700">{formatPrice(p.profitUsd)}</div>
                   <div className="text-[10px] text-gray-400">profit</div>
                 </div>
               </div>
@@ -235,7 +267,7 @@ export default function ProfitDashboard() {
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-semibold truncate">{p.name}</div>
-                  <div className="text-xs text-gray-500">{p.units} sold - {fmt(p.revenueNgn)} rev</div>
+                  <div className="text-xs text-gray-500">{p.units} sold - {formatPrice(p.revenueUsd)} rev</div>
                 </div>
                 <div className="text-right">
                   <div className="text-sm font-bold text-amber-600">{(p.marginPct || 0).toFixed(1)}%</div>

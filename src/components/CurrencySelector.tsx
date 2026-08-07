@@ -6,6 +6,7 @@ import { ChevronDown, Check } from "lucide-react";
 import { useCurrency } from "@/lib/currency-context";
 import { CURRENCIES, type CurrencyCode } from "@/lib/currency";
 import { useLocale } from "next-intl";
+import CountryFlag, { currencyToCountry } from "@/components/CountryFlag";
 
 interface Props {
   compact?: boolean;
