@@ -685,7 +685,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                 <div className="p-4">
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-14 h-14 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
-                      {product.imageUrl && <img src={product.imageUrl} alt="" className="w-full h-full object-cover" />}
+                      {product.imageUrl && <img src={product.imageUrl} alt="" width="56" height="56" className="w-full h-full object-cover" loading="lazy" decoding="async" />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-bold text-gray-900 line-clamp-2 leading-tight">{product.name}</div>
@@ -725,7 +725,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-2xl lg:hidden pb-safe">
         <div className="px-3 py-2.5 flex items-center gap-2">
           <div className="flex-shrink-0 w-11 h-11 rounded-lg bg-gray-100 overflow-hidden">
-            {product.imageUrl && <img src={product.imageUrl} alt="" className="w-full h-full object-cover" />}
+            {product.imageUrl && <img src={product.imageUrl} alt="" width="56" height="56" className="w-full h-full object-cover" loading="lazy" decoding="async" />}
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-[11px] font-semibold text-gray-900 truncate leading-tight">{product.name}</div>

@@ -128,7 +128,7 @@ export default function MiniCartDrawer() {
                     className="flex-shrink-0 w-20 h-20 bg-gray-100 rounded-xl overflow-hidden"
                   >
                     {item.imageUrl ? (
-                      <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                      <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-gray-300">
                         <ShoppingBag className="w-6 h-6" />

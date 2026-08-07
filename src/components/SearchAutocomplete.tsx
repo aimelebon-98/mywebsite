@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { trackEvent } from "@/components/AnalyticsTracker";
 import { useCurrency } from "@/lib/currency-context";
 
@@ -171,7 +171,7 @@ export default function SearchAutocomplete({
                   >
                     <div className="w-11 h-11 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">
                       {s.imageUrl ? (
-                        <img src={s.imageUrl} alt={getDisplayName(s)} className="w-full h-full object-cover" />
+                        <img src={s.imageUrl} alt={getDisplayName(s)} width="44" height="44" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
                           <Search className="w-4 h-4 text-gray-400" />
