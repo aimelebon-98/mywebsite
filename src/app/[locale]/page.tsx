@@ -11,7 +11,7 @@ import TypingText from "@/components/TypingText";
 import { ArrowRight, Truck, Shield, RotateCcw, Headphones, Star } from "lucide-react";
 import { getTranslations, getLocale } from "next-intl/server";
 import { db } from "@/db";
-import { categories as categoriesTable } from "@/db/schema";
+import { categories as categoriesTable, products as productsTable, settings as settingsTable, type Product } from "@/db/schema";
 import { eq, asc } from "drizzle-orm";
 
 const CATEGORY_IMAGES: Record<string, string> = {
