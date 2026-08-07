@@ -210,7 +210,16 @@ export default function ProfitDashboard() {
         <div className="flex items-center gap-2 text-xs bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
           <CountryFlag country={currencyToCountry(currency)} className="w-5 h-3.5 rounded-sm" title={currency} />
           <span className="text-gray-500">Rate: 1 USD =</span>
-          <strong className="text-gray-900">{formatPrice(1)}</strong>
+          <strong className="text-gray-900">
+            {(() => {
+              const raw = currency === "USD" ? 1 : (data && data.usdToNgn && currency === "NGN" ? data.usdToNgn : null);
+              if (raw !== null) {
+                return info.symbol + raw.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+              }
+              // For other currencies, use formatPrice but with a higher precision hint
+              return formatPrice(1);
+            })()}
+          </strong>
           <span className="text-green-600 font-semibold ml-1">(live)</span>
         </div>
       </div>
