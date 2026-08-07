@@ -199,7 +199,7 @@ export default function MobileHomeHero() {
                 </div>
               </div>
               <div className="w-32 h-32 relative flex-shrink-0 mr-2 rounded-2xl overflow-hidden shadow-lg">
-                <Image src={slides[slideIdx].image} alt={slides[slideIdx].title} fill sizes="128px" priority fetchPriority="high" className="object-cover" />
+                <Image src={slides[slideIdx].image} alt={slides[slideIdx].title} fill sizes="150px" quality={80} priority fetchPriority="high" className="object-cover" />
               </div>
             </div>
           </Link>
@@ -270,7 +270,7 @@ export default function MobileHomeHero() {
                   >
                     <div className="relative aspect-square bg-gray-50">
                       {p.imageUrl && (
-                        <Image src={p.imageUrl} alt={displayName} fill sizes="(max-width: 640px) 33vw, 128px" className="object-cover" />
+                        <Image src={p.imageUrl} alt={displayName} fill sizes="(max-width: 640px) 33vw, 128px" quality={75} className="object-cover" />
                       )}
                       {discount > 0 && (
                         <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-black rounded">

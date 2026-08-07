@@ -62,7 +62,7 @@ function ProductScroll({ products, title, badge, badgeColor, locale, isFr, forma
   if (products.length === 0) return null;
 
   return (
-    <div className="bg-white pt-3 pb-3 border-t-4 border-gray-100">
+    <div className="bg-white pt-3 pb-3 border-t-4 border-gray-100 min-h-[220px]">
       <div className="flex items-center justify-between px-3 mb-3">
         <div className="flex items-center gap-2">
           {badge && (
@@ -96,7 +96,7 @@ function ProductScroll({ products, title, badge, badgeColor, locale, isFr, forma
                 className="w-[110px] flex-shrink-0 bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm active:scale-95 transition"
               >
                 <div className="relative aspect-square bg-gray-50">
-                  {p.imageUrl && <Image src={p.imageUrl} alt={displayName} fill sizes="110px" className="object-cover" />}
+                  {p.imageUrl && <Image src={p.imageUrl} alt={displayName} fill sizes="130px" quality={75} className="object-cover" />}
                   {discount > 0 && (
                     <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-black rounded">
                       -{discount}%
@@ -139,7 +139,7 @@ function ProductGrid({ products, title, locale, isFr, formatPrice, viewAllHref, 
   if (products.length === 0) return null;
 
   return (
-    <div className={"pt-4 pb-4 border-t-4 border-gray-100 " + (bgTint || "bg-white")}>
+    <div className={"pt-4 pb-4 border-t-4 border-gray-100 min-h-[400px] " + (bgTint || "bg-white")}>
       <div className="flex items-center justify-between px-3 mb-3">
         <span className="text-sm font-bold text-gray-900">{title}</span>
         <Link href={viewAllHref} className="text-xs font-semibold text-gray-500 hover:text-[#CA3F2E] flex items-center gap-0.5">
@@ -162,7 +162,7 @@ function ProductGrid({ products, title, locale, isFr, formatPrice, viewAllHref, 
               className="bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm active:scale-95 transition"
             >
               <div className="relative aspect-square bg-gray-50">
-                {p.imageUrl && <Image src={p.imageUrl} alt={displayName} fill sizes="50vw" className="object-cover" />}
+                {p.imageUrl && <Image src={p.imageUrl} alt={displayName} fill sizes="(max-width: 640px) 50vw, 300px" quality={80} className="object-cover" />}
                 {discount > 0 && (
                   <div className="absolute top-2 left-2 px-2 py-0.5 bg-red-500 text-white text-[10px] font-black rounded">
                     -{discount}%
@@ -302,7 +302,7 @@ export default function MobileHomeSections() {
                 className={"relative rounded-xl overflow-hidden aspect-[4/3] shadow-sm active:scale-95 transition " + (CAT_TINTS[cat.slug] || "bg-gray-100")}
               >
                 {cat.imageUrl && (
-                  <Image src={cat.imageUrl} alt={cat.nameEn} fill sizes="50vw" className="object-cover" />
+                  <Image src={cat.imageUrl} alt={cat.nameEn} fill sizes="(max-width: 640px) 50vw, 200px" quality={75} className="object-cover" />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-2.5">

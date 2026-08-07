@@ -4,31 +4,29 @@ import createNextIntlPlugin from "next-intl/plugin";
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
-  // Modern image formats (AVIF first for best compression, WebP fallback)
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "**" },
     ],
     formats: ["image/avif", "image/webp"],
-    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60 * 60 * 24 * 30,
+    // Tighter sizes for better mobile optimization
+    deviceSizes: [360, 480, 640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 150, 200, 256, 300, 384],
   },
-  // Compression
   compress: true,
-  // Modern optimizations
   poweredByHeader: false,
   productionBrowserSourceMaps: false,
   reactStrictMode: true,
-  // Modularize lucide-react imports to reduce bundle
   experimental: {
     optimizePackageImports: [
       "lucide-react",
       "@tiptap/react",
       "@tiptap/starter-kit",
     ],
+    // Inline critical CSS to reduce render-blocking
+    inlineCss: true,
   },
-  // Long-term caching for static assets + images
   async headers() {
     return [
       {
@@ -55,7 +53,6 @@ const nextConfig: NextConfig = {
           { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
         ],
       },
-      // Security + perf headers on all responses
       {
         source: "/(.*)",
         headers: [
