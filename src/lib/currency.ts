@@ -1,4 +1,4 @@
-﻿export type CurrencyCode = "USD" | "EUR" | "GBP" | "NGN" | "GHS" | "XOF" | "KES" | "ZAR";
+export type CurrencyCode = "USD" | "EUR" | "GBP" | "NGN" | "GHS" | "XOF" | "KES" | "ZAR";
 
 export interface CurrencyInfo {
   code: CurrencyCode;
@@ -12,14 +12,14 @@ export interface CurrencyInfo {
 }
 
 export const CURRENCIES: Record<CurrencyCode, CurrencyInfo> = {
-  USD: { code: "USD", symbol: "$",     position: "left",  flag: "🇺🇸", name: "US Dollar",       nameFr: "Dollar US",       decimals: 2 },
-  EUR: { code: "EUR", symbol: "€",     position: "left",  flag: "🇪🇺", name: "Euro",            nameFr: "Euro",            decimals: 2 },
-  GBP: { code: "GBP", symbol: "£",     position: "left",  flag: "🇬🇧", name: "British Pound",   nameFr: "Livre Sterling",  decimals: 2 },
-  NGN: { code: "NGN", symbol: "₦",     position: "left",  flag: "🇳🇬", name: "Nigerian Naira",  nameFr: "Naira Nigerian",  decimals: 0, roundTo: 100 },
-  GHS: { code: "GHS", symbol: "₵",     position: "left",  flag: "🇬🇭", name: "Ghanaian Cedi",   nameFr: "Cedi Ghaneen",    decimals: 2 },
-  XOF: { code: "XOF", symbol: "FCFA",  position: "right", flag: "🌍", name: "West African CFA", nameFr: "Franc CFA",       decimals: 0, roundTo: 100 },
-  KES: { code: "KES", symbol: "KSh",   position: "left",  flag: "🇰🇪", name: "Kenyan Shilling", nameFr: "Shilling Kenyan", decimals: 0, roundTo: 10 },
-  ZAR: { code: "ZAR", symbol: "R",     position: "left",  flag: "🇿🇦", name: "South African Rand", nameFr: "Rand Sud-Africain", decimals: 2 },
+  USD: { code: "USD", symbol: "$",     position: "left",  flag: "\uD83C\uDDFA\uD83C\uDDF8", name: "US Dollar",           nameFr: "Dollar US",           decimals: 0 },
+  EUR: { code: "EUR", symbol: "\u20ac", position: "left",  flag: "\uD83C\uDDEA\uD83C\uDDFA", name: "Euro",                nameFr: "Euro",                decimals: 0 },
+  GBP: { code: "GBP", symbol: "\u00a3", position: "left",  flag: "\uD83C\uDDEC\uD83C\uDDE7", name: "British Pound",       nameFr: "Livre Sterling",      decimals: 0 },
+  NGN: { code: "NGN", symbol: "\u20a6", position: "left",  flag: "\uD83C\uDDF3\uD83C\uDDEC", name: "Nigerian Naira",      nameFr: "Naira Nig\u00e9rian",   decimals: 0, roundTo: 100 },
+  GHS: { code: "GHS", symbol: "\u20b5", position: "left",  flag: "\uD83C\uDDEC\uD83C\uDDED", name: "Ghanaian Cedi",       nameFr: "Cedi Ghan\u00e9en",     decimals: 0 },
+  XOF: { code: "XOF", symbol: "FCFA",   position: "right", flag: "\uD83C\uDF0D",              name: "West African CFA",    nameFr: "Franc CFA",           decimals: 0, roundTo: 100 },
+  KES: { code: "KES", symbol: "KSh",    position: "left",  flag: "\uD83C\uDDF0\uD83C\uDDEA", name: "Kenyan Shilling",     nameFr: "Shilling Kenyan",     decimals: 0, roundTo: 10 },
+  ZAR: { code: "ZAR", symbol: "R",      position: "left",  flag: "\uD83C\uDDFF\uD83C\uDDE6", name: "South African Rand",  nameFr: "Rand Sud-Africain",   decimals: 0 },
 };
 
 // Country -> Currency mapping for auto-detection

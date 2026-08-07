@@ -232,14 +232,14 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
 
           {/* Breadcrumb */}
-          <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-gray-500 mb-6 flex-wrap">
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs sm:text-sm text-gray-500 mb-6 flex-nowrap overflow-x-auto whitespace-nowrap scrollbar-hide">
             <Link href={`/${locale}`} className="hover:text-gray-900 transition">{t("home")}</Link>
             <span className="text-gray-300">/</span>
             <Link href={`/${locale}/shop`} className="hover:text-gray-900 transition">{t("shop")}</Link>
             <span className="text-gray-300">/</span>
             <Link href={`/${locale}/shop?category=${product.category}`} className="hover:text-gray-900 transition capitalize">{product.category}</Link>
             <span className="text-gray-300">/</span>
-            <span className="text-gray-900 font-medium truncate max-w-[200px]">{product.name}</span>
+            <span className="text-gray-900 font-medium truncate max-w-[140px] sm:max-w-[240px]">{product.name}</span>
           </nav>
 
           <div className="grid lg:grid-cols-[1fr_1fr_320px] gap-8 lg:gap-10">

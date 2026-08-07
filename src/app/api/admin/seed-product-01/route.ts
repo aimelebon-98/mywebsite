@@ -60,7 +60,8 @@ export async function GET() {
       descriptionFr: shortDescriptionFr,
       shortDescriptionFr,
       longDescriptionFr,
-      price: "25000",
+      // Price stored in USD (base currency). 18 USD approx N25,000 at current rates.
+      price: "18",
       comparePrice: null,
       category: "sneakers",
       brand: "Nike",
