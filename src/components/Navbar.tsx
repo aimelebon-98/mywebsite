@@ -104,7 +104,7 @@ export default function Navbar() {
     if (productMatch) {
       const currentSlug = productMatch[1];
       try {
-        const res = await fetch(`/api/products/${currentSlug}`);
+        const res = await fetch(`/api/products/${currentSlug}`).catch(() => null);
         if (res.ok) {
           const product = await res.json();
           let targetSlug = currentSlug;

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import type { Product } from "@/db/schema";
@@ -26,6 +26,13 @@ export default function RecentlyViewed({ excludeId }: RecentlyViewedProps) {
           fetch(`/api/products/${id}`).then(r => r.ok ? r.json() : null)
         )
       ).then(results => {
+          // Clean up stale IDs (deleted products) from localStorage
+          try {
+            const validIds = results
+              .map((p, i) => p ? uniqueIds[i] : null)
+              .filter(Boolean) as string[];
+            localStorage.setItem("solevault-recently-viewed", JSON.stringify(validIds));
+          } catch { /* ignore */ }
         setRecentProducts(results.filter(Boolean) as Product[]);
       });
     } catch {
