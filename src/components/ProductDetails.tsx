@@ -810,7 +810,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                 {/* Collapsible long description - SEO safe (full text in DOM) */}
                 <div className="relative">
                   <div
-                      className={`product-long-desc text-gray-600 leading-relaxed text-lg overflow-hidden transition-all duration-500 ${
+                      className={`product-long-desc overflow-hidden transition-all duration-500 ${
                         showFullDesc || longDesc.length <= 400 ? "max-h-[10000px]" : "max-h-[220px]"
                       }`}
                       dangerouslySetInnerHTML={{ __html: longDesc }}
@@ -846,14 +846,16 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               <div className="grid md:grid-cols-2 gap-10">
                 <div>
                   <h3 className="font-bold text-lg mb-5">{t("specifications")}</h3>
-                  <div className="divide-y divide-gray-100">
-                    {specs.map((item) => (
-                      <div key={item.label} className="flex items-center justify-between py-3">
-                        <span className="text-sm text-gray-500">{item.label}</span>
-                        <span className="text-sm font-semibold text-gray-900 capitalize">{item.value}</span>
-                      </div>
-                    ))}
-                  </div>
+                  <table className="product-spec-table">
+                    <tbody>
+                      {specs.map((item) => (
+                        <tr key={item.label}>
+                          <td>{item.label}</td>
+                          <td className="capitalize">{item.value}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
                 <div>
                   <h3 className="font-bold text-lg mb-5">{t("keyFeatures")}</h3>
