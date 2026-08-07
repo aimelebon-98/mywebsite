@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { CURRENCIES, COUNTRY_TO_CURRENCY, formatPrice, type CurrencyCode } from "@/lib/currency";
@@ -17,11 +17,21 @@ interface CurrencyContextType {
 const STORAGE_KEY = "ndz_currency";
 const RATES_KEY = "ndz_exchange_rates";
 const COUNTRY_KEY = "ndz_visitor_country";
+const COOKIE_KEY = "ndz_currency";
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
+
+function writeCurrencyCookie(c: string) {
+  if (typeof document === "undefined") return;
+  try {
+    document.cookie = `${COOKIE_KEY}=${c}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+  } catch { /* ignore */ }
+}
 
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
 
-export function CurrencyProvider({ children }: { children: ReactNode }) {
-  const [currency, setCurrencyState] = useState<CurrencyCode>("USD");
+export function CurrencyProvider({ children, initialCurrency }: { children: ReactNode; initialCurrency?: CurrencyCode }) {
+  // Initialize with the server-provided currency (from cookie) so first render matches SSR.
+  const [currency, setCurrencyState] = useState<CurrencyCode>(initialCurrency || "USD");
   const [rates, setRates] = useState<Record<string, number>>({});
   const [autoDetected, setAutoDetected] = useState(false);
   const [visitorCountry, setVisitorCountry] = useState<string>("");
@@ -37,8 +47,10 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
         } catch { /* ignore */ }
 
         const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored && stored in CURRENCIES) {
+        // Only update if localStorage differs from what we already have from cookie
+        if (stored && stored in CURRENCIES && stored !== currency) {
           setCurrencyState(stored as CurrencyCode);
+          writeCurrencyCookie(stored);
         }
 
         // Always fetch country (fresh), but only set currency if user hasn't chosen one
@@ -49,16 +61,19 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
             setVisitorCountry(data.country);
             try { localStorage.setItem(COUNTRY_KEY, data.country); } catch { /* ignore */ }
           }
-          if (!stored && data.currency && data.currency in CURRENCIES) {
+          // Only auto-detect if no cookie AND no localStorage AND currency is still default USD
+          if (!initialCurrency && !stored && data.currency && data.currency in CURRENCIES) {
             setCurrencyState(data.currency);
             setAutoDetected(true);
             try { localStorage.setItem(STORAGE_KEY, data.currency); } catch { /* ignore */ }
+            writeCurrencyCookie(data.currency);
           }
-        } catch { /* fallback USD */ }
-      } catch { /* fallback USD */ }
+        } catch { /* fallback */ }
+      } catch { /* fallback */ }
       setLoading(false);
     };
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -93,6 +108,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     setCurrencyState(c);
     setAutoDetected(false);
     try { localStorage.setItem(STORAGE_KEY, c); } catch { /* ignore */ }
+    writeCurrencyCookie(c);
   }, []);
 
   const format = useCallback((usd: number) => formatPrice(usd, currency, rates), [currency, rates]);
