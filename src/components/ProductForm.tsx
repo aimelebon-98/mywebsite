@@ -1,7 +1,9 @@
 "use client";
 import BlogEditor from "./BlogEditor";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useCurrency } from "@/lib/currency-context";
+import { CURRENCIES } from "@/lib/currency";
 // Structural types (accept both schema types and local admin types)
 type ProductLike = {
   id?: string;
@@ -91,6 +93,9 @@ function SidebarCard({
 
 export default function ProductForm({ product, categories, onSave, loading, onCancel }: Props) {
   const [langTab, setLangTab] = useState<"en" | "fr">("en");
+  const { currency, rates } = useCurrency();
+  const currencyInfo = CURRENCIES[currency];
+  const rate = currency === "USD" ? 1 : (rates[currency] || 1);
 
   // English fields
   const [name, setName] = useState(product?.name || "");
@@ -111,8 +116,20 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
   });
 
   // Pricing / variants
-  const [price, setPrice] = useState(product?.price || "");
-  const [comparePrice, setComparePrice] = useState(product?.comparePrice || "");
+  const [price, setPrice] = useState(() => {
+    const usd = parseFloat(product?.price || "0");
+    if (!usd) return "";
+    const r = currency === "USD" ? 1 : (rates[currency] || 1);
+    const converted = usd * r;
+    return currencyInfo?.decimals === 0 ? Math.round(converted).toString() : converted.toFixed(2);
+  });
+  const [comparePrice, setComparePrice] = useState(() => {
+    const usd = parseFloat(product?.comparePrice || "0");
+    if (!usd) return "";
+    const r = currency === "USD" ? 1 : (rates[currency] || 1);
+    const converted = usd * r;
+    return currencyInfo?.decimals === 0 ? Math.round(converted).toString() : converted.toFixed(2);
+  });
   const [category, setCategory] = useState(product?.category || (categories[0]?.slug ?? "sneakers"));
   const [brand, setBrand] = useState(product?.brand || "");
   const [sizesStr, setSizesStr] = useState(product ? (JSON.parse(product.sizes || "[]") as string[]).join(", ") : "7, 8, 9, 10, 11, 12");
@@ -166,8 +183,8 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
       shortDescriptionFr: shortDescriptionFr.trim() || null,
       longDescriptionFr: longDescriptionFr.trim() || null,
       tagsFr: tagsFr.length > 0 ? tagsFr : null,
-      price: parseFloat(price) || 0,
-      comparePrice: comparePrice ? parseFloat(comparePrice) : null,
+      price: rate > 0 ? (parseFloat(price) || 0) / rate : (parseFloat(price) || 0),
+      comparePrice: comparePrice ? (rate > 0 ? parseFloat(comparePrice) / rate : parseFloat(comparePrice)) : null,
       saleEndsAt: saleEndsAt ? new Date(saleEndsAt).toISOString() : null,
       category, brand, sizes, colors,
       imageUrl,
@@ -575,11 +592,11 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
           {/* Pricing */}
           <SidebarCard title="Pricing" icon={DollarSign} defaultOpen={true}>
             <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Price *</label>
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Price * ({currencyInfo?.symbol} {currency})</label>
               <input type="number" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} required placeholder="99.99" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gray-900 transition" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Compare Price</label>
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Compare Price ({currencyInfo?.symbol} {currency})</label>
               <input type="number" step="0.01" value={comparePrice} onChange={(e) => setComparePrice(e.target.value)} placeholder="Original price (for discounts)" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gray-900 transition" />
               <p className="text-[11px] text-gray-400 mt-1">Shown crossed out</p>
             </div>

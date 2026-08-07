@@ -59,7 +59,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
   const [selectedColor, setSelectedColor] = useState(colors[0] || "");
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
-  const { format: formatPrice } = useCurrency();
+  const { format: formatPrice, currency } = useCurrency();
   const [activeTab, setActiveTab] = useState<"description" | "details" | "shipping">("description");
 
   // Sticky mini cart: switches to fixed positioning when scrolled past, hides at tabs end
@@ -461,9 +461,9 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                       <Ruler className="w-3 h-3" /> {t("sizeGuide")}
                     </button>
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
                     {sizes.map(s => (
-                      <button key={s} onClick={() => setSelectedSize(s)} className={`w-14 h-12 rounded-xl text-sm font-semibold border-2 transition-all ${selectedSize === s ? "border-gray-900 bg-gray-900 text-white shadow-lg shadow-gray-900/20 scale-105" : "border-gray-200 hover:border-gray-400 hover:shadow-md"}`}>{s}</button>
+                      <button key={s} onClick={() => setSelectedSize(s)} className={`w-full h-12 rounded-xl text-sm font-semibold border-2 transition-all ${selectedSize === s ? "border-gray-900 bg-gray-900 text-white shadow-lg shadow-gray-900/20 scale-105" : "border-gray-200 hover:border-gray-400 hover:shadow-md"}`}>{s}</button>
                     ))}
                   </div>
                 </div>
@@ -500,7 +500,8 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               </div>
 
 
-                {/* Delivery info (Abuja) */}
+                {/* Delivery info (Abuja - only shown when currency is NGN) */}
+                {currency === "NGN" && (
                 <div className="mb-6 p-3 bg-amber-50 border border-amber-200 rounded-xl">
                   <div className="flex items-start gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 mt-0.5 text-amber-700 flex-shrink-0"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
@@ -521,6 +522,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                     </div>
                   </div>
                 </div>
+                )}
 
               {/* Trust Row - free shipping, secure, returns, authentic */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
