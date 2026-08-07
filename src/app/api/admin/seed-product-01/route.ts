@@ -66,7 +66,7 @@ export async function GET() {
       category: "sneakers",
       brand: "Nike",
       sizes: JSON.stringify(["38", "39", "40", "41", "42", "43", "44", "45"]),
-      colors: JSON.stringify(["Black", "Grey", "Silver"]),
+      colors: JSON.stringify(["Black/Grey"]),
       imageUrl,
       images: JSON.stringify([imageUrl]),
       stock: 25,
