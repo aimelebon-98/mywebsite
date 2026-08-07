@@ -493,6 +493,28 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                 </div>
               </div>
 
+                {/* Delivery info (Abuja) */}
+                <div className="mb-6 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                  <div className="flex items-start gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 mt-0.5 text-amber-700 flex-shrink-0"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                    <div className="text-xs leading-relaxed text-amber-900">
+                      {isFr ? (
+                        <>
+                          <strong>Livraison Abuja :</strong> 3 000 - 5 000 \u20a6.
+                          <br />
+                          <strong>Livraison le jour m\u00eame</strong> pour toute commande pass\u00e9e avant <strong>11h</strong>.
+                        </>
+                      ) : (
+                        <>
+                          <strong>Abuja delivery:</strong> \u20a63,000 - \u20a65,000.
+                          <br />
+                          <strong>Same-day delivery</strong> for orders placed before <strong>11 AM</strong>.
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
               {/* Trust Row - free shipping, secure, returns, authentic */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
                 <div className="flex items-center gap-2 px-3 py-2.5 bg-gray-50 rounded-xl">
