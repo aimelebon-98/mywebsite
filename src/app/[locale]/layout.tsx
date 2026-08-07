@@ -11,10 +11,10 @@ import { CurrencyProvider } from "@/lib/currency-context";
 import { CustomerProvider } from "@/lib/customer-context";
 import ConditionalWidgets from "@/components/ConditionalWidgets";
 import ThemeColorSwitcher from "@/components/ThemeColorSwitcher";
-const FloatingCartPill = dynamic(() => import("@/components/FloatingCartPill"), { ssr: false });
-const PageViewTracker = dynamic(() => import("@/components/AnalyticsTracker"), { ssr: false });
+const FloatingCartPill = dynamic(() => import("@/components/FloatingCartPill"));
+const PageViewTracker = dynamic(() => import("@/components/AnalyticsTracker"));
 import { SpeedInsights } from "@vercel/speed-insights/next";
-const GoogleAnalytics = dynamic(() => import("@/components/GoogleAnalytics"), { ssr: false });
+const GoogleAnalytics = dynamic(() => import("@/components/GoogleAnalytics"));
 
 // Self-hosted Inter font (eliminates render-blocking Google Fonts request)
 const inter = Inter({
