@@ -469,9 +469,12 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                 </div>
               )}
 
+              {/* Color + Quantity row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+                <div>
               {/* Color */}
               {colors.length > 0 && (
-                <div className="mb-6">
+                <div className="">
                   <h3 className="text-sm font-bold uppercase tracking-wider text-gray-700 mb-3">
                     {t("color")} - <span className="font-normal normal-case text-gray-500">{selectedColor}</span>
                   </h3>
@@ -482,9 +485,10 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                   </div>
                 </div>
               )}
-
+                </div>
+                <div>
               {/* Quantity */}
-              <div className="mb-8">
+              <div className="">
                 <h3 className="text-sm font-bold uppercase tracking-wider text-gray-700 mb-3">{t("quantity")}</h3>
                 <div className="inline-flex items-center bg-gray-50 rounded-xl overflow-hidden border border-gray-200">
                   <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-12 h-12 flex items-center justify-center hover:bg-gray-100 transition"><Minus className="w-4 h-4" /></button>
@@ -492,6 +496,9 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                   <button onClick={() => setQuantity(quantity + 1)} className="w-12 h-12 flex items-center justify-center hover:bg-gray-100 transition"><Plus className="w-4 h-4" /></button>
                 </div>
               </div>
+                </div>
+              </div>
+
 
                 {/* Delivery info (Abuja) */}
                 <div className="mb-6 p-3 bg-amber-50 border border-amber-200 rounded-xl">
@@ -500,13 +507,13 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                     <div className="text-xs leading-relaxed text-amber-900">
                       {isFr ? (
                         <>
-                          <strong>Livraison Abuja :</strong> 3 000 - 5 000 \u20a6.
+                          <strong>Livraison Abuja :</strong> 3 000 - 5 000 {"\u20a6"}.
                           <br />
-                          <strong>Livraison le jour m\u00eame</strong> pour toute commande pass\u00e9e avant <strong>11h</strong>.
+                          <strong>Livraison le jour m&#234;me</strong> pour toute commande pass&#233;e avant <strong>11h</strong>.
                         </>
                       ) : (
                         <>
-                          <strong>Abuja delivery:</strong> \u20a63,000 - \u20a65,000.
+                          <strong>Abuja delivery:</strong> {"\u20a6"}3,000 - {"\u20a6"}5,000.
                           <br />
                           <strong>Same-day delivery</strong> for orders placed before <strong>11 AM</strong>.
                         </>
@@ -1056,6 +1063,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
     </div>
   );
 }
+
 
 
 
