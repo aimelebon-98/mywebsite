@@ -5,6 +5,7 @@ import { useState, useMemo } from "react";
 import { useCurrency } from "@/lib/currency-context";
 import { CURRENCIES } from "@/lib/currency";
 import { parseColorVariants, serializeColorVariants, type ColorVariant } from "@/lib/color-variants";
+import { normalizeColorName } from "@/lib/color-map";
 import ImageUploader from "@/components/ImageUploader";
 import { detectColorsFromUrl } from "@/lib/color-detect";
 // Structural types (accept both schema types and local admin types)
@@ -175,7 +176,8 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const sizes = sizesStr.split(",").map((s) => s.trim()).filter(Boolean);
-    const colorsSerialized = serializeColorVariants(colorVariants);
+    const normalizedVariants = colorVariants.map(v => ({ ...v, name: normalizeColorName(v.name) }));
+    const colorsSerialized = serializeColorVariants(normalizedVariants);
     const tags = tagsStr.split(",").map((t) => t.trim()).filter(Boolean);
     const tagsFr = tagsFrStr.split(",").map((t) => t.trim()).filter(Boolean);
 

@@ -1,6 +1,7 @@
 "use client";
 import { useCurrency } from "@/lib/currency-context";
 import { parseColorVariants } from "@/lib/color-variants";
+import { getColorHexPair } from "@/lib/color-map";
 import StockBadge from "@/components/StockBadge";
 import { trackEvent } from "@/components/AnalyticsTracker";
 import ProductFaqDisplay from "@/components/ProductFaqDisplay";
@@ -481,15 +482,32 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                     {t("color")} - <span className="font-normal normal-case text-gray-500">{selectedColor}</span>
                   </h3>
                   <div className="flex flex-wrap gap-2">
-                    {colors.map(c => (
-                      <button key={c} onClick={() => {
-                          setSelectedColor(c);
-                          const variant = colorVariants.find(v => v.name === c);
-                          if (variant && variant.image) {
-                            window.dispatchEvent(new CustomEvent("swap-main-image", { detail: { url: variant.image } }));
-                          }
-                        }} className={`px-4 py-2.5 rounded-xl text-sm font-medium border-2 transition-all ${selectedColor === c ? "border-gray-900 bg-gray-900 text-white shadow-lg shadow-gray-900/20" : "border-gray-200 hover:border-gray-400"}`}>{c}</button>
-                    ))}
+                    {colors.map(c => {
+                      const [hex1, hex2] = getColorHexPair(c);
+                      const isActive = selectedColor === c;
+                      return (
+                        <button
+                          key={c}
+                          onClick={() => {
+                            setSelectedColor(c);
+                            const variant = colorVariants.find(v => v.name === c);
+                            if (variant && variant.image) {
+                              window.dispatchEvent(new CustomEvent("swap-main-image", { detail: { url: variant.image } }));
+                            }
+                          }}
+                          className={`inline-flex items-center gap-2 pl-2 pr-3.5 py-2 rounded-xl text-sm font-medium border-2 transition-all ${isActive ? "border-gray-900 bg-gray-900 text-white shadow-lg shadow-gray-900/20" : "border-gray-200 hover:border-gray-400 text-gray-800"}`}
+                          title={c}
+                        >
+                          <span
+                            className={`inline-block w-5 h-5 rounded-full border shadow-sm overflow-hidden flex-shrink-0 ${isActive ? "border-white" : "border-gray-300"}`}
+                            style={hex2 ? {
+                              background: `linear-gradient(135deg, ${hex1} 0%, ${hex1} 50%, ${hex2} 50%, ${hex2} 100%)`
+                            } : { backgroundColor: hex1 }}
+                          />
+                          <span>{c}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -533,32 +551,32 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                 )}
 
               {/* Trust Row - free shipping, secure, returns, authentic */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
-                <div className="flex items-center gap-2 px-3 py-2.5 bg-gray-50 rounded-xl">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-5">
+                <div className="flex items-center gap-2 px-2.5 py-2 bg-gray-50 rounded-xl">
                   <Truck className="w-4 h-4 flex-shrink-0" style={{ color: "#CA3F2E" }} />
                   <div className="min-w-0">
-                    <div className="text-[11px] font-bold text-gray-900 leading-tight">{isFr ? "Livraison gratuite" : "Free Shipping"}</div>
+                    <div className="text-[11px] font-bold text-gray-900 leading-tight break-words">{isFr ? "Livraison gratuite" : "Free Shipping"}</div>
                     <div className="text-[10px] text-gray-500 leading-tight truncate">{isFr ? `Plus de ${formatPrice(1000)}` : `Over ${formatPrice(1000)}`}</div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 px-3 py-2.5 bg-gray-50 rounded-xl">
+                <div className="flex items-center gap-2 px-2.5 py-2 bg-gray-50 rounded-xl">
                   <Shield className="w-4 h-4 flex-shrink-0" style={{ color: "#CA3F2E" }} />
                   <div className="min-w-0">
-                    <div className="text-[11px] font-bold text-gray-900 leading-tight">{isFr ? "Paiement securise" : "Secure Checkout"}</div>
+                    <div className="text-[11px] font-bold text-gray-900 leading-tight break-words">{isFr ? "Paiement securise" : "Secure Checkout"}</div>
                     <div className="text-[10px] text-gray-500 leading-tight">{isFr ? "Crypte SSL" : "SSL encrypted"}</div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 px-3 py-2.5 bg-gray-50 rounded-xl">
+                <div className="flex items-center gap-2 px-2.5 py-2 bg-gray-50 rounded-xl">
                   <RotateCcw className="w-4 h-4 flex-shrink-0" style={{ color: "#CA3F2E" }} />
                   <div className="min-w-0">
-                    <div className="text-[11px] font-bold text-gray-900 leading-tight">{isFr ? "Retours faciles" : "Easy Returns"}</div>
+                    <div className="text-[11px] font-bold text-gray-900 leading-tight break-words">{isFr ? "Retours faciles" : "Easy Returns"}</div>
                     <div className="text-[10px] text-gray-500 leading-tight">{isFr ? "14 jours" : "14 days"}</div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 px-3 py-2.5 bg-gray-50 rounded-xl">
+                <div className="flex items-center gap-2 px-2.5 py-2 bg-gray-50 rounded-xl">
                   <Award className="w-4 h-4 flex-shrink-0" style={{ color: "#CA3F2E" }} />
                   <div className="min-w-0">
-                    <div className="text-[11px] font-bold text-gray-900 leading-tight">{isFr ? "100% Authentique" : "100% Authentic"}</div>
+                    <div className="text-[11px] font-bold text-gray-900 leading-tight break-words">{isFr ? "100% Authentique" : "100% Authentic"}</div>
                     <div className="text-[10px] text-gray-500 leading-tight">{isFr ? "Garanti" : "Guaranteed"}</div>
                   </div>
                 </div>
