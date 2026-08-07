@@ -820,11 +820,6 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
           <div className="p-6 lg:p-10">
             {activeTab === "description" && (
               <div className="max-w-3xl space-y-6">
-                {longDesc !== shortDesc && shortDesc && (
-                  <div className="p-4 bg-brand-50 rounded-xl border border-brand-200">
-                    <p className="text-gray-800 font-medium">{shortDesc}</p>
-                  </div>
-                )}
                 {/* Collapsible long description - SEO safe (full text in DOM) */}
                 <div className="relative">
                   <div
@@ -1093,7 +1088,6 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
     </div>
   );
 }
-
 
 
 
