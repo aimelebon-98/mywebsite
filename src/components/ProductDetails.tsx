@@ -382,7 +382,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                             e.preventDefault();
                             e.stopPropagation();
                             const rSizes: string[] = (() => { try { return JSON.parse(rp.sizes || "[]"); } catch { return []; } })();
-                            const rColors: string[] = (() => { try { return JSON.parse(rp.colors || "[]"); } catch { return []; } })();
+                            const rColors: string[] = parseColorVariants(rp.colors).map(v => v.name);
                             addItem({
                               id: rp.id,
                               name: rp.name,

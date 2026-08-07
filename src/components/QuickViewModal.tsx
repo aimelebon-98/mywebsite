@@ -11,6 +11,7 @@ import { useWishlist } from "@/lib/wishlist-context";
 import ProductImage from "./ProductImage";
 import { useTranslations, useLocale } from "next-intl";
 import { getProductName, getProductShortDescription } from "@/lib/product-i18n";
+import { parseColorVariants } from "@/lib/color-variants";
 
 interface QuickViewModalProps {
   product: Product;
@@ -40,9 +41,7 @@ export default function QuickViewModal({ product, open, onClose }: QuickViewModa
   const sizes: string[] = (() => {
     try { return JSON.parse(product.sizes || "[]"); } catch { return []; }
   })();
-  const colors: string[] = (() => {
-    try { return JSON.parse(product.colors || "[]"); } catch { return []; }
-  })();
+  const colors: string[] = parseColorVariants(product.colors).map(v => v.name);
 
   const [selectedSize, setSelectedSize] = useState<string>(sizes[0] || "One Size");
   const [selectedColor, setSelectedColor] = useState<string>(colors[0] || "Default");

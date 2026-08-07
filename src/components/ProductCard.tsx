@@ -14,6 +14,7 @@ import StockBadge from "./StockBadge";
 import QuickViewModal from "./QuickViewModal";
 import { useTranslations, useLocale } from "next-intl";
 import { getProductName } from "@/lib/product-i18n";
+import { parseColorVariants } from "@/lib/color-variants";
 
 interface ProductCardProps {
   product: Product;
@@ -43,9 +44,7 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
   const sizes: string[] = (() => {
     try { return JSON.parse(product.sizes || "[]"); } catch { return []; }
   })();
-  const colors: string[] = (() => {
-    try { return JSON.parse(product.colors || "[]"); } catch { return []; }
-  })();
+  const colors: string[] = parseColorVariants(product.colors).map(v => v.name);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();

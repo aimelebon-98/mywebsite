@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { ShoppingBag, ChevronLeft, ChevronRight, ZoomIn, X } from "lucide-react";
@@ -29,6 +29,18 @@ export default function ProductGallery({ images, productName }: Props) {
     setActiveIdx(0);
     setLoaded({});
   }, [productName]);
+
+  // Listen for color-variant image swap from ProductDetails
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<{ url: string }>).detail;
+      if (!detail || !detail.url) return;
+      const idx = validImages.findIndex((u) => u === detail.url);
+      if (idx >= 0) setActiveIdx(idx);
+    };
+    window.addEventListener("swap-main-image", handler);
+    return () => window.removeEventListener("swap-main-image", handler);
+  }, [validImages]);
 
   // Detect hover-capable device (desktop with mouse)
   useEffect(() => {
