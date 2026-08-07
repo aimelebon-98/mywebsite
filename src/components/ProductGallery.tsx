@@ -185,16 +185,16 @@ export default function ProductGallery({ images, productName }: Props) {
 
         {/* THUMBNAILS */}
         {validImages.length > 1 && (
-          <div className="hidden md:grid grid-cols-5 gap-2">
+          <div className="hidden md:grid grid-cols-5 gap-2 p-1">
             {validImages.slice(0, 5).map((img, i) => (
               <button
                 key={i}
                 onClick={() => setActiveIdx(i)}
                 aria-label={`View image ${i + 1}`}
-                className={`relative aspect-square rounded-xl overflow-hidden bg-gray-100 p-1 transition-all ${
+                className={`relative aspect-square rounded-xl overflow-hidden bg-gray-100 transition-all border-2 ${
                   i === activeIdx
-                    ? "ring-2 ring-gray-900 ring-offset-1"
-                    : "hover:opacity-80 opacity-60"
+                    ? "border-gray-900 p-0.5"
+                    : "border-transparent hover:opacity-80 opacity-60"
                 }`}
               >
                 <img
