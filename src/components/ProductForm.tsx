@@ -5,6 +5,8 @@ import { useState, useMemo } from "react";
 import { useCurrency } from "@/lib/currency-context";
 import { CURRENCIES } from "@/lib/currency";
 import { parseColorVariants, serializeColorVariants, type ColorVariant } from "@/lib/color-variants";
+import ImageUploader from "@/components/ImageUploader";
+import { detectColorsFromUrl } from "@/lib/color-detect";
 // Structural types (accept both schema types and local admin types)
 type ProductLike = {
   id?: string;
@@ -414,13 +416,7 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
                 Main Image URL <span className="font-normal normal-case text-gray-400">(shown in cards)</span>
               </label>
-              <input
-                type="url"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="https://example.com/shoe.jpg"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gray-900 transition"
-              />
+              <ImageUploader value={imageUrl} onChange={setImageUrl} placeholder="Paste image URL or upload..." />
               {imageUrl && (
                 <div className="mt-3 relative w-24 h-24 bg-gray-100 rounded-xl overflow-hidden">
                   <img src={imageUrl} alt="Main preview" className="w-full h-full object-cover" />
@@ -433,38 +429,19 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
                 Additional Images <span className="font-normal normal-case text-gray-400">(gallery)</span>
               </label>
-              <div className="flex gap-2">
-                <input
-                  type="url"
-                  value={newImageUrl}
-                  onChange={(e) => setNewImageUrl(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      const url = newImageUrl.trim();
-                      if (url && !extraImages.includes(url) && url !== imageUrl) {
-                        setExtraImages([...extraImages, url]);
-                        setNewImageUrl("");
-                      }
-                    }
-                  }}
-                  placeholder="https://... (Enter or click Add)"
-                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gray-900 transition"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    const url = newImageUrl.trim();
-                    if (url && !extraImages.includes(url) && url !== imageUrl) {
-                      setExtraImages([...extraImages, url]);
-                      setNewImageUrl("");
-                    }
-                  }}
-                  className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-semibold hover:bg-gray-800 transition flex-shrink-0"
-                >
-                  Add
-                </button>
-              </div>
+              <ImageUploader
+                value={newImageUrl}
+                onChange={(url) => {
+                  if (url && !extraImages.includes(url) && url !== imageUrl) {
+                    setExtraImages([...extraImages, url]);
+                    setNewImageUrl(```);
+                  } else {
+                    setNewImageUrl(url);
+                  }
+                }}
+                placeholder="Paste gallery image URL or upload..."
+                compact
+              />
 
               {extraImages.length > 0 && (
                 <div className="mt-3 grid grid-cols-4 sm:grid-cols-6 gap-2">
@@ -529,16 +506,27 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
                             placeholder="Color name (e.g. Black/Grey)"
                             className="w-full px-2 py-1.5 border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-gray-900"
                           />
-                          <input
-                            type="url"
+                          <ImageUploader
                             value={cv.image}
-                            onChange={(e) => {
+                            onChange={async (url) => {
                               const next = [...colorVariants];
-                              next[idx] = { ...next[idx], image: e.target.value };
+                              next[idx] = { ...next[idx], image: url };
                               setColorVariants(next);
+                              if (url && !next[idx].name) {
+                                const detected = await detectColorsFromUrl(url, 2);
+                                if (detected) {
+                                  setColorVariants((prev) => {
+                                    const arr = [...prev];
+                                    if (arr[idx] && !arr[idx].name) {
+                                      arr[idx] = { ...arr[idx], name: detected };
+                                    }
+                                    return arr;
+                                  });
+                                }
+                              }
                             }}
-                            placeholder="Image URL for this color (optional)"
-                            className="w-full px-2 py-1.5 border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-gray-900"
+                            placeholder="Paste URL or upload image for this color"
+                            compact
                           />
                         </div>
                         <button
