@@ -244,7 +244,7 @@ export default function MobileHomeSections() {
 
   if (loading) {
     return (
-      <div className="lg:hidden py-8">
+      <div className="lg:hidden py-8 min-h-[600px]">
         <div className="grid grid-cols-2 gap-3 px-3">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="animate-pulse">

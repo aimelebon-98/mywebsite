@@ -45,4 +45,13 @@
     "tailwindcss": "4.1.17",
     "typescript": "5.9.3"
   }
+,
+  "browserslist": [
+    "chrome >= 100",
+    "firefox >= 100",
+    "safari >= 15",
+    "edge >= 100",
+    "not dead",
+    "not IE 11"
+  ]
 }
