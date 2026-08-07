@@ -193,7 +193,7 @@ export default function ProductGallery({ images, productName }: Props) {
                 aria-label={`View image ${i + 1}`}
                 className={`relative aspect-square rounded-xl overflow-hidden bg-gray-100 transition-all ${
                   i === activeIdx
-                    ? "ring-2 ring-gray-900 ring-offset-2"
+                    ? "ring-2 ring-gray-900 ring-offset-1"
                     : "hover:opacity-80 opacity-60"
                 }`}
               >
