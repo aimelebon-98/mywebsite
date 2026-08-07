@@ -3,40 +3,75 @@ import { CURRENCIES, COUNTRY_TO_CURRENCY, type CurrencyCode } from "@/lib/curren
 
 const COOKIE_KEY = "ndz_currency";
 
-// Server-side cache for rates (1 hour) - keeps SSR fast
 let cachedRates: Record<string, number> | null = null;
 let cachedAt = 0;
 const RATES_TTL = 60 * 60 * 1000;
 
+// Per-IP geo cache to avoid repeated external lookups
+const geoCache = new Map<string, { country: string; ts: number }>();
+const GEO_TTL = 60 * 60 * 1000;
+
+async function externalGeo(ip: string): Promise<string> {
+  if (!ip) return "";
+  const cached = geoCache.get(ip);
+  if (cached && Date.now() - cached.ts < GEO_TTL) return cached.country;
+
+  try {
+    const r = await fetch(`http://ip-api.com/json/${ip}?fields=countryCode`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(1500),
+    });
+    if (r.ok) {
+      const j = await r.json();
+      if (j.countryCode && typeof j.countryCode === "string") {
+        geoCache.set(ip, { country: j.countryCode, ts: Date.now() });
+        return j.countryCode;
+      }
+    }
+  } catch { /* ignore */ }
+  return "";
+}
+
 export async function getServerCurrency(): Promise<CurrencyCode> {
   try {
+    // 1. Cookie (user's explicit choice) - highest priority
     const store = await cookies();
     const raw = store.get(COOKIE_KEY)?.value;
     if (raw && raw in CURRENCIES) return raw as CurrencyCode;
 
+    // 2. Geo detection - Vercel header + fallback for African mobile IPs
     const h = await headers();
-    const country = h.get("x-vercel-ip-country") || h.get("cf-ipcountry") || "";
-    if (country && COUNTRY_TO_CURRENCY[country.toUpperCase()]) {
-      return COUNTRY_TO_CURRENCY[country.toUpperCase()];
+    const vercelCountry = (h.get("x-vercel-ip-country") || h.get("cf-ipcountry") || "").toUpperCase();
+    const ip = (h.get("x-forwarded-for") || "").split(",")[0].trim() || h.get("x-real-ip") || "";
+
+    let finalCountry = vercelCountry;
+
+    // If Vercel says a suspect misroute country, double-check with external geo
+    const SUSPECT = ["FR", "GB", "DE", "US", "NL", "IE"];
+    if (ip && (!vercelCountry || SUSPECT.includes(vercelCountry))) {
+      const external = await externalGeo(ip);
+      if (external) {
+        const externalCurrency = COUNTRY_TO_CURRENCY[external.toUpperCase()];
+        const vercelCurrency = COUNTRY_TO_CURRENCY[vercelCountry] || "USD";
+        const LOCAL = ["NGN", "XOF", "GHS", "KES", "ZAR"];
+        if (externalCurrency && LOCAL.includes(externalCurrency) && !LOCAL.includes(vercelCurrency)) {
+          finalCountry = external.toUpperCase();
+        }
+      }
+    }
+
+    if (finalCountry && COUNTRY_TO_CURRENCY[finalCountry]) {
+      return COUNTRY_TO_CURRENCY[finalCountry];
     }
   } catch { /* ignore */ }
   return "USD";
 }
 
-/**
- * Fetch live FX rates server-side so SSR can format prices correctly.
- * Cached in memory for 1 hour.
- * Falls back to hardcoded rates only if the FX API is totally unreachable.
- */
 export async function getServerRates(baseUrl?: string): Promise<Record<string, number>> {
-  if (cachedRates && Date.now() - cachedAt < RATES_TTL) {
-    return cachedRates;
-  }
+  if (cachedRates && Date.now() - cachedAt < RATES_TTL) return cachedRates;
 
   const SUPPORTED = ["USD", "EUR", "GBP", "NGN", "GHS", "XOF", "KES", "ZAR"];
-
   try {
-    // Direct call to open-source FX API (same source as /api/exchange-rates)
     const res = await fetch("https://open.er-api.com/v6/latest/USD", {
       next: { revalidate: 3600 },
     });
@@ -44,9 +79,7 @@ export async function getServerRates(baseUrl?: string): Promise<Record<string, n
     if (data.result === "success" && data.rates) {
       const filtered: Record<string, number> = {};
       for (const code of SUPPORTED) {
-        if (typeof data.rates[code] === "number") {
-          filtered[code] = data.rates[code];
-        }
+        if (typeof data.rates[code] === "number") filtered[code] = data.rates[code];
       }
       cachedRates = filtered;
       cachedAt = Date.now();
@@ -55,9 +88,6 @@ export async function getServerRates(baseUrl?: string): Promise<Record<string, n
   } catch (e) {
     console.warn("SSR rates fetch failed:", e);
   }
-
-  if (cachedRates) return cachedRates; // stale is better than nothing
-
-  // Emergency fallback (should never hit in practice)
+  if (cachedRates) return cachedRates;
   return { USD: 1, EUR: 0.92, GBP: 0.79, NGN: 1500, GHS: 12.5, XOF: 600, KES: 128, ZAR: 18.5 };
 }
