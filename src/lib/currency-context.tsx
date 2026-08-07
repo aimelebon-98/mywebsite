@@ -29,10 +29,10 @@ function writeCurrencyCookie(c: string) {
 
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
 
-export function CurrencyProvider({ children, initialCurrency }: { children: ReactNode; initialCurrency?: CurrencyCode }) {
+export function CurrencyProvider({ children, initialCurrency, initialRates }: { children: ReactNode; initialCurrency?: CurrencyCode; initialRates?: Record<string, number> }) {
   // Initialize with the server-provided currency (from cookie) so first render matches SSR.
   const [currency, setCurrencyState] = useState<CurrencyCode>(initialCurrency || "USD");
-  const [rates, setRates] = useState<Record<string, number>>({});
+  const [rates, setRates] = useState<Record<string, number>>(initialRates || {});
   const [autoDetected, setAutoDetected] = useState(false);
   const [visitorCountry, setVisitorCountry] = useState<string>("");
   const [loading, setLoading] = useState(true);

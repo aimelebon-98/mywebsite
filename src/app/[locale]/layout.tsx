@@ -8,7 +8,7 @@ import { routing } from "@/i18n/routing";
 import { CartProvider } from "@/lib/cart-context";
 import { WishlistProvider } from "@/lib/wishlist-context";
 import { CurrencyProvider } from "@/lib/currency-context";
-import { getServerCurrency } from "@/lib/server-currency";
+import { getServerCurrency, getServerRates } from "@/lib/server-currency";
 import { CustomerProvider } from "@/lib/customer-context";
 import ConditionalWidgets from "@/components/ConditionalWidgets";
 import ThemeColorSwitcher from "@/components/ThemeColorSwitcher";
@@ -140,7 +140,10 @@ export default async function LocaleLayout({
     },
   ];
 
-  const initialCurrency = await getServerCurrency();
+  const [initialCurrency, initialRates] = await Promise.all([
+      getServerCurrency(),
+      getServerRates(),
+    ]);
   return (
     <html lang={locale} className={inter.variable}>
       <head>
@@ -160,7 +163,7 @@ export default async function LocaleLayout({
         <NextIntlClientProvider locale={locale} messages={messages}>
           <CartProvider>
             <CustomerProvider>
-            <CurrencyProvider initialCurrency={initialCurrency}>
+            <CurrencyProvider initialCurrency={initialCurrency} initialRates={initialRates}>
             <WishlistProvider>
               {children}
               <ConditionalWidgets />
