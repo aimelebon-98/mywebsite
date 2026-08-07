@@ -10,7 +10,6 @@ export async function GET() {
     const slug = "nike-chunky-trail-sneaker-black-grey";
     const slugFr = "basket-nike-chunky-trail-noir-gris";
 
-    // Idempotent: remove existing rows matching either slug
     await db.delete(products).where(
       or(eq(products.slug, slug), eq(products.slugFr, slugFr))
     );
@@ -30,6 +29,18 @@ export async function GET() {
 <li>Reinforced heel cage for stability and durability</li>
 <li>Rope-style laces with metallic hardware</li>
 </ul>
+<table>
+<tbody>
+<tr><td>Brand</td><td>Nike</td></tr>
+<tr><td>Style</td><td>Chunky Trail Sneaker</td></tr>
+<tr><td>Colour</td><td>Black/Grey</td></tr>
+<tr><td>Upper Material</td><td>Mesh & Synthetic with TPU Overlays</td></tr>
+<tr><td>Outsole</td><td>Chunky Rubber Lug</td></tr>
+<tr><td>Closure</td><td>Rope-style Laces</td></tr>
+<tr><td>Platform</td><td>Yes (Chunky Height)</td></tr>
+<tr><td>Available Sizes</td><td>EU 38 - 45</td></tr>
+</tbody>
+</table>
 <p>Style it with cargo pants, oversized hoodies or slim denim for that effortlessly cool techwear-meets-streetwear look that dominates 2025 sneaker culture. Whether you are chasing sunsets, hitting the club, or making a statement on the daily commute, these sneakers deliver on every front.</p>
 <p>Available in <strong>EU sizes 38 to 45</strong> and shipped fresh in the original Nike box. Order today from <strong>New Deal Zone</strong> and elevate your rotation with a pair built to turn heads.</p>`;
 
@@ -46,6 +57,18 @@ export async function GET() {
 <li>Renfort talonnier pour la stabilit\u00e9 et la durabilit\u00e9</li>
 <li>Lacets style corde avec ferrures m\u00e9talliques</li>
 </ul>
+<table>
+<tbody>
+<tr><td>Marque</td><td>Nike</td></tr>
+<tr><td>Style</td><td>Basket Chunky Trail</td></tr>
+<tr><td>Couleur</td><td>Noir/Gris</td></tr>
+<tr><td>Mati\u00e8re</td><td>Mesh & Synth\u00e9tique (surcouches TPU)</td></tr>
+<tr><td>Semelle</td><td>Caoutchouc \u00e0 crampons</td></tr>
+<tr><td>Fermeture</td><td>Lacets style corde</td></tr>
+<tr><td>Plateforme</td><td>Oui (Chunky)</td></tr>
+<tr><td>Pointures</td><td>EU 38 - 45</td></tr>
+</tbody>
+</table>
 <p>Associez-les \u00e0 des pantalons cargo, des sweats oversize ou du denim slim pour ce look techwear-meets-streetwear effortlessly cool qui domine la culture sneaker 2025. Que vous chassiez les couchers de soleil, sortiez en club ou marquiez les esprits lors du trajet quotidien, ces baskets livrent sur tous les fronts.</p>
 <p>Disponibles en <strong>pointures EU 38 \u00e0 45</strong> et exp\u00e9di\u00e9es fra\u00eeches dans la bo\u00eete Nike d\u2019origine. Commandez aujourd\u2019hui sur <strong>New Deal Zone</strong> et enrichissez votre collection avec une paire con\u00e7ue pour faire tourner les t\u00eates.</p>`;
 
@@ -60,13 +83,12 @@ export async function GET() {
       descriptionFr: shortDescriptionFr,
       shortDescriptionFr,
       longDescriptionFr,
-      // Price stored in USD (base currency). 18 USD approx N25,000 at current rates.
       price: "18",
       comparePrice: null,
       category: "sneakers",
       brand: "Nike",
       sizes: JSON.stringify(["38", "39", "40", "41", "42", "43", "44", "45"]),
-      colors: JSON.stringify(["Black/Grey"]),
+      colors: JSON.stringify([{ name: "Black/Grey", image: "https://i.ibb.co/8L9m4dp2/nike-chunky-trail-sneaker-black-grey.jpg" }]),
       imageUrl,
       images: JSON.stringify([imageUrl]),
       stock: 25,
@@ -89,7 +111,7 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      message: "Product seeded successfully",
+      message: "Product seeded with spec table in description",
       slug,
       slugFr,
       urls: {
