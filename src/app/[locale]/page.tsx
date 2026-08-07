@@ -64,6 +64,24 @@ export default async function HomePage() {
     ];
   }
 
+  // Fetch mobile data server-side (no client loading = no CLS)
+  let mobileProducts: Product[] = [];
+  let mobileCategories: { slug: string; nameEn: string; nameFr: string | null; imageUrl: string | undefined }[] = [];
+  let whatsapp = "";
+  try {
+    const [prods, cats, settingsRow] = await Promise.all([
+      db.select().from(productsTable).where(eq(productsTable.active, true)).limit(40),
+      db.select().from(categoriesTable).where(eq(categoriesTable.active, true)).orderBy(asc(categoriesTable.sortOrder)),
+      db.select().from(settingsTable).limit(1),
+    ]);
+    mobileProducts = prods.map(p => isFr ? { ...p, name: p.nameFr || p.name, slug: p.slugFr || p.slug } : p);
+    mobileCategories = cats.map(c => ({
+      slug: c.slug, nameEn: c.nameEn, nameFr: c.nameFr,
+      imageUrl: CATEGORY_IMAGES[c.slug] || DEFAULT_CATEGORY_IMAGE,
+    }));
+    if (settingsRow[0]?.whatsappNumber) whatsapp = settingsRow[0].whatsappNumber;
+  } catch { /* fallback to empty */ }
+
   const features = [
     { icon: Truck,       title: t("featureShipping"), desc: t("featureShippingDesc") },
     { icon: Shield,      title: t("featurePayment"),  desc: t("featurePaymentDesc")  },
@@ -76,7 +94,7 @@ export default async function HomePage() {
       <Navbar />
 
       {/* MOBILE HERO */}
-      <MobileHomeHero />
+      <MobileHomeHero products={mobileProducts} categories={mobileCategories} whatsapp={whatsapp} />
 
       {/* HERO (desktop) */}
       <section className="hidden lg:block relative overflow-hidden">
@@ -232,7 +250,7 @@ export default async function HomePage() {
         </section>
       )}
 
-      <MobileHomeSections />
+      <MobileHomeSections products={mobileProducts} categories={mobileCategories} />
       <div className="hidden lg:block"><HomeProducts /></div>
         <HomeBlogSection />
 

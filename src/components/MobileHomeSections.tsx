@@ -1,11 +1,10 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState } from "react";
 import { useLocale } from "next-intl";
 import { useCurrency } from "@/lib/currency-context";
-import { ChevronRight, Heart, Flame, Sparkles, TrendingUp } from "lucide-react";
+import { ChevronRight, Heart } from "lucide-react";
 
 interface Product {
   id: string;
@@ -30,14 +29,10 @@ interface CategoryItem {
   imageUrl?: string;
 }
 
-const CAT_IMAGES: Record<string, string> = {
-  sneakers: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80",
-  running:  "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400&q=80",
-  formal:   "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=400&q=80",
-  boots:    "https://images.unsplash.com/photo-1520639888713-7851133b1ed0?w=400&q=80",
-  sandals:  "https://images.unsplash.com/photo-1603487742131-4160ec999306?w=400&q=80",
-  casual:   "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=400&q=80",
-};
+interface Props {
+  products: Product[];
+  categories: CategoryItem[];
+}
 
 const CAT_TINTS: Record<string, string> = {
   sneakers: "bg-blue-50",
@@ -48,21 +43,13 @@ const CAT_TINTS: Record<string, string> = {
   casual:   "bg-purple-50",
 };
 
-// Horizontal scrolling product row (3 visible at a time)
 function ProductScroll({ products, title, badge, badgeColor, locale, isFr, formatPrice, viewAllHref }: {
-  products: Product[];
-  title: string;
-  badge?: string;
-  badgeColor?: string;
-  locale: string;
-  isFr: boolean;
-  formatPrice: (n: number) => string;
-  viewAllHref: string;
+  products: Product[]; title: string; badge?: string; badgeColor?: string;
+  locale: string; isFr: boolean; formatPrice: (n: number) => string; viewAllHref: string;
 }) {
-  // Always render section (with reserved space) to prevent layout shift when products load
-
+  if (products.length === 0) return null;
   return (
-    <div className="bg-white pt-3 pb-3 border-t-4 border-gray-100 min-h-[220px]">
+    <div className="bg-white pt-3 pb-3 border-t-4 border-gray-100">
       <div className="flex items-center justify-between px-3 mb-3">
         <div className="flex items-center gap-2">
           {badge && (
@@ -77,7 +64,6 @@ function ProductScroll({ products, title, badge, badgeColor, locale, isFr, forma
           <ChevronRight className="w-3 h-3" />
         </Link>
       </div>
-
       <div className="overflow-x-auto scrollbar-hide">
         <div className="flex gap-2 px-3 pb-1 min-w-max">
           {products.map(p => {
@@ -86,21 +72,15 @@ function ProductScroll({ products, title, badge, badgeColor, locale, isFr, forma
             const price = parseFloat(p.price);
             const comparePrice = p.comparePrice ? parseFloat(p.comparePrice) : null;
             const discount = comparePrice && comparePrice > price
-              ? Math.round(((comparePrice - price) / comparePrice) * 100)
-              : 0;
+              ? Math.round(((comparePrice - price) / comparePrice) * 100) : 0;
             const rating = parseFloat(p.rating || "0");
             return (
-              <Link
-                key={p.id}
-                href={`/${locale}/product/${displaySlug}`}
-                className="w-[110px] flex-shrink-0 bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm active:scale-95 transition"
-              >
+              <Link key={p.id} href={`/${locale}/product/${displaySlug}`}
+                className="w-[110px] flex-shrink-0 bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm active:scale-95 transition">
                 <div className="relative aspect-square bg-gray-50">
                   {p.imageUrl && <Image src={p.imageUrl} alt={displayName} fill sizes="130px" quality={75} className="object-cover" />}
                   {discount > 0 && (
-                    <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-black rounded">
-                      -{discount}%
-                    </div>
+                    <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-black rounded">-{discount}%</div>
                   )}
                 </div>
                 <div className="p-1.5">
@@ -126,20 +106,13 @@ function ProductScroll({ products, title, badge, badgeColor, locale, isFr, forma
   );
 }
 
-// 2-column grid section
 function ProductGrid({ products, title, locale, isFr, formatPrice, viewAllHref, bgTint }: {
-  products: Product[];
-  title: string;
-  locale: string;
-  isFr: boolean;
-  formatPrice: (n: number) => string;
-  viewAllHref: string;
-  bgTint?: string;
+  products: Product[]; title: string; locale: string; isFr: boolean;
+  formatPrice: (n: number) => string; viewAllHref: string; bgTint?: string;
 }) {
-  // Always render section (with reserved space) to prevent layout shift when products load
-
+  if (products.length === 0) return null;
   return (
-    <div className={"pt-4 pb-4 border-t-4 border-gray-100 min-h-[400px] " + (bgTint || "bg-white")}>
+    <div className={"pt-4 pb-4 border-t-4 border-gray-100 " + (bgTint || "bg-white")}>
       <div className="flex items-center justify-between px-3 mb-3">
         <span className="text-sm font-bold text-gray-900">{title}</span>
         <Link href={viewAllHref} className="text-xs font-semibold text-gray-500 hover:text-[#CA3F2E] flex items-center gap-0.5">
@@ -156,23 +129,15 @@ function ProductGrid({ products, title, locale, isFr, formatPrice, viewAllHref, 
           const discount = comparePrice && comparePrice > price
             ? Math.round(((comparePrice - price) / comparePrice) * 100) : 0;
           return (
-            <Link
-              key={p.id}
-              href={`/${locale}/product/${displaySlug}`}
-              className="bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm active:scale-95 transition"
-            >
+            <Link key={p.id} href={`/${locale}/product/${displaySlug}`}
+              className="bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm active:scale-95 transition">
               <div className="relative aspect-square bg-gray-50">
                 {p.imageUrl && <Image src={p.imageUrl} alt={displayName} fill sizes="(max-width: 640px) 50vw, 300px" quality={80} className="object-cover" />}
                 {discount > 0 && (
-                  <div className="absolute top-2 left-2 px-2 py-0.5 bg-red-500 text-white text-[10px] font-black rounded">
-                    -{discount}%
-                  </div>
+                  <div className="absolute top-2 left-2 px-2 py-0.5 bg-red-500 text-white text-[10px] font-black rounded">-{discount}%</div>
                 )}
-                <button
-                  className="absolute top-2 right-2 w-7 h-7 bg-white/90 rounded-full flex items-center justify-center shadow"
-                  aria-label="Wishlist"
-                  onClick={(e) => e.preventDefault()}
-                >
+                <button className="absolute top-2 right-2 w-7 h-7 bg-white/90 rounded-full flex items-center justify-center shadow"
+                  aria-label="Wishlist" onClick={(e) => e.preventDefault()}>
                   <Heart className="w-3.5 h-3.5 text-gray-400" />
                 </button>
               </div>
@@ -191,38 +156,10 @@ function ProductGrid({ products, title, locale, isFr, formatPrice, viewAllHref, 
   );
 }
 
-export default function MobileHomeSections() {
+export default function MobileHomeSections({ products, categories }: Props) {
   const locale = useLocale();
   const isFr = locale === "fr";
   const { format: formatPrice } = useCurrency();
-
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<CategoryItem[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const url = isFr ? "/api/products?locale=fr" : "/api/products";
-    fetch(url).then(r => r.ok ? r.json() : []).then(data => {
-      if (Array.isArray(data)) setProducts(data);
-    }).catch(() => {}).finally(() => setLoading(false));
-
-    fetch("/api/categories").then(r => r.ok ? r.json() : null).then(data => {
-      if (Array.isArray(data) && data.length > 0) {
-        setCategories(data.map((c: { slug: string; nameEn: string; nameFr?: string }) => ({
-          slug: c.slug, nameEn: c.nameEn, nameFr: c.nameFr, imageUrl: CAT_IMAGES[c.slug],
-        })));
-      } else {
-        setCategories([
-          { slug: "sneakers", nameEn: "Sneakers", nameFr: "Baskets",       imageUrl: CAT_IMAGES.sneakers },
-          { slug: "running",  nameEn: "Running",  nameFr: "Course",        imageUrl: CAT_IMAGES.running  },
-          { slug: "formal",   nameEn: "Formal",   nameFr: "Habill\u00e9",  imageUrl: CAT_IMAGES.formal   },
-          { slug: "boots",    nameEn: "Boots",    nameFr: "Bottes",        imageUrl: CAT_IMAGES.boots    },
-          { slug: "sandals",  nameEn: "Sandals",  nameFr: "Sandales",      imageUrl: CAT_IMAGES.sandals  },
-          { slug: "casual",   nameEn: "Casual",   nameFr: "D\u00e9contract\u00e9", imageUrl: CAT_IMAGES.casual },
-        ]);
-      }
-    }).catch(() => {});
-  }, [isFr]);
 
   const featured    = products.filter(p => p.featured).slice(0, 10);
   const newArrivals = products.filter(p => (p.tags || "").includes("new-arrival")).slice(0, 10);
@@ -232,7 +169,6 @@ export default function MobileHomeSections() {
     .sort((a, b) => parseFloat(b.rating ?? "0") - parseFloat(a.rating ?? "0")).slice(0, 10);
   if (topRated.length < 4) topRated.push(...products.slice(0, 10 - topRated.length));
 
-  // Popular shoe brands - hardcoded for consistent branding
   const brands = [
     { name: "Nike",       tagline: isFr ? "Just Do It" : "Just Do It" },
     { name: "Adidas",     tagline: isFr ? "Impossible n\u0027est rien" : "Impossible is Nothing" },
@@ -242,25 +178,12 @@ export default function MobileHomeSections() {
     { name: "Converse",   tagline: isFr ? "Cr\u00e9\u00e9 par toi" : "Made by You" },
   ];
 
-  // Render nothing while loading - prevents skeleton->content layout shift.
-  // Container below reserves space so LCP element doesnt shift.
-  if (loading) return <div className="lg:hidden min-h-[2200px]" />;
-
   return (
     <div className="lg:hidden">
-      {/* FEATURED - horizontal scroll */}
-      <ProductScroll
-        products={featured}
-        title={isFr ? "Produits vedettes" : "Featured Products"}
-        badge={isFr ? "VEDETTE" : "FEATURED"}
-        badgeColor="#f59e0b"
-        locale={locale}
-        isFr={isFr}
-        formatPrice={formatPrice}
-        viewAllHref={`/${locale}/shop`}
-      />
+      <ProductScroll products={featured} title={isFr ? "Produits vedettes" : "Featured Products"}
+        badge={isFr ? "VEDETTE" : "FEATURED"} badgeColor="#f59e0b"
+        locale={locale} isFr={isFr} formatPrice={formatPrice} viewAllHref={`/${locale}/shop`} />
 
-      {/* PROMO BANNER 1 - brand red */}
       <div className="bg-white pt-3 pb-3">
         <Link href={`/${locale}/shop?onSale=1`} className="block mx-3">
           <div className="relative rounded-2xl overflow-hidden h-24 shadow-md" style={{ background: "linear-gradient(135deg, #CA3F2E 0%, #8B2A1E 100%)" }}>
@@ -276,7 +199,6 @@ export default function MobileHomeSections() {
         </Link>
       </div>
 
-      {/* BIG CATEGORY GRID - 2 columns with images */}
       {categories.length > 0 && (
         <div className="bg-white pt-4 pb-4 border-t-4 border-gray-100">
           <div className="px-3 mb-3">
@@ -284,11 +206,8 @@ export default function MobileHomeSections() {
           </div>
           <div className="grid grid-cols-2 gap-2 px-3">
             {categories.map(cat => (
-              <Link
-                key={cat.slug}
-                href={`/${locale}/shop?category=${cat.slug}`}
-                className={"relative rounded-xl overflow-hidden aspect-[4/3] shadow-sm active:scale-95 transition " + (CAT_TINTS[cat.slug] || "bg-gray-100")}
-              >
+              <Link key={cat.slug} href={`/${locale}/shop?category=${cat.slug}`}
+                className={"relative rounded-xl overflow-hidden aspect-[4/3] shadow-sm active:scale-95 transition " + (CAT_TINTS[cat.slug] || "bg-gray-100")}>
                 {cat.imageUrl && (
                   <Image src={cat.imageUrl} alt={cat.nameEn} fill sizes="(max-width: 640px) 50vw, 200px" quality={75} className="object-cover" />
                 )}
@@ -304,19 +223,10 @@ export default function MobileHomeSections() {
         </div>
       )}
 
-      {/* NEW ARRIVALS - horizontal scroll */}
-      <ProductScroll
-        products={newArrivals}
-        title={isFr ? "Nouveaut\u00e9s" : "New Arrivals"}
-        badge={isFr ? "NOUVEAU" : "NEW"}
-        badgeColor="#10b981"
-        locale={locale}
-        isFr={isFr}
-        formatPrice={formatPrice}
-        viewAllHref={`/${locale}/shop?sort=newest`}
-      />
+      <ProductScroll products={newArrivals} title={isFr ? "Nouveaut\u00e9s" : "New Arrivals"}
+        badge={isFr ? "NOUVEAU" : "NEW"} badgeColor="#10b981"
+        locale={locale} isFr={isFr} formatPrice={formatPrice} viewAllHref={`/${locale}/shop?sort=newest`} />
 
-      {/* PROMO BANNER 2 - dark */}
       <div className="bg-white pt-3 pb-3">
         <Link href={`/${locale}/blog`} className="block mx-3">
           <div className="relative rounded-2xl overflow-hidden h-24 shadow-md bg-gradient-to-r from-gray-900 to-gray-700">
@@ -332,63 +242,37 @@ export default function MobileHomeSections() {
         </Link>
       </div>
 
-      {/* ON SALE - 2-column grid */}
-      <ProductGrid
-        products={onSale}
-        title={isFr ? "En solde" : "On Sale"}
-        locale={locale}
-        isFr={isFr}
-        formatPrice={formatPrice}
-        viewAllHref={`/${locale}/shop?onSale=1`}
-        bgTint="bg-red-50/30"
-      />
+      <ProductGrid products={onSale} title={isFr ? "En solde" : "On Sale"}
+        locale={locale} isFr={isFr} formatPrice={formatPrice}
+        viewAllHref={`/${locale}/shop?onSale=1`} bgTint="bg-red-50/30" />
 
-      {/* TOP RATED - horizontal scroll */}
-      <ProductScroll
-        products={topRated}
-        title={isFr ? "Meilleures ventes" : "Best Selling Products"}
-        badge={isFr ? "TOP" : "TOP"}
-        badgeColor="#ec4899"
-        locale={locale}
-        isFr={isFr}
-        formatPrice={formatPrice}
-        viewAllHref={`/${locale}/shop?sort=rating`}
-      />
+      <ProductScroll products={topRated} title={isFr ? "Meilleures ventes" : "Best Selling Products"}
+        badge={isFr ? "TOP" : "TOP"} badgeColor="#ec4899"
+        locale={locale} isFr={isFr} formatPrice={formatPrice} viewAllHref={`/${locale}/shop?sort=rating`} />
 
-      {/* SHOP BY BRAND */}
-      {true && (
-        <div className="bg-white pt-4 pb-6 border-t-4 border-gray-100">
-          <div className="flex items-center justify-between px-3 mb-3">
-            <div className="flex items-center gap-2">
-              <div className="px-2 py-1 rounded bg-amber-400">
-                <span className="text-gray-900 text-[10px] font-black tracking-wide">{isFr ? "MARQUES OFFICIELLES" : "OFFICIAL BRANDS"}</span>
-              </div>
+      <div className="bg-white pt-4 pb-6 border-t-4 border-gray-100">
+        <div className="flex items-center justify-between px-3 mb-3">
+          <div className="flex items-center gap-2">
+            <div className="px-2 py-1 rounded bg-amber-400">
+              <span className="text-gray-900 text-[10px] font-black tracking-wide">{isFr ? "MARQUES OFFICIELLES" : "OFFICIAL BRANDS"}</span>
             </div>
-            <Link href={`/${locale}/shop`} className="text-xs font-semibold text-gray-500 hover:text-[#CA3F2E] flex items-center gap-0.5">
-              {isFr ? "Voir tout" : "See all"}
-              <ChevronRight className="w-3 h-3" />
-            </Link>
           </div>
-          <div className="grid grid-cols-3 gap-2 px-3">
-            {brands.map((brand) => (
-              <Link
-                key={brand.name}
-                href={`/${locale}/shop?brand=${encodeURIComponent(brand.name)}`}
-                className="aspect-square bg-gray-900 rounded-xl flex flex-col items-center justify-center p-2 shadow-sm active:scale-95 transition group border border-gray-800 hover:border-amber-400"
-              >
-                <span className="text-white text-sm font-black text-center leading-tight tracking-wide group-hover:text-amber-400 transition">
-                  {brand.name}
-                </span>
-                <span className="text-[8px] text-gray-400 mt-1 text-center leading-tight line-clamp-1 group-hover:text-gray-300 transition">
-                  {brand.tagline}
-                </span>
-              </Link>
-            ))}
-          </div>
+          <Link href={`/${locale}/shop`} className="text-xs font-semibold text-gray-500 hover:text-[#CA3F2E] flex items-center gap-0.5">
+            {isFr ? "Voir tout" : "See all"}
+            <ChevronRight className="w-3 h-3" />
+          </Link>
         </div>
-      )}
+        <div className="grid grid-cols-3 gap-2 px-3">
+          {brands.map((brand) => (
+            <Link key={brand.name} href={`/${locale}/shop?brand=${encodeURIComponent(brand.name)}`}
+              className="aspect-square bg-gray-900 rounded-xl flex flex-col items-center justify-center p-2 shadow-sm active:scale-95 transition group border border-gray-800 hover:border-amber-400">
+              <span className="text-white text-sm font-black text-center leading-tight tracking-wide group-hover:text-amber-400 transition">{brand.name}</span>
+              <span className="text-[8px] text-gray-400 mt-1 text-center leading-tight line-clamp-1 group-hover:text-gray-300 transition">{brand.tagline}</span>
+            </Link>
+          ))}
+        </div>
+      </div>
 
-      {/* FINAL CTA */}
       <div className="bg-white pt-4 pb-6">
         <Link href={`/${locale}/shop`} className="block mx-3">
           <div className="relative rounded-2xl overflow-hidden p-5 shadow-md" style={{ background: "linear-gradient(135deg, #1f2937 0%, #111827 100%)" }}>

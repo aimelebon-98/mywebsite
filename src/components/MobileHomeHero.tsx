@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -27,14 +27,11 @@ interface CategoryLite {
   nameFr?: string | null;
 }
 
-const FALLBACK_CATS: CategoryLite[] = [
-  { slug: "sneakers", nameEn: "Sneakers",     nameFr: "Baskets" },
-  { slug: "running",  nameEn: "Running",      nameFr: "Course" },
-  { slug: "formal",   nameEn: "Formal",       nameFr: "Habill\u00e9" },
-  { slug: "boots",    nameEn: "Boots",        nameFr: "Bottes" },
-  { slug: "sandals",  nameEn: "Sandals",      nameFr: "Sandales" },
-  { slug: "casual",   nameEn: "Casual",       nameFr: "D\u00e9contract\u00e9" },
-];
+interface Props {
+  products: Product[];
+  categories: CategoryLite[];
+  whatsapp: string;
+}
 
 const CAT_IMAGES: Record<string, string> = {
   sneakers: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&q=80",
@@ -45,37 +42,12 @@ const CAT_IMAGES: Record<string, string> = {
   casual:   "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=300&q=80",
 };
 
-export default function MobileHomeHero() {
+export default function MobileHomeHero({ products, categories, whatsapp }: Props) {
   const locale = useLocale();
   const isFr = locale === "fr";
   const { format: formatPrice } = useCurrency();
-
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<CategoryLite[]>(FALLBACK_CATS);
-  const [whatsapp, setWhatsapp] = useState("");
   const [slideIdx, setSlideIdx] = useState(0);
 
-  // Fetch products, categories, settings
-  useEffect(() => {
-    const url = isFr ? "/api/products?locale=fr" : "/api/products";
-    fetch(url).then(r => r.ok ? r.json() : []).then(data => {
-      if (Array.isArray(data)) setProducts(data);
-    }).catch(() => {});
-
-    fetch("/api/categories").then(r => r.ok ? r.json() : null).then(data => {
-      if (Array.isArray(data) && data.length > 0) {
-        setCategories(data.map((c: { slug: string; nameEn: string; nameFr?: string }) => ({
-          slug: c.slug, nameEn: c.nameEn, nameFr: c.nameFr,
-        })));
-      }
-    }).catch(() => {});
-
-    fetch("/api/settings").then(r => r.ok ? r.json() : null).then(data => {
-      if (data?.whatsappNumber) setWhatsapp(data.whatsappNumber);
-    }).catch(() => {});
-  }, [isFr]);
-
-  // Hero carousel slides (dynamic based on categories)
   const slides = [
     {
       badge: isFr ? "M\u00c9GA VENTE" : "MEGA SALE",
@@ -106,7 +78,6 @@ export default function MobileHomeHero() {
     },
   ];
 
-  // Auto-advance carousel
   useEffect(() => {
     const t = setInterval(() => setSlideIdx(i => (i + 1) % slides.length), 4500);
     return () => clearInterval(t);
@@ -115,7 +86,6 @@ export default function MobileHomeHero() {
   const dealsProducts = products.filter(p => p.comparePrice).slice(0, 10);
   const waPhone = whatsapp.replace(/\D/g, "");
 
-  // Quick action tiles - shoe-themed with fun labels
   const tiles = [
     { label: isFr ? "SAVE MORE"    : "SAVE MORE",    sub: isFr ? "Bonnes affaires" : "Best deals",   href: `/${locale}/shop?onSale=1`,        bg: "bg-gradient-to-br from-yellow-400 to-amber-500", icon: Tag },
     { label: isFr ? "HOT DEALS"    : "HOT DEALS",    sub: isFr ? "Offres chaudes"  : "Hot offers",   href: `/${locale}/shop?sort=newest`,     bg: "bg-gradient-to-br from-red-500 to-orange-600",   icon: Flame },
@@ -125,7 +95,6 @@ export default function MobileHomeHero() {
 
   return (
     <div className="lg:hidden bg-gray-50">
-      {/* SEARCH BAR - full width */}
       <div className="bg-white px-3 py-3 shadow-sm">
         <SearchAutocomplete
           placeholder={isFr ? "Rechercher produits, marques..." : "Search for products, brands..."}
@@ -135,7 +104,6 @@ export default function MobileHomeHero() {
         />
       </div>
 
-      {/* CATEGORY PILLS - horizontal scroll */}
       <div className="bg-white border-t border-gray-100">
         <div className="overflow-x-auto scrollbar-hide">
           <div className="flex gap-1 px-3 py-2 min-w-max">
@@ -159,52 +127,46 @@ export default function MobileHomeHero() {
         </div>
       </div>
 
-      {/* CALL TO ORDER STRIP */}
-      {(whatsapp || true) && (
-        <div className="bg-gray-900 text-white px-3 py-2 flex items-center justify-between text-[11px]">
-          <div className="flex items-center gap-1.5">
-            <Phone className="w-3 h-3" style={{ color: "#CA3F2E" }} />
-            <span className="font-bold">{isFr ? "COMMANDEZ:" : "CALL TO ORDER:"}</span>
-            {waPhone && (
-              <a href={`tel:+${waPhone}`} className="hover:underline truncate max-w-[100px]">+{waPhone}</a>
-            )}
-          </div>
+      <div className="bg-gray-900 text-white px-3 py-2 flex items-center justify-between text-[11px] min-h-[32px]">
+        <div className="flex items-center gap-1.5">
+          <Phone className="w-3 h-3" style={{ color: "#CA3F2E" }} />
+          <span className="font-bold">{isFr ? "COMMANDEZ:" : "CALL TO ORDER:"}</span>
           {waPhone && (
-            <a
-              href={`https://wa.me/${waPhone}`}
-              target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-1 bg-green-600 rounded-md px-2 py-1 hover:bg-green-700 transition"
-            >
-              <MessageCircle className="w-3 h-3" />
-              <span className="font-semibold">WhatsApp</span>
-            </a>
+            <a href={`tel:+${waPhone}`} className="hover:underline truncate max-w-[100px]">+{waPhone}</a>
           )}
         </div>
-      )}
+        {waPhone && (
+          <a
+            href={`https://wa.me/${waPhone}`}
+            target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-1 bg-green-600 rounded-md px-2 py-1 hover:bg-green-700 transition"
+          >
+            <MessageCircle className="w-3 h-3" />
+            <span className="font-semibold">WhatsApp</span>
+          </a>
+        )}
+      </div>
 
-      {/* HERO CAROUSEL */}
-      <div className="px-3 py-3 min-h-[184px]">
-        <div className="relative rounded-2xl overflow-hidden shadow-md" style={{ background: slides[slideIdx].bg }}>
-          <Link href={slides[slideIdx].href} className="block relative h-40">
+      <div className="px-3 py-3">
+        <div className="relative rounded-2xl overflow-hidden shadow-md h-40" style={{ background: slides[slideIdx].bg }}>
+          <Link href={slides[slideIdx].href} className="block relative h-full">
             <div className="absolute inset-0 flex items-center">
-              <div className="flex-1 pl-4 pr-2 py-4 text-white z-10">
+              <div className="flex-1 pl-4 pr-2 py-4 text-white z-10 min-h-[128px]">
                 <div className="inline-block px-2 py-0.5 bg-white/20 backdrop-blur rounded text-[9px] font-black tracking-widest mb-2">
                   {slides[slideIdx].badge}
                 </div>
-                <h3 className="text-lg font-black leading-tight mb-1 drop-shadow">{slides[slideIdx].title}</h3>
-                <p className="text-[11px] opacity-90 mb-3">{slides[slideIdx].subtitle}</p>
+                <h3 className="text-lg font-black leading-tight mb-1 drop-shadow line-clamp-2">{slides[slideIdx].title}</h3>
+                <p className="text-[11px] opacity-90 mb-3 line-clamp-1">{slides[slideIdx].subtitle}</p>
                 <div className="inline-flex items-center gap-1 px-3 py-1.5 bg-white rounded-full text-xs font-bold" style={{ color: "#CA3F2E" }}>
                   {slides[slideIdx].cta}
                   <ChevronRight className="w-3 h-3" />
                 </div>
               </div>
               <div className="w-32 h-32 relative flex-shrink-0 mr-2 rounded-2xl overflow-hidden shadow-lg">
-                <Image src={slides[slideIdx].image} alt={slides[slideIdx].title} fill sizes="150px" quality={80} priority fetchPriority="high" className="object-cover" />
+                <Image src={slides[slideIdx].image} alt={slides[slideIdx].title} fill sizes="128px" quality={80} priority fetchPriority="high" className="object-cover" />
               </div>
             </div>
           </Link>
-
-          {/* Dots indicator */}
           <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
             {slides.map((_, i) => (
               <button
@@ -218,7 +180,6 @@ export default function MobileHomeHero() {
         </div>
       </div>
 
-      {/* QUICK ACTION TILES */}
       <div className="px-3 pb-3 grid grid-cols-4 gap-2">
         {tiles.map((tile, i) => {
           const Icon = tile.icon;
@@ -236,7 +197,6 @@ export default function MobileHomeHero() {
         })}
       </div>
 
-      {/* TODAY'S DEALS - horizontal scroll */}
       {dealsProducts.length > 0 && (
         <div className="bg-white pt-4 pb-3">
           <div className="flex items-center justify-between px-3 mb-3">
@@ -260,8 +220,7 @@ export default function MobileHomeHero() {
                 const price = parseFloat(p.price);
                 const comparePrice = p.comparePrice ? parseFloat(p.comparePrice) : null;
                 const discount = comparePrice && comparePrice > price
-                  ? Math.round(((comparePrice - price) / comparePrice) * 100)
-                  : 0;
+                  ? Math.round(((comparePrice - price) / comparePrice) * 100) : 0;
                 return (
                   <Link
                     key={p.id}
@@ -270,7 +229,7 @@ export default function MobileHomeHero() {
                   >
                     <div className="relative aspect-square bg-gray-50">
                       {p.imageUrl && (
-                        <Image src={p.imageUrl} alt={displayName} fill sizes="(max-width: 640px) 33vw, 128px" quality={75} className="object-cover" />
+                        <Image src={p.imageUrl} alt={displayName} fill sizes="128px" quality={75} className="object-cover" />
                       )}
                       {discount > 0 && (
                         <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-black rounded">
