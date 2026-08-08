@@ -21,8 +21,8 @@ interface ShopSidebarProps {
 }
 
 const PRICE_FLOOR = 0;
-const PRICE_CEILING = 1000;
-const PRICE_STEP = 10;
+const PRICE_CEILING = 5000;
+const PRICE_STEP = 50;
 
 export default function ShopSidebar(props: ShopSidebarProps) {
   const { category, search, sort, minPrice, maxPrice, brand, rating, onSale, brands } = props;
@@ -121,7 +121,7 @@ export default function ShopSidebar(props: ShopSidebarProps) {
 
   return (
     <aside className="hidden lg:block w-64 flex-shrink-0 self-start">
-      <div className="sticky top-24 space-y-1 max-h-[calc(100vh-7rem)] overflow-y-auto scrollbar-hide pr-1">
+      <div className="sticky top-24 space-y-1">
         {hasActiveFilters && (
           <button
             onClick={clearAll}
@@ -157,7 +157,7 @@ export default function ShopSidebar(props: ShopSidebarProps) {
             <div className="flex items-center justify-between text-xs">
               <span className="text-gray-500">Range</span>
               <span className="font-semibold text-gray-900">
-                {fmtPrice(sliderMin)} - {fmtPrice(sliderMax)}{sliderMax >= PRICE_CEILING ? "+" : ""}
+                {sliderMin === PRICE_FLOOR && sliderMax >= PRICE_CEILING ? "Any" : `${fmtPrice(sliderMin)} - ${fmtPrice(sliderMax)}${sliderMax >= PRICE_CEILING ? "+" : ""}`}
               </span>
             </div>
 
