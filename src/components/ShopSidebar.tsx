@@ -120,8 +120,8 @@ export default function ShopSidebar(props: ShopSidebarProps) {
   const maxPct = ((sliderMax - PRICE_FLOOR) / (PRICE_CEILING - PRICE_FLOOR)) * 100;
 
   return (
-    <aside className="hidden lg:block w-64 flex-shrink-0">
-      <div className="sticky top-36 space-y-1">
+    <aside className="hidden lg:block w-64 flex-shrink-0 self-start">
+      <div className="sticky top-24 space-y-1 max-h-[calc(100vh-7rem)] overflow-y-auto scrollbar-hide pr-1">
         {hasActiveFilters && (
           <button
             onClick={clearAll}
