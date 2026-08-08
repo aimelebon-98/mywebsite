@@ -35,18 +35,35 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const isFr = locale === "fr";
   try {
     const res = await db.select().from(authors).where(eq(authors.slug, slug));
-    if (res.length === 0) return { title: "Author Not Found - NewDealZone" };
+    if (res.length === 0) {
+      return {
+        title: "Author Not Found - NewDealZone",
+        robots: { index: false, follow: false },
+      };
+    }
     const a = res[0];
     const bio = isFr ? (a.bioFr || a.bio) : a.bio;
+
+    // Count published posts for this author
+    const postCount = await db
+      .select({ id: blogPosts.id })
+      .from(blogPosts)
+      .where(and(eq(blogPosts.authorId, a.id), eq(blogPosts.published, true), isNotNull(blogPosts.publishedAt)));
+
+    const hasContent = postCount.length > 0;
 
     return {
       title: `${a.name} - NewDealZone Blog`,
       description: bio || `Read articles by ${a.name} on NewDealZone Blog.`,
+      robots: hasContent
+        ? { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large" } }
+        : { index: false, follow: true },
       alternates: {
         canonical: `${SITE_URL}/${locale}/blog/author/${slug}`,
         languages: {
-          "en-US": `${SITE_URL}/en/blog/author/${slug}`,
-          "fr-FR": `${SITE_URL}/fr/blog/author/${slug}`,
+          en: `${SITE_URL}/en/blog/author/${slug}`,
+          fr: `${SITE_URL}/fr/blog/author/${slug}`,
+          "x-default": `${SITE_URL}/en/blog/author/${slug}`,
         },
       },
       openGraph: {
