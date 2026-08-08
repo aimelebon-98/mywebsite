@@ -255,7 +255,7 @@ export default function ShopSidebar(props: ShopSidebarProps) {
         </FilterGroup>
 
         <FilterGroup title={t("filterBrand")} icon={<Tag className="w-4 h-4" />} open={openSection.brand} onToggle={() => toggleSection("brand")}>
-          <div className="space-y-1 max-h-48 overflow-y-auto scrollbar-hide">
+          <div className="space-y-1">
             <button
               onClick={() => router.push(buildUrl({ brand: "" }))}
               className={`w-full text-left px-3 py-2 rounded-lg text-xs transition ${
