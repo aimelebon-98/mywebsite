@@ -560,15 +560,6 @@ div.tiptap-editor {
 /* ============================================
    FANCY SERIF FONT for special quotes / notes
    ============================================ */
-@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&display=swap");
-
-.font-fancy {
-  font-family: "Playfair Display", Georgia, "Times New Roman", serif;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-}
-
-
 /* ============================================
    ANIMATED BACKGROUND BLOBS (about page)
    ============================================ */

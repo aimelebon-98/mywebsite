@@ -152,7 +152,7 @@ export default async function LocaleLayout({
       getServerRates(),
     ]);
   return (
-    <html lang={locale} className={inter.variable} className={``}>
+    <html lang={locale} className={`${inter.variable} ${playfair.variable}`}>
       <head>
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.svg" />
