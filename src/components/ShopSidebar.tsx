@@ -157,7 +157,7 @@ export default function ShopSidebar(props: ShopSidebarProps) {
 
   return (
     <aside className="hidden lg:block w-64 flex-shrink-0 self-start sticky top-24 h-fit">
-      <div className="space-y-1 max-h-[calc(100vh-8rem)] overflow-y-auto scrollbar-hide">
+      <div className="space-y-1">
         {hasActiveFilters && (
           <button
             onClick={clearAll}
