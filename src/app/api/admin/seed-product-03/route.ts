@@ -94,7 +94,7 @@ export async function GET() {
       // Compare 49000 NGN / 1650 = ~29.70 USD -> shows -8% SAVE badge
       comparePrice: "35.92",
       // Cost 36000 NGN stored as-is (admin-only, profit tracking)
-      costprice: "32.99",
+      costPrice: "36000",
       category: "sneakers",
       brand: "Gucci",
       sizes: JSON.stringify(["43", "44", "45", "46", "47"]),

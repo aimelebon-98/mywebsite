@@ -90,7 +90,7 @@ export async function GET() {
       // Compare price 35000 NGN / 1650 = ~21.21 -> "21.21"
       comparePrice: "25.66",
       // Cost price stored in NGN as-is (admin-only, for profit tracking)
-      costprice: "21.63",
+      costPrice: "22000",
       category: "sneakers",
       brand: "Alexander McQueen",
       sizes: JSON.stringify(["40", "41", "42", "43", "44", "45", "46"]),
