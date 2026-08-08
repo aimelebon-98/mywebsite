@@ -18,8 +18,8 @@ import { eq, asc } from "drizzle-orm";
 const CATEGORY_IMAGES: Record<string, string> = {
   sneakers: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80",
   running:  "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400&q=80",
-  formal:   "https://images.unsplash.com/photo-1533867617858-e7b97e060509?w=400&q=80&auto=format&fit=crop",
-  boots:    "https://images.unsplash.com/photo-1608256246200-53e8b47b2dc0?w=400&q=80&auto=format&fit=crop",
+  formal:   "https://images.unsplash.com/photo-1614252369475-531eba835eb1?w=400&q=80",
+  boots:    "https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&q=80",
   sandals:  "https://images.unsplash.com/photo-1603487742131-4160ec999306?w=400&q=80",
   casual:   "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=400&q=80",
 };
