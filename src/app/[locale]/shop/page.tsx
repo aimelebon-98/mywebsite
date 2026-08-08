@@ -16,6 +16,7 @@ import RecentlyViewed from "@/components/RecentlyViewed";
 import YouMayAlsoLike from "@/components/YouMayAlsoLike";
 import AnimatedNetwork from "@/components/AnimatedNetworkLazy";
 import { getTranslations } from "next-intl/server";
+import { CATEGORY_IMAGES } from "@/lib/category-images";
 
 export const dynamic = "force-dynamic";
 

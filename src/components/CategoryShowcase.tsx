@@ -18,14 +18,11 @@ interface CategoryShowcaseProps {
   speed?: number;
 }
 
+import { CATEGORY_IMAGES, CATEGORY_IMAGE_ALL } from "@/lib/category-images";
+
 const fallbackImages: Record<string, string> = {
-  sneakers: "https://images.unsplash.com/photo-1552346154-21d32810aba3?w=400&q=80",
-  running:  "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=400&q=80",
-  formal:   "https://images.unsplash.com/photo-1614252369475-531eba835eb1?w=400&q=80",
-  boots:    "https://images.unsplash.com/photo-1520639888713-7851133b1ed0?w=400&q=80",
-  sandals:  "https://images.unsplash.com/photo-1603487742131-4160ec999306?w=400&q=80",
-  casual:   "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=400&q=80",
-  all:      "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=400&q=80",
+  ...CATEGORY_IMAGES,
+  all: CATEGORY_IMAGE_ALL,
 };
 
 export default function CategoryShowcase({ categories, activeCategory, speed = 40 }: CategoryShowcaseProps) {

@@ -14,17 +14,9 @@ import { getTranslations, getLocale } from "next-intl/server";
 import { db } from "@/db";
 import { categories as categoriesTable, products as productsTable, settings as settingsTable, type Product } from "@/db/schema";
 import { eq, asc } from "drizzle-orm";
+import { CATEGORY_IMAGES, DEFAULT_CATEGORY_IMAGE } from "@/lib/category-images";
 
-const CATEGORY_IMAGES: Record<string, string> = {
-  sneakers: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80",
-  running:  "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400&q=80",
-  formal:   "https://plus.unsplash.com/premium_photo-1670984281009-863453504c52?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  boots:    "https://3v40dosnpnvxrirm.public.blob.vercel-storage.com/products/msjxv6rj-whatsapp-image-2026-08-07-at-11.08.42-am.webp",
-  sandals:  "https://images.unsplash.com/photo-1603487742131-4160ec999306?w=400&q=80",
-  casual:   "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=400&q=80",
-};
 
-const DEFAULT_CATEGORY_IMAGE = "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=400&q=80";
 
 export default async function HomePage() {
   const t = await getTranslations("home");
