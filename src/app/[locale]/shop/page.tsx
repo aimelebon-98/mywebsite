@@ -12,6 +12,8 @@ import ShopTopBar from "@/components/ShopTopBar";
 import ActiveFilterChips from "@/components/ActiveFilterChips";
 import CategoryShowcase from "@/components/CategoryShowcase";
 import SearchAutocomplete from "@/components/SearchAutocomplete";
+import RecentlyViewed from "@/components/RecentlyViewed";
+import YouMayAlsoLike from "@/components/YouMayAlsoLike";
 import AnimatedNetwork from "@/components/AnimatedNetworkLazy";
 import { getTranslations } from "next-intl/server";
 
@@ -401,6 +403,10 @@ export default async function ShopPage({ params, searchParams }: Props) {
         </div>
       </div>
 
+            <YouMayAlsoLike locale={locale} />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+        <RecentlyViewed />
+      </div>
       <Footer />
     </main>
   );

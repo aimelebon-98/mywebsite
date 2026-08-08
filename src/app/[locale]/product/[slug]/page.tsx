@@ -1,9 +1,11 @@
 import { db } from "@/db";
-import { products } from "@/db/schema";
-import { eq, or } from "drizzle-orm";
+import { products, type Product } from "@/db/schema";
+import { eq, or, and, ne, desc } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import ProductDetails from "@/components/ProductDetails";
+import YouMayAlsoLike from "@/components/YouMayAlsoLike";
+import RecentlyViewed from "@/components/RecentlyViewed";
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>;
@@ -16,6 +18,23 @@ async function getProduct(slug: string) {
     .where(or(eq(products.slug, slug), eq(products.slugFr, slug)))
     .limit(1);
   return rows[0] || null;
+}
+
+async function getRelated(currentId: string, category: string): Promise<Product[]> {
+  try {
+    return await db
+      .select()
+      .from(products)
+      .where(and(
+        eq(products.category, category),
+        ne(products.id, currentId),
+        eq(products.active, true),
+      ))
+      .orderBy(desc(products.featured), desc(products.createdAt))
+      .limit(4);
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -72,9 +91,22 @@ export default async function ProductPage({ params }: Props) {
   const product = await getProduct(slug);
 
   if (!product || !product.active) {
-    // Trigger 404 which we upgrade to 410 via not-found.tsx status hint
     notFound();
   }
 
-  return <ProductDetails product={product} locale={locale} />;
+  const related = await getRelated(product.id, product.category);
+
+  return (
+    <>
+      <ProductDetails product={product} locale={locale} relatedProducts={related} />
+      <YouMayAlsoLike
+        currentProductId={product.id}
+        category={product.category}
+        locale={locale}
+      />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+        <RecentlyViewed excludeId={product.id} />
+      </div>
+    </>
+  );
 }

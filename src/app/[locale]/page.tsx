@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import HomeProducts from "@/components/HomeProducts";
 import HomeBlogSection from "@/components/HomeBlogSection";
+import RecentlyViewed from "@/components/RecentlyViewed";
 import MobileHomeHero from "@/components/MobileHomeHero";
 import MobileHomeSections from "@/components/MobileHomeSections";
 import AnimatedNetwork from "@/components/AnimatedNetworkLazy";
@@ -254,7 +255,10 @@ export default async function HomePage() {
       <div className="hidden lg:block"><HomeProducts /></div>
         <HomeBlogSection />
 
-        <Footer />
+              <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <RecentlyViewed />
+      </section>
+      <Footer />
     </main>
   );
 }
