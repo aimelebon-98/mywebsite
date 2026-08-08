@@ -3,6 +3,8 @@ import { products, type Product } from "@/db/schema";
 import { eq, or, and, ne, desc } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import ProductDetails from "@/components/ProductDetails";
 import YouMayAlsoLike from "@/components/YouMayAlsoLike";
 import RecentlyViewed from "@/components/RecentlyViewed";
@@ -98,15 +100,19 @@ export default async function ProductPage({ params }: Props) {
 
   return (
     <>
-      <ProductDetails product={product} locale={locale} relatedProducts={related} />
-      <YouMayAlsoLike
-        currentProductId={product.id}
-        category={product.category}
-        locale={locale}
-      />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
-        <RecentlyViewed excludeId={product.id} />
-      </div>
+      <Navbar />
+      <main className="min-h-screen bg-white">
+        <ProductDetails product={product} locale={locale} relatedProducts={related} />
+        <YouMayAlsoLike
+          currentProductId={product.id}
+          category={product.category}
+          locale={locale}
+        />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+          <RecentlyViewed excludeId={product.id} />
+        </div>
+      </main>
+      <Footer />
     </>
   );
 }
