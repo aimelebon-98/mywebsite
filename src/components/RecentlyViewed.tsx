@@ -21,9 +21,14 @@ export default function RecentlyViewed({ excludeId }: RecentlyViewedProps) {
       try {
         const raw = localStorage.getItem("solevault-recently-viewed") || "[]";
         const ids: string[] = JSON.parse(raw);
-        if (!Array.isArray(ids) || ids.length === 0) return;
+        if (!Array.isArray(ids) || ids.length === 0) {
+          if (typeof window !== "undefined") {
+            console.log("[RecentlyViewed] No IDs in localStorage");
+          }
+          return;
+        }
 
-        // Deduplicate while preserving order (most recent first)
+        // Dedup while preserving order
         const seen = new Set<string>();
         const uniqueIds = ids.filter((id) => {
           if (!id || typeof id !== "string") return false;
@@ -33,32 +38,42 @@ export default function RecentlyViewed({ excludeId }: RecentlyViewedProps) {
           return true;
         }).slice(0, 6);
 
+        if (typeof window !== "undefined") {
+          console.log("[RecentlyViewed] localStorage IDs:", ids.length, "| unique after filter:", uniqueIds.length);
+        }
+
         if (uniqueIds.length === 0) return;
 
-        // Batch fetch all products in one call
+        // Batch fetch all products
         const res = await fetch("/api/products", { cache: "no-store" });
-        if (!res.ok) return;
+        if (!res.ok) {
+          console.warn("[RecentlyViewed] /api/products failed:", res.status);
+          return;
+        }
         const allProducts: Product[] = await res.json();
-
-        // Filter and preserve order from localStorage (most recent first)
         const productMap = new Map(allProducts.map((p) => [p.id, p]));
+
         const matched = uniqueIds
           .map((id) => productMap.get(id))
           .filter((p): p is Product => Boolean(p));
 
+        if (typeof window !== "undefined") {
+          console.log("[RecentlyViewed] matched products:", matched.length);
+        }
+
         if (cancelled) return;
 
-        // Clean up stale IDs from localStorage
+        // Cleanup: remove stale IDs (deleted products) from localStorage
         try {
-          const validIds = matched.map((p) => p.id);
-          // Merge with any newer IDs not yet fetched
-          const merged = [...new Set([...validIds, ...uniqueIds.filter((id) => productMap.has(id))])];
-          localStorage.setItem("solevault-recently-viewed", JSON.stringify(merged));
+          const validIds = ids.filter((id) => productMap.has(id));
+          if (validIds.length !== ids.length) {
+            localStorage.setItem("solevault-recently-viewed", JSON.stringify(validIds));
+          }
         } catch { /* ignore */ }
 
         setRecentProducts(matched);
-      } catch {
-        // ignore
+      } catch (err) {
+        console.error("[RecentlyViewed] error:", err);
       }
     }
 
@@ -72,7 +87,7 @@ export default function RecentlyViewed({ excludeId }: RecentlyViewedProps) {
   if (recentProducts.length === 0) return null;
 
   let heading = "Recently Viewed";
-  let sub = "Products you have viewed recently";
+  let sub = "Pick up where you left off";
   try {
     heading = t("recentlyViewed");
     sub = t("recentlyViewedDesc");

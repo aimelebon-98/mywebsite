@@ -6,18 +6,14 @@ import { eq } from "drizzle-orm";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const AVATARS = [
-  "https://i.pravatar.cc/150?img=1",
-  "https://i.pravatar.cc/150?img=5",
-  "https://i.pravatar.cc/150?img=8",
-  "https://i.pravatar.cc/150?img=12",
-  "https://i.pravatar.cc/150?img=15",
-  "https://i.pravatar.cc/150?img=20",
-  "https://i.pravatar.cc/150?img=25",
-  "https://i.pravatar.cc/150?img=32",
-  "https://i.pravatar.cc/150?img=45",
-  "https://i.pravatar.cc/150?img=48",
-];
+// Generate initials from customer name (e.g., "Chioma Adeyemi" -> "CA")
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((w) => w[0]?.toUpperCase() || "")
+    .slice(0, 2)
+    .join("");
+}
 
 interface ReviewSeed {
   customerName: string;
@@ -107,7 +103,7 @@ export async function POST(req: Request) {
         rating: r.rating,
         comment: r.comment,
         commentFr: r.commentFr,
-        avatar: AVATARS[r.avatarIdx % AVATARS.length],
+        avatar: getInitials(r.customerName),
         verified: r.verified,
         createdAt: new Date(Date.now() - r.daysAgo * 24 * 60 * 60 * 1000),
       }));

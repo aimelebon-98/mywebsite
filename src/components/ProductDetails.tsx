@@ -555,28 +555,28 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                 <div className="flex items-center gap-2 px-2.5 py-2 bg-gray-50 rounded-xl">
                   <Truck className="w-4 h-4 flex-shrink-0" style={{ color: "#CA3F2E" }} />
                   <div className="min-w-0">
-                    <div className="text-[11px] font-bold text-gray-900 leading-tight break-words">{isFr ? "Livraison gratuite" : "Free Shipping"}</div>
+                    <div className="text-[11px] font-bold text-gray-900 leading-tight whitespace-nowrap">{isFr ? "Livraison" : "Free Ship"}</div>
                     <div className="text-[10px] text-gray-500 leading-tight truncate">{isFr ? `Plus de ${formatPrice(1000)}` : `Over ${formatPrice(1000)}`}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 px-2.5 py-2 bg-gray-50 rounded-xl">
                   <Shield className="w-4 h-4 flex-shrink-0" style={{ color: "#CA3F2E" }} />
                   <div className="min-w-0">
-                    <div className="text-[11px] font-bold text-gray-900 leading-tight break-words">{isFr ? "Paiement securise" : "Secure Checkout"}</div>
+                    <div className="text-[11px] font-bold text-gray-900 leading-tight whitespace-nowrap">{isFr ? "é" : "Secure"}</div>
                     <div className="text-[10px] text-gray-500 leading-tight">{isFr ? "Crypte SSL" : "SSL encrypted"}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 px-2.5 py-2 bg-gray-50 rounded-xl">
                   <RotateCcw className="w-4 h-4 flex-shrink-0" style={{ color: "#CA3F2E" }} />
                   <div className="min-w-0">
-                    <div className="text-[11px] font-bold text-gray-900 leading-tight break-words">{isFr ? "Retours faciles" : "Easy Returns"}</div>
+                    <div className="text-[11px] font-bold text-gray-900 leading-tight whitespace-nowrap">{isFr ? "Retours" : "Returns"}</div>
                     <div className="text-[10px] text-gray-500 leading-tight">{isFr ? "14 jours" : "14 days"}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 px-2.5 py-2 bg-gray-50 rounded-xl">
                   <Award className="w-4 h-4 flex-shrink-0" style={{ color: "#CA3F2E" }} />
                   <div className="min-w-0">
-                    <div className="text-[11px] font-bold text-gray-900 leading-tight break-words">{isFr ? "100% Authentique" : "100% Authentic"}</div>
+                    <div className="text-[11px] font-bold text-gray-900 leading-tight whitespace-nowrap">{isFr ? "Authentique" : "Authentic"}</div>
                     <div className="text-[10px] text-gray-500 leading-tight">{isFr ? "Garanti" : "Guaranteed"}</div>
                   </div>
                 </div>
