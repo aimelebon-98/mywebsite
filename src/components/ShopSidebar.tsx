@@ -21,8 +21,8 @@ interface ShopSidebarProps {
 }
 
 const PRICE_FLOOR = 0;
-const PRICE_CEILING = 5000;
-const PRICE_STEP = 50;
+const PRICE_CEILING = 500;
+const PRICE_STEP = 10;
 
 export default function ShopSidebar(props: ShopSidebarProps) {
   const { category, search, sort, minPrice, maxPrice, brand, rating, onSale, brands } = props;

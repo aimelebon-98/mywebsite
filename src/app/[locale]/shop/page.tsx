@@ -323,22 +323,19 @@ export default async function ShopPage({ params, searchParams }: Props) {
             showClearButton
           />
         </div>
-        <div className="border-b border-gray-200 mb-6 overflow-x-auto scrollbar-hide">
-          <div className="flex items-center gap-1 min-w-max">
+        <div className="mb-6 overflow-x-auto scrollbar-hide">
+          <div className="flex items-center gap-2 min-w-max py-1">
             {categoryOptions.map((cat) => (
               <Link
                 key={cat.slug}
                 href={`/${locale}/shop?category=${cat.slug}`}
-                className={`relative px-4 py-3 text-sm font-medium whitespace-nowrap transition ${
+                className={`px-4 py-2 text-sm font-semibold whitespace-nowrap rounded-full transition-all ${
                   category === cat.slug
-                    ? "text-gray-900"
-                    : "text-gray-500 hover:text-gray-900"
+                    ? "bg-[#CA3F2E] text-white shadow-md shadow-[#CA3F2E]/25"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
                 {cat.name}
-                {category === cat.slug && (
-                  <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-gray-900 rounded-t-full" />
-                )}
               </Link>
             ))}
           </div>
