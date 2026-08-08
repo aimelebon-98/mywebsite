@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { products, type Product } from "@/db/schema";
+import { products, reviews as reviewsTable, type Product, type Review } from "@/db/schema";
 import { eq, or, and, ne, desc } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -20,6 +20,18 @@ async function getProduct(slug: string) {
     .where(or(eq(products.slug, slug), eq(products.slugFr, slug)))
     .limit(1);
   return rows[0] || null;
+}
+
+async function getReviews(productId: string): Promise<Review[]> {
+  try {
+    return await db
+      .select()
+      .from(reviewsTable)
+      .where(eq(reviewsTable.productId, productId))
+      .orderBy(desc(reviewsTable.createdAt));
+  } catch {
+    return [];
+  }
 }
 
 async function getRelated(currentId: string, category: string): Promise<Product[]> {
@@ -96,13 +108,21 @@ export default async function ProductPage({ params }: Props) {
     notFound();
   }
 
-  const related = await getRelated(product.id, product.category);
+  const [related, initialReviews] = await Promise.all([
+    getRelated(product.id, product.category),
+    getReviews(product.id),
+  ]);
 
   return (
     <>
       <Navbar />
       <main className="min-h-screen bg-white">
-        <ProductDetails product={product} locale={locale} relatedProducts={related} />
+        <ProductDetails
+          product={product}
+          locale={locale}
+          relatedProducts={related}
+          initialReviews={initialReviews}
+        />
         <YouMayAlsoLike
           currentProductId={product.id}
           category={product.category}
