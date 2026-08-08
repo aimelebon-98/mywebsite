@@ -128,7 +128,12 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
     const converted = usd * r;
     return currencyInfo?.decimals === 0 ? Math.round(converted).toString() : converted.toFixed(2);
   });
-  const [costPrice, setCostPrice] = useState(product?.costPrice || "");
+  const [costPrice, setCostPrice] = useState(() => {
+    const raw = product?.costPrice || "";
+    if (!raw) return "";
+    const n = parseFloat(raw);
+    return isNaN(n) ? "" : Math.round(n).toString();
+  });
   const [comparePrice, setComparePrice] = useState(() => {
     const usd = parseFloat(product?.comparePrice || "0");
     if (!usd) return "";
@@ -192,7 +197,7 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
       tagsFr: tagsFr.length > 0 ? tagsFr : null,
       price: rate > 0 ? (parseFloat(price) || 0) / rate : (parseFloat(price) || 0),
       comparePrice: comparePrice ? (rate > 0 ? parseFloat(comparePrice) / rate : parseFloat(comparePrice)) : null,
-      costPrice: costPrice ? parseFloat(costPrice) : 0,
+      costPrice: costPrice ? Math.round(parseFloat(costPrice)) : 0,
       saleEndsAt: saleEndsAt ? new Date(saleEndsAt).toISOString() : null,
       category, brand, sizes, colors: JSON.parse(colorsSerialized),
       imageUrl,

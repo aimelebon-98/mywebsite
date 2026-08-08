@@ -83,7 +83,7 @@ export async function GET() {
       descriptionFr: shortDescriptionFr,
       shortDescriptionFr,
       longDescriptionFr,
-      price: "18",
+      price: "18.33",
       comparePrice: null,
       category: "sneakers",
       brand: "Nike",

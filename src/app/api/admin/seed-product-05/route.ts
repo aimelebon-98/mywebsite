@@ -93,11 +93,11 @@ export async function GET() {
       shortDescriptionFr,
       longDescriptionFr,
       // Selling 29000 NGN / 1650 = ~17.58 USD
-      price: "17.58",
+      price: "21.26",
       // Compare 35000 NGN / 1650 = ~21.21 USD -> shows -17% SAVE badge
-      comparePrice: "21.21",
+      comparePrice: "25.66",
       // Cost 20000 NGN stored as-is (admin-only, profit tracking)
-      costPrice: "20000",
+      costprice: "21.26",
       category: "boots",
       brand: "Off-White",
       sizes: JSON.stringify(["41", "42", "43", "44", "45", "46"]),
