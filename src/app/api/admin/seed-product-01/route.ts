@@ -85,6 +85,7 @@ export async function GET() {
       longDescriptionFr,
       price: "18.33",
       comparePrice: null,
+      costPrice: "18000",
       category: "sneakers",
       brand: "Nike",
       sizes: JSON.stringify(["38", "39", "40", "41", "42", "43", "44", "45"]),
