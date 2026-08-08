@@ -20,20 +20,46 @@ interface ShopSidebarProps {
   brands: string[];
 }
 
-const PRICE_FLOOR = 0;
-const PRICE_CEILING = 500;
-const PRICE_STEP = 10;
+// USD ceiling for internal storage (URL params always in USD)
+const USD_FLOOR = 0;
+const USD_CEILING = 500;
+const USD_STEP = 5;
 
 export default function ShopSidebar(props: ShopSidebarProps) {
   const { category, search, sort, minPrice, maxPrice, brand, rating, onSale, brands } = props;
-  const { format: fmtPrice } = useCurrency();
+  const { format: fmtPrice, convertFromUsd, currency } = useCurrency();
   const t = useTranslations("shop");
   const tc = useTranslations("common");
   const locale = useLocale();
   const router = useRouter();
+
+  // Extract just the currency symbol (e.g., "L", "N", "CFA", "$") from a formatted price
+  const currencySymbol = fmtPrice(0).replace(/[0-9,.\s]/g, "").trim() || currency;
+
+  // Convert USD ceiling to display currency for slider display
+  const displayCeiling = Math.round(convertFromUsd(USD_CEILING));
+  const displayFloor = 0;
+  // Round step to nice increment in display currency
+  const displayStep = (() => {
+    const rawStep = convertFromUsd(USD_STEP);
+    if (rawStep >= 1000) return Math.round(rawStep / 1000) * 1000;
+    if (rawStep >= 100) return Math.round(rawStep / 100) * 100;
+    if (rawStep >= 10) return Math.round(rawStep / 10) * 10;
+    return Math.max(1, Math.round(rawStep));
+  })();
+
   const [localSearch, setLocalSearch] = useState(search);
-  const [localMinPrice, setLocalMinPrice] = useState(minPrice);
-  const [localMaxPrice, setLocalMaxPrice] = useState(maxPrice);
+
+  // Slider values are stored in DISPLAY currency
+  // URL params are always USD (source of truth)
+  const usdMinToDisplay = (usd: string) => usd ? Math.round(convertFromUsd(Number(usd))) : displayFloor;
+  const usdMaxToDisplay = (usd: string) => usd ? Math.round(convertFromUsd(Number(usd))) : displayCeiling;
+
+  const [sliderMin, setSliderMin] = useState<number>(usdMinToDisplay(minPrice));
+  const [sliderMax, setSliderMax] = useState<number>(usdMaxToDisplay(maxPrice));
+  const [localMinPrice, setLocalMinPrice] = useState<string>(minPrice ? String(Math.round(convertFromUsd(Number(minPrice)))) : "");
+  const [localMaxPrice, setLocalMaxPrice] = useState<string>(maxPrice ? String(Math.round(convertFromUsd(Number(maxPrice)))) : "");
+
   const [openSection, setOpenSection] = useState<Record<string, boolean>>({
     search: true,
     price: true,
@@ -42,19 +68,14 @@ export default function ShopSidebar(props: ShopSidebarProps) {
     special: true,
   });
 
-  const [sliderMin, setSliderMin] = useState<number>(
-    minPrice ? Math.max(PRICE_FLOOR, Number(minPrice)) : PRICE_FLOOR
-  );
-  const [sliderMax, setSliderMax] = useState<number>(
-    maxPrice ? Math.min(PRICE_CEILING, Number(maxPrice)) : PRICE_CEILING
-  );
-
+  // Re-sync when currency OR URL params change
   useEffect(() => {
-    setSliderMin(minPrice ? Math.max(PRICE_FLOOR, Number(minPrice)) : PRICE_FLOOR);
-    setSliderMax(maxPrice ? Math.min(PRICE_CEILING, Number(maxPrice)) : PRICE_CEILING);
-    setLocalMinPrice(minPrice);
-    setLocalMaxPrice(maxPrice);
-  }, [minPrice, maxPrice]);
+    setSliderMin(usdMinToDisplay(minPrice));
+    setSliderMax(usdMaxToDisplay(maxPrice));
+    setLocalMinPrice(minPrice ? String(Math.round(convertFromUsd(Number(minPrice)))) : "");
+    setLocalMaxPrice(maxPrice ? String(Math.round(convertFromUsd(Number(maxPrice)))) : "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [minPrice, maxPrice, currency]);
 
   const toggleSection = (key: string) =>
     setOpenSection(prev => ({ ...prev, [key]: !prev[key] }));
@@ -70,9 +91,16 @@ export default function ShopSidebar(props: ShopSidebarProps) {
 
   const hasActiveFilters = minPrice || maxPrice || brand || rating || onSale === "true" || search;
 
+  // Convert display value back to USD before pushing to URL
+  const displayToUsd = (display: number): string => {
+    if (display <= displayFloor) return "";
+    const usd = display / convertFromUsd(1); // reverse conversion
+    return String(Math.round(usd * 100) / 100); // 2 decimals for USD
+  };
+
   const handleApplyPrice = () => {
-    const minVal = sliderMin > PRICE_FLOOR ? String(sliderMin) : "";
-    const maxVal = sliderMax < PRICE_CEILING ? String(sliderMax) : "";
+    const minVal = sliderMin > displayFloor ? displayToUsd(sliderMin) : "";
+    const maxVal = sliderMax < displayCeiling ? displayToUsd(sliderMax) : "";
     router.push(buildUrl({ minPrice: minVal, maxPrice: maxVal }));
   };
 
@@ -81,27 +109,27 @@ export default function ShopSidebar(props: ShopSidebarProps) {
   };
 
   const handleSliderMinChange = (val: number) => {
-    const clamped = Math.min(val, sliderMax - PRICE_STEP);
-    const safe = Math.max(PRICE_FLOOR, clamped);
+    const clamped = Math.min(val, sliderMax - displayStep);
+    const safe = Math.max(displayFloor, clamped);
     setSliderMin(safe);
-    setLocalMinPrice(safe > PRICE_FLOOR ? String(safe) : "");
+    setLocalMinPrice(safe > displayFloor ? String(safe) : "");
   };
 
   const handleSliderMaxChange = (val: number) => {
-    const clamped = Math.max(val, sliderMin + PRICE_STEP);
-    const safe = Math.min(PRICE_CEILING, clamped);
+    const clamped = Math.max(val, sliderMin + displayStep);
+    const safe = Math.min(displayCeiling, clamped);
     setSliderMax(safe);
-    setLocalMaxPrice(safe < PRICE_CEILING ? String(safe) : "");
+    setLocalMaxPrice(safe < displayCeiling ? String(safe) : "");
   };
 
   const handleInputMinChange = (v: string) => {
     setLocalMinPrice(v);
     const num = Number(v);
     if (!isNaN(num) && v !== "") {
-      const safe = Math.max(PRICE_FLOOR, Math.min(num, sliderMax - PRICE_STEP));
+      const safe = Math.max(displayFloor, Math.min(num, sliderMax - displayStep));
       setSliderMin(safe);
     } else if (v === "") {
-      setSliderMin(PRICE_FLOOR);
+      setSliderMin(displayFloor);
     }
   };
 
@@ -109,15 +137,23 @@ export default function ShopSidebar(props: ShopSidebarProps) {
     setLocalMaxPrice(v);
     const num = Number(v);
     if (!isNaN(num) && v !== "") {
-      const safe = Math.min(PRICE_CEILING, Math.max(num, sliderMin + PRICE_STEP));
+      const safe = Math.min(displayCeiling, Math.max(num, sliderMin + displayStep));
       setSliderMax(safe);
     } else if (v === "") {
-      setSliderMax(PRICE_CEILING);
+      setSliderMax(displayCeiling);
     }
   };
 
-  const minPct = ((sliderMin - PRICE_FLOOR) / (PRICE_CEILING - PRICE_FLOOR)) * 100;
-  const maxPct = ((sliderMax - PRICE_FLOOR) / (PRICE_CEILING - PRICE_FLOOR)) * 100;
+  const minPct = ((sliderMin - displayFloor) / (displayCeiling - displayFloor)) * 100;
+  const maxPct = ((sliderMax - displayFloor) / (displayCeiling - displayFloor)) * 100;
+
+  // Preset ranges in USD (converted to display for button labels)
+  const presets = [
+    { label: `${t("under")} ${fmtPrice(50)}`,             usdMin: "",    usdMax: "50"  },
+    { label: `${fmtPrice(50)} - ${fmtPrice(100)}`,        usdMin: "50",  usdMax: "100" },
+    { label: `${fmtPrice(100)} - ${fmtPrice(200)}`,       usdMin: "100", usdMax: "200" },
+    { label: `${fmtPrice(200)}+`,                          usdMin: "200", usdMax: ""    },
+  ];
 
   return (
     <aside className="hidden lg:block w-64 flex-shrink-0 self-start sticky top-24 h-fit">
@@ -152,19 +188,21 @@ export default function ShopSidebar(props: ShopSidebarProps) {
           </div>
         </FilterGroup>
 
-        <FilterGroup title={t("filterPriceRange")} icon={<span className="text-sm font-bold">{fmtPrice(0).replace(/[0-9,.\s]/g, "").trim() || "$"}</span>} open={openSection.price} onToggle={() => toggleSection("price")}>
+        <FilterGroup title={t("filterPriceRange")} icon={<span className="text-sm font-bold">{currencySymbol}</span>} open={openSection.price} onToggle={() => toggleSection("price")}>
           <div className="space-y-4">
             <div className="flex items-center justify-between text-xs">
               <span className="text-gray-500">Range</span>
               <span className="font-semibold text-gray-900">
-                {sliderMin === PRICE_FLOOR && sliderMax >= PRICE_CEILING ? "Any" : `${fmtPrice(sliderMin)} - ${fmtPrice(sliderMax)}${sliderMax >= PRICE_CEILING ? "+" : ""}`}
+                {sliderMin === displayFloor && sliderMax >= displayCeiling
+                  ? "Any"
+                  : `${fmtPrice(sliderMin / convertFromUsd(1))} - ${fmtPrice(sliderMax / convertFromUsd(1))}${sliderMax >= displayCeiling ? "+" : ""}`}
               </span>
             </div>
 
             <DualRangeSlider
-              min={PRICE_FLOOR}
-              max={PRICE_CEILING}
-              step={PRICE_STEP}
+              min={displayFloor}
+              max={displayCeiling}
+              step={displayStep}
               valueMin={sliderMin}
               valueMax={sliderMax}
               minPct={minPct}
@@ -178,16 +216,16 @@ export default function ShopSidebar(props: ShopSidebarProps) {
                 type="number"
                 value={localMinPrice}
                 onChange={(e) => handleInputMinChange(e.target.value)}
-                placeholder={`${t("priceMin")} (${fmtPrice(0).replace(/[0-9,.\s]/g, "").trim()})`}
-                className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
+                placeholder={`${t("priceMin")} (${currencySymbol})`}
+                className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition min-w-0"
               />
               <span className="text-gray-300">-</span>
               <input
                 type="number"
                 value={localMaxPrice}
                 onChange={(e) => handleInputMaxChange(e.target.value)}
-                placeholder={`${t("priceMax")} (${fmtPrice(0).replace(/[0-9,.\s]/g, "").trim()})`}
-                className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
+                placeholder={`${t("priceMax")} (${currencySymbol})`}
+                className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition min-w-0"
               />
             </div>
 
@@ -199,17 +237,12 @@ export default function ShopSidebar(props: ShopSidebarProps) {
             </button>
 
             <div className="grid grid-cols-1 gap-1.5">
-              {[
-                { label: `${t("under")} ${fmtPrice(50)}`,             min: "",    max: "50"  },
-                { label: `${fmtPrice(50)} - ${fmtPrice(100)}`,        min: "50",  max: "100" },
-                { label: `${fmtPrice(100)} - ${fmtPrice(200)}`,       min: "100", max: "200" },
-                { label: `${fmtPrice(200)}+`,                          min: "200", max: ""    },
-              ].map((r) => (
+              {presets.map((r) => (
                 <button
-                  key={r.min + "-" + r.max}
-                  onClick={() => router.push(buildUrl({ minPrice: r.min, maxPrice: r.max }))}
+                  key={r.usdMin + "-" + r.usdMax}
+                  onClick={() => router.push(buildUrl({ minPrice: r.usdMin, maxPrice: r.usdMax }))}
                   className={`px-3 py-2 text-xs rounded-lg border transition text-left ${
-                    minPrice === r.min && maxPrice === r.max
+                    minPrice === r.usdMin && maxPrice === r.usdMax
                       ? "bg-gray-900 text-white border-gray-900"
                       : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
                   }`}
@@ -304,16 +337,11 @@ function DualRangeSlider({
 }) {
   return (
     <div className="relative w-full h-5 my-2">
-      {/* Track background (centered) */}
       <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1.5 bg-gray-200 rounded-full" />
-
-      {/* Selected range fill */}
       <div
         className="absolute top-1/2 -translate-y-1/2 h-1.5 bg-gray-900 rounded-full"
         style={{ left: `${minPct}%`, right: `${100 - maxPct}%` }}
       />
-
-      {/* Min range input */}
       <input
         type="range"
         min={min}
@@ -324,8 +352,6 @@ function DualRangeSlider({
         className="range-thumb absolute left-0 right-0 top-0 w-full h-5 appearance-none bg-transparent m-0 p-0"
         aria-label="Minimum price"
       />
-
-      {/* Max range input */}
       <input
         type="range"
         min={min}
@@ -336,7 +362,6 @@ function DualRangeSlider({
         className="range-thumb absolute left-0 right-0 top-0 w-full h-5 appearance-none bg-transparent m-0 p-0"
         aria-label="Maximum price"
       />
-
       <style jsx>{`
         .range-thumb {
           pointer-events: none;
