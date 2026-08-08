@@ -27,7 +27,7 @@ const USD_STEP = 5;
 
 export default function ShopSidebar(props: ShopSidebarProps) {
   const { category, search, sort, minPrice, maxPrice, brand, rating, onSale, brands } = props;
-  const { format: fmtPrice, convertFromUsd, currency } = useCurrency();
+  const { format: fmtPrice, convert, currency } = useCurrency();
   const t = useTranslations("shop");
   const tc = useTranslations("common");
   const locale = useLocale();
@@ -37,11 +37,11 @@ export default function ShopSidebar(props: ShopSidebarProps) {
   const currencySymbol = fmtPrice(0).replace(/[0-9,.\s]/g, "").trim() || currency;
 
   // Convert USD ceiling to display currency for slider display
-  const displayCeiling = Math.round(convertFromUsd(USD_CEILING));
+  const displayCeiling = Math.round(convert(USD_CEILING));
   const displayFloor = 0;
   // Round step to nice increment in display currency
   const displayStep = (() => {
-    const rawStep = convertFromUsd(USD_STEP);
+    const rawStep = convert(USD_STEP);
     if (rawStep >= 1000) return Math.round(rawStep / 1000) * 1000;
     if (rawStep >= 100) return Math.round(rawStep / 100) * 100;
     if (rawStep >= 10) return Math.round(rawStep / 10) * 10;
@@ -52,13 +52,13 @@ export default function ShopSidebar(props: ShopSidebarProps) {
 
   // Slider values are stored in DISPLAY currency
   // URL params are always USD (source of truth)
-  const usdMinToDisplay = (usd: string) => usd ? Math.round(convertFromUsd(Number(usd))) : displayFloor;
-  const usdMaxToDisplay = (usd: string) => usd ? Math.round(convertFromUsd(Number(usd))) : displayCeiling;
+  const usdMinToDisplay = (usd: string) => usd ? Math.round(convert(Number(usd))) : displayFloor;
+  const usdMaxToDisplay = (usd: string) => usd ? Math.round(convert(Number(usd))) : displayCeiling;
 
   const [sliderMin, setSliderMin] = useState<number>(usdMinToDisplay(minPrice));
   const [sliderMax, setSliderMax] = useState<number>(usdMaxToDisplay(maxPrice));
-  const [localMinPrice, setLocalMinPrice] = useState<string>(minPrice ? String(Math.round(convertFromUsd(Number(minPrice)))) : "");
-  const [localMaxPrice, setLocalMaxPrice] = useState<string>(maxPrice ? String(Math.round(convertFromUsd(Number(maxPrice)))) : "");
+  const [localMinPrice, setLocalMinPrice] = useState<string>(minPrice ? String(Math.round(convert(Number(minPrice)))) : "");
+  const [localMaxPrice, setLocalMaxPrice] = useState<string>(maxPrice ? String(Math.round(convert(Number(maxPrice)))) : "");
 
   const [openSection, setOpenSection] = useState<Record<string, boolean>>({
     search: true,
@@ -72,8 +72,8 @@ export default function ShopSidebar(props: ShopSidebarProps) {
   useEffect(() => {
     setSliderMin(usdMinToDisplay(minPrice));
     setSliderMax(usdMaxToDisplay(maxPrice));
-    setLocalMinPrice(minPrice ? String(Math.round(convertFromUsd(Number(minPrice)))) : "");
-    setLocalMaxPrice(maxPrice ? String(Math.round(convertFromUsd(Number(maxPrice)))) : "");
+    setLocalMinPrice(minPrice ? String(Math.round(convert(Number(minPrice)))) : "");
+    setLocalMaxPrice(maxPrice ? String(Math.round(convert(Number(maxPrice)))) : "");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [minPrice, maxPrice, currency]);
 
@@ -94,7 +94,7 @@ export default function ShopSidebar(props: ShopSidebarProps) {
   // Convert display value back to USD before pushing to URL
   const displayToUsd = (display: number): string => {
     if (display <= displayFloor) return "";
-    const usd = display / convertFromUsd(1); // reverse conversion
+    const usd = display / convert(1); // reverse conversion
     return String(Math.round(usd * 100) / 100); // 2 decimals for USD
   };
 
@@ -195,7 +195,7 @@ export default function ShopSidebar(props: ShopSidebarProps) {
               <span className="font-semibold text-gray-900">
                 {sliderMin === displayFloor && sliderMax >= displayCeiling
                   ? "Any"
-                  : `${fmtPrice(sliderMin / convertFromUsd(1))} - ${fmtPrice(sliderMax / convertFromUsd(1))}${sliderMax >= displayCeiling ? "+" : ""}`}
+                  : `${fmtPrice(sliderMin / convert(1))} - ${fmtPrice(sliderMax / convert(1))}${sliderMax >= displayCeiling ? "+" : ""}`}
               </span>
             </div>
 
