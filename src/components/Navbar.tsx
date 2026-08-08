@@ -37,12 +37,29 @@ export default function Navbar() {
   const searchInputRef = useRef<HTMLDivElement | null>(null);
   const navRef = useRef<HTMLElement | null>(null);
 
-  // Detect scroll for shrink effect
+  // Detect scroll for shrink effect (with hysteresis to prevent bounce)
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 80);
+    let rafId: number | null = null;
+    const handleScroll = () => {
+      if (rafId !== null) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        setScrolled((prev) => {
+          const y = window.scrollY;
+          // Hysteresis: shrink at 100px, only grow back below 40px
+          // This dead zone prevents flip-flop bounce at the threshold
+          if (!prev && y > 100) return true;
+          if (prev && y < 40) return false;
+          return prev;
+        });
+      });
+    };
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (rafId !== null) cancelAnimationFrame(rafId);
+    };
   }, []);
 
   // Publish navbar bottom position for mega menu to use
