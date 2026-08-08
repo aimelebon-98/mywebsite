@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import HomeProducts from "@/components/HomeProducts";
 import HomeBlogSection from "@/components/HomeBlogSection";
+import RecentlyViewed from "@/components/RecentlyViewed";
 import MobileHomeHero from "@/components/MobileHomeHero";
 import MobileHomeSections from "@/components/MobileHomeSections";
 import AnimatedNetwork from "@/components/AnimatedNetworkLazy";
@@ -252,7 +253,10 @@ export default async function HomePage() {
 
       <MobileHomeSections products={mobileProducts} categories={mobileCategories} />
       <div className="hidden lg:block"><HomeProducts /></div>
-        <HomeBlogSection />
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <RecentlyViewed />
+      </section>
+      <HomeBlogSection/>
       <Footer />
     </main>
   );
