@@ -7,7 +7,6 @@ import ProductCard from "./ProductCard";
 import ProductScroller from "./ProductScroller";
 import CountdownTimer from "./CountdownTimer";
 import ReviewsSection from "./ReviewsSection";
-import RecentlyViewed from "./RecentlyViewed";
 import SeedButton from "./SeedButton";
 import Link from "next/link";
 import ProductImage from "./ProductImage";
@@ -298,9 +297,7 @@ export default function HomeProducts() {
       <ReviewsSection />
 
       {/* RECENTLY VIEWED */}
-      <RecentlyViewed />
-
-      {/* CTA BANNER */}
+{/* CTA BANNER */}
       <section className="py-8 lg:py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-gray-900 to-gray-800 text-white p-10 lg:p-20">
