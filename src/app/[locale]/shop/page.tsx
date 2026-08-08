@@ -17,15 +17,54 @@ import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  robots: { index: false, follow: true },
-  title: "Shop All Products",
-  description: "Browse our full collection of premium sneakers, running shoes, boots, formal shoes, sandals and casual shoes. Free shipping on orders over $1000.",
-  openGraph: {
-    title: "Shop All Products - NewDealZone",
-    description: "Browse our full collection of premium footwear. 50+ styles available.",
-  },
-};
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const isFr = locale === "fr";
+
+  const title = isFr
+    ? "Boutique - Sneakers, Bottes, Chaussures Formelles | New Deal Zone"
+    : "Shop Premium Sneakers, Boots & Formal Shoes | New Deal Zone";
+
+  const description = isFr
+    ? "D\u00e9couvrez notre collection de sneakers premium, chaussures de sport, bottes, chaussures formelles et sandales. Livraison rapide au Nigeria et en Afrique de l'Ouest."
+    : "Browse our curated collection of premium sneakers, running shoes, boots, formal shoes and sandals. Fast delivery across Nigeria and West Africa. Shop authentic brands.";
+
+  return {
+    title,
+    description,
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
+    },
+    alternates: {
+      canonical: `https://www.newdealzone.com/${locale}/shop`,
+      languages: {
+        en: "https://www.newdealzone.com/en/shop",
+        fr: "https://www.newdealzone.com/fr/shop",
+        "x-default": "https://www.newdealzone.com/en/shop",
+      },
+    },
+    openGraph: {
+      title,
+      description,
+      url: `https://www.newdealzone.com/${locale}/shop`,
+      siteName: "New Deal Zone",
+      type: "website",
+      locale: isFr ? "fr_FR" : "en_US",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+    },
+  };
+}
 
 interface Props {
   params: Promise<{ locale: string }>;
