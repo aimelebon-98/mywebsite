@@ -908,3 +908,9 @@ html, body {
     width: 45% !important;
   }
 }
+
+/* Fancy heading font for "Shop by Category" and other elegant titles */
+.font-playfair {
+  font-family: var(--font-playfair), Georgia, "Times New Roman", serif;
+  letter-spacing: -0.02em;
+}

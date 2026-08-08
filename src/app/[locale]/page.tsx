@@ -18,8 +18,8 @@ import { eq, asc } from "drizzle-orm";
 const CATEGORY_IMAGES: Record<string, string> = {
   sneakers: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80",
   running:  "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400&q=80",
-  formal:   "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=400&q=80",
-  boots:    "https://images.unsplash.com/photo-1520639888713-7851133b1ed0?w=400&q=80",
+  formal:   "https://images.unsplash.com/photo-1533867617858-e7b97e060509?w=400&q=80&auto=format&fit=crop",
+  boots:    "https://images.unsplash.com/photo-1608256246200-53e8b47b2dc0?w=400&q=80&auto=format&fit=crop",
   sandals:  "https://images.unsplash.com/photo-1603487742131-4160ec999306?w=400&q=80",
   casual:   "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=400&q=80",
 };
@@ -229,7 +229,7 @@ export default async function HomePage() {
         <section className="hidden lg:block py-8 lg:py-12 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
-              <h2 className="text-3xl lg:text-4xl font-bold mb-3">{t("shopByCategory")}</h2>
+              <h2 className="text-4xl lg:text-5xl font-black mb-3 font-playfair tracking-tight">{t("shopByCategory")}</h2>
               <p className="text-gray-500 max-w-md mx-auto">{t("shopByCategoryDesc")}</p>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">

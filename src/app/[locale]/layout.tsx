@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import { Inter } from "next/font/google";
+import { Inter, Playfair_Display } from "next/font/google";
 import dynamic from "next/dynamic";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { notFound } from "next/navigation";
@@ -12,6 +12,13 @@ import { getServerCurrency, getServerRates } from "@/lib/server-currency";
 import { CustomerProvider } from "@/lib/customer-context";
 import ConditionalWidgets from "@/components/ConditionalWidgets";
 import ThemeColorSwitcher from "@/components/ThemeColorSwitcher";
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  weight: ["700", "900"],
+  variable: "--font-playfair",
+  display: "swap",
+});
 const FloatingCartPill = dynamic(() => import("@/components/FloatingCartPill"));
 const PageViewTracker = dynamic(() => import("@/components/AnalyticsTracker"));
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -145,7 +152,7 @@ export default async function LocaleLayout({
       getServerRates(),
     ]);
   return (
-    <html lang={locale} className={inter.variable}>
+    <html lang={locale} className={inter.variable} className={``}>
       <head>
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.svg" />
