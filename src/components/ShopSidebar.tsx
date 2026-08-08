@@ -120,8 +120,8 @@ export default function ShopSidebar(props: ShopSidebarProps) {
   const maxPct = ((sliderMax - PRICE_FLOOR) / (PRICE_CEILING - PRICE_FLOOR)) * 100;
 
   return (
-    <aside className="hidden lg:block w-64 flex-shrink-0 self-start">
-      <div className="sticky top-24 space-y-1">
+    <aside className="hidden lg:block w-64 flex-shrink-0 self-start sticky top-24 h-fit">
+      <div className="space-y-1 max-h-[calc(100vh-8rem)] overflow-y-auto scrollbar-hide">
         {hasActiveFilters && (
           <button
             onClick={clearAll}
@@ -200,10 +200,10 @@ export default function ShopSidebar(props: ShopSidebarProps) {
 
             <div className="grid grid-cols-1 gap-1.5">
               {[
-                { label: `${t("under")} ${fmtPrice(100)}`,           min: "",    max: "100" },
+                { label: `${t("under")} ${fmtPrice(50)}`,             min: "",    max: "50"  },
+                { label: `${fmtPrice(50)} - ${fmtPrice(100)}`,        min: "50",  max: "100" },
                 { label: `${fmtPrice(100)} - ${fmtPrice(200)}`,       min: "100", max: "200" },
-                { label: `${fmtPrice(200)} - ${fmtPrice(300)}`,       min: "200", max: "300" },
-                { label: `${fmtPrice(300)}+`,                          min: "300", max: ""    },
+                { label: `${fmtPrice(200)}+`,                          min: "200", max: ""    },
               ].map((r) => (
                 <button
                   key={r.min + "-" + r.max}
