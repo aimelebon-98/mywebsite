@@ -152,7 +152,7 @@ export default function ShopSidebar(props: ShopSidebarProps) {
           </div>
         </FilterGroup>
 
-        <FilterGroup title={t("filterPriceRange")} icon={<span className="text-sm">$</span>} open={openSection.price} onToggle={() => toggleSection("price")}>
+        <FilterGroup title={t("filterPriceRange")} icon={<span className="text-sm font-bold">{fmtPrice(0).replace(/[0-9,.\s]/g, "").trim() || "$"}</span>} open={openSection.price} onToggle={() => toggleSection("price")}>
           <div className="space-y-4">
             <div className="flex items-center justify-between text-xs">
               <span className="text-gray-500">Range</span>
