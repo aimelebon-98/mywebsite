@@ -58,7 +58,7 @@ export default function CartPage() {
     <main className="min-h-screen bg-white overflow-x-hidden">
       <Navbar />
 
-      <div>
+      <div className="w-full max-w-full overflow-x-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 pb-24 lg:pb-8">
           <Link href={`/${locale}/shop`} className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-4 lg:mb-8 transition">
             <ArrowLeft className="w-4 h-4" /> {tc("continueShopping")}
@@ -76,11 +76,11 @@ export default function CartPage() {
               </Link>
             </div>
           ) : (
-            <div className="grid lg:grid-cols-3 gap-4 lg:gap-8">
+            <div className="grid lg:grid-cols-3 gap-4 lg:gap-8 max-w-full">
               {/* Cart Items */}
-              <div className="lg:col-span-2 space-y-4">
+              <div className="lg:col-span-2 space-y-4 min-w-0 w-full max-w-full">
                 {items.map((item) => (
-                  <div key={`${item.id}-${item.size}-${item.color}`} className="flex gap-4 p-4 bg-gray-50 rounded-2xl">
+                  <div key={`${item.id}-${item.size}-${item.color}`} className="flex gap-4 p-4 bg-gray-50 rounded-2xl min-w-0 max-w-full">
                     <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gray-200 rounded-xl overflow-hidden flex-shrink-0">
                       {item.imageUrl ? (
                         <img src={item.imageUrl} alt={item.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
@@ -92,7 +92,7 @@ export default function CartPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-lg truncate">{item.name}</h3>
-                      <p className="text-sm text-gray-500 mt-1">{t("size")}: {item.size} - {t("color")}: {item.color}</p>
+                      <p className="text-sm text-gray-500 mt-1 truncate">{t("size")}: {item.size} - {t("color")}: {item.color}</p>
                       <p className="text-lg font-bold mt-2">{formatPrice(item.price)}</p>
 
                       <div className="flex items-center justify-between mt-3">
@@ -119,7 +119,7 @@ export default function CartPage() {
               </div>
 
               {/* Order Summary */}
-              <div className="lg:col-span-1 min-w-0">
+              <div className="lg:col-span-1 min-w-0 w-full max-w-full">
                 <div className="bg-gray-50 rounded-2xl p-4 sm:p-6 lg:sticky lg:top-28 overflow-hidden">
                   <h3 className="text-lg font-bold mb-4">{t("orderSummary")}</h3>
 
