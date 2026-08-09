@@ -1,100 +1,52 @@
 "use client";
 
-
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import dynamic from "next/dynamic";
 import MiniCartDrawer from "@/components/MiniCartDrawer";
 
-
-const MobileBottomNav = dynamic(() => import("@/components/MobileBottomNav"), { ssr: false });
-
 const WhatsAppButton = dynamic(() => import("@/components/WhatsAppButton"));
-
-
-const MobileBottomNav = dynamic(() => import("@/components/MobileBottomNav"), { ssr: false });
+const MobileBottomNav = dynamic(() => import("@/components/MobileBottomNav"));
 
 export default function ConditionalWidgets() {
-  
-const MobileBottomNav = dynamic(() => import("@/components/MobileBottomNav"), { ssr: false });
-
-const pathname = usePathname() || "";
-  
-const MobileBottomNav = dynamic(() => import("@/components/MobileBottomNav"), { ssr: false });
-
-const path = pathname.replace(/^\/(en|fr)/, "") || "/";
+  const pathname = usePathname() || "";
+  const path = pathname.replace(/^\/(en|fr)/, "") || "/";
 
   // MiniCartDrawer: hide only where redundant
-  
-const MobileBottomNav = dynamic(() => import("@/components/MobileBottomNav"), { ssr: false });
-
-const hideMiniCart =
+  const hideMiniCart =
     path === "/cart" ||
     path.startsWith("/cart/") ||
     path === "/checkout" ||
     path.startsWith("/checkout/") ||
     path.startsWith("/admin");
-  
-const MobileBottomNav = dynamic(() => import("@/components/MobileBottomNav"), { ssr: false });
 
-const showMiniCart = !hideMiniCart;
+  const showMiniCart = !hideMiniCart;
 
   // WhatsApp: ONLY on about, contact, faq, blog listing, blog post pages
-  
-const MobileBottomNav = dynamic(() => import("@/components/MobileBottomNav"), { ssr: false });
-
-const isAbout = path === "/about";
-  
-const MobileBottomNav = dynamic(() => import("@/components/MobileBottomNav"), { ssr: false });
-
-const isContact = path === "/contact";
-  
-const MobileBottomNav = dynamic(() => import("@/components/MobileBottomNav"), { ssr: false });
-
-const isFaq = path === "/faq";
-  
-const MobileBottomNav = dynamic(() => import("@/components/MobileBottomNav"), { ssr: false });
-
-const isBlogListing = path === "/blog";
+  const isAbout = path === "/about";
+  const isContact = path === "/contact";
+  const isFaq = path === "/faq";
+  const isBlogListing = path === "/blog";
   // Blog post: /blog/{slug} but NOT /blog/author/{slug}
-  
-const MobileBottomNav = dynamic(() => import("@/components/MobileBottomNav"), { ssr: false });
+  const isBlogPost = /^\/blog\/[^/]+$/.test(path) && !path.startsWith("/blog/author");
 
-const isBlogPost = /^\/blog\/[^/]+$/.test(path) && !path.startsWith("/blog/author");
-
-  
-const MobileBottomNav = dynamic(() => import("@/components/MobileBottomNav"), { ssr: false });
-
-const showWhatsApp = isAbout || isContact || isFaq || isBlogListing || isBlogPost;
+  const showWhatsApp = isAbout || isContact || isFaq || isBlogListing || isBlogPost;
 
   // If on a blog post, fetch title so WhatsApp initial message includes it
   const [blogPostTitle, setBlogPostTitle] = useState<string>("");
 
   useEffect(() => {
     if (!isBlogPost) { setBlogPostTitle(""); return; }
-    
-const MobileBottomNav = dynamic(() => import("@/components/MobileBottomNav"), { ssr: false });
-
-const match = path.match(/^\/blog\/([^/]+)$/);
+    const match = path.match(/^\/blog\/([^/]+)$/);
     if (!match) return;
-    
-const MobileBottomNav = dynamic(() => import("@/components/MobileBottomNav"), { ssr: false });
-
-const slug = match[1];
+    const slug = match[1];
 
     fetch(`/api/blog/${slug}`)
       .then(r => r.ok ? r.json() : null)
       .then(post => {
         if (post) {
-          
-const MobileBottomNav = dynamic(() => import("@/components/MobileBottomNav"), { ssr: false });
-
-const isFr = pathname.startsWith("/fr");
-          
-const MobileBottomNav = dynamic(() => import("@/components/MobileBottomNav"), { ssr: false });
-
-const title = isFr ? (post.titleFr || post.title) : post.title;
+          const isFr = pathname.startsWith("/fr");
+          const title = isFr ? (post.titleFr || post.title) : post.title;
           setBlogPostTitle(title || "");
         }
       })
@@ -102,10 +54,7 @@ const title = isFr ? (post.titleFr || post.title) : post.title;
   }, [path, isBlogPost, pathname]);
 
   // Full URL of current blog post for the WhatsApp message
-  
-const MobileBottomNav = dynamic(() => import("@/components/MobileBottomNav"), { ssr: false });
-
-const blogPostUrl = isBlogPost && typeof window !== "undefined"
+  const blogPostUrl = isBlogPost && typeof window !== "undefined"
     ? window.location.href
     : "";
 
