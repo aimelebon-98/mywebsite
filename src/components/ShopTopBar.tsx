@@ -50,10 +50,14 @@ export default function ShopTopBar(props: ShopTopBarProps) {
 
   return (
     <>
-      <div data-shop-topbar className="flex items-center justify-between mb-5 gap-3 flex-wrap">
-        <div className="flex items-baseline gap-2">
+      <div data-shop-topbar className="flex items-center justify-between mb-4 lg:mb-5 gap-3 flex-wrap">
+        <div className="hidden lg:flex items-baseline gap-2">
           <p className="text-lg font-bold text-gray-900">{totalResults}</p>
           <p className="text-sm text-gray-500">{totalResults === 1 ? t("resultLabel") : t("resultsLabel")}</p>
+        </div>
+        <div className="lg:hidden flex items-baseline gap-1.5">
+          <p className="text-sm font-bold text-gray-900">{totalResults}</p>
+          <p className="text-xs text-gray-500">{totalResults === 1 ? t("resultLabel") : t("resultsLabel")}</p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -64,7 +68,7 @@ export default function ShopTopBar(props: ShopTopBarProps) {
             </button>
           </div>
 
-          <div className="relative">
+          <div className="hidden lg:block relative">
             <select
               value={sort}
               onChange={(e) => router.push(buildUrl({ sort: e.target.value }))}
@@ -119,6 +123,25 @@ export default function ShopTopBar(props: ShopTopBarProps) {
               </div>
               <button type="submit" className="px-3 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium">{t("go")}</button>
             </form>
+          </div>
+
+          <div>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">{t("sortNewest").split(":")[0] || "Sort By"}</h4>
+            <div className="relative">
+              <select
+                value={sort}
+                onChange={(e) => { router.push(buildUrl({ sort: e.target.value })); setMobileFiltersOpen(false); }}
+                className="w-full appearance-none px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm cursor-pointer"
+              >
+                <option value="newest">{t("sortNewest")}</option>
+                <option value="price-low">{t("sortPriceLow")}</option>
+                <option value="price-high">{t("sortPriceHigh")}</option>
+                <option value="rating">{t("sortRating")}</option>
+                <option value="name-az">{t("sortNameAZ")}</option>
+                <option value="name-za">{t("sortNameZA")}</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            </div>
           </div>
 
           <div>
