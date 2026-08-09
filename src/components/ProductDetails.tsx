@@ -1,6 +1,7 @@
 "use client";
 import { useCurrency } from "@/lib/currency-context";
 import { parseColorVariants } from "@/lib/color-variants";
+import { getProductName, getProductShortDescription, getProductLongDescription } from "@/lib/product-i18n";
 import { getColorHexPair } from "@/lib/color-map";
 import StockBadge from "@/components/StockBadge";
 import { trackEvent } from "@/components/AnalyticsTracker";
@@ -133,8 +134,10 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
   const [visibleReviews, setVisibleReviews] = useState(REVIEWS_PER_PAGE);
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  const shortDesc = product.shortDescription || product.description || "";
-  const longDesc = product.longDescription || product.description || "";
+  const displayName = getProductName(product, locale);
+  const shortDesc = getProductShortDescription(product, locale);
+  const _unusedOldShortDesc = product.shortDescription || product.description || "";
+  const longDesc = getProductLongDescription(product, locale);
 
   useEffect(() => {
     setVisibleReviews(REVIEWS_PER_PAGE);
@@ -184,7 +187,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
 
   const handleShare = () => {
     if (navigator.share) {
-      navigator.share({ title: product.name, text: product.description, url: window.location.href });
+      navigator.share({ title: displayName, text: shortDesc, url: window.location.href });
     } else {
       navigator.clipboard.writeText(window.location.href);
     }
@@ -242,7 +245,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
             <span className="text-gray-300">/</span>
             <Link href={`/${locale}/shop?category=${product.category}`} className="hover:text-gray-900 transition capitalize">{product.category}</Link>
             <span className="text-gray-300">/</span>
-            <span className="text-gray-900 font-medium truncate max-w-[140px] sm:max-w-[240px]">{product.name}</span>
+            <span className="text-gray-900 font-medium truncate max-w-[140px] sm:max-w-[240px]">{displayName}</span>
           </nav>
 
           <div className="grid lg:grid-cols-[1fr_1fr_320px] gap-8 lg:gap-10">
@@ -306,7 +309,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               <div className="mt-6 flex items-center gap-3 flex-wrap">
                 <span className="text-xs font-bold uppercase tracking-wider text-gray-500">{isFr ? "Partager :" : "Share:"}</span>
                 <a
-                  href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(product.name)}`}
+                  href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(displayName)}`}
                   target="_blank" rel="noopener noreferrer"
                   aria-label="Share on X"
                   className="w-9 h-9 rounded-lg bg-gray-100 hover:bg-gray-900 hover:text-white flex items-center justify-center transition text-gray-600"
@@ -322,7 +325,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                   <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M13.5 21v-7.5h2.5l.4-3H13.5V8.6c0-.9.3-1.5 1.6-1.5h1.7V4.4c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3v2.4H7.6v3h2.5V21h3.4z"/></svg>
                 </a>
                 <a
-                  href={`https://wa.me/?text=${encodeURIComponent(product.name)}`}
+                  href={`https://wa.me/?text=${encodeURIComponent(displayName)}`}
                   target="_blank" rel="noopener noreferrer"
                   aria-label="Share on WhatsApp"
                   className="w-9 h-9 rounded-lg bg-gray-100 hover:bg-gray-900 hover:text-white flex items-center justify-center transition text-gray-600"
@@ -428,7 +431,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               </div>
 
               {/* Title */}
-              <h1 className="text-3xl lg:text-4xl font-black tracking-tight mb-4 leading-tight">{product.name}</h1>
+              <h1 className="text-3xl lg:text-4xl font-black tracking-tight mb-4 leading-tight">{displayName}</h1>
 
               {/* Price */}
               <div className="flex flex-wrap items-end gap-x-3 gap-y-2 mb-6 p-4 bg-gradient-to-r from-gray-50 to-transparent rounded-2xl -ml-4 pl-4">
@@ -745,7 +748,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                       {product.imageUrl && <img src={product.imageUrl} alt="" width="56" height="56" className="w-full h-full object-cover" loading="lazy" decoding="async" />}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-bold text-gray-900 line-clamp-2 leading-tight">{product.name}</div>
+                      <div className="text-sm font-bold text-gray-900 line-clamp-2 leading-tight">{displayName}</div>
                       <div className="flex items-baseline gap-2 mt-1">
                         <span className="text-lg font-black" style={{ color: "#CA3F2E" }}>{formatPrice(price)}</span>
                         {comparePrice && comparePrice > price && (
@@ -785,7 +788,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
             {product.imageUrl && <img src={product.imageUrl} alt="" width="56" height="56" className="w-full h-full object-cover" loading="lazy" decoding="async" />}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-[11px] font-semibold text-gray-900 truncate leading-tight">{product.name}</div>
+            <div className="text-[11px] font-semibold text-gray-900 truncate leading-tight">{displayName}</div>
             <div className="flex items-baseline gap-1.5 mt-0.5 min-w-0">
               <span className="text-sm font-black truncate" style={{ color: "#CA3F2E" }}>{formatPrice(price)}</span>
               {comparePrice && comparePrice > price && (
