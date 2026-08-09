@@ -20,7 +20,6 @@ const playfair = Playfair_Display({
   display: "swap",
 });
 const FloatingCartPill = dynamic(() => import("@/components/FloatingCartPill"));
-const MobileBottomNav = dynamic(() => import("@/components/MobileBottomNav"));
 const PageViewTracker = dynamic(() => import("@/components/AnalyticsTracker"));
 import { SpeedInsights } from "@vercel/speed-insights/next";
 const GoogleAnalytics = dynamic(() => import("@/components/GoogleAnalytics"));
@@ -72,7 +71,6 @@ export const metadata: Metadata = {
   verification: {
     google: "JY5IqgH1P44E4yJsMaRCsPWYfixVcPNFrILitMmKzmg",
   },
-
   alternates: {
     canonical: siteUrl,
     languages: {
@@ -149,9 +147,10 @@ export default async function LocaleLayout({
   ];
 
   const [initialCurrency, initialRates] = await Promise.all([
-      getServerCurrency(),
-      getServerRates(),
-    ]);
+    getServerCurrency(),
+    getServerRates(),
+  ]);
+
   return (
     <html lang={locale} className={`${inter.variable} ${playfair.variable}`}>
       <head>
@@ -171,16 +170,15 @@ export default async function LocaleLayout({
         <NextIntlClientProvider locale={locale} messages={messages}>
           <CartProvider>
             <CustomerProvider>
-            <CurrencyProvider initialCurrency={initialCurrency} initialRates={initialRates}>
-            <WishlistProvider>
-              {children}
-              <ConditionalWidgets />
-              <FloatingCartPill />
-              <MobileBottomNav />
-              <InactivityCartReminder />
-            </WishlistProvider>
-          </CurrencyProvider>
-          </CustomerProvider>
+              <CurrencyProvider initialCurrency={initialCurrency} initialRates={initialRates}>
+                <WishlistProvider>
+                  {children}
+                  <ConditionalWidgets />
+                  <FloatingCartPill />
+                  <InactivityCartReminder />
+                </WishlistProvider>
+              </CurrencyProvider>
+            </CustomerProvider>
           </CartProvider>
         </NextIntlClientProvider>
         <StickyPromoBar />
