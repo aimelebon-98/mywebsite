@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import { useCustomer } from "@/lib/customer-context";
+import { useCurrency } from "@/lib/currency-context";
 import Navbar from "@/components/Navbar";
 import AccountSidebar from "@/components/AccountSidebar";
 import AccountMobileBar from "@/components/AccountMobileBar";
@@ -23,6 +24,7 @@ export default function DashboardPage() {
   const isFr = locale === "fr";
   const router = useRouter();
   const { customer, loading } = useCustomer();
+  const { format: formatPrice } = useCurrency();
   const [stats, setStats] = useState<Stats>({ orderCount: 0, wishlistCount: 0, ticketCount: 0, totalSpent: 0 });
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -85,7 +87,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="bg-white border border-gray-200 rounded-2xl p-4">
                   <div className="flex items-center gap-2 text-gray-500 text-[10px] font-bold uppercase mb-2"><TrendingUp className="w-3.5 h-3.5" /> {isFr ? "D\u00e9pens\u00e9" : "Spent"}</div>
-                  <div className="text-2xl font-black text-gray-900">${stats.totalSpent.toFixed(0)}</div>
+                  <div className="text-2xl font-black text-gray-900">{formatPrice(stats.totalSpent)}</div>
                 </div>
               </div>
 
