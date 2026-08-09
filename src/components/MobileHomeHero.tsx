@@ -1,6 +1,7 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
+import { CATEGORY_IMAGES } from "@/lib/category-images";
 import Image from "next/image";
 import { useLocale } from "next-intl";
 import { useEffect, useState } from "react";
@@ -34,12 +35,12 @@ interface Props {
 }
 
 const CAT_IMAGES: Record<string, string> = {
-  sneakers: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&q=80",
-  running:  "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=300&q=80",
-  formal:   "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=300&q=80",
-  boots:    "https://images.unsplash.com/photo-1520639888713-7851133b1ed0?w=300&q=80",
-  sandals:  "https://images.unsplash.com/photo-1603487742131-4160ec999306?w=300&q=80",
-  casual:   "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=300&q=80",
+  sneakers: CATEGORY_IMAGES.sneakers,
+  running:  CATEGORY_IMAGES.running,
+  formal:   CATEGORY_IMAGES.formal,
+  boots:    CATEGORY_IMAGES.boots,
+  sandals:  CATEGORY_IMAGES.sandals,
+  casual:   CATEGORY_IMAGES.casual,
 };
 
 export default function MobileHomeHero({ products, categories, whatsapp }: Props) {
