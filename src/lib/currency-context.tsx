@@ -30,11 +30,11 @@ function writeCurrencyCookie(c: string) {
 
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
 
-export function CurrencyProvider({ children, initialCurrency, initialRates }: { children: ReactNode; initialCurrency?: CurrencyCode; initialRates?: Record<string, number> }) {
+export function CurrencyProvider({ children, initialCurrency, initialRates, initialCountry }: { children: ReactNode; initialCurrency?: CurrencyCode; initialRates?: Record<string, number>; initialCountry?: string }) {
   const [currency, setCurrencyState] = useState<CurrencyCode>(initialCurrency || "USD");
   const [rates, setRates] = useState<Record<string, number>>(initialRates || {});
   const [autoDetected, setAutoDetected] = useState(false);
-  const [visitorCountry, setVisitorCountry] = useState<string>("");
+  const [visitorCountry, setVisitorCountry] = useState<string>(initialCountry || "");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

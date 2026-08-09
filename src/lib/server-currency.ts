@@ -75,3 +75,29 @@ export async function getServerRates(): Promise<Record<string, number>> {
   } catch { /* ignore */ }
   return { USD: 1, EUR: 0.92, GBP: 0.79, NGN: 1500, GHS: 12.5, XOF: 600, KES: 128, ZAR: 18.5 };
 }
+
+export async function getServerCountry(): Promise<string> {
+  try {
+    const h = await headers();
+    const cfCountry = (h.get("cf-ipcountry") || "").toUpperCase();
+    const vercelCountry = (h.get("x-vercel-ip-country") || "").toUpperCase();
+    const ip = getRealClientIpFromHeaders(h as unknown as Headers);
+
+    let country = cfCountry || vercelCountry;
+
+    if (ip && (!country || !AFRICAN_COUNTRIES.has(country))) {
+      try {
+        const r = await fetch(`https://ipwho.is/${ip}?fields=country_code,success`, {
+          next: { revalidate: 3600 },
+          signal: AbortSignal.timeout(3000),
+        });
+        const data = await r.json();
+        if (data.success && data.country_code) country = data.country_code.toUpperCase();
+      } catch { /* ignore */ }
+    }
+
+    return country || "";
+  } catch {
+    return "";
+  }
+}
