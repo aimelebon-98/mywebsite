@@ -6,25 +6,20 @@ import { put } from "@vercel/blob";
 
 export const dynamic = "force-dynamic";
 
-function getInitials(name: string): string {
-  return name.split(" ").map(w => w[0]?.toUpperCase() || "").slice(0, 2).join("");
-}
-
 export async function GET() {
   try {
     const slugEn = "hermes-chypre-sandal-noir-black";
     const slugFr = "sandale-hermes-chypre-noir";
     const sourceUrl = "https://i.ibb.co/YTtVRq7Q/Whats-App-Image-2026-08-09-at-10-11-18-AM-1.jpg";
 
-    // --- Upload to Vercel Blob ---
-    let imageUrl = sourceUrl;
+    let imageUrl: string = sourceUrl;
     let blobUsed = false;
     try {
       const imgRes = await fetch(sourceUrl);
       if (imgRes.ok) {
         const buffer = await imgRes.arrayBuffer();
         const blob = await put(
-          products/hermes-chypre-sandal-noir-black-.jpg,
+          `products/hermes-chypre-sandal-noir-black-${Date.now()}.jpg`,
           buffer,
           { access: "public", contentType: "image/jpeg" }
         );
@@ -35,7 +30,6 @@ export async function GET() {
       console.error("Blob upload failed:", e);
     }
 
-    // --- Delete existing ---
     const existingProducts = await db.select({ id: products.id }).from(products).where(
       or(eq(products.slug, slugEn), eq(products.slugFr, slugFr))
     );
@@ -46,7 +40,6 @@ export async function GET() {
       or(eq(products.slug, slugEn), eq(products.slugFr, slugFr))
     );
 
-    // --- Insert product ---
     const [product] = await db.insert(products).values({
       name: "Hermes Chypre Sandal - Noir Black",
       nameFr: "Sandale Hermes Chypre - Noir",
@@ -73,7 +66,7 @@ export async function GET() {
       reviewCount: 0,
       shortDescription: "Iconic Hermes Chypre sandal in premium noir calfskin with signature H-cutout strap and cushioned rubber sole. Timeless luxury. Ships from Abuja.",
       shortDescriptionFr: "Sandale iconique Hermes Chypre en cuir de veau noir premium avec bride \u00e0 d\u00e9coupe H signature et semelle caoutchouc amortie. Luxe intemporel. Exp\u00e9di\u00e9 d'Abuja.",
-      longDescription: \<p>Discover the sandal that took the fashion world by storm: the <strong>Hermes Chypre in Noir Black</strong>. Originally designed for a Hermes staff member and now a global icon, the Chypre blends effortless luxury with everyday wearability. Its unmistakable H-cutout strap is instantly recognizable and adored by tastemakers worldwide.</p>
+      longDescription: `<p>Discover the sandal that took the fashion world by storm: the <strong>Hermes Chypre in Noir Black</strong>. Originally designed for a Hermes staff member and now a global icon, the Chypre blends effortless luxury with everyday wearability. Its unmistakable H-cutout strap is instantly recognizable and adored by tastemakers worldwide.</p>
 
 <h2>Hermes Chypre Sandal Craftsmanship</h2>
 <p>Handcrafted from premium calfskin leather, the Chypre features a sculptural H-cut strap, a padded anatomical footbed, and a chunky rubber outsole engineered for grip and durability. Every stitch reflects the meticulous savoir-faire that has defined Hermes for nearly two centuries.</p>
@@ -103,8 +96,8 @@ export async function GET() {
   <tr><td>Sizes</td><td>40 - 46</td></tr>
   <tr><td>Ships From</td><td>Abuja, Nigeria</td></tr>
   <tr><td>Includes</td><td>Original Hermes Box + Dust Bag</td></tr>
-</table>\,
-      longDescriptionFr: \<p>D\u00e9couvrez la sandale qui a conquis le monde de la mode : la <strong>Hermes Chypre en Noir</strong>. Con\u00e7ue \u00e0 l'origine pour un membre du personnel Hermes et aujourd'hui ic\u00f4ne mondiale, la Chypre allie luxe sans effort et confort quotidien. Sa bride \u00e0 d\u00e9coupe H reconnaissable entre toutes est ador\u00e9e par les cr\u00e9ateurs de tendances du monde entier.</p>
+</table>`,
+      longDescriptionFr: `<p>D\u00e9couvrez la sandale qui a conquis le monde de la mode : la <strong>Hermes Chypre en Noir</strong>. Con\u00e7ue \u00e0 l'origine pour un membre du personnel Hermes et aujourd'hui ic\u00f4ne mondiale, la Chypre allie luxe sans effort et confort quotidien. Sa bride \u00e0 d\u00e9coupe H reconnaissable entre toutes est ador\u00e9e par les cr\u00e9ateurs de tendances du monde entier.</p>
 
 <h2>Fabrication de la Sandale Hermes Chypre</h2>
 <p>Fabriqu\u00e9e \u00e0 la main en cuir de veau premium, la Chypre pr\u00e9sente une bride sculpturale \u00e0 d\u00e9coupe H, une semelle int\u00e9rieure anatomique matelass\u00e9e et une semelle ext\u00e9rieure en caoutchouc \u00e9paisse con\u00e7ue pour l'adh\u00e9rence et la durabilit\u00e9. Chaque couture refl\u00e8te le savoir-faire minutieux qui d\u00e9finit Hermes depuis pr\u00e8s de deux si\u00e8cles.</p>
@@ -134,7 +127,7 @@ export async function GET() {
   <tr><td>Tailles</td><td>40 - 46</td></tr>
   <tr><td>Exp\u00e9di\u00e9 de</td><td>Abuja, Nigeria</td></tr>
   <tr><td>Inclus</td><td>Bo\u00eete Hermes Originale + Pochette</td></tr>
-</table>\,
+</table>`,
       tags: JSON.stringify(["hermes", "chypre", "sandals", "luxury", "calfskin", "designer", "noir", "h-cutout", "abuja"]),
       tagsFr: JSON.stringify(["hermes", "chypre", "sandales", "luxe", "cuir-de-veau", "designer", "noir", "d\u00e9coupe-h", "abuja"]),
       seoTitle: "Hermes Chypre Sandal Noir Black Leather | New Deal Zone",
@@ -147,7 +140,6 @@ export async function GET() {
       canonical: "https://www.newdealzone.com/en/product/hermes-chypre-sandal-noir-black",
     }).returning();
 
-    // --- Seed reviews ---
     const reviewsData = [
       {
         productId: product.id,
@@ -195,7 +187,6 @@ export async function GET() {
       await db.insert(reviews).values(rev);
     }
 
-    // --- Update product rating ---
     const totalRating = reviewsData.reduce((s, r) => s + r.rating, 0);
     const avgRating = Math.round((totalRating / reviewsData.length) * 10) / 10;
     await db.update(products).set({
@@ -206,34 +197,11 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       message: "Hermes Chypre Sandal Noir seeded successfully",
-      product: {
-        id: product.id,
-        slug: slugEn,
-        slugFr: slugFr,
-        imageUrl: imageUrl,
-        blobUsed: blobUsed,
-      },
-      pricing: {
-        costNgn: 37000,
-        sellingNgn: 45000,
-        compareNgn: 52000,
-        costUsd: 27.13,
-        sellingUsd: 32.99,
-        compareUsd: 38.12,
-        profitNgn: 8000,
-        marginPct: 17.8,
-        ngnRate: "live",
-      },
-      reviews: {
-        count: reviewsData.length,
-        avg: avgRating,
-        breakdown: "3x5-star, 1x4-star",
-      },
+      product: { id: product.id, slug: slugEn, slugFr: slugFr, imageUrl: imageUrl, blobUsed: blobUsed },
+      pricing: { costNgn: 37000, sellingNgn: 45000, compareNgn: 52000, costUsd: 27.13, sellingUsd: 32.99, compareUsd: 38.12, profitNgn: 8000, marginPct: 17.8 },
+      reviews: { count: reviewsData.length, avg: avgRating, breakdown: "3x5-star, 1x4-star" },
       origin: { country: "NG", city: "Abuja" },
-      urls: {
-        en: "https://www.newdealzone.com/en/product/" + slugEn,
-        fr: "https://www.newdealzone.com/fr/product/" + slugFr,
-      },
+      urls: { en: "https://www.newdealzone.com/en/product/" + slugEn, fr: "https://www.newdealzone.com/fr/product/" + slugFr },
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";

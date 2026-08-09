@@ -6,25 +6,20 @@ import { put } from "@vercel/blob";
 
 export const dynamic = "force-dynamic";
 
-function getInitials(name: string): string {
-  return name.split(" ").map(w => w[0]?.toUpperCase() || "").slice(0, 2).join("");
-}
-
 export async function GET() {
   try {
     const slugEn = "off-white-cross-strap-slide-black";
     const slugFr = "sandale-off-white-croisee-cuir-noir";
     const sourceUrl = "https://i.ibb.co/LXMLPpxF/Whats-App-Image-2026-08-09-at-10-11-18-AM.jpg";
 
-    // --- Upload to Vercel Blob ---
-    let imageUrl = sourceUrl;
+    let imageUrl: string = sourceUrl;
     let blobUsed = false;
     try {
       const imgRes = await fetch(sourceUrl);
       if (imgRes.ok) {
         const buffer = await imgRes.arrayBuffer();
         const blob = await put(
-          products/off-white-cross-strap-slide-black-.jpg,
+          `products/off-white-cross-strap-slide-black-${Date.now()}.jpg`,
           buffer,
           { access: "public", contentType: "image/jpeg" }
         );
@@ -35,7 +30,6 @@ export async function GET() {
       console.error("Blob upload failed:", e);
     }
 
-    // --- Delete existing ---
     const existingProducts = await db.select({ id: products.id }).from(products).where(
       or(eq(products.slug, slugEn), eq(products.slugFr, slugFr))
     );
@@ -46,7 +40,6 @@ export async function GET() {
       or(eq(products.slug, slugEn), eq(products.slugFr, slugFr))
     );
 
-    // --- Insert product ---
     const [product] = await db.insert(products).values({
       name: "Off-White Cross-Strap Leather Slide - Black/White",
       nameFr: "Sandale Off-White Crois\u00e9e en Cuir - Noir/Blanc",
@@ -73,7 +66,7 @@ export async function GET() {
       reviewCount: 0,
       shortDescription: "Premium Off-White cross-strap leather slide sandal with signature arrow detailing and cushioned rubber sole. Bold luxury for every day. Ships from Abuja.",
       shortDescriptionFr: "Sandale Off-White \u00e0 brides crois\u00e9es en cuir premium avec d\u00e9tail fl\u00e8che signature et semelle caoutchouc amortie. Luxe audacieux au quotidien. Exp\u00e9di\u00e9 d'Abuja.",
-      longDescription: \<p>Step into iconic luxury with the <strong>Off-White Cross-Strap Leather Slide</strong>. Designed by Virgil Abloh's groundbreaking label, this slide combines bold streetwear aesthetics with everyday comfort. The criss-cross leather straps feature the signature Off-White arrow motif, delivering instant brand recognition and head-turning style.</p>
+      longDescription: `<p>Step into iconic luxury with the <strong>Off-White Cross-Strap Leather Slide</strong>. Designed by Virgil Abloh's groundbreaking label, this slide combines bold streetwear aesthetics with everyday comfort. The criss-cross leather straps feature the signature Off-White arrow motif, delivering instant brand recognition and head-turning style.</p>
 
 <h2>Premium Craftsmanship</h2>
 <p>Constructed from supple premium leather, the cross-over straps sit comfortably across the foot while the cushioned footbed ensures all-day wearability. The chunky rubber outsole provides excellent grip and durability, whether you're walking city streets or lounging poolside.</p>
@@ -102,8 +95,8 @@ export async function GET() {
   <tr><td>Sizes</td><td>40 - 46</td></tr>
   <tr><td>Ships From</td><td>Abuja, Nigeria</td></tr>
   <tr><td>Includes</td><td>Original Off-White Box</td></tr>
-</table>\,
-      longDescriptionFr: \<p>Entrez dans le luxe iconique avec la <strong>Sandale Off-White \u00e0 Brides Crois\u00e9es en Cuir</strong>. Con\u00e7ue par la marque r\u00e9volutionnaire de Virgil Abloh, cette sandale allie esth\u00e9tique streetwear audacieuse et confort quotidien. Les brides crois\u00e9es en cuir arborent le motif fl\u00e8che signature Off-White, garantissant une reconnaissance imm\u00e9diate et un style saisissant.</p>
+</table>`,
+      longDescriptionFr: `<p>Entrez dans le luxe iconique avec la <strong>Sandale Off-White \u00e0 Brides Crois\u00e9es en Cuir</strong>. Con\u00e7ue par la marque r\u00e9volutionnaire de Virgil Abloh, cette sandale allie esth\u00e9tique streetwear audacieuse et confort quotidien. Les brides crois\u00e9es en cuir arborent le motif fl\u00e8che signature Off-White, garantissant une reconnaissance imm\u00e9diate et un style saisissant.</p>
 
 <h2>Fabrication Premium</h2>
 <p>Fabriqu\u00e9es en cuir souple de qualit\u00e9 sup\u00e9rieure, les brides crois\u00e9es \u00e9pousent confortablement le pied tandis que la semelle int\u00e9rieure amortie assure un port agr\u00e9able toute la journ\u00e9e. La semelle ext\u00e9rieure en caoutchouc \u00e9paisse offre une excellente adh\u00e9rence et une durabilit\u00e9 \u00e0 toute \u00e9preuve.</p>
@@ -132,7 +125,7 @@ export async function GET() {
   <tr><td>Tailles</td><td>40 - 46</td></tr>
   <tr><td>Exp\u00e9di\u00e9 de</td><td>Abuja, Nigeria</td></tr>
   <tr><td>Inclus</td><td>Bo\u00eete Originale Off-White</td></tr>
-</table>\,
+</table>`,
       tags: JSON.stringify(["off-white", "slides", "sandals", "luxury", "leather", "streetwear", "designer", "black", "abuja"]),
       tagsFr: JSON.stringify(["off-white", "sandales", "claquettes", "luxe", "cuir", "streetwear", "designer", "noir", "abuja"]),
       seoTitle: "Off-White Cross-Strap Leather Slide Black | New Deal Zone",
@@ -145,7 +138,6 @@ export async function GET() {
       canonical: "https://www.newdealzone.com/en/product/off-white-cross-strap-slide-black",
     }).returning();
 
-    // --- Seed reviews ---
     const reviewsData = [
       {
         productId: product.id,
@@ -193,7 +185,6 @@ export async function GET() {
       await db.insert(reviews).values(rev);
     }
 
-    // --- Update product rating ---
     const totalRating = reviewsData.reduce((s, r) => s + r.rating, 0);
     const avgRating = Math.round((totalRating / reviewsData.length) * 10) / 10;
     await db.update(products).set({
@@ -204,34 +195,11 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       message: "Off-White Cross-Strap Slide seeded successfully",
-      product: {
-        id: product.id,
-        slug: slugEn,
-        slugFr: slugFr,
-        imageUrl: imageUrl,
-        blobUsed: blobUsed,
-      },
-      pricing: {
-        costNgn: 37000,
-        sellingNgn: 45000,
-        compareNgn: 52000,
-        costUsd: 27.13,
-        sellingUsd: 32.99,
-        compareUsd: 38.12,
-        profitNgn: 8000,
-        marginPct: 17.8,
-        ngnRate: "live",
-      },
-      reviews: {
-        count: reviewsData.length,
-        avg: avgRating,
-        breakdown: "3x5-star, 1x4-star",
-      },
+      product: { id: product.id, slug: slugEn, slugFr: slugFr, imageUrl: imageUrl, blobUsed: blobUsed },
+      pricing: { costNgn: 37000, sellingNgn: 45000, compareNgn: 52000, costUsd: 27.13, sellingUsd: 32.99, compareUsd: 38.12, profitNgn: 8000, marginPct: 17.8 },
+      reviews: { count: reviewsData.length, avg: avgRating, breakdown: "3x5-star, 1x4-star" },
       origin: { country: "NG", city: "Abuja" },
-      urls: {
-        en: "https://www.newdealzone.com/en/product/" + slugEn,
-        fr: "https://www.newdealzone.com/fr/product/" + slugFr,
-      },
+      urls: { en: "https://www.newdealzone.com/en/product/" + slugEn, fr: "https://www.newdealzone.com/fr/product/" + slugFr },
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";
