@@ -41,6 +41,8 @@ export const products = pgTable("products", {
   seoTitleFr: text("seo_title_fr"),
   metaDescriptionFr: text("meta_description_fr"),
   focusKeyphraseFr: text("focus_keyphrase_fr"),
+  originCountry: text("origin_country").notNull().default("NG"),
+  originCity: text("origin_city").notNull().default("Abuja"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
