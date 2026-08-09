@@ -1,3 +1,4 @@
+import { SUPPLIER_COUNTRIES } from "@/lib/shipping-tier";
 "use client";
 import BlogEditor from "./BlogEditor";
 
@@ -37,6 +38,8 @@ type ProductLike = {
   active?: boolean;
   material?: string;
   sku?: string;
+  originCountry?: string;
+  originCity?: string;
   tags?: string;
   seoTitle?: string | null;
   metaDescription?: string | null;
@@ -165,6 +168,8 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
   const [active, setActive] = useState(product?.active !== false);
   const [material, setMaterial] = useState(product?.material || "");
   const [sku, setSku] = useState(product?.sku || "");
+  const [originCountry, setOriginCountry] = useState(product?.originCountry || "NG");
+  const [originCity, setOriginCity] = useState(product?.originCity || "Abuja");
   const [tagsStr, setTagsStr] = useState(product?.tags ? (JSON.parse(product.tags) as string[]).join(", ") : "");
 
   // SEO
