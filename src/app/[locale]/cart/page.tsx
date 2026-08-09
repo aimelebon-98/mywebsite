@@ -45,7 +45,7 @@ export default function CartPage() {
 
   if (!mounted) {
     return (
-      <main className="min-h-screen bg-white">
+      <main className="min-h-screen bg-white overflow-x-hidden">
         <Navbar />
         <div className="pt-10 text-center">
           <div className="animate-pulse text-gray-400">{t("loadingCart")}</div>
@@ -55,16 +55,16 @@ export default function CartPage() {
   }
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-white overflow-x-hidden">
       <Navbar />
 
       <div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Link href={`/${locale}/shop`} className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-8 transition">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 pb-24 lg:pb-8">
+          <Link href={`/${locale}/shop`} className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-4 lg:mb-8 transition">
             <ArrowLeft className="w-4 h-4" /> {tc("continueShopping")}
           </Link>
 
-          <h1 className="text-3xl lg:text-4xl font-bold mb-8">{t("title")}</h1>
+          <h1 className="text-2xl lg:text-4xl font-bold mb-4 lg:mb-8">{t("title")}</h1>
 
           {items.length === 0 ? (
             <div className="text-center py-20">
@@ -76,7 +76,7 @@ export default function CartPage() {
               </Link>
             </div>
           ) : (
-            <div className="grid lg:grid-cols-3 gap-8">
+            <div className="grid lg:grid-cols-3 gap-4 lg:gap-8">
               {/* Cart Items */}
               <div className="lg:col-span-2 space-y-4">
                 {items.map((item) => (
@@ -119,8 +119,8 @@ export default function CartPage() {
               </div>
 
               {/* Order Summary */}
-              <div className="lg:col-span-1">
-                <div className="bg-gray-50 rounded-2xl p-6 sticky top-28">
+              <div className="lg:col-span-1 min-w-0">
+                <div className="bg-gray-50 rounded-2xl p-4 sm:p-6 lg:sticky lg:top-28">
                   <h3 className="text-lg font-bold mb-4">{t("orderSummary")}</h3>
 
                   <div className="space-y-3 mb-6">
@@ -141,7 +141,7 @@ export default function CartPage() {
                       {shippingInfo.hasLocalRate ? (
                         <span className="font-semibold text-right">{shippingInfo.label}</span>
                       ) : (
-                        <span className="text-gray-500 text-xs italic text-right max-w-[200px]">{t("shippingQuote")}</span>
+                        <span className="text-gray-500 text-xs italic text-right">{t("shippingQuote")}</span>
                       )}
                     </div>
 
