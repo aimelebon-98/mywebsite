@@ -213,10 +213,10 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
           </div>
         </div>
 
-        <div className="flex gap-2 mt-2.5">
+        <div className="flex gap-1.5 mt-2.5 w-full">
           <button
             onClick={handleBuyNow}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-brand-600 text-white rounded-xl text-xs font-bold hover:bg-brand-700 active:scale-95 transition"
+            className="flex-1 basis-0 min-w-0 flex items-center justify-center gap-1 py-2 bg-brand-600 text-white rounded-xl text-xs font-bold hover:bg-brand-700 active:scale-95 transition"
           >
             <Zap className="w-3.5 h-3.5" /> {t("buyNow")}
           </button>
