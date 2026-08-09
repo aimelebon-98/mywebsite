@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useCurrency } from "@/lib/currency-context";
 
 import { useEffect, useState } from "react";
@@ -32,7 +32,7 @@ export default function HomeProducts() {
   const isFr = locale === "fr";
 
   const [allProducts, setAllProducts] = useState<Product[]>([]);
-  const { format: formatPrice } = useCurrency();
+  const { format: formatPrice, visitorCountry } = useCurrency();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
