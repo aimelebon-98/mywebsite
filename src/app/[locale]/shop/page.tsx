@@ -6,7 +6,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
 import Link from "next/link";
-import { Package, ChevronRight, Home, Sparkles } from "lucide-react";
+import { Package, ChevronRight, Home, Sparkles } from "lucide-react"; import { SlidersHorizontal as MobileFilterIcon } from "lucide-react";
 import ShopSidebar from "@/components/ShopSidebar";
 import ShopTopBar from "@/components/ShopTopBar";
 import ActiveFilterChips from "@/components/ActiveFilterChips";
@@ -313,17 +313,18 @@ export default async function ShopPage({ params, searchParams }: Props) {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-8">
-        {/* Mobile-only: compact search + filter button in one row */}
+        {/* Mobile-only: search bar (80%) + filter button (20%) */}
         <div className="lg:hidden mb-3 flex items-center gap-2">
-          <div className="flex-1 min-w-0">
+          <div className="flex-[4] min-w-0">
             <SearchAutocomplete
-              placeholder={isFr ? "Rechercher produits..." : "Search products..."}
+              placeholder={isFr ? "Rechercher..." : "Search..."}
               initialValue={search}
               inputClassName="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#CA3F2E] focus:border-transparent transition"
               iconClassName="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none"
               showClearButton
             />
           </div>
+          <MobileShopFilterButton />
         </div>
         <div className="lg:mb-6 mb-3 -mx-4 sm:-mx-6 lg:-mx-8 lg:mx-0 overflow-x-auto scrollbar-hide">
           <div className="flex items-center gap-2 min-w-max py-2 lg:py-1 px-4 sm:px-6 lg:px-0">

@@ -50,7 +50,7 @@ export default function ShopTopBar(props: ShopTopBarProps) {
 
   return (
     <>
-      <div data-shop-topbar className="flex items-center justify-between mb-4 lg:mb-5 gap-3 flex-wrap">
+      <div data-shop-topbar className="hidden lg:flex items-center justify-between mb-4 lg:mb-5 gap-3 flex-wrap">
         <div className="hidden lg:flex items-baseline gap-2">
           <p className="text-lg font-bold text-gray-900">{totalResults}</p>
           <p className="text-sm text-gray-500">{totalResults === 1 ? t("resultLabel") : t("resultsLabel")}</p>
