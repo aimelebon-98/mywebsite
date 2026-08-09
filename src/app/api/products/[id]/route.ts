@@ -5,6 +5,25 @@ import { eq } from "drizzle-orm";
 import { generateSlug } from "@/lib/slug";
 import { requireAdmin } from "@/lib/admin-auth";
 
+// Convert supplier price in any currency to NGN using live rates
+async function convertSupplierToNgn(supplierPrice: number, supplierCurrency: string): Promise<number> {
+  if (!supplierPrice || supplierPrice <= 0) return 0;
+  const cur = (supplierCurrency || "NGN").toUpperCase();
+  if (cur === "NGN") return Math.round(supplierPrice);
+  try {
+    const r = await fetch("https://open.er-api.com/v6/latest/USD", { next: { revalidate: 3600 } });
+    const d = await r.json();
+    if (d.result !== "success" || !d.rates) return 0;
+    const supplierRate = d.rates[cur];
+    const ngnRate = d.rates.NGN;
+    if (!supplierRate || !ngnRate) return 0;
+    const usdAmount = supplierPrice / supplierRate;
+    return Math.round(usdAmount * ngnRate);
+  } catch {
+    return 0;
+  }
+}
+
 interface Params {
   params: Promise<{ id: string }>;
 }
@@ -95,6 +114,26 @@ export async function PUT(request: NextRequest, { params }: Params) {
     if (body.seoTitleFr !== undefined)        updates.seoTitleFr        = body.seoTitleFr        || null;
     if (body.metaDescriptionFr !== undefined) updates.metaDescriptionFr = body.metaDescriptionFr || null;
     if (body.focusKeyphraseFr !== undefined)  updates.focusKeyphraseFr  = body.focusKeyphraseFr  || null;
+
+    // Origin fields
+    if (body.originCountry !== undefined) updates.originCountry = body.originCountry || "NG";
+    if (body.originCity !== undefined) updates.originCity = body.originCity || "Abuja";
+
+    // Supplier price fields - auto-convert to NGN costPrice
+    if (body.supplierPrice !== undefined) {
+      updates.supplierPrice = body.supplierPrice ? String(body.supplierPrice) : "0";
+      // If supplier price provided in non-NGN, auto-convert to costPrice
+      const supCur = (body.supplierCurrency || "NGN").toUpperCase();
+      if (body.supplierPrice && Number(body.supplierPrice) > 0) {
+        const converted = await convertSupplierToNgn(Number(body.supplierPrice), supCur);
+        if (converted > 0) updates.costPrice = String(converted);
+      }
+    }
+    if (body.supplierCurrency !== undefined) updates.supplierCurrency = body.supplierCurrency || "NGN";
+    // Explicit costPrice override (only if supplierPrice not being changed)
+    if (body.costPrice !== undefined && body.supplierPrice === undefined) {
+      updates.costPrice = body.costPrice ? String(body.costPrice) : "0";
+    }
 
     updates.updatedAt = new Date();
 
