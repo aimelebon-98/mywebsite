@@ -598,7 +598,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               </div>
 
               {/* Action Buttons */}
-              <div className="hidden lg:flex space-y-3">
+              <div className="space-y-3">
                 <div className="flex gap-3">
                   <button onClick={handleBuyNow} className="flex-1 min-w-0 flex items-center justify-center gap-2 px-3 sm:px-5 py-3.5 sm:py-4 bg-gradient-to-r from-brand-600 to-brand-700 text-white rounded-2xl font-bold text-sm sm:text-base whitespace-nowrap hover:from-brand-700 hover:to-brand-800 transition-all shadow-xl shadow-brand-600/25 active:scale-[0.98]">
                     <Zap className="w-5 h-5" /> {t("buyNow")}
@@ -610,7 +610,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               </div>
 
               {/* Stock + SKU */}
-              <div className="hidden lg:flex items-center gap-4 mt-5 text-sm text-gray-500">
+              <div className="flex items-center gap-4 mt-5 text-sm text-gray-500 flex-wrap">
                 <div className="flex items-center gap-2">
                   <div className={`w-2.5 h-2.5 rounded-full ${product.stock > 10 ? "bg-green-500" : product.stock > 0 ? "bg-amber-500 animate-pulse" : "bg-red-500"}`} />
                   <span className={product.stock <= 10 && product.stock > 0 ? "text-amber-600 font-semibold" : ""}>
