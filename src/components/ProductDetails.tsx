@@ -562,7 +562,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                 <div className="flex items-center gap-2 px-2.5 py-2 bg-gray-50 rounded-xl">
                   <Shield className="w-4 h-4 flex-shrink-0" style={{ color: "#CA3F2E" }} />
                   <div className="min-w-0">
-                    <div className="text-[11px] font-bold text-gray-900 leading-tight whitespace-nowrap">{isFr ? "ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©" : "Secure"}</div>
+                    <div className="text-[11px] font-bold text-gray-900 leading-tight whitespace-nowrap">{isFr ? "ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©" : "Secure"}</div>
                     <div className="text-[10px] text-gray-500 leading-tight">{isFr ? "Crypte SSL" : "SSL encrypted"}</div>
                   </div>
                 </div>
@@ -610,7 +610,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               </div>
 
               {/* Stock + SKU */}
-              <div className="hidden lg:flex flex items-center gap-4 mt-5 text-sm text-gray-500">
+              <div className="hidden lg:flex items-center gap-4 mt-5 text-sm text-gray-500">
                 <div className="flex items-center gap-2">
                   <div className={`w-2.5 h-2.5 rounded-full ${product.stock > 10 ? "bg-green-500" : product.stock > 0 ? "bg-amber-500 animate-pulse" : "bg-red-500"}`} />
                   <span className={product.stock <= 10 && product.stock > 0 ? "text-amber-600 font-semibold" : ""}>
@@ -690,8 +690,8 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                 </div>
                 <div className="p-5">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 rounded-full bg-gray-900 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
-                      SV
+                    <div className="w-12 h-12 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center flex-shrink-0 overflow-hidden shadow-sm">
+                      <img src="/favicon.svg" alt="New Deal Zone" width="32" height="32" loading="lazy" decoding="async" className="w-8 h-8 object-contain" />
                     </div>
                     <div className="min-w-0">
                       <div className="text-sm font-bold text-gray-900">NewDealZone</div>
@@ -779,7 +779,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
       </div>
 
       {/* STICKY MOBILE BOTTOM BAR */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-2xl lg:hidden pb-safe">
+      <div className="fixed bottom-16 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-2xl lg:hidden">
         <div className="px-3 py-2.5 flex items-center gap-2">
           <div className="flex-shrink-0 w-11 h-11 rounded-lg bg-gray-100 overflow-hidden">
             {product.imageUrl && <img src={product.imageUrl} alt="" width="56" height="56" className="w-full h-full object-cover" loading="lazy" decoding="async" />}
