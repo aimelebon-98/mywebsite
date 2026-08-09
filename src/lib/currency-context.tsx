@@ -15,6 +15,7 @@ interface CurrencyContextType {
 }
 
 const STORAGE_KEY = "ndz_currency";
+const MANUAL_KEY = "ndz_currency_manual";
 const RATES_KEY = "ndz_exchange_rates";
 const COUNTRY_KEY = "ndz_visitor_country";
 const COOKIE_KEY = "ndz_currency";
@@ -30,7 +31,6 @@ function writeCurrencyCookie(c: string) {
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
 
 export function CurrencyProvider({ children, initialCurrency, initialRates }: { children: ReactNode; initialCurrency?: CurrencyCode; initialRates?: Record<string, number> }) {
-  // Initialize with the server-provided currency (from cookie) so first render matches SSR.
   const [currency, setCurrencyState] = useState<CurrencyCode>(initialCurrency || "USD");
   const [rates, setRates] = useState<Record<string, number>>(initialRates || {});
   const [autoDetected, setAutoDetected] = useState(false);
@@ -40,36 +40,41 @@ export function CurrencyProvider({ children, initialCurrency, initialRates }: { 
   useEffect(() => {
     const init = async () => {
       try {
-        // Try cached country first
+        // Check if user has EVER manually picked a currency
+        let userManuallyPicked = false;
+        try {
+          userManuallyPicked = localStorage.getItem(MANUAL_KEY) === "1";
+        } catch { /* ignore */ }
+
+        // Cached country for flag display
         try {
           const cachedCountry = localStorage.getItem(COUNTRY_KEY);
           if (cachedCountry) setVisitorCountry(cachedCountry);
         } catch { /* ignore */ }
 
-        const stored = localStorage.getItem(STORAGE_KEY);
-        // Only update if localStorage differs from what we already have from cookie
-        if (stored && stored in CURRENCIES && stored !== currency) {
-          setCurrencyState(stored as CurrencyCode);
-          writeCurrencyCookie(stored);
-        }
-
-        // Always fetch country (fresh), but only set currency if user hasn't chosen one
+        // Fetch fresh geo detection
         try {
-          const res = await fetch("/api/geo-currency");
+          const res = await fetch("/api/geo-currency", { cache: "no-store" });
           const data = await res.json();
+
           if (data.country) {
             setVisitorCountry(data.country);
             try { localStorage.setItem(COUNTRY_KEY, data.country); } catch { /* ignore */ }
           }
-          // Only auto-detect if no cookie AND no localStorage AND currency is still default USD
-          if (!initialCurrency && !stored && data.currency && data.currency in CURRENCIES) {
-            setCurrencyState(data.currency);
-            setAutoDetected(true);
-            try { localStorage.setItem(STORAGE_KEY, data.currency); } catch { /* ignore */ }
-            writeCurrencyCookie(data.currency);
+
+          // AUTO-DETECT LOGIC:
+          // If user has NEVER manually picked a currency, ALWAYS follow geo detection.
+          // This means: cached EUR from a prior wrong-detection gets corrected the next visit.
+          if (!userManuallyPicked && data.currency && data.currency in CURRENCIES) {
+            if (data.currency !== currency) {
+              setCurrencyState(data.currency);
+              setAutoDetected(true);
+              try { localStorage.setItem(STORAGE_KEY, data.currency); } catch { /* ignore */ }
+              writeCurrencyCookie(data.currency);
+            }
           }
-        } catch { /* fallback */ }
-      } catch { /* fallback */ }
+        } catch { /* fallback to SSR currency */ }
+      } catch { /* ignore */ }
       setLoading(false);
     };
     init();
@@ -107,7 +112,11 @@ export function CurrencyProvider({ children, initialCurrency, initialRates }: { 
   const setCurrency = useCallback((c: CurrencyCode) => {
     setCurrencyState(c);
     setAutoDetected(false);
-    try { localStorage.setItem(STORAGE_KEY, c); } catch { /* ignore */ }
+    try {
+      localStorage.setItem(STORAGE_KEY, c);
+      // Mark as manually picked so future auto-detection won't override
+      localStorage.setItem(MANUAL_KEY, "1");
+    } catch { /* ignore */ }
     writeCurrencyCookie(c);
   }, []);
 
