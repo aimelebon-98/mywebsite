@@ -1,4 +1,4 @@
-import { pgTable, text, numeric, integer, boolean, timestamp, uuid } from "drizzle-orm/pg-core";
+﻿import { pgTable, text, numeric, integer, boolean, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const products = pgTable("products", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -43,6 +43,8 @@ export const products = pgTable("products", {
   focusKeyphraseFr: text("focus_keyphrase_fr"),
   originCountry: text("origin_country").notNull().default("NG"),
   originCity: text("origin_city").notNull().default("Abuja"),
+  supplierPrice: numeric("supplier_price", { precision: 12, scale: 2 }).notNull().default("0"),
+  supplierCurrency: text("supplier_currency").notNull().default("NGN"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
