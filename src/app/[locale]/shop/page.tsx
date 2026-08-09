@@ -323,8 +323,8 @@ export default async function ShopPage({ params, searchParams }: Props) {
             showClearButton
           />
         </div>
-        <div className="mb-6 overflow-x-auto scrollbar-hide">
-          <div className="flex items-center gap-2 min-w-max py-1">
+        <div className="lg:mb-6 sticky top-16 lg:top-24 z-30 -mx-4 sm:-mx-6 lg:-mx-8 mb-4 lg:relative lg:top-auto bg-white/95 backdrop-blur-md border-b border-gray-100 lg:border-0 lg:bg-transparent lg:backdrop-blur-none overflow-x-auto scrollbar-hide">
+          <div className="flex items-center gap-2 min-w-max py-3 lg:py-1 px-4 sm:px-6 lg:px-0">
             {categoryOptions.map((cat) => (
               <Link
                 key={cat.slug}

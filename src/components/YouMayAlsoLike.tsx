@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { products, type Product } from "@/db/schema";
-import { eq, and, ne, desc, or } from "drizzle-orm";
+import { eq, and, ne, desc, notInArray, sql } from "drizzle-orm";
 import ProductCard from "./ProductCard";
 import { Sparkles } from "lucide-react";
 import { getTranslations } from "next-intl/server";
@@ -25,11 +25,12 @@ export default async function YouMayAlsoLike({
   let items: Product[] = [];
 
   try {
-    // Try: same category, excluding current, active only
+    // KEY CHANGE: fetch products from DIFFERENT categories (not the current one)
+    // This provides genuine cross-sell recommendations
     if (category) {
       const conditions = [
-        eq(products.category, category),
         eq(products.active, true),
+        ne(products.category, category), // ← EXCLUDE current category
       ];
       if (currentProductId) {
         conditions.push(ne(products.id, currentProductId));
@@ -38,11 +39,23 @@ export default async function YouMayAlsoLike({
         .select()
         .from(products)
         .where(and(...conditions))
-        .orderBy(desc(products.featured), desc(products.createdAt))
+        .orderBy(sql`RANDOM()`) // Random order for variety
         .limit(limit);
     }
 
-    // Fallback: any active product excluding current
+    // Fallback 1: If no category or no cross-category products found, get featured products
+    if (items.length === 0) {
+      const conds = [eq(products.active, true), eq(products.featured, true)];
+      if (currentProductId) conds.push(ne(products.id, currentProductId));
+      items = await db
+        .select()
+        .from(products)
+        .where(and(...conds))
+        .orderBy(sql`RANDOM()`)
+        .limit(limit);
+    }
+
+    // Fallback 2: Any active product excluding current
     if (items.length === 0) {
       const conds = [eq(products.active, true)];
       if (currentProductId) conds.push(ne(products.id, currentProductId));
@@ -50,7 +63,7 @@ export default async function YouMayAlsoLike({
         .select()
         .from(products)
         .where(and(...conds))
-        .orderBy(desc(products.featured), desc(products.createdAt))
+        .orderBy(sql`RANDOM()`)
         .limit(limit);
     }
   } catch (err) {
@@ -58,10 +71,8 @@ export default async function YouMayAlsoLike({
     return null;
   }
 
-  // Hide section entirely if nothing to show
   if (items.length === 0) return null;
 
-  // Localize product names/descriptions
   const isFr = locale === "fr";
   const localized = items.map((p) => ({
     ...p,
@@ -84,8 +95,8 @@ export default async function YouMayAlsoLike({
       sub = t("youMayAlsoLikeDesc");
     } catch {
       sub = isFr
-        ? "S\u00e9lection soigneusement choisie pour vous"
-        : "Handpicked selection just for you";
+        ? "D\u00e9couvrez d'autres cat\u00e9gories"
+        : "Explore different categories";
     }
   }
 
