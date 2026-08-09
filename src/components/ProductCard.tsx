@@ -205,10 +205,10 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
             <span className="text-[10px] text-gray-400">({reviewCount})</span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-base font-bold whitespace-nowrap">{formatPrice(price)}</span>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2 min-w-0">
+            <span className="text-sm sm:text-base font-bold whitespace-nowrap truncate">{formatPrice(price)}</span>
             {comparePrice && (
-              <span className="text-xs text-gray-400 line-through whitespace-nowrap">{formatPrice(comparePrice)}</span>
+              <span className="text-[10px] sm:text-xs text-gray-400 line-through whitespace-nowrap truncate leading-tight">{formatPrice(comparePrice)}</span>
             )}
           </div>
         </div>
