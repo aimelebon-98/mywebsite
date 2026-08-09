@@ -79,6 +79,10 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   }, [customer, customerLoading, prevCustomerId, loadWishlist, mergeGuestToCustomer]);
 
   const toggle = useCallback(async (productId: string) => {
+    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      try { navigator.vibrate(10); } catch {}
+    }
+
     const vid = getVisitorId();
     const wished = ids.includes(productId);
     if (!wished) {

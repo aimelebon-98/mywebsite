@@ -61,7 +61,7 @@ export default function FloatingCartPill() {
     <button
       onClick={openFilters}
       aria-label="Open filters"
-      className={`lg:hidden fixed bottom-24 right-4 z-40 group transition-all duration-300 ${
+      className={`lg:hidden fixed bottom-20 right-4 z-40 group transition-all duration-300 ${
         isScrolling ? "opacity-60 scale-90" : "opacity-100 scale-100"
       }`}
     >

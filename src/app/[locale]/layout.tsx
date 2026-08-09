@@ -1,3 +1,4 @@
+import MobileBottomNav from "@/components/MobileBottomNav";
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Inter, Playfair_Display } from "next/font/google";
@@ -183,6 +184,7 @@ export default async function LocaleLayout({
         </NextIntlClientProvider>
         <StickyPromoBar />
         <CookieConsent />
+                <MobileBottomNav />
         <PageViewTracker />
         <ExitIntentPopup />
         <SpeedInsights />

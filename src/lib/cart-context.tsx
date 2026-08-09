@@ -54,6 +54,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [items, loaded]);
 
   const addItem = useCallback((newItem: CartItem) => {
+    // Haptic feedback on mobile devices
+    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      try { navigator.vibrate(15); } catch { /* ignore */ }
+    }
+
     try {
       trackEvent({
         eventType: "add_to_cart",
