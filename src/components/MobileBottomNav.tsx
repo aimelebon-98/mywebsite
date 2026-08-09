@@ -1,11 +1,12 @@
 "use client";
 
-import { Link, usePathname } from "@/i18n/routing";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
-import { Home, ShoppingBag, Heart, User, LayoutGrid } from "lucide-react";
+import { Home, Heart, User, LayoutGrid } from "lucide-react";
 import { useWishlist } from "@/lib/wishlist-context";
-import { useCart } from "@/lib/cart-context";
 import { useCustomer } from "@/lib/customer-context";
+import { useEffect, useState } from "react";
 
 const BRAND_RED = "#CA3F2E";
 
@@ -14,57 +15,70 @@ export default function MobileBottomNav() {
   const locale = useLocale();
   const t = useTranslations("nav");
   const { count: wishlistCount } = useWishlist();
-  const { totalItems } = useCart();
   const { customer } = useCustomer();
+  const [mounted, setMounted] = useState(false);
 
-  // Hide on admin, checkout, and account internal pages
+  // Prevent hydration mismatch - only show after mount on client
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
+  // Hide on admin, checkout, and cart pages
   if (
-    pathname === null ||
+    !pathname ||
     pathname.includes("/admin") ||
     pathname.includes("/checkout") ||
-    pathname.includes("/cart")
+    pathname.endsWith("/cart") ||
+    pathname.includes(`/${locale}/cart`)
   ) {
     return null;
   }
 
-  const isActive = (path: string) => {
-    if (path === "/") return pathname === "/" || pathname === `/${locale}`;
-    return pathname.includes(path);
-  };
+  const localePrefix = `/${locale}`;
+
+  // Safe pathname helpers - normalize to compare consistently
+  const cleanPath = pathname.replace(new RegExp(`^/${locale}`), "") || "/";
+
+  const isHomeActive = cleanPath === "/" || cleanPath === "";
+  const isShopActive = cleanPath.startsWith("/shop") && !cleanPath.includes("/product");
+  const isWishlistActive = cleanPath.startsWith("/wishlist");
+  const isAccountActive = cleanPath.startsWith("/account");
 
   const items = [
     {
-      href: "/",
+      href: `${localePrefix}`,
       icon: Home,
-      label: t("home") || "Home",
-      active: pathname === "/" || pathname === `/${locale}` || pathname === `/${locale}/`,
+      label: "Home",
+      active: isHomeActive,
     },
     {
-      href: "/shop",
+      href: `${localePrefix}/shop`,
       icon: LayoutGrid,
-      label: t("shop") || "Shop",
-      active: isActive("/shop") && !isActive("/product"),
+      label: "Shop",
+      active: isShopActive,
     },
     {
-      href: "/wishlist",
+      href: `${localePrefix}/wishlist`,
       icon: Heart,
-      label: t("wishlist") || "Wishlist",
+      label: "Wishlist",
       badge: wishlistCount > 0 ? wishlistCount : null,
-      active: isActive("/wishlist"),
+      active: isWishlistActive,
     },
     {
-      href: customer ? "/account/dashboard" : "/account/login",
+      href: customer ? `${localePrefix}/account/dashboard` : `${localePrefix}/account/login`,
       icon: User,
-      label: customer ? (t("account") || "Account") : (t("login") || "Login"),
-      active: isActive("/account"),
+      label: customer ? "Account" : "Login",
+      active: isAccountActive,
     },
   ];
 
   return (
     <>
-      {/* Spacer to prevent content overlap */}
+      {/* Spacer so content isn't hidden under fixed nav */}
       <div className="lg:hidden h-16" aria-hidden="true" />
-      
+
       <nav
         className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]"
         aria-label="Bottom navigation"
@@ -74,14 +88,15 @@ export default function MobileBottomNav() {
             const Icon = item.icon;
             return (
               <Link
-                key={item.href}
+                key={item.label}
                 href={item.href}
+                prefetch={false}
                 className={`relative flex flex-col items-center justify-center gap-0.5 transition-all active:scale-95 ${
                   item.active ? "text-[#CA3F2E]" : "text-gray-500 hover:text-gray-900"
                 }`}
               >
                 <div className="relative">
-                  <Icon 
+                  <Icon
                     className={`w-5 h-5 transition-transform ${item.active ? "scale-110" : ""}`}
                     strokeWidth={item.active ? 2.5 : 2}
                   />
