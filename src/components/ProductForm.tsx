@@ -695,6 +695,37 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
               <input type="text" value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="Nike, Adidas..." className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gray-900 transition" />
             </div>
             <div>
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                Origin Country <span className="text-gray-400 font-normal normal-case">(ships from)</span>
+              </label>
+              <select
+                value={originCountry}
+                onChange={(e) => {
+                  const newCode = e.target.value;
+                  setOriginCountry(newCode);
+                  const found = SUPPLIER_COUNTRIES.find(c => c.code === newCode);
+                  if (found) setOriginCity(found.defaultCity);
+                }}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gray-900 transition bg-white"
+              >
+                {SUPPLIER_COUNTRIES.map(c => (
+                  <option key={c.code} value={c.code}>{c.flag} {c.name} ({c.code})</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                Origin City <span className="text-gray-400 font-normal normal-case">(Abuja, Lagos, Lom\u00e9)</span>
+              </label>
+              <input
+                type="text"
+                value={originCity}
+                onChange={(e) => setOriginCity(e.target.value)}
+                placeholder="Abuja"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gray-900 transition"
+              />
+            </div>
+            <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Tags (EN)</label>
               <input type="text" value={tagsStr} onChange={(e) => setTagsStr(e.target.value)} placeholder="new, sale, bestseller" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gray-900 transition" />
               <p className="text-[11px] text-gray-400 mt-1">Comma separated</p>
