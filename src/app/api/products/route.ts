@@ -4,6 +4,25 @@ import { products } from "@/db/schema";
 import { eq, desc, and, ilike, or, isNotNull } from "drizzle-orm";
 import { generateSlug } from "@/lib/slug";
 import { requireAdmin } from "@/lib/admin-auth";
+
+// Convert supplier price in any currency to NGN using live rates
+async function convertSupplierToNgn(supplierPrice: number, supplierCurrency: string): Promise<number> {
+  if (!supplierPrice || supplierPrice <= 0) return 0;
+  const cur = (supplierCurrency || "NGN").toUpperCase();
+  if (cur === "NGN") return Math.round(supplierPrice);
+  try {
+    const r = await fetch("https://open.er-api.com/v6/latest/USD", { next: { revalidate: 3600 } });
+    const d = await r.json();
+    if (d.result !== "success" || !d.rates) return 0;
+    const supplierRate = d.rates[cur];
+    const ngnRate = d.rates.NGN;
+    if (!supplierRate || !ngnRate) return 0;
+    const usdAmount = supplierPrice / supplierRate;
+    return Math.round(usdAmount * ngnRate);
+  } catch {
+    return 0;
+  }
+}
 import { sortByShippingTier } from "@/lib/shipping-tier";
 
 export async function GET(request: NextRequest) {

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { SUPPLIER_COUNTRIES } from "@/lib/shipping-tier";
 import BlogEditor from "./BlogEditor";
 
@@ -40,6 +40,8 @@ type ProductLike = {
   sku?: string;
   originCountry?: string;
   originCity?: string;
+  supplierPrice?: string | number;
+  supplierCurrency?: string;
   tags?: string;
   seoTitle?: string | null;
   metaDescription?: string | null;
@@ -170,6 +172,8 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
   const [sku, setSku] = useState(product?.sku || "");
   const [originCountry, setOriginCountry] = useState(product?.originCountry || "NG");
   const [originCity, setOriginCity] = useState(product?.originCity || "Abuja");
+  const [supplierPrice, setSupplierPrice] = useState(product?.supplierPrice?.toString() || "");
+  const [supplierCurrency, setSupplierCurrency] = useState(product?.supplierCurrency || "NGN");
   const [tagsStr, setTagsStr] = useState(product?.tags ? (JSON.parse(product.tags) as string[]).join(", ") : "");
 
   // SEO
@@ -608,12 +612,12 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
               </div>
               {saleEndsAt && new Date(saleEndsAt).getTime() > Date.now() && (
                 <p className="text-xs text-emerald-600 mt-1.5 font-medium">
-                  ✓ Countdown will show on this product until {new Date(saleEndsAt).toLocaleString()}
+                  âœ“ Countdown will show on this product until {new Date(saleEndsAt).toLocaleString()}
                 </p>
               )}
               {saleEndsAt && new Date(saleEndsAt).getTime() <= Date.now() && (
                 <p className="text-xs text-amber-600 mt-1.5 font-medium">
-                  ⚠ This date is in the past. Countdown will not display.
+                  âš  This date is in the past. Countdown will not display.
                 </p>
               )}
             </div>
@@ -715,7 +719,7 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-                Origin City <span className="text-gray-400 font-normal normal-case">(Abuja, Lagos, Lomé)</span>
+                Origin City <span className="text-gray-400 font-normal normal-case">(Abuja, Lagos, LomÃ©)</span>
               </label>
               <input
                 type="text"
@@ -724,6 +728,33 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
                 placeholder="Abuja"
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gray-900 transition"
               />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                Supplier Cost <span className="text-gray-400 font-normal normal-case">(what you pay supplier)</span>
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  step="1"
+                  value={supplierPrice}
+                  onChange={(e) => setSupplierPrice(e.target.value)}
+                  placeholder="9000"
+                  className="flex-1 min-w-0 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gray-900 transition"
+                />
+                <select
+                  value={supplierCurrency}
+                  onChange={(e) => setSupplierCurrency(e.target.value)}
+                  className="w-24 px-2 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gray-900 transition bg-white"
+                >
+                  <option value="NGN">NGN</option>
+                  <option value="XOF">FCFA</option>
+                  <option value="USD">USD</option>
+                  <option value="EUR">EUR</option>
+                  <option value="GHS">GHS</option>
+                </select>
+              </div>
+              <p className="text-[10px] text-gray-400 mt-1">Auto-converted to NGN for profit tracking using live rates</p>
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Tags (EN)</label>
