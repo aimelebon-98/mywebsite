@@ -257,9 +257,9 @@ export default function CurrencySelector({ compact = false, className = "", dark
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <span className={`text-base sm:text-sm font-bold ${isActive ? "text-[#CA3F2E]" : "text-gray-900"}`}>
-                  {code}
+                  {code === "XOF" ? "FCFA" : code}
                 </span>
-                <span className="text-sm sm:text-xs text-gray-500">{info.symbol}</span>
+                <span className="text-sm sm:text-xs text-gray-500">{code === "XOF" ? "" : info.symbol}</span>
               </div>
               <div className="text-xs sm:text-[11px] text-gray-500 truncate">
                 {isFr ? info.nameFr : info.name}
@@ -353,7 +353,7 @@ export default function CurrencySelector({ compact = false, className = "", dark
         }`}
       >
         <Flag code={currency} xofCountry={visitorCountry} size={20} />
-        <span className={`font-bold ${dark ? "text-white" : ""}`}>{current.code}</span>
+        <span className={`font-bold ${dark ? "text-white" : ""}`}>{current.code === "XOF" ? "FCFA" : current.code}</span>
         <ChevronDown className={`w-3 h-3 transition ${open ? "rotate-180" : ""} ${dark ? "text-white" : ""}`} />
       </button>
 
