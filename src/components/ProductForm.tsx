@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { SUPPLIER_COUNTRIES } from "@/lib/shipping-tier";
 import BlogEditor from "./BlogEditor";
 
@@ -213,7 +213,7 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
       images: [imageUrl, ...extraImages].filter(Boolean),
       stock: parseInt(stock) || 0,
       featured, active,
-      material, sku, tags,
+      material, sku, tags, originCountry, originCity, supplierPrice: supplierPrice ? Math.round(parseFloat(supplierPrice)) : 0, supplierCurrency,
       seoTitle: seoTitle.trim() || null,
       metaDescription: metaDescription.trim() || null,
       focusKeyphrase: focusKeyphrase.trim() || null,
