@@ -20,6 +20,7 @@ const playfair = Playfair_Display({
   display: "swap",
 });
 const FloatingCartPill = dynamic(() => import("@/components/FloatingCartPill"));
+const MobileBottomNav = dynamic(() => import("@/components/MobileBottomNav"));
 const PageViewTracker = dynamic(() => import("@/components/AnalyticsTracker"));
 import { SpeedInsights } from "@vercel/speed-insights/next";
 const GoogleAnalytics = dynamic(() => import("@/components/GoogleAnalytics"));
@@ -175,6 +176,7 @@ export default async function LocaleLayout({
               {children}
               <ConditionalWidgets />
               <FloatingCartPill />
+              <MobileBottomNav />
               <InactivityCartReminder />
             </WishlistProvider>
           </CurrencyProvider>
