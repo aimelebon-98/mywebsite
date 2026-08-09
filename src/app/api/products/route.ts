@@ -85,9 +85,17 @@ export async function POST(request: NextRequest) {
       imageUrl, images, stock, featured, active, material, sku, tags, saleEndsAt,
       seoTitle, metaDescription, focusKeyphrase, ogImage, canonicalUrl, noIndex,
       seoTitleFr, metaDescriptionFr, focusKeyphraseFr,
+      originCountry, originCity, supplierPrice, supplierCurrency,
     } = body;
 
     const slug = (slugInput && slugInput.trim()) ? slugInput.trim() : generateSlug(name);
+
+    // If supplierPrice is provided in a non-NGN currency, auto-convert to NGN for costPrice
+    let finalCostPrice = costPrice ? String(costPrice) : "0";
+    if (supplierPrice && Number(supplierPrice) > 0) {
+      const converted = await convertSupplierToNgn(Number(supplierPrice), supplierCurrency || "NGN");
+      if (converted > 0) finalCostPrice = String(converted);
+    }
 
     const result = await db.insert(products).values({
       name,
@@ -103,7 +111,7 @@ export async function POST(request: NextRequest) {
       tagsFr: tagsFr ? JSON.stringify(Array.isArray(tagsFr) ? tagsFr : []) : null,
       price: String(price),
       comparePrice: comparePrice ? String(comparePrice) : null,
-      costPrice: costPrice ? String(costPrice) : "0",
+      costPrice: finalCostPrice,
       category: category || "sneakers",
       brand: brand || "",
       sizes: JSON.stringify(sizes || []),
@@ -126,6 +134,10 @@ export async function POST(request: NextRequest) {
       seoTitleFr: seoTitleFr || null,
       metaDescriptionFr: metaDescriptionFr || null,
       focusKeyphraseFr: focusKeyphraseFr || null,
+      originCountry: originCountry || "NG",
+      originCity: originCity || "Abuja",
+      supplierPrice: supplierPrice ? String(supplierPrice) : "0",
+      supplierCurrency: supplierCurrency || "NGN",
     }).returning();
 
     return NextResponse.json(result[0], { status: 201 });
