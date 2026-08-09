@@ -1,142 +1,138 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import Link from "next/link";
+import { useState, useEffect } from "react";
+import { Link, usePathname } from "@/i18n/routing";
 import { useLocale } from "next-intl";
-import { Home, Heart, User, LayoutGrid } from "lucide-react";
-import { useEffect, useState } from "react";
-
-const BRAND_RED = "#CA3F2E";
+import { Home, ShoppingBag, Heart, User, LayoutGrid } from "lucide-react";
+import { useWishlist } from "@/lib/wishlist-context";
+import { useCustomer } from "@/lib/customer-context";
 
 export default function MobileBottomNav() {
+  const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
   const locale = useLocale();
-  const [mounted, setMounted] = useState(false);
-  const [wishlistCount, setWishlistCount] = useState(0);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { count: wishlistCount } = useWishlist();
+  const { customer } = useCustomer();
 
-  // Only render after mount to avoid all SSR/hydration issues
   useEffect(() => {
     setMounted(true);
-    
-    // Read wishlist count from localStorage
-    try {
-      const stored = localStorage.getItem("ndz_wishlist");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) setWishlistCount(parsed.length);
-      }
-    } catch { /* ignore */ }
-
-    // Check if customer is logged in via cookie
-    try {
-      const hasSession = document.cookie.includes("customer_session=");
-      setIsLoggedIn(hasSession);
-    } catch { /* ignore */ }
-
-    // Listen for wishlist updates
-    const updateWishlist = () => {
-      try {
-        const stored = localStorage.getItem("ndz_wishlist");
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed)) setWishlistCount(parsed.length);
-        } else {
-          setWishlistCount(0);
-        }
-      } catch { /* ignore */ }
-    };
-    window.addEventListener("storage", updateWishlist);
-    window.addEventListener("wishlist-updated", updateWishlist);
-    return () => {
-      window.removeEventListener("storage", updateWishlist);
-      window.removeEventListener("wishlist-updated", updateWishlist);
-    };
   }, []);
 
-  if (!mounted) return null;
-  if (!pathname) return null;
+  // During SSR / first render: return only the spacer (no hooks used for rendering)
+  if (!mounted) {
+    return <div className="lg:hidden h-16" aria-hidden="true" />;
+  }
 
   // Hide on admin, checkout, cart pages
   if (
     pathname.includes("/admin") ||
     pathname.includes("/checkout") ||
-    pathname.endsWith("/cart") ||
-    pathname.includes(`/${locale}/cart`)
+    pathname.includes("/cart")
   ) {
-    return null;
+    return <div className="lg:hidden h-16" aria-hidden="true" />;
   }
 
-  const localePrefix = `/${locale}`;
-  const cleanPath = pathname.replace(new RegExp(`^/${locale}`), "") || "/";
+  const isHome =
+    pathname === "/" ||
+    pathname === `/${locale}` ||
+    pathname === `/${locale}/`;
+
+  const isShop =
+    pathname.includes("/shop") && !pathname.includes("/product");
+
+  const isWishlist = pathname.includes("/wishlist");
+  const isAccount = pathname.includes("/account");
 
   const items = [
     {
-      href: localePrefix,
+      href: "/" as const,
       icon: Home,
-      label: "Home",
-      active: cleanPath === "/" || cleanPath === "",
+      label: locale === "fr" ? "Accueil" : "Home",
+      active: isHome,
+      badge: null,
     },
     {
-      href: `${localePrefix}/shop`,
+      href: "/shop" as const,
       icon: LayoutGrid,
-      label: "Shop",
-      active: cleanPath.startsWith("/shop") && !cleanPath.includes("/product"),
+      label: locale === "fr" ? "Boutique" : "Shop",
+      active: isShop,
+      badge: null,
     },
     {
-      href: `${localePrefix}/wishlist`,
+      href: "/wishlist" as const,
       icon: Heart,
-      label: "Wishlist",
+      label: locale === "fr" ? "Favoris" : "Wishlist",
+      active: isWishlist,
       badge: wishlistCount > 0 ? wishlistCount : null,
-      active: cleanPath.startsWith("/wishlist"),
     },
     {
-      href: isLoggedIn ? `${localePrefix}/account/dashboard` : `${localePrefix}/account/login`,
+      href: (customer ? "/account/dashboard" : "/account/login") as Parameters<typeof Link>[0]["href"],
       icon: User,
-      label: isLoggedIn ? "Account" : "Login",
-      active: cleanPath.startsWith("/account"),
+      label: customer
+        ? locale === "fr" ? "Compte" : "Account"
+        : locale === "fr" ? "Connexion" : "Login",
+      active: isAccount,
+      badge: null,
     },
   ];
 
   return (
     <>
+      {/* Spacer so page content is not hidden behind the fixed bar */}
       <div className="lg:hidden h-16" aria-hidden="true" />
+
       <nav
         className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]"
         aria-label="Bottom navigation"
+        style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       >
         <div className="grid grid-cols-4 h-16">
           {items.map((item) => {
             const Icon = item.icon;
             return (
               <Link
-                key={item.label}
+                key={String(item.href)}
                 href={item.href}
-                prefetch={false}
-                className={`relative flex flex-col items-center justify-center gap-0.5 transition-all active:scale-95 ${
-                  item.active ? "text-[#CA3F2E]" : "text-gray-500 hover:text-gray-900"
-                }`}
+                className={[
+                  "relative flex flex-col items-center justify-center gap-0.5 transition-all active:scale-95 select-none",
+                  item.active
+                    ? "text-[#CA3F2E]"
+                    : "text-gray-500 hover:text-gray-800",
+                ].join(" ")}
               >
+                {/* Active indicator bar at top */}
+                {item.active && (
+                  <span
+                    className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-b-full bg-[#CA3F2E]"
+                    aria-hidden="true"
+                  />
+                )}
+
+                {/* Icon + badge */}
                 <div className="relative">
                   <Icon
-                    className={`w-5 h-5 transition-transform ${item.active ? "scale-110" : ""}`}
+                    className={[
+                      "w-5 h-5 transition-transform",
+                      item.active ? "scale-110" : "",
+                    ].join(" ")}
                     strokeWidth={item.active ? 2.5 : 2}
                   />
-                  {item.badge !== null && item.badge !== undefined && item.badge > 0 && (
-                    <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 bg-[#CA3F2E] text-white text-[9px] font-bold rounded-full flex items-center justify-center border border-white">
+                  {item.badge !== null && (
+                    <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 bg-[#CA3F2E] text-white text-[9px] font-bold rounded-full flex items-center justify-center border border-white leading-none">
                       {item.badge > 9 ? "9+" : item.badge}
                     </span>
                   )}
                 </div>
-                <span className={`text-[10px] font-semibold ${item.active ? "font-bold" : ""}`}>
+
+                {/* Label */}
+                <span
+                  className={[
+                    "text-[10px] leading-none",
+                    item.active ? "font-bold" : "font-semibold",
+                  ].join(" ")}
+                >
                   {item.label}
                 </span>
-                {item.active && (
-                  <span
-                    className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-b-full"
-                    style={{ backgroundColor: BRAND_RED }}
-                  />
-                )}
               </Link>
             );
           })}

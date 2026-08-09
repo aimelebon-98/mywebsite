@@ -912,3 +912,10 @@ html, body {
     scroll-behavior: smooth;
   }
 }
+
+/* Push sticky promo bar above mobile bottom nav */
+@media (max-width: 1023px) {
+  .sticky-promo-bar {
+    bottom: 4.5rem !important;
+  }
+}
