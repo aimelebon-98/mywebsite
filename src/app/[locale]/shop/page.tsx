@@ -193,6 +193,7 @@ export default async function ShopPage({ params, searchParams }: Props) {
     // Tables might not exist yet
   }
 
+  const visitorCountry = await getServerCountry();
   const currentCategoryName = categoryOptions.find(c => c.slug === category)?.name || t("catAll");
   const pageTitle = category !== "all" ? currentCategoryName : t("catAll");
 
@@ -386,7 +387,7 @@ export default async function ShopPage({ params, searchParams }: Props) {
             {productList.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-5">
                 {productList.map((product) => (
-                  <ProductCard key={product.id} product={product} />
+                  <ProductCard key={product.id} product={product} visitorCountry={visitorCountry} />
                 ))}
               </div>
             ) : (

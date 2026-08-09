@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Heart, Star, ShoppingBag, Zap, Eye } from "lucide-react";
+import { Heart, Star, ShoppingBag, Zap, Eye, Plane } from "lucide-react";
 import type { Product } from "@/db/schema";
 import { useCart } from "@/lib/cart-context";
 import { useCurrency } from "@/lib/currency-context";
@@ -19,9 +19,10 @@ import { parseColorVariants } from "@/lib/color-variants";
 interface ProductCardProps {
   product: Product;
   badge?: string;
+  visitorCountry?: string;
 }
 
-export default function ProductCard({ product, badge }: ProductCardProps) {
+export default function ProductCard({ product, badge, visitorCountry }: ProductCardProps) {
   const t = useTranslations("product");
   const locale = useLocale();
 
@@ -134,6 +135,15 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
             {!badge && product.featured && (
               <span className="px-2.5 py-1 bg-gray-900 text-white text-[10px] font-bold rounded-full shadow-sm">
                 {t("featured")}
+              </span>
+            )}
+            {visitorCountry && product.originCountry && product.originCountry.toUpperCase() !== visitorCountry.toUpperCase() && (
+              <span
+                className="inline-flex items-center gap-1 px-2 py-1 bg-white/95 backdrop-blur text-gray-800 text-[10px] font-bold rounded-full shadow-sm border border-gray-200"
+                title={`Ships from ${product.originCity || product.originCountry} (international)`}
+              >
+                <Plane className="w-3 h-3" strokeWidth={2.5} />
+                <span>Intl</span>
               </span>
             )}
           </div>
