@@ -120,7 +120,7 @@ export default function CartPage() {
 
               {/* Order Summary */}
               <div className="lg:col-span-1 min-w-0">
-                <div className="bg-gray-50 rounded-2xl p-4 sm:p-6 lg:sticky lg:top-28">
+                <div className="bg-gray-50 rounded-2xl p-4 sm:p-6 lg:sticky lg:top-28 overflow-hidden">
                   <h3 className="text-lg font-bold mb-4">{t("orderSummary")}</h3>
 
                   <div className="space-y-3 mb-6">
