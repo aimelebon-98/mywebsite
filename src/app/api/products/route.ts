@@ -4,6 +4,7 @@ import { products } from "@/db/schema";
 import { eq, desc, and, ilike, or, isNotNull } from "drizzle-orm";
 import { generateSlug } from "@/lib/slug";
 import { requireAdmin } from "@/lib/admin-auth";
+import { sortByShippingTier } from "@/lib/shipping-tier";
 
 export async function GET(request: NextRequest) {
   try {
@@ -42,7 +43,11 @@ export async function GET(request: NextRequest) {
       .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(desc(products.createdAt));
 
-    return NextResponse.json(result);
+    // Optional: sort local products (matching visitor country) first
+    const sortByCountry = searchParams.get("sortByCountry");
+    const sorted = sortByCountry ? sortByShippingTier(result, sortByCountry) : result;
+
+    return NextResponse.json(sorted);
   } catch (error) {
     console.error("Error fetching products:", error);
     return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 });

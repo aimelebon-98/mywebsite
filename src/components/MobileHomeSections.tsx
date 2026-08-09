@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -159,7 +159,7 @@ function ProductGrid({ products, title, locale, isFr, formatPrice, viewAllHref, 
 export default function MobileHomeSections({ products, categories }: Props) {
   const locale = useLocale();
   const isFr = locale === "fr";
-  const { format: formatPrice } = useCurrency();
+  const { format: formatPrice, visitorCountry } = useCurrency();
 
   const featured    = products.filter(p => p.featured).slice(0, 10);
   const newArrivals = products.filter(p => (p.tags || "").includes("new-arrival")).slice(0, 10);

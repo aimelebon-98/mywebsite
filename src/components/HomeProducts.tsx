@@ -171,7 +171,7 @@ export default function HomeProducts() {
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
               {featured.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard key={product.id} product={product} visitorCountry={visitorCountry} />
               ))}
             </div>
           </div>
@@ -286,7 +286,7 @@ export default function HomeProducts() {
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
               {topRated.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard key={product.id} product={product} visitorCountry={visitorCountry} />
               ))}
             </div>
           </div>
