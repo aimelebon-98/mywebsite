@@ -170,7 +170,7 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
         </div>
 
         <div className="space-y-1">
-          <p className="text-[10px] text-gray-400 font-medium tracking-wide">{product.brand || product.category}</p>
+          <p className="hidden sm:block text-[10px] text-gray-400 font-medium tracking-wide">{product.brand || product.category}</p>
           <h3 className="font-semibold text-sm text-gray-900 group-hover:text-brand-600 transition truncate leading-tight" title={displayName}>{displayName}</h3>
 
           {colors.length > 0 && (
@@ -202,7 +202,7 @@ export default function ProductCard({ product, badge }: ProductCardProps) {
                 />
               ))}
             </div>
-            <span className="text-[10px] text-gray-400">({reviewCount})</span>
+            <span className="text-[10px] text-gray-400 hidden sm:inline">({reviewCount})</span><span className="text-[10px] text-gray-400 sm:hidden">{reviewCount}</span>
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2 min-w-0">
