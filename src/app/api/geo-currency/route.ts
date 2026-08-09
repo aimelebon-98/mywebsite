@@ -3,11 +3,16 @@ import { COUNTRY_TO_CURRENCY } from "@/lib/currency";
 
 export const dynamic = "force-dynamic";
 
-// EU/US/proxy-prone countries that commonly misroute African mobile traffic.
-const VERIFY_COUNTRIES = new Set([
-  "FR", "DE", "IT", "ES", "BE", "NL", "GB", "IE", "PT", "AT",
-  "CH", "SE", "NO", "DK", "FI", "PL", "GR", "CY", "LU", "MT",
-  "US", "CA", "RO", "CZ", "HU",
+// African countries we serve directly. If Vercel returns anything else,
+// verify with ipwho.is (Vercel's edge geo often misroutes African mobile traffic
+// via random exit nodes: FR, ZA, DE, US, etc.)
+const AFRICAN_COUNTRIES = new Set([
+  "NG", "GH", "KE", "ZA",
+  "BJ", "BF", "CI", "GW", "ML", "NE", "SN", "TG",
+  "CM", "CD", "CG", "GA", "TD", "CF", "GQ",
+  "MA", "DZ", "TN", "LY", "EG", "SD", "SS", "ET", "SO", "DJ", "ER",
+  "UG", "RW", "BI", "TZ", "MW", "MZ", "ZM", "ZW", "BW", "NA", "LS", "SZ", "MG", "MU", "SC", "KM",
+  "AO", "LR", "SL", "GM", "MR",
 ]);
 
 export async function GET(req: NextRequest) {
@@ -19,7 +24,10 @@ export async function GET(req: NextRequest) {
     let country = vercelCountry;
     let ipwhoUsed = false;
 
-    if (ip && (!country || VERIFY_COUNTRIES.has(country))) {
+    // Verify with ipwho.is UNLESS Vercel returned an African country we recognize.
+    // Africa detection is where Vercel edge geo fails most often, so we double-check
+    // any non-African result.
+    if (ip && (!country || !AFRICAN_COUNTRIES.has(country))) {
       try {
         const r = await fetch(`https://ipwho.is/${ip}?fields=country_code,success`, {
           next: { revalidate: 3600 },

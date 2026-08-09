@@ -3,12 +3,14 @@ import { CURRENCIES, COUNTRY_TO_CURRENCY, type CurrencyCode } from "@/lib/curren
 
 const COOKIE_KEY = "ndz_currency";
 
-// EU/proxy-prone countries that may misroute African mobile traffic.
-// If Vercel returns any of these, verify with ipwho.is (which has better mobile geo data).
-const VERIFY_COUNTRIES = new Set([
-  "FR", "DE", "IT", "ES", "BE", "NL", "GB", "IE", "PT", "AT",
-  "CH", "SE", "NO", "DK", "FI", "PL", "GR", "CY", "LU", "MT",
-  "US", "CA", "RO", "CZ", "HU",
+// African countries. If Vercel returns anything else, verify with ipwho.is.
+const AFRICAN_COUNTRIES = new Set([
+  "NG", "GH", "KE", "ZA",
+  "BJ", "BF", "CI", "GW", "ML", "NE", "SN", "TG",
+  "CM", "CD", "CG", "GA", "TD", "CF", "GQ",
+  "MA", "DZ", "TN", "LY", "EG", "SD", "SS", "ET", "SO", "DJ", "ER",
+  "UG", "RW", "BI", "TZ", "MW", "MZ", "ZM", "ZW", "BW", "NA", "LS", "SZ", "MG", "MU", "SC", "KM",
+  "AO", "LR", "SL", "GM", "MR",
 ]);
 
 export async function getServerCurrency(): Promise<CurrencyCode> {
@@ -23,20 +25,16 @@ export async function getServerCurrency(): Promise<CurrencyCode> {
 
     let country = vercelCountry;
 
-    // Verify with ipwho.is when:
-    // - No country from Vercel, OR
-    // - Vercel returned an EU/US/proxy-prone country (common for African mobile carriers)
-    if (ip && (!country || VERIFY_COUNTRIES.has(country))) {
+    // Verify with ipwho.is unless Vercel returned an African country we recognize
+    if (ip && (!country || !AFRICAN_COUNTRIES.has(country))) {
       try {
         const r = await fetch(`https://ipwho.is/${ip}?fields=country_code,success`, {
           next: { revalidate: 3600 },
           signal: AbortSignal.timeout(3000),
         });
         const data = await r.json();
-        if (data.success && data.country_code) {
-          country = data.country_code.toUpperCase();
-        }
-      } catch { /* ipwho.is failed - keep vercelCountry */ }
+        if (data.success && data.country_code) country = data.country_code.toUpperCase();
+      } catch { /* ignore */ }
     }
 
     if (country && COUNTRY_TO_CURRENCY[country]) return COUNTRY_TO_CURRENCY[country];
