@@ -29,7 +29,7 @@ html {
 }
 
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
 }
 
 body {
@@ -904,4 +904,11 @@ html, body {
 .font-playfair {
   font-family: var(--font-playfair), Georgia, "Times New Roman", serif;
   letter-spacing: -0.02em;
+}
+
+/* Smooth scroll ONLY when user clicks anchor links (not on page load) */
+@media (prefers-reduced-motion: no-preference) {
+  html:focus-within {
+    scroll-behavior: smooth;
+  }
 }

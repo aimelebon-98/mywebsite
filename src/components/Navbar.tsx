@@ -38,6 +38,7 @@ export default function Navbar() {
   const navRef = useRef<HTMLElement | null>(null);
 
   // Detect scroll for shrink effect (with hysteresis to prevent bounce)
+  // NOTE: Do NOT call handleScroll() on mount - causes visual jump when navigating pages
   useEffect(() => {
     let rafId: number | null = null;
     const handleScroll = () => {
@@ -47,14 +48,24 @@ export default function Navbar() {
         setScrolled((prev) => {
           const y = window.scrollY;
           // Hysteresis: shrink at 100px, only grow back below 40px
-          // This dead zone prevents flip-flop bounce at the threshold
           if (!prev && y > 100) return true;
           if (prev && y < 40) return false;
           return prev;
         });
       });
     };
-    handleScroll();
+    // Only attach listener - don't call immediately
+    // Setting initial state via requestIdleCallback avoids jump on route change
+    if (typeof window !== "undefined") {
+      const setInitial = () => {
+        if (window.scrollY > 100) setScrolled(true);
+      };
+      if ("requestIdleCallback" in window) {
+        (window as unknown as { requestIdleCallback: (cb: () => void) => void }).requestIdleCallback(setInitial);
+      } else {
+        setTimeout(setInitial, 100);
+      }
+    }
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", handleScroll);
