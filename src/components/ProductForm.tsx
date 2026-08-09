@@ -715,7 +715,7 @@ export default function ProductForm({ product, categories, onSave, loading, onCa
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-                Origin City <span className="text-gray-400 font-normal normal-case">(Abuja, Lagos, Lom\u00e9)</span>
+                Origin City <span className="text-gray-400 font-normal normal-case">(Abuja, Lagos, Lomé)</span>
               </label>
               <input
                 type="text"
