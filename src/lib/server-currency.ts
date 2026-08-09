@@ -3,6 +3,14 @@ import { CURRENCIES, COUNTRY_TO_CURRENCY, type CurrencyCode } from "@/lib/curren
 
 const COOKIE_KEY = "ndz_currency";
 
+// EU/proxy-prone countries that may misroute African mobile traffic.
+// If Vercel returns any of these, verify with ipwho.is (which has better mobile geo data).
+const VERIFY_COUNTRIES = new Set([
+  "FR", "DE", "IT", "ES", "BE", "NL", "GB", "IE", "PT", "AT",
+  "CH", "SE", "NO", "DK", "FI", "PL", "GR", "CY", "LU", "MT",
+  "US", "CA", "RO", "CZ", "HU",
+]);
+
 export async function getServerCurrency(): Promise<CurrencyCode> {
   try {
     const store = await cookies();
@@ -15,12 +23,20 @@ export async function getServerCurrency(): Promise<CurrencyCode> {
 
     let country = vercelCountry;
 
-    if (ip && (vercelCountry === "FR" || !vercelCountry)) {
+    // Verify with ipwho.is when:
+    // - No country from Vercel, OR
+    // - Vercel returned an EU/US/proxy-prone country (common for African mobile carriers)
+    if (ip && (!country || VERIFY_COUNTRIES.has(country))) {
       try {
-        const r = await fetch(`https://ipwho.is/${ip}?fields=country_code`, { next: { revalidate: 3600 } });
+        const r = await fetch(`https://ipwho.is/${ip}?fields=country_code,success`, {
+          next: { revalidate: 3600 },
+          signal: AbortSignal.timeout(3000),
+        });
         const data = await r.json();
-        if (data.country_code) country = data.country_code.toUpperCase();
-      } catch { /* ignore */ }
+        if (data.success && data.country_code) {
+          country = data.country_code.toUpperCase();
+        }
+      } catch { /* ipwho.is failed - keep vercelCountry */ }
     }
 
     if (country && COUNTRY_TO_CURRENCY[country]) return COUNTRY_TO_CURRENCY[country];
