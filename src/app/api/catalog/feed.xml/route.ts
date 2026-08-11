@@ -1,3 +1,4 @@
+// route: catalog/feed.xml (cache bust 2026-08-11T19:15:47.7946609+00:00)
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { products } from "@/db/schema";

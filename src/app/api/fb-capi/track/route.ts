@@ -1,3 +1,4 @@
+// route: fb-capi/track (cache bust 2026-08-11T19:15:47.7602167+00:00)
 import { NextRequest, NextResponse } from "next/server";
 import { sendCapiEvents, extractUserDataFromHeaders, type CapiEvent } from "@/lib/fb-capi";
 
