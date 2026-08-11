@@ -1,4 +1,4 @@
-import createMiddleware from "next-intl/middleware";
+﻿import createMiddleware from "next-intl/middleware";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { routing } from "./i18n/routing";
@@ -32,6 +32,8 @@ const PUBLIC_API_ROUTES = [
   "/api/exchange-rates",     // Currency conversion rates
   "/api/geo-currency",
   "/api/customer",       // Auto-detect currency by country
+  "/api/fb-capi",            // Meta Conversions API (server-side pixel)
+  "/api/catalog",            // Product catalog feed for Meta + Google Merchant
 ];
 
 // Admin routes (own auth already applied - middleware just lets them through)
