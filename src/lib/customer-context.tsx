@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { setFbUserMatch } from "@/lib/fbpixel";
 
 interface Customer {
   id: string;
@@ -46,6 +47,19 @@ export function CustomerProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => { refresh(); }, []);
+
+  // Meta Pixel Advanced Matching: sync customer email/phone/id whenever it changes
+  useEffect(() => {
+    if (customer) {
+      setFbUserMatch({
+        email: customer.email || undefined,
+        phone: customer.phone || undefined,
+        externalId: customer.id || undefined,
+      });
+    } else {
+      setFbUserMatch({});
+    }
+  }, [customer]);
 
   return (
     <CustomerContext.Provider value={{ customer, loading, refresh, logout }}>

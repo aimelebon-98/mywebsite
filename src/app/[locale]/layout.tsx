@@ -13,6 +13,8 @@ import { CustomerProvider } from "@/lib/customer-context";
 import ConditionalWidgets from "@/components/ConditionalWidgets";
 import ThemeColorSwitcher from "@/components/ThemeColorSwitcher";
 import MetaPixel from "@/components/MetaPixel";
+import ScrollDepthTracker from "@/components/ScrollDepthTracker";
+import LanguageChangeTracker from "@/components/LanguageChangeTracker";
 const playfair = Playfair_Display({
   subsets: ["latin"],
   weight: ["700", "900"],
@@ -189,6 +191,8 @@ export default async function LocaleLayout({
         <SpeedInsights />
         <GoogleAnalytics />
         <MetaPixel />
+        <ScrollDepthTracker />
+        <LanguageChangeTracker />
         <ThemeColorSwitcher />
       </body>
     </html>

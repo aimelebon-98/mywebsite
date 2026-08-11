@@ -10,7 +10,7 @@ import { useCurrency } from "@/lib/currency-context";
 import { computeShipping } from "@/lib/shipping";
 import { findApplicableBundle, calcDiscount, type Bundle } from "@/lib/bundles";
 import { trackEvent } from "@/components/AnalyticsTracker";
-import { trackInitiateCheckout as fbTrackInitiateCheckout, trackPurchase as fbTrackPurchase, trackCompleteRegistration as fbTrackCompleteRegistration } from "@/lib/fbpixel";
+import { trackInitiateCheckout as fbTrackInitiateCheckout, trackPurchase as fbTrackPurchase, trackCompleteRegistration as fbTrackCompleteRegistration, trackCustom as fbTrackCustom } from "@/lib/fbpixel";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import {
@@ -150,6 +150,13 @@ export default function CheckoutPage() {
           value: data.coupon.value, discount: data.discount,
           description: data.coupon.description, descriptionFr: data.coupon.descriptionFr,
         });
+        try {
+          fbTrackCustom("CouponApply", {
+            coupon_code: data.coupon.code,
+            discount_value: data.discount,
+            currency: "USD",
+          });
+        } catch { /* ignore */ }
         setCouponCode("");
       } else {
         setCouponError(data.error || (isFr ? "Code invalide" : "Invalid code"));

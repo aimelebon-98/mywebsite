@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { CURRENCIES, COUNTRY_TO_CURRENCY, formatPrice, type CurrencyCode } from "@/lib/currency";
+import { trackCustom as fbTrackCustom } from "@/lib/fbpixel";
 
 interface CurrencyContextType {
   currency: CurrencyCode;
@@ -32,6 +33,21 @@ const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined
 
 export function CurrencyProvider({ children, initialCurrency, initialRates, initialCountry }: { children: ReactNode; initialCurrency?: CurrencyCode; initialRates?: Record<string, number>; initialCountry?: string }) {
   const [currency, setCurrencyState] = useState<CurrencyCode>(initialCurrency || "USD");
+  const [prevCurrency, setPrevCurrency] = useState<CurrencyCode | null>(null);
+
+  // Meta Pixel: fire CurrencyChange custom event when user switches currency
+  useEffect(() => {
+    if (prevCurrency !== null && prevCurrency !== currency) {
+      try {
+        fbTrackCustom("CurrencyChange", {
+          from_currency: prevCurrency,
+          to_currency: currency,
+        });
+      } catch { /* ignore */ }
+    }
+    setPrevCurrency(currency);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currency]);
   const [rates, setRates] = useState<Record<string, number>>(initialRates || {});
   const [autoDetected, setAutoDetected] = useState(false);
   const [visitorCountry, setVisitorCountry] = useState<string>(initialCountry || "");

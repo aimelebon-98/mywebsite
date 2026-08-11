@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { X, MessageCircle } from "lucide-react";
-import { trackContact as fbTrackContact } from "@/lib/fbpixel";
+import { trackContact as fbTrackContact, trackCustom as fbTrackCustom } from "@/lib/fbpixel";
 
 interface Props {
   blogPostTitle?: string;
@@ -205,7 +205,7 @@ export default function WhatsAppButton({ blogPostTitle = "", blogPostUrl = "" }:
       )}
 
       <button
-        onClick={() => { setIsOpen(!isOpen); setShowBubble(false); }}
+        onClick={() => { const willOpen = !isOpen; setIsOpen(willOpen); setShowBubble(false); if (willOpen) { try { fbTrackCustom("WhatsAppOpenChat", { source: "floating_button" }); } catch {} } }}
         className={`fixed bottom-6 right-4 sm:right-6 z-50 w-14 h-14 rounded-full flex items-center justify-center shadow-xl transition-all hover:scale-110 ${
           isOpen ? "bg-gray-700 rotate-0" : "bg-green-500 hover:bg-green-600"
         }`}
