@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
         userData: { ...serverUserData, ...clientUserData },
         customData,
       };
-    }).filter(e => e.eventName);
+    }).filter((e: CapiEvent) => e.eventName);
 
     const result = await sendCapiEvents(events);
     return NextResponse.json(result);
