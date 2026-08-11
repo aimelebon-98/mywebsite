@@ -132,6 +132,13 @@ export default function CheckoutPage() {
     }
   }, [mounted, items.length, stage, locale, router]);
 
+  // Scroll to top when success stage renders (prevent navbar cutoff)
+  useEffect(() => {
+    if (stage === "success" && typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+    }
+  }, [stage]);
+
   const applyCoupon = useCallback(async () => {
     const code = couponCode.trim().toUpperCase();
     if (!code) return;
@@ -410,13 +417,6 @@ export default function CheckoutPage() {
       </main>
     );
   }
-
-  // Scroll to top when success stage renders (avoid navbar cut-off)
-  useEffect(() => {
-    if (stage === "success" && typeof window !== "undefined") {
-      window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
-    }
-  }, [stage]);
 
   // ==================== SUCCESS STAGE ====================
   if (stage === "success") {
