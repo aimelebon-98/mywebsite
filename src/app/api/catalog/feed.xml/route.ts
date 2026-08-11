@@ -118,7 +118,7 @@ export async function GET() {
       const enDesc = stripHtml(p.shortDescription || p.description || p.name || "").slice(0, 5000);
 
       items.push(buildItem({
-        id: `${p.id}_en`, itemGroupId: String(p.id),
+        id: String(p.id), itemGroupId: String(p.id),
         title: enTitle, description: enDesc,
         link: `${SITE_URL}/en/product/${enSlug}`,
         imageLink: primaryImage, additionalImages,
