@@ -1,21 +1,27 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { trackCustom as fbTrackCustom } from "@/lib/fbpixel";
 
 // Fires ScrollDepth25/50/75/100 events based on user scroll on each page
+// Wrapped in mounted guard to avoid SSR prerender issues
 export default function ScrollDepthTracker() {
+  const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
   const firedRef = useRef<Set<number>>(new Set());
 
   useEffect(() => {
-    // Reset fired depths on route change
-    firedRef.current = new Set();
-  }, [pathname]);
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (!mounted) return;
+    firedRef.current = new Set();
+  }, [mounted, pathname]);
+
+  useEffect(() => {
+    if (!mounted || typeof window === "undefined") return;
 
     let ticking = false;
     const thresholds = [25, 50, 75, 100];
@@ -33,7 +39,7 @@ export default function ScrollDepthTracker() {
             firedRef.current.add(t);
             try {
               fbTrackCustom(`ScrollDepth${t}`, {
-                page_path: pathname,
+                page_path: pathname || "/",
                 percent: t,
               });
             } catch { /* ignore */ }
@@ -45,7 +51,7 @@ export default function ScrollDepthTracker() {
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [pathname]);
+  }, [mounted, pathname]);
 
   return null;
 }
