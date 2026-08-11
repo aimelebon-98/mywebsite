@@ -10,6 +10,7 @@ import { useCurrency } from "@/lib/currency-context";
 import { computeShipping } from "@/lib/shipping";
 import { findApplicableBundle, calcDiscount, type Bundle } from "@/lib/bundles";
 import { trackEvent } from "@/components/AnalyticsTracker";
+import { trackInitiateCheckout as fbTrackInitiateCheckout, trackPurchase as fbTrackPurchase, trackCompleteRegistration as fbTrackCompleteRegistration } from "@/lib/fbpixel";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import {
@@ -76,6 +77,18 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     setMounted(true);
+    // Meta Pixel: fire InitiateCheckout when checkout page loads with items
+    try {
+      if (items.length > 0) {
+        fbTrackInitiateCheckout({
+          content_ids: items.map(i => String(i.id)),
+          contents: items.map(i => ({ id: String(i.id), quantity: i.quantity, item_price: i.price })),
+          num_items: items.reduce((s, i) => s + i.quantity, 0),
+          value: totalPrice,
+          currency: "USD",
+        });
+      }
+    } catch { /* ignore fb */ }
     fetch("/api/settings").then(r => r.json()).then(data => {
       if (data.whatsappNumber) setWhatsappNumber(data.whatsappNumber);
       fetch("/api/bundles").then(r => r.json()).then(setBundles).catch(() => {});
@@ -172,6 +185,9 @@ export default function CheckoutPage() {
       const data = await res.json();
 
       if (res.ok && data.ok) {
+        if (mode === "signup") {
+          try { fbTrackCompleteRegistration({ content_name: "checkout_signup", status: true }); } catch { /* ignore */ }
+        }
         await refresh();
         setWasGuest(false);
         if (mode === "signup" && data.welcomeCoupon?.code) {
@@ -354,6 +370,18 @@ export default function CheckoutPage() {
         },
       });
     } catch { /* ignore */ }
+
+    // Meta Pixel: fire Purchase event with full order details
+    try {
+      fbTrackPurchase({
+        content_ids: items.map(i => String(i.id)),
+        contents: items.map(i => ({ id: String(i.id), quantity: i.quantity, item_price: i.price })),
+        num_items: items.reduce((s, i) => s + i.quantity, 0),
+        value: grandTotal,
+        currency: "USD",
+        order_id: orderNum || undefined,
+      });
+    } catch { /* ignore fb */ }
 
     const waPhone = whatsappNumber.replace(/\D/g, "");
     const url = "https://wa.me/" + waPhone + "?text=" + encodeURIComponent(message);

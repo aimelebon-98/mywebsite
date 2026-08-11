@@ -46,6 +46,7 @@ export default function RegisterPage() {
       if (!res.ok) {
         setError(data.error || (isFr ? "Erreur d\u0027inscription" : "Registration failed"));
       } else {
+        try { fbTrackCompleteRegistration({ content_name: "customer_register", status: true }); } catch { /* ignore */ }
         await refresh();
         router.push(`/${locale}/account/dashboard`);
       }
