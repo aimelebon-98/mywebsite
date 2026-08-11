@@ -1,5 +1,6 @@
 "use client";
 import { trackEvent } from "@/components/AnalyticsTracker";
+import { trackAddToWishlist as fbTrackAddToWishlist } from "@/lib/fbpixel";
 import { useCustomer } from "@/lib/customer-context";
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
@@ -87,6 +88,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     const wished = ids.includes(productId);
     if (!wished) {
       try { trackEvent({ eventType: "wishlist_add", productId }); } catch { /* ignore */ }
+      try { fbTrackAddToWishlist({ content_ids: [productId] }); } catch { /* ignore */ }
     }
     setIds(prev => wished ? prev.filter(x => x !== productId) : [...prev, productId]);
     try {

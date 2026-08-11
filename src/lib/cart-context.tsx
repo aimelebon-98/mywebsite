@@ -1,5 +1,6 @@
 "use client";
 import { trackEvent } from "@/components/AnalyticsTracker";
+import { trackAddToCart as fbTrackAddToCart } from "@/lib/fbpixel";
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 
@@ -67,6 +68,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
         metadata: { quantity: (newItem as unknown as { quantity?: number }).quantity || 1 },
       });
     } catch { /* ignore */ }
+
+    try {
+      fbTrackAddToCart({
+        content_ids: [newItem.id],
+        content_name: newItem.name,
+        value: newItem.price * newItem.quantity,
+        currency: "USD",
+        contents: [{ id: newItem.id, quantity: newItem.quantity, item_price: newItem.price }],
+      });
+    } catch { /* ignore fb */ }
 
     setItems(prev => {
       const existing = prev.find(

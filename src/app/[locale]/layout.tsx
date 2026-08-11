@@ -1,17 +1,31 @@
 import type { Metadata, Viewport } from "next";
+import MetaPixel from "@/components/MetaPixel";
 import type { ReactNode } from "react";
+import MetaPixel from "@/components/MetaPixel";
 import { Inter, Playfair_Display } from "next/font/google";
+import MetaPixel from "@/components/MetaPixel";
 import dynamic from "next/dynamic";
+import MetaPixel from "@/components/MetaPixel";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
+import MetaPixel from "@/components/MetaPixel";
 import { notFound } from "next/navigation";
+import MetaPixel from "@/components/MetaPixel";
 import { routing } from "@/i18n/routing";
+import MetaPixel from "@/components/MetaPixel";
 import { CartProvider } from "@/lib/cart-context";
+import MetaPixel from "@/components/MetaPixel";
 import { WishlistProvider } from "@/lib/wishlist-context";
+import MetaPixel from "@/components/MetaPixel";
 import { CurrencyProvider } from "@/lib/currency-context";
+import MetaPixel from "@/components/MetaPixel";
 import { getServerCurrency, getServerRates, getServerCountry } from "@/lib/server-currency";
+import MetaPixel from "@/components/MetaPixel";
 import { CustomerProvider } from "@/lib/customer-context";
+import MetaPixel from "@/components/MetaPixel";
 import ConditionalWidgets from "@/components/ConditionalWidgets";
+import MetaPixel from "@/components/MetaPixel";
 import ThemeColorSwitcher from "@/components/ThemeColorSwitcher";
+import MetaPixel from "@/components/MetaPixel";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -22,6 +36,7 @@ const playfair = Playfair_Display({
 const FloatingCartPill = dynamic(() => import("@/components/FloatingCartPill"));
 const PageViewTracker = dynamic(() => import("@/components/AnalyticsTracker"));
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import MetaPixel from "@/components/MetaPixel";
 const GoogleAnalytics = dynamic(() => import("@/components/GoogleAnalytics"));
 
 // Self-hosted Inter font (eliminates render-blocking Google Fonts request)
