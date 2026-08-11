@@ -7,6 +7,12 @@ import { FB_PIXEL_ID, pageview } from "@/lib/fbpixel";
 
 const CONSENT_KEY = "sv_cookie_consent";
 
+// EU + EEA + UK countries where GDPR applies (must wait for consent)
+const GDPR_COUNTRIES = new Set([
+  "AT","BE","BG","HR","CY","CZ","DK","EE","FI","FR","DE","GR","HU","IE","IT",
+  "LV","LT","LU","MT","NL","PL","PT","RO","SK","SI","ES","SE","IS","LI","NO","GB","CH"
+]);
+
 function PageViewTracker() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -20,26 +26,49 @@ function PageViewTracker() {
 }
 
 export default function MetaPixel() {
-  const [consentGiven, setConsentGiven] = useState(false);
+  const [canLoad, setCanLoad] = useState(false);
 
   useEffect(() => {
-    const check = () => {
+    let cancelled = false;
+
+    async function decide() {
+      // Rule 1: If user already accepted cookies, fire immediately.
       try {
         const stored = localStorage.getItem(CONSENT_KEY);
-        if (stored) setConsentGiven(true);
+        if (stored) { if (!cancelled) setCanLoad(true); return; }
       } catch { /* ignore */ }
-    };
-    check();
-    const onConsent = () => check();
-    window.addEventListener("cookieConsentUpdated", onConsent);
-    window.addEventListener("storage", onConsent);
-    return () => {
-      window.removeEventListener("cookieConsentUpdated", onConsent);
-      window.removeEventListener("storage", onConsent);
-    };
+
+      // Rule 2: Detect country via our geo endpoint (Cloudflare-aware).
+      // If non-EU/GDPR, fire immediately. If GDPR, wait for consent.
+      try {
+        const res = await fetch("/api/geo-currency", { cache: "no-store" });
+        const data = await res.json();
+        const country = (data?.country || "").toUpperCase();
+        if (!cancelled) {
+          if (country && !GDPR_COUNTRIES.has(country)) {
+            setCanLoad(true);
+            return;
+          }
+        }
+      } catch { /* ignore */ }
+
+      // Rule 3: Unknown country or GDPR region -> wait for consent event.
+      const onConsent = () => {
+        if (!cancelled) setCanLoad(true);
+      };
+      window.addEventListener("cookieConsentUpdated", onConsent);
+      window.addEventListener("storage", onConsent);
+      return () => {
+        window.removeEventListener("cookieConsentUpdated", onConsent);
+        window.removeEventListener("storage", onConsent);
+      };
+    }
+
+    decide();
+    return () => { cancelled = true; };
   }, []);
 
-  if (!consentGiven) return null;
+  if (!canLoad) return null;
 
   return (
     <>
