@@ -411,13 +411,20 @@ export default function CheckoutPage() {
     );
   }
 
+  // Scroll to top when success stage renders (avoid navbar cut-off)
+  useEffect(() => {
+    if (stage === "success" && typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+    }
+  }, [stage]);
+
   // ==================== SUCCESS STAGE ====================
   if (stage === "success") {
     return (
       <main className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
         <Navbar />
-        <div className="pb-16">
-          <div className="max-w-lg mx-auto px-4 py-12">
+        <div className="pt-24 pb-24 min-h-[calc(100vh-160px)] flex items-start justify-center">
+          <div className="w-full max-w-lg mx-auto px-4">
             <div className="bg-white rounded-3xl shadow-xl p-8 lg:p-10 text-center">
               <div className="w-20 h-20 mx-auto mb-5 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center animate-bounce-in">
                 <CheckCircle className="w-10 h-10 text-white" />
