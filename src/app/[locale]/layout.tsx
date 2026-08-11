@@ -188,6 +188,7 @@ export default async function LocaleLayout({
         <ExitIntentPopup />
         <SpeedInsights />
         <GoogleAnalytics />
+        <MetaPixel />
         <ThemeColorSwitcher />
       </body>
     </html>
