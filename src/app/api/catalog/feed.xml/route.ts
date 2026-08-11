@@ -3,20 +3,14 @@ import { db } from "@/db";
 import { products } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
-export const revalidate = 3600; // Cache 1 hour - Meta pulls once per hour
+export const revalidate = 3600;
 export const dynamic = "force-static";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.newdealzone.com";
 
-// Google Product Category IDs for footwear
-// https://www.google.com/basepages/producttype/taxonomy.en-US.txt
 const CATEGORY_GPC: Record<string, string> = {
-  sneakers: "187", // Apparel & Accessories > Shoes
-  running:  "187",
-  formal:   "187",
-  boots:    "187",
-  sandals:  "187",
-  casual:   "187",
+  sneakers: "187", running: "187", formal: "187",
+  boots: "187", sandals: "187", casual: "187",
 };
 
 function xmlEscape(s: string | null | undefined): string {
@@ -27,7 +21,6 @@ function xmlEscape(s: string | null | undefined): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&apos;")
-    // Strip control chars that break XML
     .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, "");
 }
 
@@ -50,24 +43,11 @@ function safeJson<T>(raw: string | null | undefined, fallback: T): T {
 }
 
 function buildItem(opts: {
-  id: string;
-  itemGroupId: string;
-  title: string;
-  description: string;
-  link: string;
-  imageLink: string;
-  additionalImages: string[];
-  availability: string;
-  price: string;
-  salePrice: string | null;
-  brand: string;
-  category: string;
-  gpc: string;
-  productType: string;
-  mpn: string;
-  material: string;
-  color: string;
-  sizes: string[];
+  id: string; itemGroupId: string; title: string; description: string;
+  link: string; imageLink: string; additionalImages: string[];
+  availability: string; price: string; salePrice: string | null;
+  brand: string; category: string; gpc: string; productType: string;
+  mpn: string; material: string; color: string; sizes: string[];
 }): string {
   const sizesXml = opts.sizes.length > 0
     ? `    <g:size>${xmlEscape(opts.sizes.join(", "))}</g:size>\n`
@@ -103,32 +83,20 @@ ${opts.material ? `    <g:material>${xmlEscape(opts.material)}</g:material>\n` :
 
 export async function GET() {
   try {
-    const rows = await db
-      .select()
-      .from(products)
-      .where(eq(products.active, true));
-
+    const rows = await db.select().from(products).where(eq(products.active, true));
     const items: string[] = [];
 
     for (const p of rows) {
-      // Parse JSON fields
       const images = safeJson<string[]>(p.images, []);
       const colors = safeJson<Array<{ name?: string; image?: string }>>(p.colors, []);
       const sizes = safeJson<string[]>(p.sizes, []);
-
-      // Build image list: primary + additional
       const primaryImage = p.imageUrl || images[0] || "";
-      if (!primaryImage) continue; // Skip products with no image
+      if (!primaryImage) continue;
 
       const additionalImages = images.filter(img => img && img !== primaryImage).slice(0, 10);
-
-      // Availability
       const availability = (p.stock ?? 0) > 0 ? "in stock" : "out of stock";
-
-      // Pricing (Meta requires "PRICE CURRENCY" format e.g. "29.99 USD")
       const priceNum = Number(p.price ?? 0);
       const compareNum = p.comparePrice ? Number(p.comparePrice) : 0;
-      // If comparePrice > price, price becomes sale and comparePrice becomes regular
       let regularPrice = priceNum;
       let salePrice: number | null = null;
       if (compareNum > priceNum) {
@@ -136,67 +104,44 @@ export async function GET() {
         salePrice = priceNum;
       }
 
-      // Categories + brand
       const brand = p.brand || "New Deal Zone";
       const category = p.category || "sneakers";
       const gpc = CATEGORY_GPC[category] || "187";
       const productType = `Footwear > ${category.charAt(0).toUpperCase() + category.slice(1)}`;
       const mpn = p.sku || String(p.id);
-
-      // Primary color (from colors[0].name) if available
       const primaryColor = colors[0]?.name || "";
 
-      // ============ EN VARIANT ============
+      // EN variant
       const enSlug = p.slug || String(p.id);
       const enTitle = (p.name || "").slice(0, 150);
       const enDesc = stripHtml(p.shortDescription || p.description || p.name || "").slice(0, 5000);
 
       items.push(buildItem({
-        id: `${p.id}_en`,
-        itemGroupId: String(p.id),
-        title: enTitle,
-        description: enDesc,
+        id: `${p.id}_en`, itemGroupId: String(p.id),
+        title: enTitle, description: enDesc,
         link: `${SITE_URL}/en/product/${enSlug}`,
-        imageLink: primaryImage,
-        additionalImages,
-        availability,
-        price: `${regularPrice.toFixed(2)} USD`,
+        imageLink: primaryImage, additionalImages,
+        availability, price: `${regularPrice.toFixed(2)} USD`,
         salePrice: salePrice !== null ? `${salePrice.toFixed(2)} USD` : null,
-        brand,
-        category,
-        gpc,
-        productType,
-        mpn,
-        material: p.material || "",
-        color: primaryColor,
-        sizes,
+        brand, category, gpc, productType, mpn,
+        material: p.material || "", color: primaryColor, sizes,
       }));
 
-      // ============ FR VARIANT ============
+      // FR variant
       if (p.nameFr || p.slugFr) {
         const frSlug = p.slugFr || enSlug;
         const frTitle = (p.nameFr || p.name || "").slice(0, 150);
         const frDesc = stripHtml(p.shortDescriptionFr || p.descriptionFr || p.nameFr || p.name || "").slice(0, 5000);
 
         items.push(buildItem({
-          id: `${p.id}_fr`,
-          itemGroupId: String(p.id),
-          title: frTitle,
-          description: frDesc,
+          id: `${p.id}_fr`, itemGroupId: String(p.id),
+          title: frTitle, description: frDesc,
           link: `${SITE_URL}/fr/product/${frSlug}`,
-          imageLink: primaryImage,
-          additionalImages,
-          availability,
-          price: `${regularPrice.toFixed(2)} USD`,
+          imageLink: primaryImage, additionalImages,
+          availability, price: `${regularPrice.toFixed(2)} USD`,
           salePrice: salePrice !== null ? `${salePrice.toFixed(2)} USD` : null,
-          brand,
-          category,
-          gpc,
-          productType,
-          mpn,
-          material: p.material || "",
-          color: primaryColor,
-          sizes,
+          brand, category, gpc, productType, mpn,
+          material: p.material || "", color: primaryColor, sizes,
         }));
       }
     }
