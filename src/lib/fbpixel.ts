@@ -106,7 +106,7 @@ export interface AddPaymentInfoParams {
 export function trackAddPaymentInfo(p: AddPaymentInfoParams) {
   const eventId = newEventId();
   safeCall("track", "AddPaymentInfo", p, { eventID: eventId });
-  sendToCapi("AddPaymentInfo", eventId, p as Record<string, unknown>, __userMatch);
+  sendToCapi("AddPaymentInfo", eventId, { ...p } as Record<string, unknown>, __userMatch);
 }
 
 export interface PurchaseParams {
@@ -128,7 +128,7 @@ export interface SearchParams {
 export function trackSearch(p: SearchParams) {
   const eventId = newEventId();
   safeCall("track", "Search", p, { eventID: eventId });
-  sendToCapi("Search", eventId, p as Record<string, unknown>, __userMatch);
+  sendToCapi("Search", eventId, { ...p } as Record<string, unknown>, __userMatch);
 }
 
 export interface LeadParams {
@@ -137,7 +137,7 @@ export interface LeadParams {
 export function trackLead(p: LeadParams = {}) {
   const eventId = newEventId();
   safeCall("track", "Lead", p, { eventID: eventId });
-  sendToCapi("Lead", eventId, p as Record<string, unknown>, __userMatch);
+  sendToCapi("Lead", eventId, { ...p } as Record<string, unknown>, __userMatch);
 }
 
 export interface CompleteRegistrationParams {
@@ -146,14 +146,14 @@ export interface CompleteRegistrationParams {
 export function trackCompleteRegistration(p: CompleteRegistrationParams = {}) {
   const eventId = newEventId();
   safeCall("track", "CompleteRegistration", p, { eventID: eventId });
-  sendToCapi("CompleteRegistration", eventId, p as Record<string, unknown>, __userMatch);
+  sendToCapi("CompleteRegistration", eventId, { ...p } as Record<string, unknown>, __userMatch);
 }
 
 export interface ContactParams { content_name?: string; }
 export function trackContact(p: ContactParams = {}) {
   const eventId = newEventId();
   safeCall("track", "Contact", p, { eventID: eventId });
-  sendToCapi("Contact", eventId, p as Record<string, unknown>, __userMatch);
+  sendToCapi("Contact", eventId, { ...p } as Record<string, unknown>, __userMatch);
 }
 
 export function trackCustom(eventName: string, params: Record<string, unknown> = {}) {
