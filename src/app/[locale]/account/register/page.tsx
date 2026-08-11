@@ -7,6 +7,7 @@ import { useLocale } from "next-intl";
 import { useCustomer } from "@/lib/customer-context";
 import TurnstileGate from "@/components/TurnstileGate";
 import { Mail, Lock, User, Phone, UserPlus, Loader2, ArrowLeft } from "lucide-react";
+import { trackCompleteRegistration as fbTrackCompleteRegistration } from "@/lib/fbpixel";
 
 export default function RegisterPage() {
   const locale = useLocale();

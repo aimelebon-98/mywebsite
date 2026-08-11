@@ -13,6 +13,7 @@ import { trackEvent } from "@/components/AnalyticsTracker";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import {
+import { trackInitiateCheckout as fbTrackInitiateCheckout, trackAddPaymentInfo as fbTrackAddPaymentInfo, trackPurchase as fbTrackPurchase } from "@/lib/fbpixel";
   ArrowLeft, MessageCircle, AlertCircle, User, Mail, Lock, Phone, MapPin,
   Loader2, Eye, EyeOff, Sparkles, CheckCircle, Ticket, ShoppingBag, LogIn, UserPlus, ArrowRight
 } from "lucide-react";
