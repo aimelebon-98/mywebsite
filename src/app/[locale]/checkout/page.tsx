@@ -36,7 +36,7 @@ export default function CheckoutPage() {
   const isFr = locale === "fr";
   const router = useRouter();
 
-  const { items, totalPrice, totalItems, clearCart } = useCart();
+  const { items, totalPrice, totalItems, totalQuantity, clearCart } = useCart();
   const { customer, refresh } = useCustomer();
   const { currency: userCurrency, format: formatPrice, rates: currencyRates } = useCurrency();
 
@@ -353,7 +353,7 @@ export default function CheckoutPage() {
       message += "Shipping: To be calculated based on your address\n";
       message += "*Subtotal: " + formatPrice(finalTotal) + "* (+ shipping to be added)\n";
     }
-    message += "*Items: " + totalItems + "*\n";
+    message += "*Items: " + totalQuantity + "*\n";
 
     // Guest incentive message
     if (wasGuest && !customer) {

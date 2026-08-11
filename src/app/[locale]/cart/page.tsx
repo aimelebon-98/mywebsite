@@ -23,7 +23,7 @@ export default function CartPage() {
   const locale = useLocale();
   const isFr = locale === "fr";
 
-  const { items, removeItem, updateQuantity, clearCart, totalPrice, totalItems } = useCart();
+  const { items, removeItem, updateQuantity, clearCart, totalPrice, totalItems, totalQuantity } = useCart();
   const { customer } = useCustomer();
   const { currency: userCurrency, format: formatPrice, rates: currencyRates } = useCurrency();
   const [bundles, setBundles] = useState<Bundle[]>([]);
@@ -125,7 +125,7 @@ export default function CartPage() {
 
                   <div className="space-y-3 mb-6">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">{t("subtotal")} ({totalItems} {totalItems === 1 ? t("item") : t("items")})</span>
+                      <span className="text-gray-500">{t("subtotal")} ({totalQuantity} {totalQuantity === 1 ? t("item") : t("items")})</span>
                       <span className="font-semibold">{formatPrice(totalPrice)}</span>
                     </div>
 
@@ -156,7 +156,7 @@ export default function CartPage() {
                     </div>
                   </div>
 
-                  <BundleBanner bundle={appliedBundle} bundles={bundles} currentItemCount={totalItems} discountAmount={bundleDiscount} currency={userCurrency} />
+                  <BundleBanner bundle={appliedBundle} bundles={bundles} currentItemCount={totalQuantity} discountAmount={bundleDiscount} currency={userCurrency} />
 
                   {/* CHECKOUT BUTTON - navigates to /checkout */}
                   <Link

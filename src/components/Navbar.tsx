@@ -23,7 +23,7 @@ export default function Navbar() {
   const locale = useLocale();
   const pathname = usePathname();
   const router = useRouter();
-  const { totalItems, openDrawer } = useCart();
+  const { totalQuantity, openDrawer } = useCart();
   const { format: fmtPrice } = useCurrency();
   const isFr = locale === "fr";
   const { count: wishlistCount } = useWishlist();
@@ -327,9 +327,9 @@ export default function Navbar() {
               className={`relative p-1.5 sm:p-2 rounded-xl transition ${iconHoverBg}`}
             >
               <ShoppingBag className={`w-5 h-5 ${iconColor}`} />
-              {totalItems > 0 && (
+              {totalQuantity > 0 && (
                 <span className={`absolute -top-0.5 -right-0.5 w-5 h-5 text-[10px] font-bold rounded-full flex items-center justify-center ${badgeBg}`}>
-                  {totalItems > 9 ? "9+" : totalItems}
+                  {totalQuantity > 9 ? "9+" : totalQuantity}
                 </span>
               )}
             </button>
