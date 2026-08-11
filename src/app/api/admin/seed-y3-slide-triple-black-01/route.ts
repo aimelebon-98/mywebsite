@@ -12,7 +12,6 @@ function getInitials(name: string): string {
 
 export async function GET() {
   try {
-    // Live rates
     const ratesRes = await fetch("https://www.newdealzone.com/api/exchange-rates", { cache: "no-store" });
     const ratesData = await ratesRes.json();
     const NGN_RATE = Number(ratesData.rates.NGN) || 1500;
@@ -33,7 +32,6 @@ export async function GET() {
     const slugFr = "sandale-y3-slide-noir-total";
     const sourceUrl = "https://i.ibb.co/zVTvVFr1/Whats-App-Image-2026-08-09-at-10-11-17-AM.jpg";
 
-    // Blob upload
     let imageUrl = sourceUrl;
     let blobUsed = false;
     try {
@@ -50,7 +48,6 @@ export async function GET() {
       }
     } catch (e) { console.error("Blob upload failed:", e); }
 
-    // Idempotent cleanup
     const existing = await db.select().from(products).where(or(eq(products.slug, slug), eq(products.slugFr, slugFr)));
     for (const p of existing) {
       await db.delete(reviews).where(eq(reviews.productId, p.id));
@@ -136,8 +133,10 @@ export async function GET() {
       slug: slug,
       slugFr: slugFr,
       description: shortDescEn,
-      descriptionFr: shortDescFr,
+      shortDescription: shortDescEn,
       longDescription: longDescEn,
+      descriptionFr: shortDescFr,
+      shortDescriptionFr: shortDescFr,
       longDescriptionFr: longDescFr,
       price: sellingUsd.toFixed(2),
       comparePrice: compareUsd.toFixed(2),
@@ -151,9 +150,10 @@ export async function GET() {
       brand: "Y-3",
       stock: 25,
       sizes: JSON.stringify(sizes),
-      colors: colors,
-      images: [imageUrl],
+      colors: JSON.stringify(colors),
+      images: JSON.stringify([imageUrl]),
       imageUrl: imageUrl,
+      material: "Neoprene + EVA",
       active: true,
       featured: false,
       rating: "5.0",
@@ -170,7 +170,6 @@ export async function GET() {
       ogImage: imageUrl,
     }).returning();
 
-    // Reviews
     const now = Date.now();
     const day = 86400000;
     const reviewsData = [
