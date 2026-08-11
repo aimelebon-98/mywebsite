@@ -6,6 +6,7 @@ import { getColorHexPair } from "@/lib/color-map";
 import StockBadge from "@/components/StockBadge";
 import { trackEvent } from "@/components/AnalyticsTracker";
 import ProductFaqDisplay from "@/components/ProductFaqDisplay";
+import { trackViewContent as fbTrackViewContent } from "@/lib/fbpixel";
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -46,6 +47,27 @@ function getAvatarColor(name: string) {
 }
 
 export default function ProductDetails({ product, initialReviews = [], relatedProducts = [], locale: propLocale }: ProductDetailsProps) {
+
+  // Meta Pixel: fire ViewContent when product page loads
+  const __fbProductId = (product as unknown as { id?: string })?.id ?? "";
+  const __fbProductName = (product as unknown as { name?: string })?.name ?? "";
+  const __fbProductPrice = Number((product as unknown as { price?: string | number })?.price ?? 0);
+  const __fbProductBrand = (product as unknown as { brand?: string })?.brand ?? "";
+  const __fbProductCategory = (product as unknown as { category?: string })?.category ?? "";
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  require("react").useEffect(() => {
+    if (!__fbProductId) return;
+    try {
+      fbTrackViewContent({
+        content_ids: [String(__fbProductId)],
+        content_name: __fbProductName,
+        value: __fbProductPrice,
+        currency: "USD",
+        content_category: __fbProductCategory,
+        brand: __fbProductBrand,
+      });
+    } catch { /* ignore */ }
+  }, [__fbProductId, __fbProductName, __fbProductPrice, __fbProductCategory, __fbProductBrand]);
   const t = useTranslations("productDetails");
   const locale = useLocale();
   const { addItem } = useCart();

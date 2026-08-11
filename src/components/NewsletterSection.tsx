@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Mail, Check, ArrowRight, Sparkles } from "lucide-react";
+import { trackLead as fbTrackLead } from "@/lib/fbpixel";
 
 export default function NewsletterSection() {
   const [email, setEmail] = useState("");

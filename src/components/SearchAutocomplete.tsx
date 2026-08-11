@@ -1,5 +1,6 @@
 "use client";
 import { trackEvent } from "@/components/AnalyticsTracker";
+import { trackSearch as fbTrackSearch } from "@/lib/fbpixel";
 import { useCurrency } from "@/lib/currency-context";
 
 import { useState, useEffect, useRef } from "react";
@@ -69,6 +70,7 @@ export default function SearchAutocomplete({
         try {
           if (query.trim().length >= 2) {
             trackEvent({ eventType: "search", searchQuery: query.trim() });
+            try { fbTrackSearch({ search_string: query.trim() }); } catch { /* ignore */ }
           }
         } catch { /* ignore */ }
       } catch {
@@ -91,7 +93,7 @@ export default function SearchAutocomplete({
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
-    try { if (query && query.trim().length > 1) trackEvent({ eventType: "search", searchQuery: query.trim() }); } catch {}
+    try { if (query && query.trim().length > 1) { trackEvent({ eventType: "search", searchQuery: query.trim() }); fbTrackSearch({ search_string: query.trim() }); } } catch {}
     e.preventDefault();
     if (!query.trim()) return;
     setShowDropdown(false);

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { X, MessageCircle } from "lucide-react";
+import { trackContact as fbTrackContact } from "@/lib/fbpixel";
 
 interface Props {
   blogPostTitle?: string;
@@ -93,6 +94,7 @@ export default function WhatsAppButton({ blogPostTitle = "", blogPostUrl = "" }:
     const phone = whatsappNumber.replace(/\D/g, "");
     const text = message || t.defaultMsg;
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+    try { fbTrackContact({ content_name: "whatsapp_click" }); } catch { /* ignore */ }
     window.open(url, "_blank");
     setIsOpen(false);
     setMessage("");
