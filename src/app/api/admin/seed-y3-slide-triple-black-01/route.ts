@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { products, reviews } from "@/lib/db/schema";
+import { db } from "@/db";
+import { products, reviews } from "@/db/schema";
 import { eq, or } from "drizzle-orm";
 import { put } from "@vercel/blob";
 
