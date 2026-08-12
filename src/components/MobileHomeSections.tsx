@@ -59,7 +59,7 @@ function ProductScroll({ products, title, badge, badgeColor, locale, isFr, forma
           )}
           <span className="text-sm font-bold text-gray-900">{title}</span>
         </div>
-        <Link href={viewAllHref} className="text-xs font-semibold text-gray-500 hover:text-[#CA3F2E] flex items-center gap-0.5">
+        <Link prefetch={false} href={viewAllHref} className="text-xs font-semibold text-gray-500 hover:text-[#CA3F2E] flex items-center gap-0.5">
           {isFr ? "Voir tout" : "See all"}
           <ChevronRight className="w-3 h-3" />
         </Link>
@@ -75,7 +75,7 @@ function ProductScroll({ products, title, badge, badgeColor, locale, isFr, forma
               ? Math.round(((comparePrice - price) / comparePrice) * 100) : 0;
             const rating = parseFloat(p.rating || "0");
             return (
-              <Link key={p.id} href={`/${locale}/product/${displaySlug}`}
+              <Link prefetch={false} key={p.id} href={`/${locale}/product/${displaySlug}`}
                 className="w-[110px] flex-shrink-0 bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm active:scale-95 transition">
                 <div className="relative aspect-square bg-gray-50">
                   {p.imageUrl && <Image src={p.imageUrl} alt={displayName} fill sizes="130px" quality={75} className="object-cover" />}
@@ -115,7 +115,7 @@ function ProductGrid({ products, title, locale, isFr, formatPrice, viewAllHref, 
     <div className={"pt-4 pb-4 border-t-4 border-gray-100 " + (bgTint || "bg-white")}>
       <div className="flex items-center justify-between px-3 mb-3">
         <span className="text-sm font-bold text-gray-900">{title}</span>
-        <Link href={viewAllHref} className="text-xs font-semibold text-gray-500 hover:text-[#CA3F2E] flex items-center gap-0.5">
+        <Link prefetch={false} href={viewAllHref} className="text-xs font-semibold text-gray-500 hover:text-[#CA3F2E] flex items-center gap-0.5">
           {isFr ? "Voir tout" : "See all"}
           <ChevronRight className="w-3 h-3" />
         </Link>
@@ -129,7 +129,7 @@ function ProductGrid({ products, title, locale, isFr, formatPrice, viewAllHref, 
           const discount = comparePrice && comparePrice > price
             ? Math.round(((comparePrice - price) / comparePrice) * 100) : 0;
           return (
-            <Link key={p.id} href={`/${locale}/product/${displaySlug}`}
+            <Link prefetch={false} key={p.id} href={`/${locale}/product/${displaySlug}`}
               className="bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm active:scale-95 transition">
               <div className="relative aspect-square bg-gray-50">
                 {p.imageUrl && <Image src={p.imageUrl} alt={displayName} fill sizes="(max-width: 640px) 50vw, 300px" quality={80} className="object-cover" />}
@@ -185,7 +185,7 @@ export default function MobileHomeSections({ products, categories }: Props) {
         locale={locale} isFr={isFr} formatPrice={formatPrice} viewAllHref={`/${locale}/shop`} />
 
       <div className="bg-white pt-3 pb-3">
-        <Link href={`/${locale}/shop?onSale=1`} className="block mx-3">
+        <Link prefetch={false} href={`/${locale}/shop?onSale=1`} className="block mx-3">
           <div className="relative rounded-2xl overflow-hidden h-24 shadow-md" style={{ background: "linear-gradient(135deg, #CA3F2E 0%, #8B2A1E 100%)" }}>
             <div className="absolute inset-0 flex items-center justify-between px-4 text-white">
               <div>
@@ -206,7 +206,7 @@ export default function MobileHomeSections({ products, categories }: Props) {
           </div>
           <div className="grid grid-cols-2 gap-2 px-3">
             {categories.map(cat => (
-              <Link key={cat.slug} href={`/${locale}/shop?category=${cat.slug}`}
+              <Link prefetch={false} key={cat.slug} href={`/${locale}/shop?category=${cat.slug}`}
                 className={"relative rounded-xl overflow-hidden aspect-[4/3] shadow-sm active:scale-95 transition " + (CAT_TINTS[cat.slug] || "bg-gray-100")}>
                 {cat.imageUrl && (
                   <Image src={cat.imageUrl} alt={cat.nameEn} fill sizes="(max-width: 640px) 50vw, 200px" quality={75} className="object-cover" />
@@ -228,7 +228,7 @@ export default function MobileHomeSections({ products, categories }: Props) {
         locale={locale} isFr={isFr} formatPrice={formatPrice} viewAllHref={`/${locale}/shop?sort=newest`} />
 
       <div className="bg-white pt-3 pb-3">
-        <Link href={`/${locale}/blog`} className="block mx-3">
+        <Link prefetch={false} href={`/${locale}/blog`} className="block mx-3">
           <div className="relative rounded-2xl overflow-hidden h-24 shadow-md bg-gradient-to-r from-gray-900 to-gray-700">
             <div className="absolute inset-0 flex items-center justify-between px-4 text-white">
               <div>
@@ -257,14 +257,14 @@ export default function MobileHomeSections({ products, categories }: Props) {
               <span className="text-gray-900 text-[10px] font-black tracking-wide">{isFr ? "MARQUES OFFICIELLES" : "OFFICIAL BRANDS"}</span>
             </div>
           </div>
-          <Link href={`/${locale}/shop`} className="text-xs font-semibold text-gray-500 hover:text-[#CA3F2E] flex items-center gap-0.5">
+          <Link prefetch={false} href={`/${locale}/shop`} className="text-xs font-semibold text-gray-500 hover:text-[#CA3F2E] flex items-center gap-0.5">
             {isFr ? "Voir tout" : "See all"}
             <ChevronRight className="w-3 h-3" />
           </Link>
         </div>
         <div className="grid grid-cols-3 gap-2 px-3">
           {brands.map((brand) => (
-            <Link key={brand.name} href={`/${locale}/shop?brand=${encodeURIComponent(brand.name)}`}
+            <Link prefetch={false} key={brand.name} href={`/${locale}/shop?brand=${encodeURIComponent(brand.name)}`}
               className="aspect-square bg-gray-900 rounded-xl flex flex-col items-center justify-center p-2 shadow-sm active:scale-95 transition group border border-gray-800 hover:border-amber-400">
               <span className="text-white text-sm font-black text-center leading-tight tracking-wide group-hover:text-amber-400 transition">{brand.name}</span>
               <span className="text-[8px] text-gray-400 mt-1 text-center leading-tight line-clamp-1 group-hover:text-gray-300 transition">{brand.tagline}</span>
@@ -274,7 +274,7 @@ export default function MobileHomeSections({ products, categories }: Props) {
       </div>
 
       <div className="bg-white pt-4 pb-6">
-        <Link href={`/${locale}/shop`} className="block mx-3">
+        <Link prefetch={false} href={`/${locale}/shop`} className="block mx-3">
           <div className="relative rounded-2xl overflow-hidden p-5 shadow-md" style={{ background: "linear-gradient(135deg, #1f2937 0%, #111827 100%)" }}>
             <div className="text-center text-white">
               <div className="text-[10px] font-black tracking-widest text-amber-400 mb-1">{isFr ? "PARCOURIR TOUT" : "BROWSE ALL"}</div>

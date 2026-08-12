@@ -156,13 +156,13 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
       <article className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-xs text-gray-500 mb-8">
-          <Link href={`/${locale}`} className="hover:text-[#CA3F2E] transition flex items-center">
+          <Link prefetch={false} href={`/${locale}`} className="hover:text-[#CA3F2E] transition flex items-center">
             <Home className="w-3.5 h-3.5" />
           </Link>
           <ChevronRight className="w-3 h-3" />
-          <Link href={`/${locale}/blog`} className="hover:text-[#CA3F2E] transition">Blog</Link>
+          <Link prefetch={false} href={`/${locale}/blog`} className="hover:text-[#CA3F2E] transition">Blog</Link>
           <ChevronRight className="w-3 h-3" />
-          <Link href={`/${locale}/blog?category=${post.category}`} className="hover:text-[#CA3F2E] transition">
+          <Link prefetch={false} href={`/${locale}/blog?category=${post.category}`} className="hover:text-[#CA3F2E] transition">
             {getCategoryLabel(post.category, isFr)}
           </Link>
           <ChevronRight className="w-3 h-3" />
@@ -199,7 +199,7 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
               <div className="flex items-center gap-3">
                 {author ? (
                   <>
-                    <Link href={`/${locale}/blog/author/${author.slug}`} className="flex-shrink-0">
+                    <Link prefetch={false} href={`/${locale}/blog/author/${author.slug}`} className="flex-shrink-0">
                       <img
                         src={author.avatar}
                         alt={author.name}
@@ -210,7 +210,7 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
                       <div className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">
                         {isFr ? d("\u00c9crit par") : "Written by"}
                       </div>
-                      <Link href={`/${locale}/blog/author/${author.slug}`} className="text-sm font-bold text-gray-900 hover:text-[#CA3F2E] transition block">
+                      <Link prefetch={false} href={`/${locale}/blog/author/${author.slug}`} className="text-sm font-bold text-gray-900 hover:text-[#CA3F2E] transition block">
                         {author.name}
                       </Link>
                       {(isFr ? author.roleFr : author.role) && (
@@ -314,12 +314,12 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
                   {isFr ? d("\u00c0 propos de l\u0027auteur") : "About the Author"}
                 </div>
                 <div className="flex items-start gap-5">
-                  <Link href={`/${locale}/blog/author/${author.slug}`} className="flex-shrink-0">
+                  <Link prefetch={false} href={`/${locale}/blog/author/${author.slug}`} className="flex-shrink-0">
                     <img src={author.avatar} alt={author.name} className="w-20 h-20 rounded-full object-cover ring-4 ring-white shadow-lg" />
                   </Link>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <Link href={`/${locale}/blog/author/${author.slug}`} className="font-black text-xl text-gray-900 hover:text-[#CA3F2E] transition">
+                      <Link prefetch={false} href={`/${locale}/blog/author/${author.slug}`} className="font-black text-xl text-gray-900 hover:text-[#CA3F2E] transition">
                         {author.name}
                       </Link>
                       {(isFr ? author.roleFr : author.role) && (
@@ -484,7 +484,7 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
                 </div>
                 <h2 className="text-2xl lg:text-3xl font-black text-gray-900">{isFr ? d("\u00c0 lire ensuite") : "Read next"}</h2>
               </div>
-              <Link href={`/${locale}/blog`} className="hidden sm:inline-flex items-center gap-1.5 text-sm font-bold text-gray-900 hover:text-[#CA3F2E] group transition">
+              <Link prefetch={false} href={`/${locale}/blog`} className="hidden sm:inline-flex items-center gap-1.5 text-sm font-bold text-gray-900 hover:text-[#CA3F2E] group transition">
                 {isFr ? "Tous les articles" : "All articles"}
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
               </Link>
@@ -496,7 +496,7 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
                   key={p.id}
                   className="group bg-white rounded-2xl overflow-hidden border border-gray-200 hover:border-gray-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
                 >
-                  <Link href={`/${locale}/blog/${p.slug}`} className="block relative aspect-[16/10] bg-gray-100 overflow-hidden">
+                  <Link prefetch={false} href={`/${locale}/blog/${p.slug}`} className="block relative aspect-[16/10] bg-gray-100 overflow-hidden">
                     {p.coverImage && (
                       <Image
                         src={p.coverImage}
@@ -516,7 +516,7 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
                         <Clock className="w-3 h-3" /> {p.readTime} min
                       </span>
                     </div>
-                    <Link href={`/${locale}/blog/${p.slug}`}>
+                    <Link prefetch={false} href={`/${locale}/blog/${p.slug}`}>
                       <h3 className="font-black text-gray-900 text-base leading-snug mb-3 group-hover:text-[#CA3F2E] transition line-clamp-2 flex-1">
                         {p.title}
                       </h3>

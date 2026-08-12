@@ -150,7 +150,7 @@ export default function MobileHomeHero({ products, categories, whatsapp }: Props
 
       <div className="px-3 py-3">
         <div className="relative rounded-2xl overflow-hidden shadow-md h-40" style={{ background: slides[slideIdx].bg }}>
-          <Link href={slides[slideIdx].href} className="block relative h-full">
+          <Link prefetch={false} href={slides[slideIdx].href} className="block relative h-full">
             <div className="absolute inset-0 flex items-center">
               <div className="flex-1 pl-4 pr-2 py-4 text-white z-10 min-h-[128px]">
                 <div className="inline-block px-2 py-0.5 bg-white/20 backdrop-blur rounded text-[9px] font-black tracking-widest mb-2">
@@ -207,7 +207,7 @@ export default function MobileHomeHero({ products, categories, whatsapp }: Props
               </div>
               <span className="text-xs font-bold text-gray-900">{isFr ? "Prix imbattables" : "Unbeatable Prices"}</span>
             </div>
-            <Link href={`/${locale}/shop?onSale=1`} className="text-xs font-semibold text-gray-500 hover:text-[#CA3F2E] flex items-center gap-0.5">
+            <Link prefetch={false} href={`/${locale}/shop?onSale=1`} className="text-xs font-semibold text-gray-500 hover:text-[#CA3F2E] flex items-center gap-0.5">
               {isFr ? "Voir tout" : "See all"}
               <ChevronRight className="w-3 h-3" />
             </Link>

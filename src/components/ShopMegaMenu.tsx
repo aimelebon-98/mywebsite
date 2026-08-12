@@ -134,7 +134,7 @@ export default function ShopMegaMenu({ onClose }: { onClose: () => void }) {
                   {isFr ? "Produits vedettes" : "Featured Products"}
                 </span>
               </div>
-              <Link href={`/${locale}/shop`} onClick={onClose} className="text-xs font-semibold text-gray-400 hover:text-[#CA3F2E] transition">
+              <Link prefetch={false} href={`/${locale}/shop`} onClick={onClose} className="text-xs font-semibold text-gray-400 hover:text-[#CA3F2E] transition">
                 {isFr ? "Voir plus" : "See more"}
               </Link>
             </div>

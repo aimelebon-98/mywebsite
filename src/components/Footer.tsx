@@ -131,35 +131,35 @@ export default function Footer() {
           <div>
             <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">{t("shop")}</h4>
             <ul className="space-y-3">
-              <li><Link href="/shop?category=sneakers" className="text-sm hover:text-white transition">Sneakers</Link></li>
-              <li><Link href="/shop?category=running" className="text-sm hover:text-white transition">Running</Link></li>
-              <li><Link href="/shop?category=formal" className="text-sm hover:text-white transition">Formal</Link></li>
-              <li><Link href="/shop?category=boots" className="text-sm hover:text-white transition">Boots</Link></li>
-              <li><Link href="/shop?category=sandals" className="text-sm hover:text-white transition">Sandals</Link></li>
-              <li><Link href="/shop?category=casual" className="text-sm hover:text-white transition">Casual</Link></li>
+              <li><Link prefetch={false} href="/shop?category=sneakers" className="text-sm hover:text-white transition">Sneakers</Link></li>
+              <li><Link prefetch={false} href="/shop?category=running" className="text-sm hover:text-white transition">Running</Link></li>
+              <li><Link prefetch={false} href="/shop?category=formal" className="text-sm hover:text-white transition">Formal</Link></li>
+              <li><Link prefetch={false} href="/shop?category=boots" className="text-sm hover:text-white transition">Boots</Link></li>
+              <li><Link prefetch={false} href="/shop?category=sandals" className="text-sm hover:text-white transition">Sandals</Link></li>
+              <li><Link prefetch={false} href="/shop?category=casual" className="text-sm hover:text-white transition">Casual</Link></li>
             </ul>
           </div>
 
           <div>
             <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">{t("support")}</h4>
             <ul className="space-y-3">
-              <li><Link href="/blog" className="text-sm hover:text-white transition">Blog</Link></li>
-              <li><Link href="/faq" className="text-sm hover:text-white transition">{t("faq")}</Link></li>
-              <li><Link href="/shipping" className="text-sm hover:text-white transition">{t("shippingPolicy")}</Link></li>
-              <li><Link href="/returns" className="text-sm hover:text-white transition">{t("returns")}</Link></li>
-              <li><Link href="/faq" className="text-sm hover:text-white transition">{t("sizeGuide")}</Link></li>
-              <li><Link href="/about" className="text-sm hover:text-white transition">{t("aboutUs")}</Link></li>
-              <li><Link href="/contact" className="text-sm hover:text-white transition">{t("contact")}</Link></li>
+              <li><Link prefetch={false} href="/blog" className="text-sm hover:text-white transition">Blog</Link></li>
+              <li><Link prefetch={false} href="/faq" className="text-sm hover:text-white transition">{t("faq")}</Link></li>
+              <li><Link prefetch={false} href="/shipping" className="text-sm hover:text-white transition">{t("shippingPolicy")}</Link></li>
+              <li><Link prefetch={false} href="/returns" className="text-sm hover:text-white transition">{t("returns")}</Link></li>
+              <li><Link prefetch={false} href="/faq" className="text-sm hover:text-white transition">{t("sizeGuide")}</Link></li>
+              <li><Link prefetch={false} href="/about" className="text-sm hover:text-white transition">{t("aboutUs")}</Link></li>
+              <li><Link prefetch={false} href="/contact" className="text-sm hover:text-white transition">{t("contact")}</Link></li>
             </ul>
           </div>
 
           <div>
             <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">{t("account")}</h4>
             <ul className="space-y-3">
-              <li><Link href="/cart" className="text-sm hover:text-white transition">{t("myCart")}</Link></li>
-              <li><Link href="/wishlist" className="text-sm hover:text-white transition">{t("myWishlist")}</Link></li>
-              <li><Link href="/shop" className="text-sm hover:text-white transition">{t("shop")}</Link></li>
-              <li><Link href="/faq" className="text-sm hover:text-white transition">{t("helpCenter")}</Link></li>
+              <li><Link prefetch={false} href="/cart" className="text-sm hover:text-white transition">{t("myCart")}</Link></li>
+              <li><Link prefetch={false} href="/wishlist" className="text-sm hover:text-white transition">{t("myWishlist")}</Link></li>
+              <li><Link prefetch={false} href="/shop" className="text-sm hover:text-white transition">{t("shop")}</Link></li>
+              <li><Link prefetch={false} href="/faq" className="text-sm hover:text-white transition">{t("helpCenter")}</Link></li>
             </ul>
           </div>
         </div>
@@ -234,9 +234,9 @@ export default function Footer() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm">&copy; {new Date().getFullYear()} NewDeal <span className="text-gray-600">|</span> <span className="text-[#CA3F2E]">ZONE</span>. {t("copyright")}</p>
           <div className="flex items-center gap-4 text-xs text-gray-500">
-            <Link href="/privacy" className="hover:text-white transition">{t("privacyPolicy")}</Link>
-            <Link href="/terms" className="hover:text-white transition">{t("termsOfService")}</Link>
-            <Link href="/privacy#cookies" className="hover:text-white transition">{t("cookies")}</Link>
+            <Link prefetch={false} href="/privacy" className="hover:text-white transition">{t("privacyPolicy")}</Link>
+            <Link prefetch={false} href="/terms" className="hover:text-white transition">{t("termsOfService")}</Link>
+            <Link prefetch={false} href="/privacy#cookies" className="hover:text-white transition">{t("cookies")}</Link>
           </div>
         </div>
         </div>

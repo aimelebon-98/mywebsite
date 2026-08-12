@@ -202,12 +202,12 @@ export default function Navbar() {
       style={navStyle}
     >
       <div className={`text-center py-2 text-xs font-medium tracking-wide ${bannerBg}`} style={bannerStyle}>
-        <span>{isFr ? `LIVRAISON GRATUITE pour les commandes de plus de ${fmtPrice(1000)}` : `FREE SHIPPING on orders over ${fmtPrice(1000)}`}</span> - <Link href="/shop" className="underline underline-offset-2">{t("shopNow")}</Link>
+        <span>{isFr ? `LIVRAISON GRATUITE pour les commandes de plus de ${fmtPrice(1000)}` : `FREE SHIPPING on orders over ${fmtPrice(1000)}`}</span> - <Link prefetch={false} href="/shop" className="underline underline-offset-2">{t("shopNow")}</Link>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className={"flex items-center justify-between gap-4 transition-all duration-300 " + (scrolled ? "h-12 lg:h-14" : "h-14 lg:h-16")}>
-          <Link href="/" className="group flex items-center gap-2.5 flex-shrink-0">
+          <Link prefetch={false} href="/" className="group flex items-center gap-2.5 flex-shrink-0">
             <div className="relative w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden shadow-md group-hover:shadow-lg transition-all group-hover:scale-105"
                  style={{ background: "linear-gradient(135deg, #CA3F2E 0%, #8B2A1E 100%)" }}>
               <svg viewBox="0 0 24 24" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -225,13 +225,13 @@ export default function Navbar() {
           </Link>
 
           <div className="hidden lg:flex items-center gap-4">
-            <Link href="/" className={linkClass}>{t("home")}</Link>
+            <Link prefetch={false} href="/" className={linkClass}>{t("home")}</Link>
             <div
               className="relative"
               onMouseEnter={() => { cancelMegaClose(); setMegaOpen(true); }}
               onMouseLeave={scheduleMegaClose}
             >
-              <Link href="/shop" className={linkClass + " inline-flex items-center gap-1"}>
+              <Link prefetch={false} href="/shop" className={linkClass + " inline-flex items-center gap-1"}>
                 {t("shopAll")}
                 <svg className={"w-3 h-3 transition-transform " + (megaOpen ? "rotate-180" : "")} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
               </Link>
@@ -247,9 +247,9 @@ export default function Navbar() {
             >
               Blog
             </Link>
-            <Link href="/about" className={linkClass}>{t("about")}</Link>
-            <Link href="/contact" className={linkClass}>{t("contact")}</Link>
-            <Link href="/faq" className={linkClass}>{t("faq")}</Link>
+            <Link prefetch={false} href="/about" className={linkClass}>{t("about")}</Link>
+            <Link prefetch={false} href="/contact" className={linkClass}>{t("contact")}</Link>
+            <Link prefetch={false} href="/faq" className={linkClass}>{t("faq")}</Link>
           </div>
 
           <div className="flex items-center gap-1 sm:gap-2.5 flex-shrink-0">
@@ -312,7 +312,7 @@ export default function Navbar() {
 
             <AccountHoverMenu iconColor={iconColor} iconHoverBg={iconHoverBg} />
 
-            <Link href="/wishlist" aria-label={t("wishlist")} className={`relative p-1.5 sm:p-2 rounded-xl transition ${iconHoverBg}`}>
+            <Link prefetch={false} href="/wishlist" aria-label={t("wishlist")} className={`relative p-1.5 sm:p-2 rounded-xl transition ${iconHoverBg}`}>
               <Heart className={`w-5 h-5 ${heartClass}`} />
               {wishlistCount > 0 && (
                 <span className={`absolute -top-0.5 -right-0.5 w-5 h-5 text-[10px] font-bold rounded-full flex items-center justify-center ${badgeBg}`}>
