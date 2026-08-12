@@ -925,3 +925,7 @@ html, body {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
+/* Page navigation centered spinner */
+@keyframes ndz-spin {
+  to { transform: rotate(360deg); }
+}
