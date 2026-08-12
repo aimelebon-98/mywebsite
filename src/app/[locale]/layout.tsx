@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import { Inter, Playfair_Display } from "next/font/google";
+import { Inter } from "next/font/google";
 import dynamic from "next/dynamic";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { notFound } from "next/navigation";
@@ -15,12 +15,6 @@ import ThemeColorSwitcher from "@/components/ThemeColorSwitcher";
 import MetaPixel from "@/components/MetaPixel";
 import ScrollDepthTracker from "@/components/ScrollDepthTracker";
 import LanguageChangeTracker from "@/components/LanguageChangeTracker";
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  weight: ["700", "900"],
-  variable: "--font-playfair",
-  display: "swap",
-});
 const FloatingCartPill = dynamic(() => import("@/components/FloatingCartPill"));
 const PageViewTracker = dynamic(() => import("@/components/AnalyticsTracker"));
 
@@ -158,7 +152,7 @@ export default async function LocaleLayout({
   ]);
 
   return (
-    <html lang={locale} className={`${inter.variable} ${playfair.variable}`}>
+    <html lang={locale} className={`${inter.variable}`}>
       <head>
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.svg" />
@@ -170,7 +164,9 @@ export default async function LocaleLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
+        />        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet" />
       </head>
       <body className="bg-white text-gray-900 antialiased font-sans">
         <TopLoader />
