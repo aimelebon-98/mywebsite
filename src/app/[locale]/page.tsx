@@ -67,7 +67,25 @@ export default async function HomePage() {
       db.select().from(categoriesTable).where(eq(categoriesTable.active, true)).orderBy(asc(categoriesTable.sortOrder)),
       db.select().from(settingsTable).limit(1),
     ]);
-    mobileProducts = prods.map(p => isFr ? { ...p, name: p.nameFr || p.name, slug: p.slugFr || p.slug } : p);
+    // BLOAT_STRIP_APPLIED - remove heavy fields not needed for product cards
+      mobileProducts = prods.map(p => {
+        const slim = {
+          ...p,
+          description: "",
+          descriptionFr: null,
+          longDescription: "",
+          longDescriptionFr: null,
+          metaDescription: null,
+          metaDescriptionFr: null,
+          seoTitle: null,
+          seoTitleFr: null,
+          focusKeyphrase: null,
+          focusKeyphraseFr: null,
+          ogImage: null,
+          canonicalUrl: null,
+        };
+        return isFr ? { ...slim, name: p.nameFr || p.name, slug: p.slugFr || p.slug } : slim;
+      });
     mobileCategories = cats.map(c => ({
       slug: c.slug, nameEn: c.nameEn, nameFr: c.nameFr,
       imageUrl: CATEGORY_IMAGES[c.slug] || DEFAULT_CATEGORY_IMAGE,

@@ -64,9 +64,19 @@ export default async function BlogPage() {
     const conditions = [eq(blogPosts.published, true)];
     if (isFr) conditions.push(isNotNull(blogPosts.titleFr));
 
-    const raw = await db.select().from(blogPosts)
+    // BLOAT_STRIP_APPLIED - fetch all, then strip huge content HTML from listing
+    const _rawPosts = await db.select().from(blogPosts)
       .where(and(...conditions))
       .orderBy(desc(blogPosts.publishedAt), desc(blogPosts.createdAt));
+    const raw = _rawPosts.map(p => ({
+      ...p,
+      content: "",
+      contentFr: null,
+      seoTitle: null,
+      metaDescription: null,
+      focusKeyphrase: null,
+      ogImage: null,
+    }));
 
     posts = raw.map(p => localizePost(p, isFr));
 
