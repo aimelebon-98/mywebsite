@@ -182,8 +182,24 @@ export default async function ShopPage({ params, searchParams }: Props) {
       default:           orderBy = desc(products.createdAt);
     }
 
-    productList = await db.select().from(products)
+    // BLOAT_STRIP_APPLIED - fetch then strip heavy fields from cards
+    const _rawProducts = await db.select().from(products)
       .where(and(...conditions)).orderBy(orderBy);
+    productList = _rawProducts.map(p => ({
+      ...p,
+      description: "",
+      descriptionFr: null,
+      longDescription: "",
+      longDescriptionFr: null,
+      metaDescription: null,
+      metaDescriptionFr: null,
+      seoTitle: null,
+      seoTitleFr: null,
+      focusKeyphrase: null,
+      focusKeyphraseFr: null,
+      ogImage: null,
+      canonicalUrl: null,
+    }));
 
     const brandCond = isFr
       ? and(eq(products.active, true), isNotNull(products.nameFr))
