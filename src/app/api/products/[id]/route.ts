@@ -4,6 +4,7 @@ import { products, reviews } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { generateSlug } from "@/lib/slug";
 import { requireAdmin } from "@/lib/admin-auth";
+import { pingIndexNow } from "@/lib/indexnow-ping";
 
 // Convert supplier price in any currency to NGN using live rates
 async function convertSupplierToNgn(supplierPrice: number, supplierCurrency: string): Promise<number> {
@@ -141,6 +142,17 @@ export async function PUT(request: NextRequest, { params }: Params) {
     if (result.length === 0) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
+    // IndexNow: product updated - ping search engines
+    try {
+      const updated = result[0];
+      const enSlug = updated.slug;
+      const frSlug = updated.slugFr || updated.slug;
+      const urls = [
+        `https://www.newdealzone.com/en/product/${enSlug}`,
+        `https://www.newdealzone.com/fr/product/${frSlug}`,
+      ];
+      pingIndexNow(urls).catch(() => {});
+    } catch (e) { console.warn(`IndexNow ping skipped:`, e); }
     return NextResponse.json(result[0]);
   } catch (error) {
     console.error("Error updating product:", error);

@@ -24,6 +24,7 @@ async function convertSupplierToNgn(supplierPrice: number, supplierCurrency: str
   }
 }
 import { sortByShippingTier } from "@/lib/shipping-tier";
+import { pingIndexNow } from "@/lib/indexnow-ping";
 
 export async function GET(request: NextRequest) {
   try {
@@ -139,6 +140,21 @@ export async function POST(request: NextRequest) {
       supplierPrice: supplierPrice ? String(supplierPrice) : "0",
       supplierCurrency: supplierCurrency || "NGN",
     }).returning();
+
+    // IndexNow: new product published - ping search engines
+    try {
+      const newProduct = result[0];
+      const enSlug = newProduct.slug;
+      const frSlug = newProduct.slugFr || newProduct.slug;
+      const urls = [
+        `https://www.newdealzone.com/en/product/${enSlug}`,
+        `https://www.newdealzone.com/fr/product/${frSlug}`,
+        "https://www.newdealzone.com/en/shop",
+        "https://www.newdealzone.com/fr/shop",
+      ];
+      // Fire-and-forget, do not block response
+      pingIndexNow(urls).catch(() => {});
+    } catch (e) { console.warn("IndexNow ping skipped:", e); }
 
     return NextResponse.json(result[0], { status: 201 });
   } catch (error) {

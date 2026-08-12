@@ -4,6 +4,7 @@ import { blogPosts } from "@/db/schema";
 import { eq, desc, and, ilike, or, isNotNull } from "drizzle-orm";
 import { generateSlug } from "@/lib/slug";
 import { requireAdmin } from "@/lib/admin-auth";
+import { pingIndexNow } from "@/lib/indexnow-ping";
 
 function calcReadTime(content: string): number {
   const words = content.replace(/<[^>]*>/g, "").split(/\s+/).filter(Boolean).length;
@@ -117,6 +118,22 @@ export async function POST(request: NextRequest) {
       metaDescriptionFr: metaDescriptionFr || null,
       focusKeyphraseFr: focusKeyphraseFr || null,
     }).returning();
+
+    // IndexNow: new blog post - ping only if published
+    try {
+      const newPost = result[0];
+      if (newPost.published) {
+        const enSlug = newPost.slug;
+        const frSlug = newPost.slugFr || newPost.slug;
+        const urls = [
+          `https://www.newdealzone.com/en/blog/${enSlug}`,
+          `https://www.newdealzone.com/fr/blog/${frSlug}`,
+          "https://www.newdealzone.com/en/blog",
+          "https://www.newdealzone.com/fr/blog",
+        ];
+        pingIndexNow(urls).catch(() => {});
+      }
+    } catch (e) { console.warn("IndexNow ping skipped:", e); }
 
     return NextResponse.json(result[0], { status: 201 });
   } catch (error) {
