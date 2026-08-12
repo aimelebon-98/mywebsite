@@ -919,3 +919,9 @@ html, body {
     bottom: 4.5rem !important;
   }
 }
+
+/* Page transition fade */
+@keyframes ndz-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}

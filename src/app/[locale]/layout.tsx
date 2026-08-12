@@ -23,7 +23,9 @@ const playfair = Playfair_Display({
 });
 const FloatingCartPill = dynamic(() => import("@/components/FloatingCartPill"));
 const PageViewTracker = dynamic(() => import("@/components/AnalyticsTracker"));
-import { SpeedInsights } from "@vercel/speed-insights/next";
+
+import TopLoader from "@/components/TopLoader";
+import PageTransition from "@/components/PageTransition";
 const GoogleAnalytics = dynamic(() => import("@/components/GoogleAnalytics"));
 
 // Self-hosted Inter font (eliminates render-blocking Google Fonts request)
@@ -170,6 +172,8 @@ export default async function LocaleLayout({
         />
       </head>
       <body className="bg-white text-gray-900 antialiased font-sans">
+        <TopLoader />
+        <PageTransition />
         <NextIntlClientProvider locale={locale} messages={messages}>
           <CartProvider>
             <CustomerProvider>
