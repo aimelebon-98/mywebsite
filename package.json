@@ -51,11 +51,13 @@
     "typescript": "5.9.3"
   },
   "browserslist": [
-    "chrome >= 100",
-    "firefox >= 100",
-    "safari >= 15",
-    "edge >= 100",
+    "chrome >= 111",
+    "firefox >= 111",
+    "safari >= 16.4",
+    "edge >= 111",
     "not dead",
-    "not IE 11"
+    "not IE 11",
+    "not op_mini all",
+    "supports es6-module"
   ]
 }
