@@ -167,8 +167,52 @@ export async function middleware(request: NextRequest) {
   // ============================================================
   // 4. Everything else - i18n routing
   // ============================================================
-  return intlMiddleware(request);
+  const response = await intlMiddleware(request);
+
+  // ============================================================
+  // 5. CDN cache for HTML pages (Cloudflare + Vercel edge)
+  // ============================================================
+  // Personalized-per-country via Vary; keep short cache + long SWR
+  // so first visitor generates page and rest of country hits cache
+  const method = request.method;
+  if (
+    response &&
+    method === "GET" &&
+    !pathname.startsWith("/api") &&
+    !pathname.startsWith("/admin") &&
+    !pathname.startsWith("/_next") &&
+    !pathname.includes("/cart") &&
+    !pathname.includes("/checkout") &&
+    !pathname.includes("/account") &&
+    !pathname.includes("/wishlist")
+  ) {
+    // Only override if origin returned no-store or similar
+    const existing = response.headers.get("cache-control") || "";
+    if (existing.includes("no-store") || existing.includes("no-cache") || existing.includes("private")) {
+      // Cache for 60s at CDN, serve stale for 24h while revalidating in background
+      // Vary by country cookie so NGN vs XOF users each get their version cached
+      response.headers.set(
+        "Cache-Control",
+        "public, max-age=0, s-maxage=60, stale-while-revalidate=86400"
+      );
+      response.headers.set("Vary", "Cookie, Accept-Language, cf-ipcountry");
+      // Cloudflare-specific override (respects even DYNAMIC pages)
+      response.headers.set(
+        "CDN-Cache-Control",
+        "public, max-age=60, stale-while-revalidate=86400"
+      );
+      response.headers.set(
+        "Cloudflare-CDN-Cache-Control",
+        "public, max-age=60, stale-while-revalidate=86400"
+      );
+    }
+  }
+
+  return response;
 }
+
+// Sentinel to prevent duplicate cache injection on re-runs
+const CACHEABLE_PATH_PATTERNS = true;
 
 export const config = {
   matcher: [
