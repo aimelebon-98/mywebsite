@@ -181,8 +181,6 @@ export default async function HomePage() {
                     src="https://images.unsplash.com/photo-1588361861040-ac9b1018f6d5?w=800&q=80"
                     alt="Featured Shoe"
                     fill
-                    priority
-                    fetchPriority="high"
                     sizes="(max-width: 640px) 90vw, (max-width: 1024px) 50vw, 500px"
                     className="object-cover"
                   />
