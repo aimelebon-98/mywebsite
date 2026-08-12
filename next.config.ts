@@ -52,6 +52,21 @@ const nextConfig: NextConfig = {
           { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
         ],
       },
+      // CACHE_HTML_PAGES_RULE - force CDN cache on dynamic HTML pages
+      // Cache-Control is respected by browsers
+      // CDN-Cache-Control is Vercel-specific (overrides dynamic no-store)
+      // Cloudflare-CDN-Cache-Control is CF-specific
+      // Excludes: cart, checkout, wishlist, account (personalized), api, admin
+      {
+        source: "/((?!_next|api|admin|cart|checkout|wishlist|account|.*\\.).*)",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=0, s-maxage=60, stale-while-revalidate=86400" },
+          { key: "CDN-Cache-Control", value: "public, s-maxage=60, stale-while-revalidate=86400" },
+          { key: "Cloudflare-CDN-Cache-Control", value: "public, s-maxage=60, stale-while-revalidate=86400" },
+          { key: "Vary", value: "Cookie, Accept-Language, cf-ipcountry" },
+        ],
+      },
+
       {
         source: "/(.*)",
         headers: [
