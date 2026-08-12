@@ -1,6 +1,6 @@
 "use client";
 import { trackEvent } from "@/components/AnalyticsTracker";
-import { trackAddToCart as fbTrackAddToCart } from "@/lib/fbpixel";
+import { trackAddToCart as fbTrackAddToCart, trackCustom as fbTrackCustom } from "@/lib/fbpixel";
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 
@@ -97,10 +97,35 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const removeItem = useCallback((id: string, size: string, color: string) => {
+    try {
+      const removed = items.find(i => i.id === id && i.size === size && i.color === color);
+      if (removed) {
+        fbTrackCustom("CartItemRemove", {
+          content_ids: [id],
+          content_name: removed.name,
+          quantity: removed.quantity,
+          value: removed.price * removed.quantity,
+          currency: "USD",
+        });
+      }
+    } catch { /* ignore */ }
     setItems(prev => prev.filter(i => !(i.id === id && i.size === size && i.color === color)));
-  }, []);
+  }, [items]);
 
   const updateQuantity = useCallback((id: string, size: string, color: string, quantity: number) => {
+    try {
+      const current = items.find(i => i.id === id && i.size === size && i.color === color);
+      if (current) {
+        fbTrackCustom("QuantityChange", {
+          content_ids: [id],
+          content_name: current.name,
+          from_quantity: current.quantity,
+          to_quantity: quantity,
+          delta: quantity - current.quantity,
+        });
+      }
+    } catch { /* ignore */ }
+
     if (quantity <= 0) {
       setItems(prev => prev.filter(i => !(i.id === id && i.size === size && i.color === color)));
       return;
@@ -112,10 +137,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
           : i
       )
     );
-  }, []);
+  }, [items]);
 
   const clearCart = useCallback(() => setItems([]), []);
-  const openDrawer = useCallback(() => setDrawerMode("normal"), []);
+  const openDrawer = useCallback(() => {
+    try {
+      fbTrackCustom("CartDrawerOpen", {
+        item_count: items.length,
+        total_quantity: items.reduce((s, i) => s + i.quantity, 0),
+        total_value: items.reduce((s, i) => s + i.price * i.quantity, 0),
+        currency: "USD",
+      });
+    } catch { /* ignore */ }
+    setDrawerMode("normal");
+  }, [items]);
   const closeDrawer = useCallback(() => setDrawerMode("closed"), []);
 
   const totalItems = items.length;

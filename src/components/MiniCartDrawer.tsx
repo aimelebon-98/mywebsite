@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { X, ShoppingBag, Plus, Minus, Trash2, ArrowRight, Truck } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
+import { trackCustom as fbTrackCustom } from "@/lib/fbpixel";
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 
@@ -203,7 +204,17 @@ export default function MiniCartDrawer() {
               {t("viewCartCheckout")} <ArrowRight className="w-4 h-4" />
             </Link>
             <button
-              onClick={closeDrawer}
+              onClick={() => {
+                try {
+                  fbTrackCustom("ContinueShopping", {
+                    source: "mini_cart_drawer",
+                    item_count: items.length,
+                    total_quantity: totalQuantity,
+                    total_value: totalPrice,
+                  });
+                } catch { /* ignore */ }
+                closeDrawer();
+              }}
               className="w-full py-2.5 text-xs font-semibold text-gray-600 hover:text-gray-900 transition"
             >
               {t("continueShopping")}
