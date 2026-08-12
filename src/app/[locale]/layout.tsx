@@ -26,6 +26,7 @@ const PageViewTracker = dynamic(() => import("@/components/AnalyticsTracker"));
 
 import TopLoader from "@/components/TopLoader";
 import PageTransition from "@/components/PageTransition";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 const GoogleAnalytics = dynamic(() => import("@/components/GoogleAnalytics"));
 
 // Self-hosted Inter font (eliminates render-blocking Google Fonts request)
