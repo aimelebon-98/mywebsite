@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { products, type Product } from "@/db/schema";
-import { eq, and, ne, desc, notInArray, sql } from "drizzle-orm";
+import { eq, and, ne, sql } from "drizzle-orm";
 import ProductCard from "./ProductCard";
 import { Sparkles } from "lucide-react";
 import { getTranslations } from "next-intl/server";
@@ -14,6 +14,25 @@ interface Props {
   subtitle?: string;
 }
 
+// BLOAT_STRIP - remove heavy text fields not needed for product cards
+function slim(p: Product): Product {
+  return {
+    ...p,
+    description: "",
+    descriptionFr: null,
+    longDescription: "",
+    longDescriptionFr: null,
+    metaDescription: null,
+    metaDescriptionFr: null,
+    seoTitle: null,
+    seoTitleFr: null,
+    focusKeyphrase: null,
+    focusKeyphraseFr: null,
+    ogImage: null,
+    canonicalUrl: null,
+  };
+}
+
 export default async function YouMayAlsoLike({
   currentProductId,
   category,
@@ -25,12 +44,10 @@ export default async function YouMayAlsoLike({
   let items: Product[] = [];
 
   try {
-    // KEY CHANGE: fetch products from DIFFERENT categories (not the current one)
-    // This provides genuine cross-sell recommendations
     if (category) {
       const conditions = [
         eq(products.active, true),
-        ne(products.category, category), // ← EXCLUDE current category
+        ne(products.category, category),
       ];
       if (currentProductId) {
         conditions.push(ne(products.id, currentProductId));
@@ -39,11 +56,10 @@ export default async function YouMayAlsoLike({
         .select()
         .from(products)
         .where(and(...conditions))
-        .orderBy(sql`RANDOM()`) // Random order for variety
+        .orderBy(sql`RANDOM()`)
         .limit(limit);
     }
 
-    // Fallback 1: If no category or no cross-category products found, get featured products
     if (items.length === 0) {
       const conds = [eq(products.active, true), eq(products.featured, true)];
       if (currentProductId) conds.push(ne(products.id, currentProductId));
@@ -55,7 +71,6 @@ export default async function YouMayAlsoLike({
         .limit(limit);
     }
 
-    // Fallback 2: Any active product excluding current
     if (items.length === 0) {
       const conds = [eq(products.active, true)];
       if (currentProductId) conds.push(ne(products.id, currentProductId));
@@ -74,11 +89,14 @@ export default async function YouMayAlsoLike({
   if (items.length === 0) return null;
 
   const isFr = locale === "fr";
-  const localized = items.map((p) => ({
-    ...p,
-    name: isFr && p.nameFr ? p.nameFr : p.name,
-    description: isFr && p.descriptionFr ? p.descriptionFr : p.description,
-  }));
+  // Slim each product before localizing so heavy fields are gone
+  const localized = items.map((p) => {
+    const s = slim(p);
+    return {
+      ...s,
+      name: isFr && p.nameFr ? p.nameFr : p.name,
+    };
+  });
 
   const t = await getTranslations("home");
   let heading = title;
