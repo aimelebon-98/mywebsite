@@ -257,7 +257,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
     <div className="pb-24 lg:pb-0 overflow-x-hidden">
       {/* HERO PRODUCT SECTION */}
       <div className="bg-gradient-to-b from-gray-50 to-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
+        <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 py-6 lg:py-10">
 
           {/* Breadcrumb */}
           <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs sm:text-sm text-gray-500 mb-6 flex-nowrap overflow-x-auto whitespace-nowrap scrollbar-hide">
