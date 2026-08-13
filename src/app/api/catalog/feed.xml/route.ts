@@ -49,6 +49,8 @@ function buildItem(opts: {
   availability: string; price: string; salePrice: string | null;
   brand: string; category: string; gpc: string; productType: string;
   mpn: string; material: string; color: string; sizes: string[];
+  customLabel0: string; customLabel1: string; customLabel2: string;
+  customLabel3: string; customLabel4: string;
 }): string {
   const sizesXml = opts.sizes.length > 0
     ? `    <g:size>${xmlEscape(opts.sizes.join(", "))}</g:size>\n`
@@ -74,6 +76,7 @@ ${opts.salePrice ? `    <g:sale_price>${opts.salePrice}</g:sale_price>\n` : ""} 
     <g:product_type>${xmlEscape(opts.productType)}</g:product_type>
     <g:mpn>${xmlEscape(opts.mpn)}</g:mpn>
     <g:identifier_exists>false</g:identifier_exists>
+${opts.customLabel0 ? `    <g:custom_label_0>${xmlEscape(opts.customLabel0)}</g:custom_label_0>\n` : ""}${opts.customLabel1 ? `    <g:custom_label_1>${xmlEscape(opts.customLabel1)}</g:custom_label_1>\n` : ""}${opts.customLabel2 ? `    <g:custom_label_2>${xmlEscape(opts.customLabel2)}</g:custom_label_2>\n` : ""}${opts.customLabel3 ? `    <g:custom_label_3>${xmlEscape(opts.customLabel3)}</g:custom_label_3>\n` : ""}${opts.customLabel4 ? `    <g:custom_label_4>${xmlEscape(opts.customLabel4)}</g:custom_label_4>\n` : ""}
 ${opts.material ? `    <g:material>${xmlEscape(opts.material)}</g:material>\n` : ""}${opts.color ? `    <g:color>${xmlEscape(opts.color)}</g:color>\n` : ""}${sizesXml}    <g:shipping>
       <g:country>NG</g:country>
       <g:service>Standard</g:service>
@@ -117,6 +120,13 @@ export async function GET() {
       const enTitle = (p.name || "").slice(0, 150);
       const enDesc = stripHtml(p.shortDescription || p.description || p.name || "").slice(0, 5000);
 
+      // Custom labels for Meta Product Sets / Advantage+ / DPA targeting
+      const labelFeatured = p.featured === true ? "featured" : "";
+      const labelPremium = priceNum > 50 ? "premium" : priceNum >= 30 ? "mid" : "starter";
+      const labelSale = salePrice !== null ? "sale" : "";
+      const labelOrigin = (p.originCountry || "").toUpperCase();
+      const labelCategory = category;
+
       items.push(buildItem({
         id: String(p.id), itemGroupId: String(p.id),
         title: enTitle, description: enDesc,
@@ -126,6 +136,9 @@ export async function GET() {
         salePrice: salePrice !== null ? `${salePrice.toFixed(2)} USD` : null,
         brand, category, gpc, productType, mpn,
         material: p.material || "", color: primaryColor, sizes,
+        customLabel0: labelFeatured, customLabel1: labelPremium,
+        customLabel2: labelSale, customLabel3: labelOrigin,
+        customLabel4: labelCategory,
       }));
 
       // FR variant
@@ -143,6 +156,9 @@ export async function GET() {
           salePrice: salePrice !== null ? `${salePrice.toFixed(2)} USD` : null,
           brand, category, gpc, productType, mpn,
           material: p.material || "", color: primaryColor, sizes,
+          customLabel0: labelFeatured, customLabel1: labelPremium,
+          customLabel2: labelSale, customLabel3: labelOrigin,
+          customLabel4: labelCategory,
         }));
       }
     }
