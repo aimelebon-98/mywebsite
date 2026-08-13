@@ -461,7 +461,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                 {comparePrice && (
                   <div className="flex flex-wrap items-center gap-2 pb-1 min-w-0">
                     <span className="text-base sm:text-lg text-gray-400 line-through break-all">{formatPrice(comparePrice)}</span>
-                    <span className="px-2.5 py-1 bg-red-500 text-white text-xs font-bold rounded-lg whitespace-nowrap">
+                    <span className="px-2.5 py-1 bg-red-500 text-white text-xs font-bold rounded-lg inline-block">
                       {t("saveAmount", { amount: formatPrice(comparePrice - price) })}
                     </span>
                   </div>
@@ -580,28 +580,28 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                 <div className="flex items-center gap-2 px-2.5 py-2 bg-gray-50 rounded-xl">
                   <Truck className="w-4 h-4 flex-shrink-0" style={{ color: "#CA3F2E" }} />
                   <div className="min-w-0">
-                    <div className="text-[11px] font-bold text-gray-900 leading-tight whitespace-nowrap">{isFr ? "Livraison" : "Free Ship"}</div>
-                    <div className="text-[10px] text-gray-500 leading-tight truncate">{isFr ? `Plus de ${formatPrice(1000)}` : `Over ${formatPrice(1000)}`}</div>
+                    <div className="text-[11px] font-bold text-gray-900 leading-tight">{isFr ? "Livraison" : "Free Ship"}</div>
+                    <div className="text-[10px] text-gray-500 leading-tight">{isFr ? `Plus de ${formatPrice(1000)}` : `Over ${formatPrice(1000)}`}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 px-2.5 py-2 bg-gray-50 rounded-xl">
                   <Shield className="w-4 h-4 flex-shrink-0" style={{ color: "#CA3F2E" }} />
                   <div className="min-w-0">
-                    <div className="text-[11px] font-bold text-gray-900 leading-tight whitespace-nowrap">{isFr ? "S\u00e9curis\u00e9" : "Secure"}</div>
+                    <div className="text-[11px] font-bold text-gray-900 leading-tight">{isFr ? "S\u00e9curis\u00e9" : "Secure"}</div>
                     <div className="text-[10px] text-gray-500 leading-tight">{isFr ? "Crypt\u00e9 SSL" : "SSL encrypted"}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 px-2.5 py-2 bg-gray-50 rounded-xl">
                   <RotateCcw className="w-4 h-4 flex-shrink-0" style={{ color: "#CA3F2E" }} />
                   <div className="min-w-0">
-                    <div className="text-[11px] font-bold text-gray-900 leading-tight whitespace-nowrap">{isFr ? "Retours" : "Returns"}</div>
+                    <div className="text-[11px] font-bold text-gray-900 leading-tight">{isFr ? "Retours" : "Returns"}</div>
                     <div className="text-[10px] text-gray-500 leading-tight">{isFr ? "14 jours" : "14 days"}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 px-2.5 py-2 bg-gray-50 rounded-xl">
                   <Award className="w-4 h-4 flex-shrink-0" style={{ color: "#CA3F2E" }} />
                   <div className="min-w-0">
-                    <div className="text-[11px] font-bold text-gray-900 leading-tight whitespace-nowrap">{isFr ? "Authentique" : "Authentic"}</div>
+                    <div className="text-[11px] font-bold text-gray-900 leading-tight">{isFr ? "Authentique" : "Authentic"}</div>
                     <div className="text-[10px] text-gray-500 leading-tight">{isFr ? "Garanti" : "Guaranteed"}</div>
                   </div>
                 </div>
