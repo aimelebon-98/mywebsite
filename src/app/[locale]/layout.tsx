@@ -69,6 +69,9 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
   verification: {
     google: "JY5IqgH1P44E4yJsMaRCsPWYfixVcPNFrILitMmKzmg",
+    other: {
+      "facebook-domain-verification": "noymxqu2g9rucpl61ugd1nf47m1ldf",
+    },
   },
   alternates: {
     canonical: siteUrl,
