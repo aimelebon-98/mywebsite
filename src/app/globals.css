@@ -1023,3 +1023,31 @@ html, body {
   white-space: pre-wrap;
   word-wrap: break-word;
 }
+
+/* ============================================================
+   FINAL PRODUCT PAGE MOBILE LOCKDOWN
+   Forces entire product page + all descendants to fit viewport.
+   ============================================================ */
+@media (max-width: 1023px) {
+  main {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+  main > *,
+  main > * > *,
+  main > * > * > * {
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+  main .grid,
+  main .flex {
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+  main img,
+  main video,
+  main table {
+    max-width: 100% !important;
+    height: auto;
+  }
+}
