@@ -456,7 +456,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight mb-4 leading-tight break-words px-4 sm:px-0">{displayName}</h1>
 
               {/* Price */}
-              <div className="flex flex-wrap items-end gap-x-3 gap-y-2 mb-6 p-4 bg-gradient-to-r from-gray-50 to-transparent rounded-2xl -ml-4 pl-4">
+              <div className="flex flex-wrap items-end gap-x-3 gap-y-2 mb-6 p-4 bg-gradient-to-r from-gray-50 to-transparent rounded-2xl">
                 <span className="text-2xl sm:text-3xl lg:text-4xl font-black text-gray-900 break-all">{formatPrice(price)}</span>
                 {comparePrice && (
                   <div className="flex flex-wrap items-center gap-2 pb-1 min-w-0">
