@@ -453,7 +453,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               </div>
 
               {/* Title */}
-              <h1 className="text-3xl lg:text-4xl font-black tracking-tight mb-4 leading-tight">{displayName}</h1>
+              <h1 className="text-3xl lg:text-4xl font-black tracking-tight mb-4 leading-tight break-words">{displayName}</h1>
 
               {/* Price */}
               <div className="flex flex-wrap items-end gap-x-3 gap-y-2 mb-6 p-4 bg-gradient-to-r from-gray-50 to-transparent rounded-2xl -ml-4 pl-4">
@@ -587,8 +587,8 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                 <div className="flex items-center gap-2 px-2.5 py-2 bg-gray-50 rounded-xl">
                   <Shield className="w-4 h-4 flex-shrink-0" style={{ color: "#CA3F2E" }} />
                   <div className="min-w-0">
-                    <div className="text-[11px] font-bold text-gray-900 leading-tight whitespace-nowrap">{isFr ? "ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©" : "Secure"}</div>
-                    <div className="text-[10px] text-gray-500 leading-tight">{isFr ? "Crypte SSL" : "SSL encrypted"}</div>
+                    <div className="text-[11px] font-bold text-gray-900 leading-tight whitespace-nowrap">{isFr ? "S\u00e9curis\u00e9" : "Secure"}</div>
+                    <div className="text-[10px] text-gray-500 leading-tight">{isFr ? "Crypt\u00e9 SSL" : "SSL encrypted"}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 px-2.5 py-2 bg-gray-50 rounded-xl">
