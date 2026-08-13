@@ -116,7 +116,7 @@ export default async function ProductPage({ params }: Props) {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-white">
+      <main className="min-h-screen bg-white overflow-x-hidden max-w-full">
         <ProductDetails
           product={product}
           locale={locale}
@@ -128,9 +128,7 @@ export default async function ProductPage({ params }: Props) {
           category={product.category}
           locale={locale}
         />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
-          <RecentlyViewed excludeId={product.id} />
-        </div>
+        <RecentlyViewed excludeId={product.id} />
       </main>
       <Footer />
     </>

@@ -119,7 +119,7 @@ export default async function YouMayAlsoLike({
   }
 
   return (
-    <section className="py-10 lg:py-14 bg-gradient-to-b from-white to-gray-50 border-t border-gray-100">
+    <section className="py-10 lg:py-14 bg-gradient-to-b from-white to-gray-50 border-t border-gray-100 overflow-x-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#CA3F2E] to-[#8B2A1E] flex items-center justify-center flex-shrink-0">
