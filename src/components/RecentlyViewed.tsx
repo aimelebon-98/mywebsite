@@ -94,7 +94,7 @@ export default function RecentlyViewed({ excludeId }: RecentlyViewedProps) {
   } catch { /* fallback */ }
 
   return (
-    <section className="py-10 lg:py-14">
+    <section className="py-10 lg:py-14 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3 mb-8">
           <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
@@ -105,7 +105,7 @@ export default function RecentlyViewed({ excludeId }: RecentlyViewedProps) {
             <p className="text-gray-500 text-sm">{sub}</p>
           </div>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 max-w-full">
           {recentProducts.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}

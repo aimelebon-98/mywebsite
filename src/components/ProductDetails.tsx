@@ -320,8 +320,8 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                       <item.icon className="w-4 h-4 text-gray-600" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-[11px] sm:text-xs font-semibold text-gray-900 leading-tight truncate">{item.label}</p>
-                      <p className="text-[9px] sm:text-[10px] text-gray-400 truncate">{item.sub}</p>
+                      <p className="text-[10px] sm:text-xs font-semibold text-gray-900 leading-tight line-clamp-2">{item.label}</p>
+                      <p className="text-[9px] sm:text-[10px] text-gray-400 line-clamp-1">{item.sub}</p>
                     </div>
                   </div>
                 ))}
@@ -453,7 +453,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               </div>
 
               {/* Title */}
-              <h1 className="text-3xl lg:text-4xl font-black tracking-tight mb-4 leading-tight break-words">{displayName}</h1>
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight mb-4 leading-tight break-words px-4 sm:px-0">{displayName}</h1>
 
               {/* Price */}
               <div className="flex flex-wrap items-end gap-x-3 gap-y-2 mb-6 p-4 bg-gradient-to-r from-gray-50 to-transparent rounded-2xl -ml-4 pl-4">
