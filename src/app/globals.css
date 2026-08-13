@@ -952,23 +952,24 @@ html, body {
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-/* FR-safety: prevent product content from overflowing horizontally on mobile */
+
+/* FR-safety v2: aggressive wrap for FR content (longer words + table cells) */
 .product-long-desc,
-.product-long-desc p,
-.product-long-desc li,
-.product-long-desc h2,
-.product-long-desc h3,
-.product-long-desc h4 {
-  overflow-wrap: break-word !important;
+.product-long-desc *,
+.product-spec-table,
+.product-spec-table * {
+  overflow-wrap: anywhere !important;
   word-wrap: break-word !important;
-  word-break: normal;
+  max-width: 100%;
 }
 .product-spec-table {
   table-layout: fixed !important;
   width: 100% !important;
+  border-collapse: collapse;
 }
-.product-spec-table td,
-.product-spec-table th {
-  overflow-wrap: break-word !important;
-  word-wrap: break-word !important;
+.product-spec-table td:first-child {
+  width: 40% !important;
+}
+.product-spec-table td:last-child {
+  width: 60% !important;
 }
