@@ -682,8 +682,8 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                   <button onClick={handleBuyNow} className="flex-1 min-w-0 flex items-center justify-center gap-2 px-3 sm:px-5 py-3.5 sm:py-4 bg-gradient-to-r from-brand-600 to-brand-700 text-white rounded-2xl font-bold text-sm sm:text-base whitespace-nowrap hover:from-brand-700 hover:to-brand-800 transition-all shadow-xl shadow-brand-600/25 active:scale-[0.98]">
                     <Zap className="w-5 h-5" /> {t("buyNow")}
                   </button>
-                  <button onClick={handleAddToCart} disabled={added} className={`flex-1 min-w-0 flex items-center justify-center gap-2 px-3 sm:px-5 py-3.5 sm:py-4 rounded-2xl font-bold text-sm sm:text-base whitespace-nowrap transition-all active:scale-[0.98] ${added ? "bg-green-500 text-white shadow-xl shadow-green-500/25" : "bg-gray-900 text-white hover:bg-gray-800 shadow-xl shadow-gray-900/25"}`}>
-                    {added ? <><Check className="w-5 h-5" /> {t("added")}</> : <><ShoppingBag className="w-5 h-5" /> {t("addToCart")}</>}
+                  <button onClick={handleAddToCart} disabled={added} aria-label={t("addToCart")} title={t("addToCart")} className={`flex-1 min-w-0 flex items-center justify-center gap-2 px-3 sm:px-5 py-3.5 sm:py-4 rounded-2xl font-bold text-sm sm:text-base whitespace-nowrap transition-all active:scale-[0.98] ${added ? "bg-green-500 text-white shadow-xl shadow-green-500/25" : "bg-gray-900 text-white hover:bg-gray-800 shadow-xl shadow-gray-900/25"}`}>
+                    {added ? (isFr ? <Check className="w-5 h-5" /> : <><Check className="w-5 h-5" /> {t("added")}</>) : (isFr ? <ShoppingBag className="w-5 h-5" /> : <><ShoppingBag className="w-5 h-5" /> {t("addToCart")}</>)}
                   </button>
                 </div>
               </div>
@@ -839,7 +839,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                       disabled={added}
                       className={`w-full py-2.5 rounded-xl text-sm font-bold border-2 transition-all ${added ? "bg-green-500 text-white border-green-500" : "bg-white border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white"}`}
                     >
-                      {added ? <><Check className="w-4 h-4 inline" /> {isFr ? "Ajoute" : "Added"}</> : (isFr ? "Ajouter au panier" : "Add to Cart")}
+                      {added ? (isFr ? <Check className="w-4 h-4 inline" /> : <><Check className="w-4 h-4 inline" /> Added</>) : (isFr ? <ShoppingBag className="w-4 h-4 inline" /> : "Add to Cart")}
                     </button>
                     <button
                       onClick={handleBuyNow}
@@ -937,7 +937,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
             className={`px-3.5 py-2.5 rounded-xl text-white font-bold text-[11px] uppercase tracking-wide transition-all active:scale-95 flex-shrink-0 flex items-center gap-1.5 ${added ? "bg-green-500" : ""}`}
             style={!added ? { backgroundColor: "#CA3F2E", boxShadow: "0 4px 14px rgba(202, 63, 46, 0.35)" } : undefined}
           >
-            {added ? <><Check className="w-3.5 h-3.5" /> {isFr ? "Ajout\u00e9" : "Added"}</> : <><ShoppingBag className="w-3.5 h-3.5" /> {isFr ? "Ajouter au panier" : "Add to Cart"}</>}
+            {added ? (isFr ? <Check className="w-3.5 h-3.5" /> : <><Check className="w-3.5 h-3.5" /> Added</>) : (isFr ? <ShoppingBag className="w-3.5 h-3.5" /> : <><ShoppingBag className="w-3.5 h-3.5" /> Add to Cart</>)}
           </button>
         </div>
       </div>
