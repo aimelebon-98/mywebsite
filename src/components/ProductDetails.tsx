@@ -674,7 +674,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                     <button
                       onClick={() => setCallModalOpen(true)}
                       aria-label={isFr ? "Appeler" : "Call"}
-                      className="flex-shrink-0 w-12 sm:w-14 py-3.5 sm:py-4 flex items-center justify-center rounded-2xl border-2 border-gray-200 hover:border-[#CA3F2E] hover:bg-[#CA3F2E]/5 transition-all active:scale-[0.96] bg-white"
+                      className="lg:hidden flex-shrink-0 w-12 sm:w-14 py-3.5 sm:py-4 flex items-center justify-center rounded-2xl border-2 border-gray-200 hover:border-[#CA3F2E] hover:bg-[#CA3F2E]/5 transition-all active:scale-[0.96] bg-white"
                     >
                       <Phone className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" strokeWidth={2.25} />
                     </button>
