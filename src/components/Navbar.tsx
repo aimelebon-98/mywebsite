@@ -165,16 +165,12 @@ export default function Navbar() {
 
   const navBg = isHomepage
     ? "bg-black lg:bg-black/60 lg:backdrop-blur-md border-transparent"
-    : (isBlogPage
-      ? "border-transparent"
-      : "bg-black lg:bg-white border-transparent lg:border-gray-100");
+    : "bg-black lg:bg-white border-transparent lg:border-gray-100";
 
-  const navStyle = isHomepage
-    ? undefined
-    : (isBlogPage ? { backgroundColor: BRAND_RED } : undefined);
+  const navStyle = undefined;
 
-  const bannerBg = isBlogPage ? "text-white" : "bg-gray-900 text-white";
-  const bannerStyle = isBlogPage ? { backgroundColor: BRAND_RED_DARK } : undefined;
+  const bannerBg = "bg-gray-900 text-white";
+  const bannerStyle: React.CSSProperties | undefined = undefined;
 
   const logoText = (isHomepage || isBlogPage) ? "text-white" : "text-white lg:text-gray-900";
   const linkClass = (isHomepage || isBlogPage)
@@ -198,7 +194,7 @@ export default function Navbar() {
     <nav
       ref={navRef}
       data-site-navbar="true"
-      className={`sticky top-0 left-0 right-0 z-50 border-b transition-colors ${navBg} ${isBlogPage ? "border-transparent" : ""}`}
+      className={`sticky top-0 left-0 right-0 z-50 border-b transition-colors ${navBg}`}
       style={navStyle}
     >
       <div className={`text-center py-2 text-xs font-medium tracking-wide ${bannerBg}`} style={bannerStyle}>
