@@ -59,7 +59,7 @@ export default function DashboardPage() {
       <Navbar />
       <AccountSidebar mobileOpen={menuOpen} onClose={() => setMenuOpen(false)} />
       <main className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 pb-4 lg:pt-8 lg:pb-8">
+        <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 pt-0 pb-4 lg:pt-8 lg:pb-8">
           <div className="lg:grid lg:grid-cols-[260px_1fr] lg:gap-8">
             <div className="hidden lg:block"><AccountSidebar /></div>
             <div>
@@ -72,7 +72,7 @@ export default function DashboardPage() {
                 <p className="text-gray-500 mt-1 text-sm">{isFr ? "Bienvenue dans votre espace client" : "Welcome to your account"}</p>
               </div>
 
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6 px-4 lg:px-0">
                 <div className="bg-white border border-gray-200 rounded-2xl p-4">
                   <div className="flex items-center gap-2 text-gray-500 text-[10px] font-bold uppercase mb-2"><Package className="w-3.5 h-3.5" /> {isFr ? "Commandes" : "Orders"}</div>
                   <div className="text-2xl font-black text-gray-900">{stats.orderCount}</div>
@@ -91,8 +91,8 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <h2 className="text-base lg:text-lg font-bold text-gray-900 mb-3">{isFr ? "Acc\u00e8s rapide" : "Quick access"}</h2>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <h2 className="text-base lg:text-lg font-bold text-gray-900 mb-3 px-4 lg:px-0">{isFr ? "Acc\u00e8s rapide" : "Quick access"}</h2>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 px-4 lg:px-0">
                 {quickCards.map(c => (
                   <Link key={c.href} href={c.href}
                     className="group bg-white border border-gray-200 rounded-2xl p-4 hover:border-gray-300 hover:shadow-md transition-all">
