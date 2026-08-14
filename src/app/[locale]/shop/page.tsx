@@ -333,6 +333,16 @@ export default async function ShopPage({ params, searchParams }: Props) {
         <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-b from-transparent to-white/5 pointer-events-none" />
       </div>
 
+      {/* Mobile-only promo carousel - true edge-to-edge (outside max-w-7xl padding) */}
+      <MobilePromoCarousel products={[...productList].sort((a, b) => {
+        const aFeat = a.featured ? 1 : 0;
+        const bFeat = b.featured ? 1 : 0;
+        if (bFeat !== aFeat) return bFeat - aFeat;
+        const aDisc = a.comparePrice ? (parseFloat(a.comparePrice) - parseFloat(a.price)) / parseFloat(a.comparePrice) : 0;
+        const bDisc = b.comparePrice ? (parseFloat(b.comparePrice) - parseFloat(b.price)) / parseFloat(b.comparePrice) : 0;
+        return bDisc - aDisc;
+      }).slice(0, 6)} />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-8">
         {/* Mobile-only: search bar (80%) + filter button (20%) */}
         <div className="lg:hidden mb-3 flex items-center gap-2">
@@ -366,16 +376,6 @@ export default async function ShopPage({ params, searchParams }: Props) {
         </div>
 
         {/* Mobile-only promo carousel below category chips */}
-        <div className="lg:hidden -mx-4 sm:-mx-6 lg:-mx-8 mb-3">
-          <MobilePromoCarousel products={[...productList].sort((a, b) => {
-            const aFeat = a.featured ? 1 : 0;
-            const bFeat = b.featured ? 1 : 0;
-            if (bFeat !== aFeat) return bFeat - aFeat;
-            const aDisc = a.comparePrice ? (parseFloat(a.comparePrice) - parseFloat(a.price)) / parseFloat(a.comparePrice) : 0;
-            const bDisc = b.comparePrice ? (parseFloat(b.comparePrice) - parseFloat(b.price)) / parseFloat(b.comparePrice) : 0;
-            return bDisc - aDisc;
-          }).slice(0, 6)} />
-        </div>
 
         <div className="flex gap-6">
           <ShopSidebar
