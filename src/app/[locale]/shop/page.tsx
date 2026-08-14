@@ -364,6 +364,9 @@ export default async function ShopPage({ params, searchParams }: Props) {
           </div>
         </div>
 
+        {/* Mobile-only promo carousel below category chips */}
+        <MobilePromoCarousel />
+
         <div className="flex gap-6">
           <ShopSidebar
             category={category}
