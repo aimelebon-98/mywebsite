@@ -373,7 +373,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               </div>
 
               {/* Share buttons */}
-              <div className="mt-6 flex items-center gap-3 flex-wrap">
+              <div className="hidden lg:flex mt-6 items-center gap-3 flex-wrap">
                 <span className="text-xs font-bold uppercase tracking-wider text-gray-500">{isFr ? "Partager :" : "Share:"}</span>
                 <a
                   href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(displayName)}`}
@@ -406,6 +406,50 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                 >
                   <Share2 className="w-4 h-4" />
                 </button>
+              </div>
+
+
+              {/* Share bar - MOBILE ONLY (compact label + right-aligned icons) */}
+              <div className="lg:hidden mt-6 flex items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-gradient-to-r from-gray-50 to-white border border-gray-200 shadow-sm min-w-0">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Share2 className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                  <span className="text-[11px] font-semibold text-gray-700 uppercase tracking-wide truncate">
+                    {isFr ? "Partager ce produit" : "Share this product"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <a
+                    href={`https://wa.me/?text=${encodeURIComponent(displayName)}`}
+                    target="_blank" rel="noopener noreferrer"
+                    aria-label="Share on WhatsApp"
+                    className="w-8 h-8 rounded-lg bg-white border border-gray-200 flex items-center justify-center text-[#25D366] active:scale-95 transition shadow-sm"
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                  </a>
+                  <a
+                    href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(displayName)}`}
+                    target="_blank" rel="noopener noreferrer"
+                    aria-label="Share on X"
+                    className="w-8 h-8 rounded-lg bg-white border border-gray-200 flex items-center justify-center text-gray-900 active:scale-95 transition shadow-sm"
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                  </a>
+                  <a
+                    href={`https://facebook.com/sharer/sharer.php`}
+                    target="_blank" rel="noopener noreferrer"
+                    aria-label="Share on Facebook"
+                    className="w-8 h-8 rounded-lg bg-white border border-gray-200 flex items-center justify-center text-[#1877F2] active:scale-95 transition shadow-sm"
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M13.5 21v-7.5h2.5l.4-3H13.5V8.6c0-.9.3-1.5 1.6-1.5h1.7V4.4c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3v2.4H7.6v3h2.5V21h3.4z"/></svg>
+                  </a>
+                  <button
+                    onClick={handleShare}
+                    aria-label="Copy link"
+                    className="w-8 h-8 rounded-lg bg-gray-900 flex items-center justify-center text-white active:scale-95 transition shadow-sm"
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
 
               {/* Social proof */}
@@ -621,7 +665,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                 )}
 
               {/* Trust Row - free shipping, secure, returns, authentic */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-5">
+              <div className="hidden lg:grid grid-cols-2 lg:grid-cols-4 gap-2 mb-5">
                 <div className="flex items-center gap-2 px-2.5 py-2 bg-gray-50 rounded-xl">
                   <Truck className="w-4 h-4 flex-shrink-0" style={{ color: "#CA3F2E" }} />
                   <div className="min-w-0">
@@ -649,6 +693,32 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                     <div className="text-[11px] font-bold text-gray-900 leading-tight">{isFr ? "Authentique" : "Authentic"}</div>
                     <div className="text-[10px] text-gray-500 leading-tight">{isFr ? "Garanti" : "Guaranteed"}</div>
                   </div>
+                </div>
+              </div>
+
+
+              {/* Trust Row - MOBILE ONLY (premium gradient accent) */}
+              <div className="lg:hidden grid grid-cols-3 gap-2 mb-5">
+                <div className="relative overflow-hidden rounded-2xl p-3 min-w-0 bg-gradient-to-br from-emerald-50 to-emerald-100/40 border border-emerald-200/60 shadow-sm">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-md shadow-emerald-500/20 mb-2">
+                    <Truck className="w-4 h-4 text-white" strokeWidth={2.5} />
+                  </div>
+                  <div className="text-[11px] font-bold text-gray-900 leading-tight truncate">{isFr ? "Livraison" : "Free Ship"}</div>
+                  <div className="text-[10px] text-emerald-700/80 font-medium leading-tight truncate">{isFr ? "Gratuite" : "On orders"}</div>
+                </div>
+                <div className="relative overflow-hidden rounded-2xl p-3 min-w-0 bg-gradient-to-br from-blue-50 to-blue-100/40 border border-blue-200/60 shadow-sm">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-md shadow-blue-500/20 mb-2">
+                    <Shield className="w-4 h-4 text-white" strokeWidth={2.5} />
+                  </div>
+                  <div className="text-[11px] font-bold text-gray-900 leading-tight truncate">{isFr ? "Paiement" : "Payment"}</div>
+                  <div className="text-[10px] text-blue-700/80 font-medium leading-tight truncate">{isFr ? "S\u00e9curis\u00e9" : "Secure SSL"}</div>
+                </div>
+                <div className="relative overflow-hidden rounded-2xl p-3 min-w-0 bg-gradient-to-br from-orange-50 to-orange-100/40 border border-orange-200/60 shadow-sm">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-md shadow-orange-500/20 mb-2">
+                    <RotateCcw className="w-4 h-4 text-white" strokeWidth={2.5} />
+                  </div>
+                  <div className="text-[11px] font-bold text-gray-900 leading-tight truncate">{isFr ? "14 jours" : "14 Days"}</div>
+                  <div className="text-[10px] text-orange-700/80 font-medium leading-tight truncate">{isFr ? "Retours" : "Returns"}</div>
                 </div>
               </div>
 
