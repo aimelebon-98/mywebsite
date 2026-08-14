@@ -65,8 +65,8 @@ export default function DashboardPage() {
             <div>
               <AccountMobileBar title={isFr ? "Tableau de bord" : "Dashboard"} onOpen={() => setMenuOpen(true)} />
 
-              <div className="mb-6">
-                <h1 className="text-2xl lg:text-3xl font-black text-gray-900">
+              <div className="mb-6 scroll-mt-40">
+                <h1 className="text-2xl lg:text-3xl font-black text-gray-900 scroll-mt-40">
                   {isFr ? "Bonjour, " : "Hi, "}{customer.name.split(" ")[0]}
                 </h1>
                 <p className="text-gray-500 mt-1 text-sm">{isFr ? "Bienvenue dans votre espace client" : "Welcome to your account"}</p>
