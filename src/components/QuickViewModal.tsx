@@ -22,6 +22,7 @@ interface QuickViewModalProps {
 export default function QuickViewModal({ product, open, onClose }: QuickViewModalProps) {
   const t = useTranslations("product");
   const locale = useLocale();
+  const isFr = locale === "fr";
   const router = useRouter();
   const { addItem } = useCart();
   const { format: formatPrice } = useCurrency();
