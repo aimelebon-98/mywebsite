@@ -25,15 +25,8 @@ interface Props {
   products: PromoProduct[];
 }
 
-// Rotating background gradients (one per slide index)
-const BG_GRADIENTS = [
-  "linear-gradient(135deg, #CA3F2E 0%, #8B2A1E 100%)",
-  "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)",
-  "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-  "linear-gradient(135deg, #475569 0%, #1e293b 100%)",
-  "linear-gradient(135deg, #14b8a6 0%, #0f766e 100%)",
-  "linear-gradient(135deg, #ec4899 0%, #be185d 100%)",
-];
+// Single uniform dark blue gradient for ALL slides
+const UNIFORM_BG = "linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%)";
 
 export default function MobilePromoCarousel({ products }: Props) {
   const locale = useLocale();
@@ -63,9 +56,7 @@ export default function MobilePromoCarousel({ products }: Props) {
       comparePrice,
       discount,
       badge,
-      subtitle: p.brand || (isFr ? "D\u00e9couvrez maintenant" : "Discover now"),
       href: `/${locale}/product/${displaySlug}`,
-      bg: BG_GRADIENTS[i % BG_GRADIENTS.length],
       image: p.imageUrl,
     };
   });
@@ -82,16 +73,19 @@ export default function MobilePromoCarousel({ products }: Props) {
   const ctaLabel = isFr ? "ACHETER" : "Shop Now";
 
   return (
-    <div className="lg:hidden -mx-4 sm:-mx-6 lg:-mx-8 mb-3">
-      <div className="relative overflow-hidden shadow-md h-40 min-w-0" style={{ background: s.bg }}>
-        <Link prefetch={false} href={s.href} className="block relative h-full">
+    <div
+      className="lg:hidden mb-3 relative left-1/2 right-1/2 -translate-x-1/2 w-screen max-w-[100vw]"
+      style={{ background: UNIFORM_BG }}
+    >
+      <div className="relative overflow-hidden h-40 w-full min-w-0">
+        <Link prefetch={false} href={s.href} className="block relative h-full w-full">
           <div className="absolute inset-0 flex items-center">
             <div className="flex-1 pl-4 pr-2 py-4 text-white z-10 min-h-[128px] min-w-0">
               <div className="inline-block px-2 py-0.5 bg-white/20 backdrop-blur rounded text-[9px] font-black tracking-widest mb-2">
                 {s.badge}
               </div>
               <h3 className="text-base font-black leading-tight mb-1 drop-shadow line-clamp-2">{s.displayName}</h3>
-              <div className="flex items-baseline gap-2 mb-2">
+              <div className="flex items-baseline gap-2 mb-2 flex-wrap">
                 <span className="text-sm font-bold drop-shadow">{formatPrice(s.price)}</span>
                 {s.comparePrice && s.discount > 0 && (
                   <>
@@ -105,7 +99,7 @@ export default function MobilePromoCarousel({ products }: Props) {
                 <ChevronRight className="w-3 h-3" />
               </div>
             </div>
-            <div className="w-32 h-32 relative flex-shrink-0 mr-3 rounded-2xl overflow-hidden shadow-lg">
+            <div className="w-32 h-32 relative flex-shrink-0 mr-4 rounded-2xl overflow-hidden shadow-lg">
               <Image src={s.image} alt={s.displayName} fill sizes="128px" quality={80} className="object-cover" />
             </div>
           </div>
