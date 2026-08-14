@@ -13,7 +13,7 @@ import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart-context";
 import { useWishlist } from "@/lib/wishlist-context";
 import type { Product, Review } from "@/db/schema";
-import { ChevronDown, ChevronRight, Home,
+import { ChevronDown, ChevronRight, Home, Phone, X,
   ShoppingBag, Heart, Minus, Plus, Check, Star, Truck, Shield, RotateCcw,
   Zap, Package, Ruler, Scale, MessageSquare, Send, Share2, Award, Sparkles, Eye
 } from "lucide-react";
@@ -85,7 +85,8 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
   const [selectedColor, setSelectedColor] = useState(colors[0] || "");
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
-  const { format: formatPrice, currency } = useCurrency();
+  const [callModalOpen, setCallModalOpen] = useState(false);
+  const { format: formatPrice, currency, visitorCountry } = useCurrency();
   const [activeTab, setActiveTab] = useState<"description" | "details" | "shipping">("description");
 
   // Sticky mini cart: switches to fixed positioning when scrolled past, hides at tabs end
@@ -847,9 +848,77 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
         </div>
       </div>
 
+      {/* CALL CONFIRMATION MODAL */}
+      {callModalOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm"
+          onClick={() => setCallModalOpen(false)}
+        >
+          <div
+            className="w-full sm:w-auto sm:min-w-[380px] sm:max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="relative px-6 pt-8 pb-2 text-center">
+              <button
+                onClick={() => setCallModalOpen(false)}
+                aria-label={isFr ? "Fermer" : "Close"}
+                className="absolute top-4 right-4 w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center transition"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+              <div
+                className="w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4"
+                style={{ backgroundColor: "rgba(202, 63, 46, 0.1)" }}
+              >
+                <Phone className="w-8 h-8" style={{ color: "#CA3F2E" }} strokeWidth={2.25} />
+              </div>
+              <h3 className="text-xl font-black text-gray-900 mb-1">
+                {isFr ? "Appeler maintenant ?" : "Call now?"}
+              </h3>
+              <p className="text-sm text-gray-500 mb-1">
+                {visitorCountry === "TG"
+                  ? (isFr ? "Vous serez connect\u00e9 \u00e0 notre \u00e9quipe au Togo" : "You will be connected to our team in Togo")
+                  : (isFr ? "Appel WhatsApp vers notre \u00e9quipe au Nigeria" : "WhatsApp call to our team in Nigeria")}
+              </p>
+              <p className="text-lg font-bold text-gray-900 mt-2 tracking-wide">
+                {visitorCountry === "TG" ? "+228 71 65 53 13" : "+234 813 304 9669"}
+              </p>
+            </div>
+            <div className="p-6 pt-4 flex gap-3">
+              <button
+                onClick={() => setCallModalOpen(false)}
+                className="flex-1 py-3.5 rounded-2xl font-bold text-sm border-2 border-gray-200 text-gray-700 hover:bg-gray-50 transition active:scale-95"
+              >
+                {isFr ? "Annuler" : "Cancel"}
+              </button>
+              <a
+                href={visitorCountry === "TG" ? "tel:+22871655313" : "https://wa.me/2348133049669"}
+                target={visitorCountry === "TG" ? undefined : "_blank"}
+                rel={visitorCountry === "TG" ? undefined : "noopener noreferrer"}
+                onClick={() => setCallModalOpen(false)}
+                className="flex-1 py-3.5 rounded-2xl font-bold text-sm text-white flex items-center justify-center gap-2 transition active:scale-95"
+                style={{ backgroundColor: "#CA3F2E", boxShadow: "0 4px 14px rgba(202, 63, 46, 0.35)" }}
+              >
+                <Phone className="w-4 h-4" strokeWidth={2.5} />
+                {isFr ? "Appeler" : "Call"}
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* STICKY MOBILE BOTTOM BAR */}
       <div className="fixed bottom-16 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-2xl lg:hidden">
         <div className="px-3 py-2.5 flex items-center gap-2">
+          {(visitorCountry === "TG" || visitorCountry === "NG") && (
+            <button
+              onClick={() => setCallModalOpen(true)}
+              aria-label={isFr ? "Appeler" : "Call"}
+              className="flex-shrink-0 w-11 h-11 rounded-xl border-2 border-gray-200 hover:border-[#CA3F2E] flex items-center justify-center transition-all active:scale-95 bg-white"
+            >
+              <Phone className="w-5 h-5 text-gray-700" strokeWidth={2.25} />
+            </button>
+          )}
           <div className="flex-shrink-0 w-11 h-11 rounded-lg bg-gray-100 overflow-hidden">
             {product.imageUrl && <img src={product.imageUrl} alt="" width="56" height="56" className="w-full h-full object-cover" loading="lazy" decoding="async" />}
           </div>
