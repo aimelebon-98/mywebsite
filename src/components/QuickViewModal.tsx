@@ -250,7 +250,7 @@ export default function QuickViewModal({ product, open, onClose }: QuickViewModa
                   </>
                 ) : (
                   <>
-                    <ShoppingBag className="w-4 h-4" />{isFr ? null : <span className="ml-2">{t("addToCart")}</span>}
+                    <ShoppingBag className="w-4 h-4" /> {t("addToCart")}
                   </>
                 )}
               </button>
