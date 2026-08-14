@@ -13,7 +13,7 @@ import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart-context";
 import { useWishlist } from "@/lib/wishlist-context";
 import type { Product, Review } from "@/db/schema";
-import { ChevronDown,
+import { ChevronDown, ChevronRight, Home,
   ShoppingBag, Heart, Minus, Plus, Check, Star, Truck, Shield, RotateCcw,
   Zap, Package, Ruler, Scale, MessageSquare, Send, Share2, Award, Sparkles, Eye
 } from "lucide-react";
@@ -259,15 +259,59 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
       <div className="bg-gradient-to-b from-gray-50 to-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
 
-          {/* Breadcrumb */}
-          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs sm:text-sm text-gray-500 mb-6 flex-nowrap overflow-x-auto whitespace-nowrap scrollbar-hide">
-            <Link href={`/${locale}`} className="hover:text-gray-900 transition">{t("home")}</Link>
-            <span className="text-gray-300">/</span>
-            <Link href={`/${locale}/shop`} className="hover:text-gray-900 transition">{t("shop")}</Link>
-            <span className="text-gray-300">/</span>
-            <Link href={`/${locale}/shop?category=${product.category}`} className="hover:text-gray-900 transition capitalize">{product.category}</Link>
-            <span className="text-gray-300">/</span>
-            <span className="text-gray-900 font-medium truncate max-w-[140px] sm:max-w-[240px]">{displayName}</span>
+          {/* Breadcrumb - pro e-commerce style */}
+          <nav
+            aria-label="Breadcrumb"
+            className="relative -mx-4 sm:mx-0 mb-6 sm:mb-8"
+          >
+            <ol className="flex items-center gap-1 text-[13px] sm:text-sm text-gray-500 flex-nowrap overflow-x-auto whitespace-nowrap scrollbar-hide px-4 sm:px-0">
+              <li className="flex items-center flex-shrink-0">
+                <Link
+                  href={`/${locale}`}
+                  className="inline-flex items-center gap-1.5 text-gray-500 hover:text-[#CA3F2E] transition-colors font-medium"
+                  aria-label={t("home")}
+                >
+                  <Home className="w-3.5 h-3.5" strokeWidth={2.25} />
+                  <span className="hidden sm:inline">{t("home")}</span>
+                </Link>
+              </li>
+              <li className="flex items-center flex-shrink-0" aria-hidden="true">
+                <ChevronRight className="w-3.5 h-3.5 text-gray-300" strokeWidth={2.5} />
+              </li>
+              <li className="flex items-center flex-shrink-0">
+                <Link
+                  href={`/${locale}/shop`}
+                  className="text-gray-500 hover:text-[#CA3F2E] transition-colors font-medium"
+                >
+                  {t("shop")}
+                </Link>
+              </li>
+              <li className="flex items-center flex-shrink-0" aria-hidden="true">
+                <ChevronRight className="w-3.5 h-3.5 text-gray-300" strokeWidth={2.5} />
+              </li>
+              <li className="flex items-center flex-shrink-0">
+                <Link
+                  href={`/${locale}/shop?category=${product.category}`}
+                  className="text-gray-500 hover:text-[#CA3F2E] transition-colors font-medium capitalize"
+                >
+                  {product.category}
+                </Link>
+              </li>
+              <li className="flex items-center flex-shrink-0" aria-hidden="true">
+                <ChevronRight className="w-3.5 h-3.5 text-gray-300" strokeWidth={2.5} />
+              </li>
+              <li className="flex items-center min-w-0">
+                <span
+                  className="text-gray-900 font-semibold truncate max-w-[160px] sm:max-w-[300px] lg:max-w-[420px]"
+                  title={displayName}
+                  aria-current="page"
+                >
+                  {displayName}
+                </span>
+              </li>
+            </ol>
+            {/* Fade edge on mobile to hint scrollability */}
+            <div className="sm:hidden pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent" />
           </nav>
 
           <div className="grid lg:grid-cols-[1fr_1fr_320px] gap-8 lg:gap-10">
