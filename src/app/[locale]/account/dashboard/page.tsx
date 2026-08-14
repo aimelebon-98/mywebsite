@@ -62,7 +62,7 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 pb-4 lg:pt-8 lg:pb-8">
           <div className="lg:grid lg:grid-cols-[260px_1fr] lg:gap-8">
             <div className="hidden lg:block"><AccountSidebar /></div>
-            <div>
+            <div className="pt-14 lg:pt-0">
               <AccountMobileBar title={isFr ? "Tableau de bord" : "Dashboard"} onOpen={() => setMenuOpen(true)} />
 
               <div className="mb-6">
