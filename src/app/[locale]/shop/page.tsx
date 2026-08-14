@@ -218,7 +218,7 @@ export default async function ShopPage({ params, searchParams }: Props) {
 
   return (
     <main className="min-h-screen bg-white">
-      <Navbar />
+      <Navbar noStickyMobile />
 
       <div className="hidden lg:block pt-4 lg:pt-6 relative overflow-x-clip bg-[#0a0a0a]">
         {/* Layer 1: Deep gradient base */}
@@ -334,8 +334,8 @@ export default async function ShopPage({ params, searchParams }: Props) {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-8">
-        {/* Mobile-only: pill search bar (getyourguide-style) */}
-        <div className="lg:hidden mb-3">
+        {/* Mobile-only: pill search bar (sticky at top, getyourguide-style) */}
+        <div className="lg:hidden sticky top-0 z-40 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 bg-white/95 backdrop-blur-sm shadow-sm mb-3">
           <div className="w-full min-w-0 bg-white rounded-full shadow-lg shadow-black/5 border border-gray-100 flex items-center gap-3 pl-2 pr-4 py-2">
             <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-gray-700"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>

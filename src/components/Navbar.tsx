@@ -17,7 +17,8 @@ const ShopMegaMenu = dynamic(() => import("@/components/ShopMegaMenu"));
 const BRAND_RED = "#CA3F2E";
 const BRAND_RED_DARK = "#8B2A1E";
 
-export default function Navbar() {
+interface NavbarProps { noStickyMobile?: boolean }
+export default function Navbar({ noStickyMobile = false }: NavbarProps = {}) {
   const t = useTranslations("nav");
   const tCommon = useTranslations("common");
   const locale = useLocale();
@@ -194,7 +195,7 @@ export default function Navbar() {
     <nav
       ref={navRef}
       data-site-navbar="true"
-      className={`sticky top-0 left-0 right-0 z-50 border-b transition-colors ${navBg}`}
+      className={`${noStickyMobile ? "relative lg:sticky" : "sticky"} top-0 left-0 right-0 z-50 border-b transition-colors ${navBg}`}
       style={navStyle}
     >
       <div className={`text-center py-2 text-xs font-medium tracking-wide ${bannerBg}`} style={bannerStyle}>

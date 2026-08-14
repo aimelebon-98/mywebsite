@@ -1,25 +1,20 @@
 "use client";
 
-import { SlidersHorizontal, ArrowUpDown } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 
 export default function MobileShopFilterButton() {
   const t = useTranslations("shop");
-  const locale = useLocale();
-  const isFr = locale === "fr";
   const searchParams = useSearchParams();
   const [scrolling, setScrolling] = useState(false);
 
-  // Count active filters (category, brand, price, sale, rating) - excludes search + sort
   const activeFilters = ["category", "brand", "minPrice", "maxPrice", "rating", "onSale"]
     .filter(k => {
       const v = searchParams.get(k);
       return v && v !== "" && v !== "all" && v !== "0";
     }).length;
-
-  const sortActive = !!searchParams.get("sort") && searchParams.get("sort") !== "featured";
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
@@ -42,42 +37,18 @@ export default function MobileShopFilterButton() {
     }
   };
 
-  const handleSort = () => {
-    window.dispatchEvent(new Event("open-shop-sort"));
-    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
-      try { navigator.vibrate(10); } catch { /* ignore */ }
-    }
-  };
-
   return (
-    <div
-      className={`lg:hidden fixed left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 transition-opacity duration-300 ${scrolling ? "opacity-40" : "opacity-100"}`}
-      style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 80px)" }}
+    <button
+      onClick={handleFilter}
+      aria-label={t("filters")}
+      className={`lg:hidden fixed right-4 top-1/2 -translate-y-1/2 z-40 w-14 h-14 rounded-full bg-gray-900 text-white flex items-center justify-center shadow-2xl shadow-black/40 border border-white/10 active:scale-95 transition-opacity duration-300 ${scrolling ? "opacity-25" : "opacity-100"}`}
     >
-      <button
-        onClick={handleSort}
-        aria-label={isFr ? "Trier" : "Sort"}
-        className="relative flex items-center gap-2 px-5 py-3 bg-gray-900 text-white rounded-full text-sm font-bold shadow-2xl shadow-black/40 border border-white/10 active:scale-95 transition-transform"
-      >
-        <ArrowUpDown className="w-4 h-4" strokeWidth={2.5} />
-        <span>{isFr ? "Trier" : "Sort"}</span>
-        {sortActive && (
-          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#CA3F2E] rounded-full border-2 border-gray-900" />
-        )}
-      </button>
-      <button
-        onClick={handleFilter}
-        aria-label={t("filters")}
-        className="relative flex items-center gap-2 px-5 py-3 bg-gray-900 text-white rounded-full text-sm font-bold shadow-2xl shadow-black/40 border border-white/10 active:scale-95 transition-transform"
-      >
-        <SlidersHorizontal className="w-4 h-4" strokeWidth={2.5} />
-        <span>{isFr ? "Filtrer" : "Filter"}</span>
-        {activeFilters > 0 && (
-          <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1.5 flex items-center justify-center bg-[#CA3F2E] text-white text-[10px] font-black rounded-full border-2 border-gray-900">
-            {activeFilters}
-          </span>
-        )}
-      </button>
-    </div>
+      <SlidersHorizontal className="w-5 h-5" strokeWidth={2.5} />
+      {activeFilters > 0 && (
+        <span className="absolute -top-1 -right-1 min-w-[22px] h-[22px] px-1.5 flex items-center justify-center bg-[#CA3F2E] text-white text-[11px] font-black rounded-full border-2 border-gray-900">
+          {activeFilters}
+        </span>
+      )}
+    </button>
   );
 }
