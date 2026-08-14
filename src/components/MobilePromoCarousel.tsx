@@ -25,7 +25,6 @@ interface Props {
   products: PromoProduct[];
 }
 
-// Single uniform dark blue gradient for ALL slides
 const UNIFORM_BG = "linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%)";
 
 export default function MobilePromoCarousel({ products }: Props) {
@@ -73,10 +72,7 @@ export default function MobilePromoCarousel({ products }: Props) {
   const ctaLabel = isFr ? "ACHETER" : "Shop Now";
 
   return (
-    <div
-      className="lg:hidden mb-3 relative left-1/2 right-1/2 -translate-x-1/2 w-screen max-w-[100vw]"
-      style={{ background: UNIFORM_BG }}
-    >
+    <div className="lg:hidden w-full" style={{ background: UNIFORM_BG }}>
       <div className="relative overflow-hidden h-40 w-full min-w-0">
         <Link prefetch={false} href={s.href} className="block relative h-full w-full">
           <div className="absolute inset-0 flex items-center">

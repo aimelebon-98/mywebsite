@@ -366,15 +366,16 @@ export default async function ShopPage({ params, searchParams }: Props) {
         </div>
 
         {/* Mobile-only promo carousel below category chips */}
-        <MobilePromoCarousel products={[...productList].sort((a, b) => {
-          // priority: featured -> on-sale (biggest discount) -> newest
-          const aFeat = a.featured ? 1 : 0;
-          const bFeat = b.featured ? 1 : 0;
-          if (bFeat !== aFeat) return bFeat - aFeat;
-          const aDisc = a.comparePrice ? (parseFloat(a.comparePrice) - parseFloat(a.price)) / parseFloat(a.comparePrice) : 0;
-          const bDisc = b.comparePrice ? (parseFloat(b.comparePrice) - parseFloat(b.price)) / parseFloat(b.comparePrice) : 0;
-          return bDisc - aDisc;
-        }).slice(0, 6)} />
+        <div className="lg:hidden -mx-4 sm:-mx-6 lg:-mx-8 mb-3">
+          <MobilePromoCarousel products={[...productList].sort((a, b) => {
+            const aFeat = a.featured ? 1 : 0;
+            const bFeat = b.featured ? 1 : 0;
+            if (bFeat !== aFeat) return bFeat - aFeat;
+            const aDisc = a.comparePrice ? (parseFloat(a.comparePrice) - parseFloat(a.price)) / parseFloat(a.comparePrice) : 0;
+            const bDisc = b.comparePrice ? (parseFloat(b.comparePrice) - parseFloat(b.price)) / parseFloat(b.comparePrice) : 0;
+            return bDisc - aDisc;
+          }).slice(0, 6)} />
+        </div>
 
         <div className="flex gap-6">
           <ShopSidebar
