@@ -334,19 +334,25 @@ export default async function ShopPage({ params, searchParams }: Props) {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-8">
-        {/* Mobile-only: search bar (80%) + filter button (20%) */}
-        <div className="lg:hidden mb-3 flex items-center gap-2">
-          <div className="flex-[4] min-w-0">
-            <SearchAutocomplete
-              placeholder={isFr ? "Rechercher..." : "Search..."}
-              initialValue={search}
-              inputClassName="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#CA3F2E] focus:border-transparent transition"
-              iconClassName="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none"
-              showClearButton
-            />
+        {/* Mobile-only: pill search bar (getyourguide-style) */}
+        <div className="lg:hidden mb-3">
+          <div className="w-full min-w-0 bg-white rounded-full shadow-lg shadow-black/5 border border-gray-100 flex items-center gap-3 pl-2 pr-4 py-2">
+            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-gray-700"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <SearchAutocomplete
+                placeholder={isFr ? "Rechercher ici" : "Search here"}
+                initialValue={search}
+                inputClassName="w-full bg-transparent border-none text-sm font-semibold text-gray-900 placeholder:text-gray-500 placeholder:font-semibold focus:outline-none p-0"
+                iconClassName="hidden"
+                showClearButton
+              />
+            </div>
           </div>
-          <MobileShopFilterButton />
         </div>
+        {/* Floating Sort + Filter (fixed above bottom nav) */}
+        <MobileShopFilterButton />
         <div className="lg:mb-6 mb-0 -mx-4 sm:-mx-6 lg:-mx-8 lg:mx-0 overflow-x-auto scrollbar-hide">
           <div className="flex items-center gap-2 min-w-max py-2 lg:py-1 px-4 sm:px-6 lg:px-0">
             {categoryOptions.map((cat) => (
