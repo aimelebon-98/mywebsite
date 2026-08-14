@@ -21,7 +21,7 @@ export default function MobileShopFilterButton() {
     const onScroll = () => {
       setScrolling(true);
       clearTimeout(timer);
-      timer = setTimeout(() => setScrolling(false), 400);
+      timer = setTimeout(() => setScrolling(false), 600);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
@@ -41,7 +41,7 @@ export default function MobileShopFilterButton() {
     <button
       onClick={handleFilter}
       aria-label={t("filters")}
-      className={`lg:hidden fixed right-4 top-1/2 -translate-y-1/2 z-40 w-14 h-14 rounded-full bg-gray-900 text-white flex items-center justify-center shadow-2xl shadow-black/40 border border-white/10 active:scale-95 transition-opacity duration-300 ${scrolling ? "opacity-25" : "opacity-100"}`}
+      className={`lg:hidden fixed right-4 top-1/2 -translate-y-1/2 z-40 w-14 h-14 rounded-full bg-gray-900 text-white flex items-center justify-center shadow-2xl shadow-black/40 border border-white/10 active:scale-95 transition-opacity duration-500 ease-out will-change-[opacity] ${scrolling ? "opacity-30" : "opacity-100"}`}
     >
       <SlidersHorizontal className="w-5 h-5" strokeWidth={2.5} />
       {activeFilters > 0 && (

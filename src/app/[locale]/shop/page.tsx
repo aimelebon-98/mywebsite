@@ -12,6 +12,7 @@ import MobileShopFilterButton from "@/components/MobileShopFilterButton";
 import ShopTopBar from "@/components/ShopTopBar";
 import ActiveFilterChips from "@/components/ActiveFilterChips";
 import CategoryShowcase from "@/components/CategoryShowcase";
+import MobileShopStickySearch from "@/components/MobileShopStickySearch";
 import MobilePromoCarousel from "@/components/MobilePromoCarousel";
 import SearchAutocomplete from "@/components/SearchAutocomplete";
 import RecentlyViewed from "@/components/RecentlyViewed";
@@ -334,23 +335,8 @@ export default async function ShopPage({ params, searchParams }: Props) {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-8">
-        {/* Mobile-only: pill search bar (sticky at top, getyourguide-style) */}
-        <div className="lg:hidden sticky top-0 z-40 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 bg-white/95 backdrop-blur-sm shadow-sm mb-3">
-          <div className="w-full min-w-0 bg-white rounded-full shadow-lg shadow-black/5 border border-gray-100 flex items-center gap-3 pl-2 pr-4 py-2">
-            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-gray-700"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            </div>
-            <div className="flex-1 min-w-0">
-              <SearchAutocomplete
-                placeholder={isFr ? "Rechercher ici" : "Search here"}
-                initialValue={search}
-                inputClassName="w-full bg-transparent border-none text-sm font-semibold text-gray-900 placeholder:text-gray-500 placeholder:font-semibold focus:outline-none p-0"
-                iconClassName="hidden"
-                showClearButton
-              />
-            </div>
-          </div>
-        </div>
+        {/* Mobile-only: pill search bar with slide-in fixed pinning */}
+        <MobileShopStickySearch initialValue={search} />
         {/* Floating Sort + Filter (fixed above bottom nav) */}
         <MobileShopFilterButton />
         <div className="lg:mb-6 mb-0 -mx-4 sm:-mx-6 lg:-mx-8 lg:mx-0 overflow-x-auto scrollbar-hide">
