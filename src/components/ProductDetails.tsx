@@ -257,10 +257,10 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
     <div className="pb-24 lg:pb-0 overflow-x-hidden">
       {/* HERO PRODUCT SECTION */}
       <div className="bg-gradient-to-b from-gray-50 to-white">
-        <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 py-6 lg:py-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
 
           {/* Breadcrumb */}
-          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs sm:text-sm text-gray-500 mb-6 flex-nowrap overflow-x-auto whitespace-nowrap scrollbar-hide px-4 sm:px-0">
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs sm:text-sm text-gray-500 mb-6 flex-nowrap overflow-x-auto whitespace-nowrap scrollbar-hide">
             <Link href={`/${locale}`} className="hover:text-gray-900 transition">{t("home")}</Link>
             <span className="text-gray-300">/</span>
             <Link href={`/${locale}/shop`} className="hover:text-gray-900 transition">{t("shop")}</Link>
@@ -434,7 +434,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
             </div>
 
             {/* DETAILS */}
-            <div className="lg:py-2 px-4 sm:px-0">
+            <div className="lg:py-2">
               {/* Brand + Rating */}
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-sm text-gray-500 font-medium uppercase tracking-widest">{product.brand || product.category}</span>
