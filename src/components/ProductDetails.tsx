@@ -434,7 +434,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
             </div>
 
             {/* DETAILS */}
-            <div className="lg:py-2">
+            <div className="lg:py-2 min-w-0">
               {/* Brand + Rating */}
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-sm text-gray-500 font-medium uppercase tracking-widest">{product.brand || product.category}</span>
