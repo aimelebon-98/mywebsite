@@ -347,7 +347,7 @@ export default async function ShopPage({ params, searchParams }: Props) {
           </div>
           <MobileShopFilterButton />
         </div>
-        <div className="lg:mb-6 mb-3 -mx-4 sm:-mx-6 lg:-mx-8 lg:mx-0 overflow-x-auto scrollbar-hide">
+        <div className="lg:mb-6 mb-0 -mx-4 sm:-mx-6 lg:-mx-8 lg:mx-0 overflow-x-auto scrollbar-hide">
           <div className="flex items-center gap-2 min-w-max py-2 lg:py-1 px-4 sm:px-6 lg:px-0">
             {categoryOptions.map((cat) => (
               <Link

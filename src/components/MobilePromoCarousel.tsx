@@ -73,10 +73,10 @@ export default function MobilePromoCarousel({ products }: Props) {
 
   return (
     <div className="lg:hidden w-full mb-4" style={{ background: UNIFORM_BG }}>
-      <div className="relative overflow-hidden h-40 w-full min-w-0">
+      <div className="relative overflow-hidden h-48 w-full min-w-0">
         <Link prefetch={false} href={s.href} className="block relative h-full w-full">
           <div className="absolute inset-0 flex items-center">
-            <div className="flex-1 pl-4 pr-2 py-4 text-white z-10 min-h-[128px] min-w-0">
+            <div className="flex-1 pl-4 pr-2 py-3 text-white z-10 min-h-[144px] min-w-0">
               <div className="inline-block px-2 py-0.5 bg-white/20 backdrop-blur rounded text-[9px] font-black tracking-widest mb-2">
                 {s.badge}
               </div>
