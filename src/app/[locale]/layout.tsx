@@ -46,7 +46,7 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.newdealzone.com
 export const viewport: Viewport = {
   // Red matches the majority of pages (shop, product, blog, etc.)
   // ThemeColorSwitcher client component overrides to black on homepage after hydration
-  themeColor: "#8B2A1E",
+  themeColor: "#000000",
 };
 
 export const metadata: Metadata = {

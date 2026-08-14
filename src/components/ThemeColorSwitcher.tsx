@@ -3,9 +3,9 @@
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
-// Colors match Navbar.tsx promo bar
-const HOME_COLOR = "#000000";      // pure black (matches homepage mobile navbar)
-const OTHER_COLOR = "#8B2A1E";     // BRAND_RED_DARK (non-home pages promo bar)
+// All pages use black to match unified mobile navbar
+const HOME_COLOR = "#000000";
+const OTHER_COLOR = "#000000";
 
 function applyThemeColor(color: string) {
   if (typeof document === "undefined") return;
