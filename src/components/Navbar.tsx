@@ -165,7 +165,7 @@ export default function Navbar() {
 
   const navBg = isHomepage
     ? "bg-black lg:bg-black/60 lg:backdrop-blur-md border-transparent"
-    : "bg-black lg:bg-white border-transparent lg:border-gray-100";
+    : "bg-black lg:bg-[#B23A2C] border-transparent lg:border-[#B23A2C]";
 
   const navStyle = undefined;
 
