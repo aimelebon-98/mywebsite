@@ -12,6 +12,7 @@ import MobileShopFilterButton from "@/components/MobileShopFilterButton";
 import ShopTopBar from "@/components/ShopTopBar";
 import ActiveFilterChips from "@/components/ActiveFilterChips";
 import CategoryShowcase from "@/components/CategoryShowcase";
+import MobilePromoCarousel from "@/components/MobilePromoCarousel";
 import SearchAutocomplete from "@/components/SearchAutocomplete";
 import RecentlyViewed from "@/components/RecentlyViewed";
 import YouMayAlsoLike from "@/components/YouMayAlsoLike";
