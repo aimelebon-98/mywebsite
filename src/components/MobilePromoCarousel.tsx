@@ -72,7 +72,7 @@ export default function MobilePromoCarousel({ products }: Props) {
   const ctaLabel = isFr ? "ACHETER" : "Shop Now";
 
   return (
-    <div className="lg:hidden w-full" style={{ background: UNIFORM_BG }}>
+    <div className="lg:hidden w-full mb-4" style={{ background: UNIFORM_BG }}>
       <div className="relative overflow-hidden h-40 w-full min-w-0">
         <Link prefetch={false} href={s.href} className="block relative h-full w-full">
           <div className="absolute inset-0 flex items-center">
