@@ -33,18 +33,15 @@ export default function AccountMobileBar({ title, onOpen }: Props) {
   }, []);
 
   return (
-    <div
-      className="lg:hidden sticky z-30 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 mb-3 shadow-sm -mx-4 sm:-mx-6"
-      style={{ top: `${topOffset}px` }}
-    >
+    <div className="lg:hidden bg-white border border-gray-200 rounded-xl px-3 py-2.5 flex items-center gap-2 mb-4 shadow-sm">
       <button
         onClick={onOpen}
-        className="p-2 -ml-2 rounded-lg hover:bg-gray-100 active:bg-gray-200 transition"
+        className="p-1.5 rounded-lg hover:bg-gray-100 active:bg-gray-200 transition flex-shrink-0"
         aria-label="Open menu"
       >
         <Menu className="w-5 h-5 text-gray-700" />
       </button>
-      <h1 className="font-bold text-gray-900 text-sm truncate flex-1">{title}</h1>
+      <h1 className="font-bold text-gray-900 text-sm truncate flex-1 min-w-0">{title}</h1>
     </div>
   );
 }
