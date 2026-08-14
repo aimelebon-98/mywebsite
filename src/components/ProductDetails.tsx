@@ -670,6 +670,15 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               {/* Action Buttons */}
               <div className="space-y-3">
                 <div className="flex gap-3">
+                  {(visitorCountry === "TG" || visitorCountry === "NG") && (
+                    <button
+                      onClick={() => setCallModalOpen(true)}
+                      aria-label={isFr ? "Appeler" : "Call"}
+                      className="flex-shrink-0 w-12 sm:w-14 h-auto flex items-center justify-center rounded-2xl border-2 border-gray-200 hover:border-[#CA3F2E] hover:bg-[#CA3F2E]/5 transition-all active:scale-[0.96] bg-white"
+                    >
+                      <Phone className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" strokeWidth={2.25} />
+                    </button>
+                  )}
                   <button onClick={handleBuyNow} className="flex-1 min-w-0 flex items-center justify-center gap-2 px-3 sm:px-5 py-3.5 sm:py-4 bg-gradient-to-r from-brand-600 to-brand-700 text-white rounded-2xl font-bold text-sm sm:text-base whitespace-nowrap hover:from-brand-700 hover:to-brand-800 transition-all shadow-xl shadow-brand-600/25 active:scale-[0.98]">
                     <Zap className="w-5 h-5" /> {t("buyNow")}
                   </button>
@@ -881,7 +890,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                   : (isFr ? "Appel WhatsApp vers notre \u00e9quipe au Nigeria" : "WhatsApp call to our team in Nigeria")}
               </p>
               <p className="text-lg font-bold text-gray-900 mt-2 tracking-wide">
-                {visitorCountry === "TG" ? "+228 71 65 53 13" : "+234 813 304 9669"}
+                {visitorCountry === "TG" ? "71 65 53 13" : "+234 813 304 9669"}
               </p>
             </div>
             <div className="p-6 pt-4 flex gap-3">
@@ -892,7 +901,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                 {isFr ? "Annuler" : "Cancel"}
               </button>
               <a
-                href={visitorCountry === "TG" ? "tel:+22871655313" : "https://wa.me/2348133049669"}
+                href={visitorCountry === "TG" ? "tel:71655313" : "https://wa.me/2348133049669"}
                 target={visitorCountry === "TG" ? undefined : "_blank"}
                 rel={visitorCountry === "TG" ? undefined : "noopener noreferrer"}
                 onClick={() => setCallModalOpen(false)}
@@ -910,15 +919,6 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
       {/* STICKY MOBILE BOTTOM BAR */}
       <div className="fixed bottom-16 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-2xl lg:hidden">
         <div className="px-3 py-2.5 flex items-center gap-2">
-          {(visitorCountry === "TG" || visitorCountry === "NG") && (
-            <button
-              onClick={() => setCallModalOpen(true)}
-              aria-label={isFr ? "Appeler" : "Call"}
-              className="flex-shrink-0 w-11 h-11 rounded-xl border-2 border-gray-200 hover:border-[#CA3F2E] flex items-center justify-center transition-all active:scale-95 bg-white"
-            >
-              <Phone className="w-5 h-5 text-gray-700" strokeWidth={2.25} />
-            </button>
-          )}
           <div className="flex-shrink-0 w-11 h-11 rounded-lg bg-gray-100 overflow-hidden">
             {product.imageUrl && <img src={product.imageUrl} alt="" width="56" height="56" className="w-full h-full object-cover" loading="lazy" decoding="async" />}
           </div>
