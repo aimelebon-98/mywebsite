@@ -156,7 +156,7 @@ export default function ShopSidebar(props: ShopSidebarProps) {
   ];
 
   return (
-    <aside className="hidden lg:block w-64 flex-shrink-0 self-start sticky top-24 h-fit">
+    <aside className="hidden lg:block w-64 flex-shrink-0 self-start sticky top-4 h-fit">
       <div className="space-y-1">
         {hasActiveFilters && (
           <button
