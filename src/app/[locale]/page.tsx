@@ -101,8 +101,9 @@ export default async function HomePage() {
   ];
 
   return (
-    <main className="min-h-screen">
+    <>
       <Navbar />
+    <main className="min-h-screen">
 
       {/* MOBILE HERO */}
       <MobileHomeHero products={mobileProducts} categories={mobileCategories} whatsapp={whatsapp} />
@@ -267,5 +268,6 @@ export default async function HomePage() {
       <HomeBlogSection/>
       <Footer />
     </main>
+    </>
   );
 }
