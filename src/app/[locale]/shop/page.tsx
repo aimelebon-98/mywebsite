@@ -13,6 +13,7 @@ import ShopTopBar from "@/components/ShopTopBar";
 import ActiveFilterChips from "@/components/ActiveFilterChips";
 import CategoryShowcase from "@/components/CategoryShowcase";
 import MobileShopStickySearch from "@/components/MobileShopStickySearch";
+import BackToTop from "@/components/BackToTop";
 import SearchAutocomplete from "@/components/SearchAutocomplete";
 import RecentlyViewed from "@/components/RecentlyViewed";
 import YouMayAlsoLike from "@/components/YouMayAlsoLike";
@@ -443,6 +444,7 @@ export default async function ShopPage({ params, searchParams }: Props) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
         <RecentlyViewed />
       </div>
+      <BackToTop />
       <Footer />
     </main>
   );

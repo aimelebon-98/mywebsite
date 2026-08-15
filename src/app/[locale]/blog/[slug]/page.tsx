@@ -4,6 +4,7 @@ import { eq, or, and, ne, isNotNull, desc } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
+import BackToTop from "@/components/BackToTop";
 import Footer from "@/components/Footer";
 import BlogPostContent from "@/components/BlogPostContent";
 import { getLocale } from "next-intl/server";
@@ -225,6 +226,7 @@ export default async function BlogPostPage({ params }: Props) {
           locale={paramLocale}
         />
       </div>
+      <BackToTop />
       <Footer />
     </main>
   );

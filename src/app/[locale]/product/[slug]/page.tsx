@@ -4,6 +4,7 @@ import { eq, or, and, ne, desc } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
+import BackToTop from "@/components/BackToTop";
 import Footer from "@/components/Footer";
 import ProductDetails from "@/components/ProductDetails";
 import YouMayAlsoLike from "@/components/YouMayAlsoLike";
@@ -130,6 +131,7 @@ export default async function ProductPage({ params }: Props) {
         />
         <RecentlyViewed excludeId={product.id} />
       </main>
+      <BackToTop />
       <Footer />
     </>
   );
