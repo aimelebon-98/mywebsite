@@ -334,7 +334,7 @@ export default async function ShopPage({ params, searchParams }: Props) {
         <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-b from-transparent to-white/5 pointer-events-none" />
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-3 pb-0 lg:py-0">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-3 pb-0 lg:pt-6 lg:pb-0">
         {/* Mobile-only: pill search bar with slide-in fixed pinning */}
         <MobileShopStickySearch initialValue={search} />
         {/* Floating Sort + Filter (fixed above bottom nav) */}
