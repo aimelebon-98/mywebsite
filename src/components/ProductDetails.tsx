@@ -210,7 +210,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
 
   const buildShareMessage = () => {
     const url = typeof window !== "undefined" ? window.location.href : "";
-    const priceLine = displayPrice ? `\n\n${isFr ? "Prix" : "Price"}: ${displayPrice}` : "";
+    const priceLine = price ? `\n\n${isFr ? "Prix" : "Price"}: ${formatPrice(price)}` : "";
     const descLine = shortDesc ? `\n\n${shortDesc}` : "";
     return `${displayName}${descLine}${priceLine}\n\n${url}`;
   };
