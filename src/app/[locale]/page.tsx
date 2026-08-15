@@ -15,6 +15,8 @@ import { db } from "@/db";
 import { categories as categoriesTable, products as productsTable, settings as settingsTable, type Product } from "@/db/schema";
 import { eq, asc } from "drizzle-orm";
 import { CATEGORY_IMAGES, DEFAULT_CATEGORY_IMAGE } from "@/lib/category-images";
+import { getServerCountry } from "@/lib/server-currency";
+import { sortByShippingTier } from "@/lib/shipping-tier";
 
 
 
@@ -86,6 +88,12 @@ export default async function HomePage() {
         };
         return isFr ? { ...slim, name: p.nameFr || p.name, slug: p.slugFr || p.slug } : slim;
       });
+
+      // Local-first sort: visitor-country products appear before international ones.
+      // Runs once here so both desktop (HomeProducts) and mobile (MobileHomeSections) get sorted list.
+      const visitorCountry = await getServerCountry();
+      mobileProducts = sortByShippingTier(mobileProducts, visitorCountry);
+
     mobileCategories = cats.map(c => ({
       slug: c.slug, nameEn: c.nameEn, nameFr: c.nameFr,
       imageUrl: CATEGORY_IMAGES[c.slug] || DEFAULT_CATEGORY_IMAGE,
