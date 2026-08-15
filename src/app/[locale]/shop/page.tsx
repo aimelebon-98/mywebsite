@@ -343,6 +343,7 @@ export default async function ShopPage({ params, searchParams }: Props) {
             {categoryOptions.map((cat) => (
               <Link
                 key={cat.slug}
+                scroll={false}
                 href={`/${locale}/shop?category=${cat.slug}`}
                 className={`px-4 py-2 text-sm font-semibold whitespace-nowrap rounded-full transition-all ${
                   category === cat.slug
@@ -361,7 +362,7 @@ export default async function ShopPage({ params, searchParams }: Props) {
 
         {/* Mobile-only promo carousel below category chips */}
 
-        <div className="flex gap-6">
+        <div className="flex gap-6 items-start">
           <ShopSidebar
             category={category}
             search={search}
