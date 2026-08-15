@@ -20,6 +20,11 @@ import { sortByShippingTier } from "@/lib/shipping-tier";
 
 
 
+// Force dynamic rendering so cf-ipcountry header is read per-request (not cached).
+// Without this, Next.js may statically prerender the homepage and serve stale country to all visitors.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function HomePage() {
   const t = await getTranslations("home");
   const locale = await getLocale();
@@ -93,7 +98,12 @@ export default async function HomePage() {
       // Sort the FULL product pool first, THEN limit to 40 so local products always surface.
       // Runs once here so both desktop (HomeProducts) and mobile (MobileHomeSections) get sorted list.
       const visitorCountry = await getServerCountry();
+      console.log("[HOMEPAGE_SORT_DEBUG] visitorCountry=", visitorCountry, "totalPool=", mobileProducts.length);
+      const beforeTop5 = mobileProducts.slice(0, 5).map(p => `${p.name}[${p.originCountry}]`);
+      console.log("[HOMEPAGE_SORT_DEBUG] before sort top5=", JSON.stringify(beforeTop5));
       mobileProducts = sortByShippingTier(mobileProducts, visitorCountry).slice(0, 40);
+      const afterTop5 = mobileProducts.slice(0, 5).map(p => `${p.name}[${p.originCountry}]`);
+      console.log("[HOMEPAGE_SORT_DEBUG] after sort top5=", JSON.stringify(afterTop5));
 
     mobileCategories = cats.map(c => ({
       slug: c.slug, nameEn: c.nameEn, nameFr: c.nameFr,
