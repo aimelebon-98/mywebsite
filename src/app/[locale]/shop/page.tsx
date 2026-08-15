@@ -218,7 +218,7 @@ export default async function ShopPage({ params, searchParams }: Props) {
 
   return (
     <main className="min-h-screen bg-white">
-      <Navbar mobileTall />
+      <Navbar />
 
       <div className="hidden lg:block pt-4 lg:pt-6 relative overflow-x-clip bg-[#0a0a0a]">
         {/* Layer 1: Deep gradient base */}
