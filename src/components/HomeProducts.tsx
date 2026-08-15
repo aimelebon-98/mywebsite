@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useCurrency } from "@/lib/currency-context";
 
 import { useEffect, useState } from "react";
@@ -12,6 +12,7 @@ import Link from "next/link";
 import ProductImage from "./ProductImage";
 import { ArrowRight, Flame, Sparkles, Clock, Zap, TrendingUp, Tag } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
+import { sortByShippingTier } from "@/lib/shipping-tier";
 
 // Localize a product based on locale
 function localize(p: Product, isFr: boolean): Product {
@@ -41,7 +42,7 @@ export default function HomeProducts() {
       .then(r => r.ok ? r.json() : [])
       .then(data => {
         if (Array.isArray(data)) {
-          setAllProducts(data.map(p => localize(p, isFr)));
+          setAllProducts(sortByShippingTier(data.map(p => localize(p, isFr)), visitorCountry));
         }
       })
       .catch(() => {})
