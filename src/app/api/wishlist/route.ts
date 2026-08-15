@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { wishlist } from "@/db/schema";
-import { and, eq, sql } from "drizzle-orm";
+import { wishlist, products } from "@/db/schema";
+import { and, eq, sql, inArray } from "drizzle-orm";
 import { getCurrentCustomer } from "@/lib/customer-auth";
 
 async function ensureTable() {
@@ -17,6 +17,41 @@ async function ensureTable() {
   await db.execute(sql`ALTER TABLE wishlist ADD COLUMN IF NOT EXISTS customer_id uuid`);
 }
 
+// Filter wishlist ids to only those matching active, existing products.
+// Also opportunistically deletes stale wishlist rows (deleted / inactive products)
+// so future reads return in sync with reality.
+async function filterAndCleanValidIds(
+  rawIds: string[],
+  scope: { customerId?: string; visitorId?: string }
+): Promise<string[]> {
+  if (rawIds.length === 0) return [];
+
+  const activeRows = await db.select({ id: products.id })
+    .from(products)
+    .where(and(inArray(products.id, rawIds), eq(products.active, true)));
+  const activeSet = new Set(activeRows.map(r => r.id));
+  const validIds = rawIds.filter(id => activeSet.has(id));
+
+  const staleIds = rawIds.filter(id => !activeSet.has(id));
+  if (staleIds.length > 0) {
+    try {
+      if (scope.customerId) {
+        await db.delete(wishlist).where(and(
+          eq(wishlist.customerId, scope.customerId),
+          inArray(wishlist.productId, staleIds)
+        ));
+      } else if (scope.visitorId) {
+        await db.delete(wishlist).where(and(
+          eq(wishlist.visitorId, scope.visitorId),
+          inArray(wishlist.productId, staleIds)
+        ));
+      }
+    } catch { /* non-fatal cleanup */ }
+  }
+
+  return validIds;
+}
+
 export async function GET(req: NextRequest) {
   try {
     await ensureTable();
@@ -27,14 +62,18 @@ export async function GET(req: NextRequest) {
       const rows = await db.select({ productId: wishlist.productId })
         .from(wishlist)
         .where(eq(wishlist.customerId, customer.id));
-      return NextResponse.json({ ids: rows.map(r => r.productId) });
+      const rawIds = rows.map(r => r.productId);
+      const validIds = await filterAndCleanValidIds(rawIds, { customerId: customer.id });
+      return NextResponse.json({ ids: validIds });
     }
 
     if (!visitorId) return NextResponse.json({ ids: [] });
     const rows = await db.select({ productId: wishlist.productId })
       .from(wishlist)
       .where(eq(wishlist.visitorId, visitorId));
-    return NextResponse.json({ ids: rows.map(r => r.productId) });
+    const rawIds = rows.map(r => r.productId);
+    const validIds = await filterAndCleanValidIds(rawIds, { visitorId });
+    return NextResponse.json({ ids: validIds });
   } catch {
     return NextResponse.json({ ids: [] });
   }
