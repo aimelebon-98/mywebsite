@@ -47,7 +47,7 @@ export default async function YouMayAlsoLike({
     if (category) {
       const conditions = [
         eq(products.active, true),
-        ne(products.category, category),
+        eq(products.category, category),
       ];
       if (currentProductId) {
         conditions.push(ne(products.id, currentProductId));
@@ -113,8 +113,8 @@ export default async function YouMayAlsoLike({
       sub = t("youMayAlsoLikeDesc");
     } catch {
       sub = isFr
-        ? "D\u00e9couvrez d'autres cat\u00e9gories"
-        : "Explore different categories";
+        ? "Plus dans cette cat\u00e9gorie"
+        : "More from this category";
     }
   }
 
