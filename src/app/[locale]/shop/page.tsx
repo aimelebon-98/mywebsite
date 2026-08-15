@@ -334,7 +334,7 @@ export default async function ShopPage({ params, searchParams }: Props) {
         <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-b from-transparent to-white/5 pointer-events-none" />
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-3 pb-0 lg:py-0">
         {/* Mobile-only: pill search bar with slide-in fixed pinning */}
         <MobileShopStickySearch initialValue={search} />
         {/* Floating Sort + Filter (fixed above bottom nav) */}
@@ -411,19 +411,36 @@ export default async function ShopPage({ params, searchParams }: Props) {
             />
 
             {productList.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-5">
-                {productList.map((product) => (
-                  <ProductCard key={product.id} product={product} visitorCountry={visitorCountry} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-20 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                <div className="w-20 h-20 mx-auto mb-4 bg-white rounded-full flex items-center justify-center shadow-sm">
-                  <Package className="w-10 h-10 text-gray-300" />
+              <>
+                {/* Mobile-only section header with count pill */}
+                <div className="lg:hidden mb-4 flex items-end justify-between gap-3 min-w-0">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="w-1 h-5 rounded-full" style={{ background: "#CA3F2E" }} />
+                      <h2 className="text-base font-black text-gray-900 tracking-tight truncate">
+                        {category !== "all" ? currentCategoryName : (isFr ? "Toutes nos chaussures" : "Discover All")}
+                      </h2>
+                    </div>
+                    <p className="text-[11px] text-gray-500 font-medium pl-3">
+                      {productList.length} {isFr ? (productList.length === 1 ? "article" : "articles") : (productList.length === 1 ? "item" : "items")}
+                    </p>
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold mb-2 text-gray-900">{t("noProducts")}</h3>
-                <p className="text-gray-500 mb-6 max-w-sm mx-auto">{t("noProductsDesc")}</p>
-                <Link href={`/${locale}/shop`} className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition">
+
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-5">
+                  {productList.map((product) => (
+                    <ProductCard key={product.id} product={product} visitorCountry={visitorCountry} />
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-12 lg:py-20 px-4 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                <div className="w-16 h-16 lg:w-20 lg:h-20 mx-auto mb-3 lg:mb-4 bg-white rounded-full flex items-center justify-center shadow-sm">
+                  <Package className="w-8 h-8 lg:w-10 lg:h-10 text-gray-300" />
+                </div>
+                <h3 className="text-base lg:text-xl font-bold mb-2 text-gray-900">{t("noProducts")}</h3>
+                <p className="text-sm text-gray-500 mb-5 lg:mb-6 max-w-sm mx-auto">{t("noProductsDesc")}</p>
+                <Link href={`/${locale}/shop`} className="inline-flex items-center gap-2 px-5 lg:px-6 py-2.5 lg:py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition text-sm lg:text-base">
                   {t("clearAllFilters")}
                 </Link>
               </div>
