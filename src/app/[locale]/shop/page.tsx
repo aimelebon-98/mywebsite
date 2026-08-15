@@ -13,7 +13,6 @@ import ShopTopBar from "@/components/ShopTopBar";
 import ActiveFilterChips from "@/components/ActiveFilterChips";
 import CategoryShowcase from "@/components/CategoryShowcase";
 import MobileShopStickySearch from "@/components/MobileShopStickySearch";
-import MobilePromoCarousel from "@/components/MobilePromoCarousel";
 import SearchAutocomplete from "@/components/SearchAutocomplete";
 import RecentlyViewed from "@/components/RecentlyViewed";
 import YouMayAlsoLike from "@/components/YouMayAlsoLike";
@@ -219,7 +218,7 @@ export default async function ShopPage({ params, searchParams }: Props) {
 
   return (
     <main className="min-h-screen bg-white">
-      <div className="hidden lg:block"><Navbar /></div>
+      <Navbar mobileTall />
 
       <div className="hidden lg:block pt-4 lg:pt-6 relative overflow-x-clip bg-[#0a0a0a]">
         {/* Layer 1: Deep gradient base */}
@@ -357,16 +356,6 @@ export default async function ShopPage({ params, searchParams }: Props) {
           </div>
         </div>
       </div>
-
-      {/* Mobile-only promo carousel - edge-to-edge (outside max-w-7xl padding) */}
-      <MobilePromoCarousel products={[...productList].sort((a, b) => {
-        const aFeat = a.featured ? 1 : 0;
-        const bFeat = b.featured ? 1 : 0;
-        if (bFeat !== aFeat) return bFeat - aFeat;
-        const aDisc = a.comparePrice ? (parseFloat(a.comparePrice) - parseFloat(a.price)) / parseFloat(a.comparePrice) : 0;
-        const bDisc = b.comparePrice ? (parseFloat(b.comparePrice) - parseFloat(b.price)) / parseFloat(b.comparePrice) : 0;
-        return bDisc - aDisc;
-      }).slice(0, 6)} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 

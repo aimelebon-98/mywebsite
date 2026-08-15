@@ -17,8 +17,8 @@ const ShopMegaMenu = dynamic(() => import("@/components/ShopMegaMenu"));
 const BRAND_RED = "#CA3F2E";
 const BRAND_RED_DARK = "#8B2A1E";
 
-interface NavbarProps { noStickyMobile?: boolean }
-export default function Navbar({ noStickyMobile = false }: NavbarProps = {}) {
+interface NavbarProps { noStickyMobile?: boolean; mobileTall?: boolean }
+export default function Navbar({ noStickyMobile = false, mobileTall = false }: NavbarProps = {}) {
   const t = useTranslations("nav");
   const tCommon = useTranslations("common");
   const locale = useLocale();
@@ -203,7 +203,7 @@ export default function Navbar({ noStickyMobile = false }: NavbarProps = {}) {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className={"flex items-center justify-between gap-4 transition-all duration-300 " + (scrolled ? "h-12 lg:h-14" : "h-14 lg:h-16")}>
+        <div className={"flex items-center justify-between gap-4 transition-all duration-300 " + (scrolled ? (mobileTall ? "h-16 lg:h-14" : "h-12 lg:h-14") : (mobileTall ? "h-20 lg:h-16" : "h-14 lg:h-16"))}>
           <Link prefetch={false} href="/" className="group flex items-center gap-2.5 flex-shrink-0">
             <div className="relative w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden shadow-md group-hover:shadow-lg transition-all group-hover:scale-105"
                  style={{ background: "linear-gradient(135deg, #CA3F2E 0%, #8B2A1E 100%)" }}>
