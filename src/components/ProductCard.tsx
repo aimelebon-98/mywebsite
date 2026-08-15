@@ -81,7 +81,7 @@ export default function ProductCard({ product, badge, visitorCountry }: ProductC
   const handleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    toggle(product.id);
+    toggle(product.id, { name: product.name, priceUsd: parseFloat(product.price || "0") || undefined, brand: product.brand || undefined, category: product.category || undefined });
   };
 
   const handleQuickView = (e: React.MouseEvent) => {

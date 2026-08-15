@@ -5,9 +5,19 @@ import { useCustomer } from "@/lib/customer-context";
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 
+// Optional product meta passed from cards/buttons for richer Meta catalog events.
+// content_ids MUST match catalog feed ids (product.id UUID).
+export interface WishlistProductMeta {
+  name?: string;
+  priceUsd?: number;   // base USD (matches feed price)
+  currency?: string;   // defaults to USD (feed currency)
+  category?: string;
+  brand?: string;
+}
+
 interface WishlistContextType {
   ids: string[];
-  toggle: (productId: string) => Promise<void>;
+  toggle: (productId: string, meta?: WishlistProductMeta) => Promise<void>;
   isWished: (productId: string) => boolean;
   count: number;
   loaded: boolean;
@@ -31,7 +41,6 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   const [loaded, setLoaded] = useState(false);
   const [prevCustomerId, setPrevCustomerId] = useState<string | null>(null);
 
-  // Load wishlist from server (uses customer session cookie automatically)
   const loadWishlist = useCallback(async () => {
     const vid = getVisitorId();
     if (!vid) return;
@@ -43,7 +52,6 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     finally { setLoaded(true); }
   }, []);
 
-  // Merge guest wishlist into customer account after login
   const mergeGuestToCustomer = useCallback(async () => {
     const vid = getVisitorId();
     if (!vid) return;
@@ -57,29 +65,24 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     } catch { /* ignore */ }
   }, []);
 
-  // Initial load + reload when customer changes (login / logout)
   useEffect(() => {
     if (customerLoading) return;
 
     const currentCustomerId = customer?.id || null;
 
-    // Detect login (transition from null to customer id)
     if (currentCustomerId && !prevCustomerId) {
-      // Merge guest wishlist then reload
       mergeGuestToCustomer().then(() => loadWishlist());
     } else if (!currentCustomerId && prevCustomerId) {
-      // Logout: clear wishlist to prevent leaking between accounts
       setIds([]);
       loadWishlist();
     } else {
-      // Normal load (page refresh, no state change)
       loadWishlist();
     }
 
     setPrevCustomerId(currentCustomerId);
   }, [customer, customerLoading, prevCustomerId, loadWishlist, mergeGuestToCustomer]);
 
-  const toggle = useCallback(async (productId: string) => {
+  const toggle = useCallback(async (productId: string, meta?: WishlistProductMeta) => {
     if (typeof navigator !== "undefined" && "vibrate" in navigator) {
       try { navigator.vibrate(10); } catch {}
     }
@@ -88,9 +91,27 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     const wished = ids.includes(productId);
     if (!wished) {
       try { trackEvent({ eventType: "wishlist_add", productId }); } catch { /* ignore */ }
-      try { fbTrackAddToWishlist({ content_ids: [productId] }); } catch { /* ignore */ }
+      try {
+        // Meta AddToWishlist with catalog-matching payload (id, name, value, currency)
+        // Meta uses these to render dynamic ads showing the wished product.
+        fbTrackAddToWishlist({
+          content_ids: [productId],
+          content_type: "product",
+          content_name: meta?.name,
+          value: meta?.priceUsd,
+          currency: meta?.currency || "USD",
+        });
+      } catch { /* ignore */ }
     } else {
-      try { fbTrackCustom("WishlistRemove", { content_ids: [productId] }); } catch { /* ignore */ }
+      try {
+        fbTrackCustom("WishlistRemove", {
+          content_ids: [productId],
+          content_type: "product",
+          content_name: meta?.name,
+          value: meta?.priceUsd,
+          currency: meta?.currency || "USD",
+        });
+      } catch { /* ignore */ }
     }
     setIds(prev => wished ? prev.filter(x => x !== productId) : [...prev, productId]);
     try {
