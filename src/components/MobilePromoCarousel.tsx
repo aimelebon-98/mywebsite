@@ -25,7 +25,15 @@ interface Props {
   products: PromoProduct[];
 }
 
-const UNIFORM_BG = "linear-gradient(135deg, #0f172a 0%, #020617 100%)";
+// Rotating background gradients (one per slide index for visual variety)
+const BG_GRADIENTS = [
+  "linear-gradient(135deg, #CA3F2E 0%, #8B2A1E 100%)", // brand red
+  "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)", // navy
+  "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)", // amber
+  "linear-gradient(135deg, #475569 0%, #1e293b 100%)", // slate
+  "linear-gradient(135deg, #0d9488 0%, #0f766e 100%)", // teal
+  "linear-gradient(135deg, #db2777 0%, #9d174d 100%)", // pink
+];
 
 export default function MobilePromoCarousel({ products }: Props) {
   const locale = useLocale();
@@ -72,7 +80,7 @@ export default function MobilePromoCarousel({ products }: Props) {
   const ctaLabel = isFr ? "ACHETER" : "Shop Now";
 
   return (
-    <div className="lg:hidden w-full mb-4" style={{ background: UNIFORM_BG }}>
+    <div className="lg:hidden w-full mb-4" style={{ background: BG_GRADIENTS[slideIdx % BG_GRADIENTS.length] }}>
       <div className="relative overflow-hidden h-48 w-full min-w-0">
         <Link prefetch={false} href={s.href} className="block relative h-full w-full">
           <div className="absolute inset-0 flex items-center">
