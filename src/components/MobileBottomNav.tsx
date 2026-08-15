@@ -18,9 +18,35 @@ export default function MobileBottomNav() {
     setMounted(true);
   }, []);
 
-  // During SSR / first render: return only the spacer (no hooks used for rendering)
+  // During SSR / first render: show a FULL visible nav skeleton (no wishlist badge, no active state)
+  // This prevents the "empty white bar" flash and zero-CLS on mobile page loads.
   if (!mounted) {
-    return <div className="lg:hidden h-16" aria-hidden="true" />;
+    const skeletonItems = [
+      { Icon: Home, label: locale === "fr" ? "Accueil" : "Home" },
+      { Icon: LayoutGrid, label: locale === "fr" ? "Boutique" : "Shop" },
+      { Icon: Heart, label: locale === "fr" ? "Favoris" : "Wishlist" },
+      { Icon: ShoppingBag, label: locale === "fr" ? "Panier" : "Cart" },
+      { Icon: User, label: locale === "fr" ? "Compte" : "Account" },
+    ];
+    return (
+      <>
+        <div className="lg:hidden h-16" aria-hidden="true" />
+        <nav
+          className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40"
+          style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+          aria-hidden="true"
+        >
+          <div className="grid grid-cols-5 h-16">
+            {skeletonItems.map((item, i) => (
+              <div key={i} className="flex flex-col items-center justify-center gap-0.5 text-gray-600">
+                <item.Icon className="w-5 h-5" strokeWidth={2} />
+                <span className="text-[10px] font-medium">{item.label}</span>
+              </div>
+            ))}
+          </div>
+        </nav>
+      </>
+    );
   }
 
   // Hide on admin, checkout, cart pages

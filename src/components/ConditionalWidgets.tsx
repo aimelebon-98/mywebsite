@@ -4,9 +4,10 @@ import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import MiniCartDrawer from "@/components/MiniCartDrawer";
+import MobileBottomNav from "@/components/MobileBottomNav";
 
 const WhatsAppButton = dynamic(() => import("@/components/WhatsAppButton"));
-const MobileBottomNav = dynamic(() => import("@/components/MobileBottomNav"));
+// MobileBottomNav is now imported directly at top for zero-CLS instant render
 
 export default function ConditionalWidgets() {
   const pathname = usePathname() || "";
