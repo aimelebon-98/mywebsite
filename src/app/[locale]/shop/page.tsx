@@ -214,6 +214,11 @@ export default async function ShopPage({ params, searchParams }: Props) {
   }
 
   const visitorCountry = await getServerCountry();
+
+  // Local-first sort: products from visitor's country appear before international ones.
+  // Preserves user's chosen sort order within each tier (local group + international group).
+  productList = sortByShippingTier(productList, visitorCountry);
+
   const currentCategoryName = categoryOptions.find(c => c.slug === category)?.name || t("catAll");
   const pageTitle = category !== "all" ? currentCategoryName : t("catAll");
 
