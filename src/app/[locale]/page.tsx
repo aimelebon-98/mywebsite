@@ -65,7 +65,7 @@ export default async function HomePage() {
   let whatsapp = "";
   try {
     const [prods, cats, settingsRow] = await Promise.all([
-      db.select().from(productsTable).where(eq(productsTable.active, true)).limit(40),
+      db.select().from(productsTable).where(eq(productsTable.active, true)),
       db.select().from(categoriesTable).where(eq(categoriesTable.active, true)).orderBy(asc(categoriesTable.sortOrder)),
       db.select().from(settingsTable).limit(1),
     ]);
@@ -90,9 +90,10 @@ export default async function HomePage() {
       });
 
       // Local-first sort: visitor-country products appear before international ones.
+      // Sort the FULL product pool first, THEN limit to 40 so local products always surface.
       // Runs once here so both desktop (HomeProducts) and mobile (MobileHomeSections) get sorted list.
       const visitorCountry = await getServerCountry();
-      mobileProducts = sortByShippingTier(mobileProducts, visitorCountry);
+      mobileProducts = sortByShippingTier(mobileProducts, visitorCountry).slice(0, 40);
 
     mobileCategories = cats.map(c => ({
       slug: c.slug, nameEn: c.nameEn, nameFr: c.nameFr,
