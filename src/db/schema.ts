@@ -1,4 +1,4 @@
-﻿import { pgTable, text, numeric, integer, boolean, timestamp, uuid } from "drizzle-orm/pg-core";
+import { pgTable, text, numeric, integer, boolean, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const products = pgTable("products", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -24,6 +24,8 @@ export const products = pgTable("products", {
   images: text("images").notNull().default("[]"),
   stock: integer("stock").notNull().default(0),
   featured: boolean("featured").notNull().default(false),
+  metaEligible: boolean("meta_eligible").notNull().default(true),
+  metaExclusionReason: text("meta_exclusion_reason").default(""),
   saleEndsAt: timestamp("sale_ends_at"),
   active: boolean("active").notNull().default(true),
   rating: numeric("rating", { precision: 2, scale: 1 }).notNull().default("0"),

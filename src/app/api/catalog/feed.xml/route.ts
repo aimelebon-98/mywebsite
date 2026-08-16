@@ -1,8 +1,8 @@
-﻿// route: catalog/feed.xml (cache bust 2026-08-17T00:00:00Z - locale-suffix fix)
+// route: catalog/feed.xml (Meta-eligibility filter added)
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { products } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 export const revalidate = 3600;
 export const dynamic = "force-static";
@@ -87,7 +87,11 @@ ${opts.material ? `    <g:material>${xmlEscape(opts.material)}</g:material>\n` :
 
 export async function GET() {
   try {
-    const rows = await db.select().from(products).where(eq(products.active, true));
+    // CRITICAL: filter by both active AND metaEligible
+    const rows = await db
+      .select()
+      .from(products)
+      .where(and(eq(products.active, true), eq(products.metaEligible, true)));
     const items: string[] = [];
 
     for (const p of rows) {
@@ -125,7 +129,7 @@ export async function GET() {
       const labelOrigin = (p.originCountry || "").toUpperCase();
       const labelCategory = category;
 
-      // EN variant: id MUST differ from item_group_id (Meta rule)
+      // EN variant
       items.push(buildItem({
         id: `${p.id}_en`, itemGroupId: String(p.id),
         title: enTitle, description: enDesc,
