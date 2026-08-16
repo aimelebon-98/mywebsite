@@ -687,6 +687,24 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               {/* Action Buttons */}
               <div className="space-y-3">
                 <div className="flex gap-3">
+                  <button onClick={handleBuyNow} className="flex-1 min-w-0 flex items-center justify-center gap-2 px-3 sm:px-5 py-3.5 sm:py-4 bg-gradient-to-r from-brand-600 to-brand-700 text-white rounded-2xl font-bold text-sm sm:text-base whitespace-nowrap hover:from-brand-700 hover:to-brand-800 transition-all shadow-xl shadow-brand-600/25 active:scale-[0.98]">
+                    <Zap className="w-5 h-5" /> {t("buyNow")}
+                  </button>
+                  {isFr ? (
+                    <button
+                      onClick={handleAddToCart}
+                      disabled={added}
+                      aria-label="Ajouter au panier"
+                      title="Ajouter au panier"
+                      className={`lg:hidden flex-shrink-0 w-12 sm:w-14 py-3.5 sm:py-4 flex items-center justify-center rounded-2xl transition-all active:scale-[0.96] ${added ? "bg-green-500 text-white shadow-xl shadow-green-500/25" : "border-2 border-gray-200 hover:border-[#CA3F2E] hover:bg-[#CA3F2E]/5 bg-white"}`}
+                    >
+                      {added ? <Check className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.5} /> : <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" strokeWidth={2.25} />}
+                    </button>
+                  ) : (
+                    <button onClick={handleAddToCart} disabled={added} aria-label={t("addToCart")} title={t("addToCart")} className={`flex-1 min-w-0 flex items-center justify-center gap-2 px-3 sm:px-5 py-3.5 sm:py-4 rounded-2xl font-bold text-sm sm:text-base whitespace-nowrap transition-all active:scale-[0.98] ${added ? "bg-green-500 text-white shadow-xl shadow-green-500/25" : "bg-gray-900 text-white hover:bg-gray-800 shadow-xl shadow-gray-900/25"}`}>
+                      {added ? <><Check className="w-5 h-5" /> {t("added")}</> : <><ShoppingBag className="w-5 h-5" /> {t("addToCart")}</>}
+                    </button>
+                  )}
                   {(visitorCountry === "TG" || visitorCountry === "NG") && (
                     <button
                       onClick={() => setCallModalOpen(true)}
@@ -696,12 +714,6 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                       <Phone className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" strokeWidth={2.25} />
                     </button>
                   )}
-                  <button onClick={handleBuyNow} className="flex-1 min-w-0 flex items-center justify-center gap-2 px-3 sm:px-5 py-3.5 sm:py-4 bg-gradient-to-r from-brand-600 to-brand-700 text-white rounded-2xl font-bold text-sm sm:text-base whitespace-nowrap hover:from-brand-700 hover:to-brand-800 transition-all shadow-xl shadow-brand-600/25 active:scale-[0.98]">
-                    <Zap className="w-5 h-5" /> {t("buyNow")}
-                  </button>
-                  <button onClick={handleAddToCart} disabled={added} aria-label={t("addToCart")} title={t("addToCart")} className={`flex-1 min-w-0 flex items-center justify-center gap-2 px-3 sm:px-5 py-3.5 sm:py-4 rounded-2xl font-bold text-sm sm:text-base whitespace-nowrap transition-all active:scale-[0.98] ${added ? "bg-green-500 text-white shadow-xl shadow-green-500/25" : "bg-gray-900 text-white hover:bg-gray-800 shadow-xl shadow-gray-900/25"}`}>
-                    {added ? <><Check className="w-5 h-5" /> {t("added")}</> : <><ShoppingBag className="w-5 h-5" /> {t("addToCart")}</>}
-                  </button>
                 </div>
               </div>
 
