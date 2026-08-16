@@ -1,4 +1,4 @@
-// route: catalog/feed.xml (cache bust 2026-08-11T19:15:47.7946609+00:00)
+﻿// route: catalog/feed.xml (cache bust 2026-08-17T00:00:00Z - locale-suffix fix)
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { products } from "@/db/schema";
@@ -115,20 +115,19 @@ export async function GET() {
       const mpn = p.sku || String(p.id);
       const primaryColor = colors[0]?.name || "";
 
-      // EN variant
       const enSlug = p.slug || String(p.id);
       const enTitle = (p.name || "").slice(0, 150);
       const enDesc = stripHtml(p.shortDescription || p.description || p.name || "").slice(0, 5000);
 
-      // Custom labels for Meta Product Sets / Advantage+ / DPA targeting
       const labelFeatured = p.featured === true ? "featured" : "";
       const labelPremium = priceNum > 50 ? "premium" : priceNum >= 30 ? "mid" : "starter";
       const labelSale = salePrice !== null ? "sale" : "";
       const labelOrigin = (p.originCountry || "").toUpperCase();
       const labelCategory = category;
 
+      // EN variant: id MUST differ from item_group_id (Meta rule)
       items.push(buildItem({
-        id: String(p.id), itemGroupId: String(p.id),
+        id: `${p.id}_en`, itemGroupId: String(p.id),
         title: enTitle, description: enDesc,
         link: `${SITE_URL}/en/product/${enSlug}`,
         imageLink: primaryImage, additionalImages,

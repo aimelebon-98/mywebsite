@@ -1,4 +1,4 @@
-// Meta Pixel typed helper (browser + CAPI dual-fire)
+﻿// Meta Pixel typed helper (browser + CAPI dual-fire)
 declare global {
   interface Window {
     fbq?: (...args: unknown[]) => void;
@@ -16,6 +16,41 @@ function safeCall(...args: unknown[]) {
 
 function newEventId(): string {
   return `ndz_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+// Detect current locale from URL path. Defaults to "en".
+// Matches catalog feed IDs which use format: {productId}_en or {productId}_fr
+function currentLocale(): "en" | "fr" {
+  if (typeof window === "undefined") return "en";
+  const path = window.location.pathname || "";
+  if (path.startsWith("/fr/") || path === "/fr") return "fr";
+  return "en";
+}
+
+// Suffix each content_id with current locale so pixel events match
+// the catalog feed exactly (100% match rate). Skips IDs already suffixed.
+function localizeContentIds(ids: string[]): string[] {
+  const loc = currentLocale();
+  return (ids || []).map(raw => {
+    const id = String(raw || "");
+    if (!id) return id;
+    if (id.endsWith("_en") || id.endsWith("_fr")) return id;
+    return `${id}_${loc}`;
+  });
+}
+
+// Same localization for contents[] array (used in AddToCart, Purchase, etc.)
+function localizeContents(
+  contents?: Array<{ id: string; quantity: number; item_price?: number }>
+): Array<{ id: string; quantity: number; item_price?: number }> | undefined {
+  if (!contents || contents.length === 0) return contents;
+  const loc = currentLocale();
+  return contents.map(c => {
+    const id = String(c.id || "");
+    if (!id) return c;
+    if (id.endsWith("_en") || id.endsWith("_fr")) return c;
+    return { ...c, id: `${id}_${loc}` };
+  });
 }
 
 function sendToCapi(
@@ -60,7 +95,11 @@ export interface ViewContentParams {
 }
 export function trackViewContent(p: ViewContentParams) {
   const eventId = newEventId();
-  const data = { content_type: "product", ...p };
+  const data = {
+    content_type: "product",
+    ...p,
+    content_ids: localizeContentIds(p.content_ids),
+  };
   safeCall("track", "ViewContent", data, { eventID: eventId });
   sendToCapi("ViewContent", eventId, data, __userMatch);
 }
@@ -72,7 +111,12 @@ export interface AddToCartParams {
 }
 export function trackAddToCart(p: AddToCartParams) {
   const eventId = newEventId();
-  const data = { content_type: "product", ...p };
+  const data = {
+    content_type: "product",
+    ...p,
+    content_ids: localizeContentIds(p.content_ids),
+    contents: localizeContents(p.contents),
+  };
   safeCall("track", "AddToCart", data, { eventID: eventId });
   sendToCapi("AddToCart", eventId, data, __userMatch);
 }
@@ -83,7 +127,11 @@ export interface AddToWishlistParams {
 }
 export function trackAddToWishlist(p: AddToWishlistParams) {
   const eventId = newEventId();
-  const data = { content_type: "product", ...p };
+  const data = {
+    content_type: "product",
+    ...p,
+    content_ids: localizeContentIds(p.content_ids),
+  };
   safeCall("track", "AddToWishlist", data, { eventID: eventId });
   sendToCapi("AddToWishlist", eventId, data, __userMatch);
 }
@@ -95,7 +143,12 @@ export interface InitiateCheckoutParams {
 }
 export function trackInitiateCheckout(p: InitiateCheckoutParams) {
   const eventId = newEventId();
-  const data = { content_type: "product", ...p };
+  const data = {
+    content_type: "product",
+    ...p,
+    content_ids: localizeContentIds(p.content_ids),
+    contents: localizeContents(p.contents),
+  };
   safeCall("track", "InitiateCheckout", data, { eventID: eventId });
   sendToCapi("InitiateCheckout", eventId, data, __userMatch);
 }
@@ -105,8 +158,12 @@ export interface AddPaymentInfoParams {
 }
 export function trackAddPaymentInfo(p: AddPaymentInfoParams) {
   const eventId = newEventId();
-  safeCall("track", "AddPaymentInfo", p, { eventID: eventId });
-  sendToCapi("AddPaymentInfo", eventId, { ...p } as Record<string, unknown>, __userMatch);
+  const data = {
+    ...p,
+    content_ids: p.content_ids ? localizeContentIds(p.content_ids) : undefined,
+  };
+  safeCall("track", "AddPaymentInfo", data, { eventID: eventId });
+  sendToCapi("AddPaymentInfo", eventId, data as Record<string, unknown>, __userMatch);
 }
 
 export interface PurchaseParams {
@@ -117,7 +174,12 @@ export interface PurchaseParams {
 }
 export function trackPurchase(p: PurchaseParams) {
   const eventId = newEventId();
-  const data = { content_type: "product", ...p };
+  const data = {
+    content_type: "product",
+    ...p,
+    content_ids: localizeContentIds(p.content_ids),
+    contents: localizeContents(p.contents),
+  };
   safeCall("track", "Purchase", data, { eventID: eventId });
   sendToCapi("Purchase", eventId, data, __userMatch);
 }
