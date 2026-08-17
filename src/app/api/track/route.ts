@@ -128,13 +128,11 @@ function detectBot(
     return { isBot: true, reason: "headless_chrome" };
   }
 
-  // 9. Facebook in-app browser with tell-tale bot signature (fake ad clicks often have these)
-  //    Real FB in-app: "FBAN/FBIOS;FBAV/[version];..." with valid version numbers
-  //    Fake: FBAV/0.0.0 or missing version
-  if (/FBAN|FBAV|Instagram/i.test(ua)) {
-    if (/FBAV\/0\.0|FBAV\/1\.0\.0[^0-9]|Instagram [0-9]{1,3}\.0\.0[^0-9]/i.test(ua)) {
-      return { isBot: true, reason: "fake_fb_inapp" };
-    }
+  // 9. Facebook in-app browser with tell-tale bot signature - MUST be inside actual FB app UA
+  //    Real FB in-app UA contains: "FBAN/FBIOS" or "FBAN/FB4A" (real installations)
+  //    Fake: FBAV appears WITHOUT FBAN prefix (impossible for real FB app)
+  if (/FBAV/i.test(ua) && !/FBAN\/(FBIOS|FB4A|MessengerForiOS)/i.test(ua)) {
+    return { isBot: true, reason: "fake_fb_inapp_no_fban" };
   }
 
   // 10. Very old / suspicious UA versions (bots often fake old versions)
