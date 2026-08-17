@@ -155,6 +155,19 @@ export async function GET(req: NextRequest) {
       .sort((a, b) => b.count - a.count)
       .slice(0, 8);
 
+    // Top countries
+    const countryMap: Record<string, Set<string>> = {};
+    current.forEach(e => {
+      const c = (e as unknown as { country?: string }).country;
+      if (!c || c.length !== 2) return;
+      if (!countryMap[c]) countryMap[c] = new Set();
+      countryMap[c].add(e.visitorId);
+    });
+    const topCountries = Object.entries(countryMap)
+      .map(([code, visitors]) => ({ code, visitors: visitors.size }))
+      .sort((a, b) => b.visitors - a.visitors)
+      .slice(0, 20);
+
     // Top pages
     const pageMap: Record<string, number> = {};
     current.forEach(e => {
@@ -217,6 +230,7 @@ export async function GET(req: NextRequest) {
       topSearches,
       topReferrers,
       topPages,
+      topCountries,
       funnel,
     });
   } catch (error) {

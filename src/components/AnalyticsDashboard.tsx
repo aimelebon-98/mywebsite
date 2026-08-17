@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { markAsInternalUser, unmarkInternalUser, resetVisitorId, checkInternalStatus } from "@/components/AnalyticsTracker";
 import { BarChart3, Users, Eye, ShoppingCart, MousePointerClick, Heart, Mail, Search, TrendingUp, TrendingDown, Minus, Download, RefreshCw, Package, BookOpen, ExternalLink , UserX, Trash2, ShieldCheck } from "lucide-react";
+import TopCountriesMap from "./TopCountriesMap";
 
 interface Kpis {
   totalEvents: number;
@@ -677,6 +678,7 @@ export default function AnalyticsDashboard() {
       <p className="text-xs text-gray-400 text-center">
         Comparisons show {data.periodLabel.toLowerCase()} vs {data.previousLabel.toLowerCase()}. Bots filtered automatically.
       </p>
+      {data.topCountries && data.topCountries.length > 0 && <TopCountriesMap data={data.topCountries} />}
     </div>
   );
 }
