@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { analyticsEvents } from "@/db/schema";
 
@@ -9,22 +9,23 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const ua = req.headers.get("user-agent") || "";
 
-    // Enhanced bot detection
     if (BOT_REGEX.test(ua) || !ua || ua.length < 20) {
       return NextResponse.json({ ok: true });
     }
 
-    // Skip admin paths at server level too (defense in depth)
     const path = body.path || "";
     if (path.startsWith("/admin") || path.startsWith("/api")) {
       return NextResponse.json({ ok: true });
     }
 
-    // Skip if visitorId looks invalid
     const visitorId = body.visitorId || "anonymous";
     if (visitorId === "anonymous" || visitorId.length < 5) {
       return NextResponse.json({ ok: true });
     }
+
+    // Cloudflare-aware country detection
+    const cfCountry = req.headers.get("cf-ipcountry") || "";
+    const country = cfCountry && cfCountry.length === 2 && cfCountry !== "XX" && cfCountry !== "T1" ? cfCountry.toUpperCase() : "";
 
     await db.insert(analyticsEvents).values({
       eventType: body.eventType || "unknown",
@@ -37,6 +38,7 @@ export async function POST(req: NextRequest) {
       visitorId,
       userAgent: ua.slice(0, 200),
       metadata: JSON.stringify(body.metadata || {}),
+      country,
     });
 
     return NextResponse.json({ ok: true });
