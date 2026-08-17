@@ -403,11 +403,11 @@ export default function AnalyticsDashboard() {
         </div>
         <div className="mt-4 grid grid-cols-2 gap-3 text-center">
           <div className="p-3 bg-amber-50 rounded-xl">
-            <div className="text-xs text-amber-700 font-semibold">View ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ Cart</div>
+            <div className="text-xs text-amber-700 font-semibold">View {"\u2192"} Cart</div>
             <div className="text-lg font-black text-amber-900">{data.funnel.cartRate.toFixed(1)}%</div>
           </div>
           <div className="p-3 bg-red-50 rounded-xl">
-            <div className="text-xs text-red-700 font-semibold">Cart ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ Checkout</div>
+            <div className="text-xs text-red-700 font-semibold">Cart {"\u2192"} Checkout</div>
             <div className="text-lg font-black text-red-900">{data.funnel.checkoutRate.toFixed(1)}%</div>
           </div>
         </div>
