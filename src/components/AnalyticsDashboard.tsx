@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { markAsInternalUser, unmarkInternalUser, resetVisitorId, checkInternalStatus } from "@/components/AnalyticsTracker";
@@ -76,6 +76,10 @@ export default function AnalyticsDashboard() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState(7);
+  const [customStart, setCustomStart] = useState<string>("");
+  const [customEnd, setCustomEnd] = useState<string>("");
+  const [showCustomPicker, setShowCustomPicker] = useState(false);
+  const [customMode, setCustomMode] = useState(false);
   const [liveMode, setLiveMode] = useState(false);
   const [isInternal, setIsInternal] = useState(false);
   const [liveData, setLiveData] = useState<{ activeVisitors: number; recentEvents: Array<{ eventType: string; path: string; productName?: string | null; searchQuery?: string | null; createdAt: string; visitorId: string }> } | null>(null);
@@ -83,14 +87,17 @@ export default function AnalyticsDashboard() {
   const load = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/analytics?days=${range}`);
+      const url = customMode && customStart && customEnd
+        ? `/api/admin/analytics?startDate=${customStart}&endDate=${customEnd}`
+        : `/api/admin/analytics?days=${range}`;
+      const res = await fetch(url);
       const json = await res.json();
       setData(json);
     } catch { /* ignore */ }
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, [range]);
+  useEffect(() => { load(); }, [range, customMode, customStart, customEnd]);
 
   useEffect(() => { setIsInternal(checkInternalStatus()); }, []);
 
@@ -396,11 +403,11 @@ export default function AnalyticsDashboard() {
         </div>
         <div className="mt-4 grid grid-cols-2 gap-3 text-center">
           <div className="p-3 bg-amber-50 rounded-xl">
-            <div className="text-xs text-amber-700 font-semibold">View Ã¢â€ â€™ Cart</div>
+            <div className="text-xs text-amber-700 font-semibold">View ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ Cart</div>
             <div className="text-lg font-black text-amber-900">{data.funnel.cartRate.toFixed(1)}%</div>
           </div>
           <div className="p-3 bg-red-50 rounded-xl">
-            <div className="text-xs text-red-700 font-semibold">Cart Ã¢â€ â€™ Checkout</div>
+            <div className="text-xs text-red-700 font-semibold">Cart ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ Checkout</div>
             <div className="text-lg font-black text-red-900">{data.funnel.checkoutRate.toFixed(1)}%</div>
           </div>
         </div>
@@ -691,6 +698,119 @@ export default function AnalyticsDashboard() {
         Comparisons show {data.periodLabel.toLowerCase()} vs {data.previousLabel.toLowerCase()}. Bots filtered automatically.
       </p>
       {((data.topCountries?.length ?? 0) > 0 || (data.topCities?.length ?? 0) > 0) && <TopCountriesMap countries={data.topCountries || []} cities={data.topCities || []} />}
+
+      {/* Custom Date Range Modal */}
+      {showCustomPicker && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowCustomPicker(false)}
+        >
+          <div
+            className="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-orange-600" />
+                Custom Date Range
+              </h3>
+              <button
+                onClick={() => setShowCustomPicker(false)}
+                className="text-gray-400 hover:text-gray-700 text-2xl leading-none"
+                aria-label="Close"
+              >
+                {"\u00d7"}
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Start Date</label>
+                <input
+                  type="date"
+                  value={customStart}
+                  onChange={(e) => setCustomStart(e.target.value)}
+                  max={customEnd || new Date().toISOString().slice(0, 10)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5">End Date</label>
+                <input
+                  type="date"
+                  value={customEnd}
+                  onChange={(e) => setCustomEnd(e.target.value)}
+                  min={customStart}
+                  max={new Date().toISOString().slice(0, 10)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
+                />
+              </div>
+
+              <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100">
+                <span className="text-xs text-gray-500 w-full">Quick select:</span>
+                {[
+                  { label: "Yesterday", days: 1, offset: 1 },
+                  { label: "Last 7 days", days: 7, offset: 1 },
+                  { label: "Last 14 days", days: 14, offset: 1 },
+                  { label: "Last month", days: 30, offset: 1 },
+                  { label: "This month", days: -1, offset: 0 },
+                  { label: "Last 90 days", days: 90, offset: 1 },
+                ].map((preset) => (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    onClick={() => {
+                      const now = new Date();
+                      let start: Date;
+                      let end: Date;
+                      if (preset.days === -1) {
+                        start = new Date(now.getFullYear(), now.getMonth(), 1);
+                        end = now;
+                      } else {
+                        end = new Date(now);
+                        end.setDate(end.getDate() - preset.offset);
+                        start = new Date(end);
+                        start.setDate(start.getDate() - preset.days + 1);
+                      }
+                      setCustomStart(start.toISOString().slice(0, 10));
+                      setCustomEnd(end.toISOString().slice(0, 10));
+                    }}
+                    className="px-2.5 py-1 text-xs bg-gray-100 hover:bg-orange-100 hover:text-orange-700 rounded-md transition"
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-2 mt-6">
+              <button
+                onClick={() => {
+                  setCustomMode(false);
+                  setCustomStart("");
+                  setCustomEnd("");
+                  setShowCustomPicker(false);
+                }}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 transition"
+              >
+                Reset
+              </button>
+              <button
+                onClick={() => {
+                  if (customStart && customEnd) {
+                    setCustomMode(true);
+                    setShowCustomPicker(false);
+                  }
+                }}
+                disabled={!customStart || !customEnd}
+                className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-semibold hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                Apply
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
