@@ -1,8 +1,8 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { markAsInternalUser, unmarkInternalUser, resetVisitorId, checkInternalStatus } from "@/components/AnalyticsTracker";
-import { BarChart3, Users, Eye, ShoppingCart, MousePointerClick, Heart, Mail, Search, TrendingUp, TrendingDown, Minus, Download, RefreshCw, Package, BookOpen, ExternalLink , UserX, Trash2, ShieldCheck } from "lucide-react";
+import { BarChart3, Users, Eye, ShoppingCart, MousePointerClick, Heart, Mail, Search, TrendingUp, TrendingDown, Minus, Download, RefreshCw, Package, BookOpen, ExternalLink , UserX, Trash2, ShieldCheck, Calendar } from "lucide-react";
 import TopCountriesMap from "./TopCountriesMap";
 
 interface Kpis {
