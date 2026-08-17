@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { markAsInternalUser, unmarkInternalUser, resetVisitorId, checkInternalStatus } from "@/components/AnalyticsTracker";
@@ -204,6 +204,16 @@ export default function AnalyticsDashboard() {
                 {r.label}
               </button>
             ))}
+            <button
+              onClick={() => setShowCustomPicker(true)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1 ${
+                customMode ? "bg-orange-500 text-white shadow-sm" : "text-gray-600 hover:text-gray-900"
+              }`}
+              title="Custom date range"
+            >
+              <Calendar className="w-3 h-3" />
+              Custom
+            </button>
           </div>
           <button
             onClick={() => setLiveMode(!liveMode)}
@@ -310,16 +320,6 @@ export default function AnalyticsDashboard() {
             </div>
           );
         })}
-            <button
-              onClick={() => setShowCustomPicker(true)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1 ${
-                customMode ? "bg-orange-500 text-white shadow-sm" : "text-gray-600 hover:text-gray-900"
-              }`}
-              title="Custom date range"
-            >
-              <Calendar className="w-3 h-3" />
-              Custom
-            </button>
       </div>
 
       {/* Live Activity Feed - only shown when live mode is ON */}
