@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { markAsInternalUser, unmarkInternalUser, resetVisitorId, checkInternalStatus } from "@/components/AnalyticsTracker";
@@ -32,6 +32,7 @@ interface AnalyticsData {
   topSearches: Array<{ query: string; count: number }>;
   topReferrers: Array<{ domain: string; count: number }>;
   topPages: Array<{ path: string; views: number }>;
+  topCountries: Array<{ code: string; visitors: number }>;
   funnel: {
     visitors: number;
     productViews: number;
@@ -384,11 +385,11 @@ export default function AnalyticsDashboard() {
         </div>
         <div className="mt-4 grid grid-cols-2 gap-3 text-center">
           <div className="p-3 bg-amber-50 rounded-xl">
-            <div className="text-xs text-amber-700 font-semibold">View → Cart</div>
+            <div className="text-xs text-amber-700 font-semibold">View â†’ Cart</div>
             <div className="text-lg font-black text-amber-900">{data.funnel.cartRate.toFixed(1)}%</div>
           </div>
           <div className="p-3 bg-red-50 rounded-xl">
-            <div className="text-xs text-red-700 font-semibold">Cart → Checkout</div>
+            <div className="text-xs text-red-700 font-semibold">Cart â†’ Checkout</div>
             <div className="text-lg font-black text-red-900">{data.funnel.checkoutRate.toFixed(1)}%</div>
           </div>
         </div>
