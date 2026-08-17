@@ -59,13 +59,39 @@ export async function GET(req: NextRequest) {
   }
 
 
-  const now = new Date();
-  const currentStart = new Date(now);
-  currentStart.setDate(currentStart.getDate() - (days - 1));
-  currentStart.setHours(0, 0, 0, 0);
+  // Custom date range support
+  const startParam = searchParams.get("startDate");
+  const endParam = searchParams.get("endDate");
+  const isCustom = !!(startParam && endParam);
 
-  const previousStart = new Date(currentStart);
-  previousStart.setDate(previousStart.getDate() - days);
+  let currentStart: Date;
+  let currentEnd: Date;
+  let previousStart: Date;
+  let previousEnd: Date;
+  let effectiveDays = days;
+  let customLabel = "";
+  let customPrevLabel = "";
+
+  if (isCustom) {
+    currentStart = new Date(startParam + "T00:00:00.000Z");
+    currentEnd = new Date(endParam + "T23:59:59.999Z");
+    const msRange = currentEnd.getTime() - currentStart.getTime();
+    effectiveDays = Math.max(1, Math.ceil(msRange / (24 * 60 * 60 * 1000)));
+    previousEnd = new Date(currentStart.getTime() - 1);
+    previousStart = new Date(previousEnd.getTime() - msRange);
+    const fmt = (d: Date) => d.toISOString().slice(0, 10);
+    customLabel = `${fmt(currentStart)} to ${fmt(currentEnd)}`;
+    customPrevLabel = `${fmt(previousStart)} to ${fmt(previousEnd)}`;
+  } else {
+    const now = new Date();
+    currentStart = new Date(now);
+    currentStart.setDate(currentStart.getDate() - (days - 1));
+    currentStart.setHours(0, 0, 0, 0);
+    currentEnd = now;
+    previousStart = new Date(currentStart);
+    previousStart.setDate(previousStart.getDate() - days);
+    previousEnd = new Date(currentStart);
+  }
 
   try {
     // Fetch current period
@@ -82,7 +108,7 @@ export async function GET(req: NextRequest) {
       .from(analyticsEvents)
       .where(and(
         gte(analyticsEvents.createdAt, previousStart),
-        lt(analyticsEvents.createdAt, currentStart)
+        lt(analyticsEvents.createdAt, previousEnd)
       ))
       .limit(50000);
 
