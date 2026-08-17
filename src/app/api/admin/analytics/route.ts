@@ -158,7 +158,9 @@ export async function GET(req: NextRequest) {
     // Top countries
     const countryMap: Record<string, Set<string>> = {};
     current.forEach(e => {
-      const c = (e as unknown as { country?: string }).country;
+      const ev = e as unknown as { country?: string; isBot?: boolean };
+      if (ev.isBot) return;
+      const c = ev.country;
       if (!c || c.length !== 2) return;
       if (!countryMap[c]) countryMap[c] = new Set();
       countryMap[c].add(e.visitorId);
@@ -167,6 +169,23 @@ export async function GET(req: NextRequest) {
       .map(([code, visitors]) => ({ code, visitors: visitors.size }))
       .sort((a, b) => b.visitors - a.visitors)
       .slice(0, 20);
+
+    // Top cities
+    const cityMap: Record<string, { city: string; country: string; visitors: Set<string> }> = {};
+    current.forEach(e => {
+      const ev = e as unknown as { city?: string; country?: string; isBot?: boolean };
+      if (ev.isBot) return;
+      const city = ev.city;
+      const country = ev.country || "";
+      if (!city || city.length < 2) return;
+      const key = `|`;
+      if (!cityMap[key]) cityMap[key] = { city, country, visitors: new Set() };
+      cityMap[key].visitors.add(e.visitorId);
+    });
+    const topCities = Object.values(cityMap)
+      .map(c => ({ city: c.city, country: c.country, visitors: c.visitors.size }))
+      .sort((a, b) => b.visitors - a.visitors)
+      .slice(0, 15);
 
     // Top pages
     const pageMap: Record<string, number> = {};
@@ -231,6 +250,7 @@ export async function GET(req: NextRequest) {
       topReferrers,
       topPages,
       topCountries,
+      topCities,
       funnel,
     });
   } catch (error) {
