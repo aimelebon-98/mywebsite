@@ -194,7 +194,7 @@ export async function GET(req: NextRequest) {
     const topCountries = Object.entries(countryMap)
       .map(([code, visitors]) => ({ code, visitors: visitors.size }))
       .sort((a, b) => b.visitors - a.visitors)
-      .slice(0, 20);
+      .slice(0, 30);
 
     // Top cities
     const cityMap: Record<string, { city: string; country: string; visitors: Set<string> }> = {};
@@ -211,7 +211,7 @@ export async function GET(req: NextRequest) {
     const topCities = Object.values(cityMap)
       .map(c => ({ city: c.city, country: c.country, visitors: c.visitors.size }))
       .sort((a, b) => b.visitors - a.visitors)
-      .slice(0, 15);
+      .slice(0, 30);
 
     // Top pages
     const pageMap: Record<string, number> = {};

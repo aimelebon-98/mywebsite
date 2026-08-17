@@ -24,7 +24,7 @@ const BEHAVIOR_TTL = 30 * 60 * 1000; // 30 min
 // Geo cache
 type GeoData = { country: string; region: string; city: string };
 const geoCache = new Map<string, { data: GeoData; expiresAt: number }>();
-const GEO_TTL = 60 * 60 * 1000;
+const GEO_TTL = 10 * 60 * 1000; // 10 min TTL
 
 function hashIp(ip: string): string {
   return crypto.createHash("sha256").update(ip + "ndz-salt-v1").digest("hex").slice(0, 32);
@@ -57,7 +57,8 @@ function checkRateLimit(ipHash: string): boolean {
 
 async function lookupGeo(visitorId: string, ip: string, cfCountry: string): Promise<GeoData> {
   const cached = geoCache.get(visitorId);
-  if (cached && cached.expiresAt > Date.now()) return cached.data;
+  // Only use cache if it has a city (otherwise re-lookup)
+  if (cached && cached.expiresAt > Date.now() && cached.data.city) return cached.data;
   const fallback: GeoData = { country: cfCountry || "", region: "", city: "" };
   if (!ip || ip === "0.0.0.0") {
     geoCache.set(visitorId, { data: fallback, expiresAt: Date.now() + GEO_TTL });
@@ -79,10 +80,12 @@ async function lookupGeo(visitorId: string, ip: string, cfCountry: string): Prom
       region: (data.region || "").slice(0, 100),
       city: (data.city || "").slice(0, 100),
     };
-    geoCache.set(visitorId, { data: geo, expiresAt: Date.now() + GEO_TTL });
+    // Only cache if we got a proper city (don't cache failures so retry works)
+    if (geo.city) {
+      geoCache.set(visitorId, { data: geo, expiresAt: Date.now() + GEO_TTL });
+    }
     return geo;
   } catch {
-    geoCache.set(visitorId, { data: fallback, expiresAt: Date.now() + GEO_TTL });
     return fallback;
   }
 }

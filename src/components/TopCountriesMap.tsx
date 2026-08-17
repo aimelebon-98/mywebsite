@@ -164,8 +164,8 @@ export default function TopCountriesMap({
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1">
             <Globe className="w-3 h-3" /> Top Countries
           </div>
-          <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1">
-            {countries.slice(0, 15).map(country => {
+          <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
+            {countries.slice(0, 30).map(country => {
               const pct = max > 0 ? (country.visitors / max) * 100 : 0;
               return (
                 <div key={country.code} className="group">
@@ -200,7 +200,7 @@ export default function TopCountriesMap({
             <MapPin className="w-3 h-3" /> Top Cities
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {cities.slice(0, 15).map((c, idx) => {
+            {cities.slice(0, 30).map((c, idx) => {
               const pct = maxCity > 0 ? (c.visitors / maxCity) * 100 : 0;
               return (
                 <div key={`${c.city}-${c.country}-${idx}`} className="min-w-0 p-3 rounded-lg border border-slate-100 hover:border-orange-200 hover:bg-orange-50/30 transition">
