@@ -188,7 +188,7 @@ export default function AnalyticsDashboard() {
             Analytics Dashboard
           </h2>
           <p className="text-sm text-gray-500 mt-0.5">
-            <span className="font-semibold text-gray-700">{data.periodLabel}</span> vs <span className="text-gray-500">{data.previousLabel}</span>
+            <span className="font-semibold text-gray-700">{data.periodLabel}</span>{data.previousLabel && (<> vs <span className="text-gray-500">{data.previousLabel}</span></>)}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
@@ -315,7 +315,7 @@ export default function AnalyticsDashboard() {
               <div className="text-2xl font-black text-gray-900">{value.toLocaleString()}</div>
               <div className="text-xs text-gray-500 font-medium mb-1">{kpi.label}</div>
               <div className="text-[10px] text-gray-400">
-                vs <span className="font-semibold">{prevValue.toLocaleString()}</span> {data.previousLabel.toLowerCase()}
+                vs <span className="font-semibold">{prevValue.toLocaleString()}</span> prior period
               </div>
             </div>
           );
@@ -695,7 +695,7 @@ export default function AnalyticsDashboard() {
       </div>
 
       <p className="text-xs text-gray-400 text-center">
-        Comparisons show {data.periodLabel.toLowerCase()} vs {data.previousLabel.toLowerCase()}. Bots filtered automatically.
+        Comparisons show current period vs previous period. Bots filtered automatically.
       </p>
       {((data.topCountries?.length ?? 0) > 0 || (data.topCities?.length ?? 0) > 0) && <TopCountriesMap countries={data.topCountries || []} cities={data.topCities || []} />}
 
