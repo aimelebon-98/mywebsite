@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { analyticsEvents, newsletter } from "@/db/schema";
 import { and, gte, lt, desc, sql } from "drizzle-orm";
@@ -204,7 +204,7 @@ export async function GET(req: NextRequest) {
       const city = ev.city;
       const country = ev.country || "";
       if (!city || city.length < 2) return;
-      const key = `|`;
+      const key = `${city}|${country}`;
       if (!cityMap[key]) cityMap[key] = { city, country, visitors: new Set() };
       cityMap[key].visitors.add(e.visitorId);
     });

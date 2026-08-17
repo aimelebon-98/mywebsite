@@ -132,7 +132,7 @@ async function lookupGeo(ip: string, cfCountry: string): Promise<GeoData> {
 }
 
 function detectBot(ua: string, path: string, acceptLang: string): { isBot: boolean; reason: string } {
-  if (!ua || ua.length < 20) return { isBot: true, reason: "ua_missing" };
+  if (!ua || ua.length < 10) return { isBot: true, reason: "ua_missing" };
   if (BOT_REGEX.test(ua)) return { isBot: true, reason: "ua_bot_signature" };
   const hasBrowserToken = /Mozilla|Chrome|Safari|Firefox|Edge|Opera|Chromium/i.test(ua);
   if (!hasBrowserToken) return { isBot: true, reason: "no_browser_token" };
@@ -140,7 +140,6 @@ function detectBot(ua: string, path: string, acceptLang: string): { isBot: boole
   if (path.match(/\.php|wp-admin|\.env|xmlrpc|\.git|phpmyadmin|wp-login|xmlrpc\.php|\.htaccess|\.ssh|\.aws|config\.json/i)) {
     return { isBot: true, reason: "vuln_scan_path" };
   }
-  if (!acceptLang || acceptLang.length < 2) return { isBot: true, reason: "no_accept_language" };
   if (/HeadlessChrome|Chrome-Lighthouse|Chrome\/[\d.]+ Safari.*HeadlessChrome/i.test(ua)) {
     return { isBot: true, reason: "headless_chrome" };
   }
