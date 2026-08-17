@@ -189,9 +189,9 @@ export default function AnalyticsDashboard() {
             {RANGES.map(r => (
               <button
                 key={r.days}
-                onClick={() => setRange(r.days)}
+                onClick={() => { setRange(r.days); setCustomMode(false); }}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                  range === r.days ? "bg-white text-gray-900 shadow-sm" : "text-gray-600 hover:text-gray-900"
+                  (!customMode && range === r.days) ? "bg-white text-gray-900 shadow-sm" : "text-gray-600 hover:text-gray-900"
                 }`}
               >
                 {r.label}
@@ -303,6 +303,16 @@ export default function AnalyticsDashboard() {
             </div>
           );
         })}
+            <button
+              onClick={() => setShowCustomPicker(true)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1 ${
+                customMode ? "bg-orange-500 text-white shadow-sm" : "text-gray-600 hover:text-gray-900"
+              }`}
+              title="Custom date range"
+            >
+              <Calendar className="w-3 h-3" />
+              Custom
+            </button>
       </div>
 
       {/* Live Activity Feed - only shown when live mode is ON */}
@@ -386,11 +396,11 @@ export default function AnalyticsDashboard() {
         </div>
         <div className="mt-4 grid grid-cols-2 gap-3 text-center">
           <div className="p-3 bg-amber-50 rounded-xl">
-            <div className="text-xs text-amber-700 font-semibold">View â†’ Cart</div>
+            <div className="text-xs text-amber-700 font-semibold">View Ã¢â€ â€™ Cart</div>
             <div className="text-lg font-black text-amber-900">{data.funnel.cartRate.toFixed(1)}%</div>
           </div>
           <div className="p-3 bg-red-50 rounded-xl">
-            <div className="text-xs text-red-700 font-semibold">Cart â†’ Checkout</div>
+            <div className="text-xs text-red-700 font-semibold">Cart Ã¢â€ â€™ Checkout</div>
             <div className="text-lg font-black text-red-900">{data.funnel.checkoutRate.toFixed(1)}%</div>
           </div>
         </div>

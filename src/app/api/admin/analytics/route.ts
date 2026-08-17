@@ -72,7 +72,7 @@ export async function GET(req: NextRequest) {
     const current = await db
       .select()
       .from(analyticsEvents)
-      .where(and(gte(analyticsEvents.createdAt, currentStart)))
+      .where(and(gte(analyticsEvents.createdAt, currentStart), lt(analyticsEvents.createdAt, currentEnd)))
       .orderBy(desc(analyticsEvents.createdAt))
       .limit(50000);
 
@@ -217,7 +217,7 @@ export async function GET(req: NextRequest) {
       totalSubscribers = Number(total?.c || 0);
       const [curr] = await db.select({ c: sql<number>`count(*)` }).from(newsletter).where(gte(newsletter.createdAt, currentStart));
       currentSubs = Number(curr?.c || 0);
-      const [prev] = await db.select({ c: sql<number>`count(*)` }).from(newsletter).where(and(gte(newsletter.createdAt, previousStart), lt(newsletter.createdAt, currentStart)));
+      const [prev] = await db.select({ c: sql<number>`count(*)` }).from(newsletter).where(and(gte(newsletter.createdAt, previousStart), lt(newsletter.createdAt, previousEnd)));
       previousSubs = Number(prev?.c || 0);
     } catch { /* newsletter table might lack createdAt */ }
 
@@ -235,9 +235,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       totalSubscribers,
       ok: true,
-      days,
-      periodLabel: days === 1 ? "Today" : days === 7 ? "This week" : days === 30 ? "This month" : days === 90 ? "Last 90 days" : `Last ${days} days`,
-      previousLabel: days === 1 ? "Yesterday" : days === 7 ? "Last week" : days === 30 ? "Last month" : `Previous ${days} days`,
+      days: effectiveDays,
+      isCustom,
+      periodLabel: isCustom ? customLabel : (days === 1 ? "Today" : days === 7 ? "This week" : days === 30 ? "This month" : days === 90 ? "Last 90 days" : `Last ${days} days`),
+      previousLabel: isCustom ? customPrevLabel : (days === 1 ? "Yesterday" : days === 7 ? "Last week" : days === 30 ? "Last month" : `Previous ${days} days`),
       kpis,
       previousKpis,
       changes,
