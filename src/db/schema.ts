@@ -1,4 +1,4 @@
-import { pgTable, text, numeric, integer, boolean, timestamp, uuid } from "drizzle-orm/pg-core";
+﻿import { pgTable, text, numeric, integer, boolean, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const products = pgTable("products", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -274,6 +274,7 @@ export const analyticsEvents = pgTable("analytics_events", {
   searchQuery: text("search_query"),
   referrer: text("referrer").default(""),
   visitorId: text("visitor_id").notNull().default(""),
+  country: text("country").default(""),
   userAgent: text("user_agent").default(""),
   metadata: text("metadata").default("{}"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
