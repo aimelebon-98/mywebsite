@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
-import { Globe } from "lucide-react";
+import { Globe, MapPin } from "lucide-react";
 
 const GEO_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
@@ -26,7 +26,6 @@ const COUNTRY_NAMES: Record<string, string> = {
   IL: "Israel", AR: "Argentina", CL: "Chile", CO: "Colombia", PE: "Peru",
 };
 
-// ISO-2 -> ISO Numeric mapping for world-atlas
 const ISO2_TO_NUM: Record<string, string> = {
   NG: "566", GH: "288", KE: "404", ZA: "710", BJ: "204", BF: "854", CI: "384",
   GW: "624", ML: "466", NE: "562", SN: "686", TG: "768", CM: "120", CD: "180",
@@ -49,30 +48,33 @@ function codeToEmoji(code: string): string {
   return String.fromCodePoint(A + code.charCodeAt(0) - base) + String.fromCodePoint(A + code.charCodeAt(1) - base);
 }
 
-interface CountryData {
-  code: string;
-  visitors: number;
-}
+interface CountryData { code: string; visitors: number }
+interface CityData { city: string; country: string; visitors: number }
 
-export default function TopCountriesMap({ data }: { data: CountryData[] }) {
+export default function TopCountriesMap({
+  countries,
+  cities
+}: {
+  countries: CountryData[];
+  cities: CityData[];
+}) {
   const { visitsByNumId, max, total } = useMemo(() => {
     const map: Record<string, number> = {};
     let m = 0;
     let t = 0;
-    data.forEach(d => {
+    countries.forEach(d => {
       const num = ISO2_TO_NUM[d.code];
       if (num) map[num] = d.visitors;
       if (d.visitors > m) m = d.visitors;
       t += d.visitors;
     });
     return { visitsByNumId: map, max: m, total: t };
-  }, [data]);
+  }, [countries]);
 
   function getColor(numId: string): string {
     const v = visitsByNumId[numId] || 0;
     if (v === 0) return "#f1f5f9";
     const intensity = Math.min(1, v / max);
-    // Orange gradient matching brand
     if (intensity > 0.75) return "#c2410c";
     if (intensity > 0.5) return "#ea580c";
     if (intensity > 0.25) return "#fb923c";
@@ -80,15 +82,17 @@ export default function TopCountriesMap({ data }: { data: CountryData[] }) {
     return "#fed7aa";
   }
 
-  if (data.length === 0) {
+  const maxCity = cities.length > 0 ? cities[0].visitors : 1;
+
+  if (countries.length === 0 && cities.length === 0) {
     return (
       <div className="bg-white rounded-xl border border-slate-200 p-6 mt-6">
         <div className="flex items-center gap-2 mb-4">
           <Globe className="w-5 h-5 text-orange-600" />
-          <h3 className="text-lg font-bold text-slate-900">Top Visitor Countries</h3>
+          <h3 className="text-lg font-bold text-slate-900">Visitor Geography</h3>
         </div>
         <div className="text-center py-12 text-slate-400 text-sm">
-          No country data yet. Country tracking starts capturing on new visits.
+          No geographic data yet. Data starts capturing on new visits (bots excluded).
         </div>
       </div>
     );
@@ -99,14 +103,14 @@ export default function TopCountriesMap({ data }: { data: CountryData[] }) {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Globe className="w-5 h-5 text-orange-600" />
-          <h3 className="text-lg font-bold text-slate-900">Top Visitor Countries</h3>
+          <h3 className="text-lg font-bold text-slate-900">Visitor Geography</h3>
         </div>
         <div className="text-xs text-slate-500">
-          {total.toLocaleString()} visits from {data.length} {data.length === 1 ? "country" : "countries"}
+          {total.toLocaleString()} visits from {countries.length} {countries.length === 1 ? "country" : "countries"}
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-[1fr_320px] gap-6">
+      <div className="grid lg:grid-cols-[1fr_320px] gap-6 mb-6">
         {/* Map */}
         <div className="min-w-0 bg-slate-50 rounded-lg overflow-hidden">
           <ComposableMap
@@ -142,7 +146,6 @@ export default function TopCountriesMap({ data }: { data: CountryData[] }) {
             </Geographies>
           </ComposableMap>
 
-          {/* Legend */}
           <div className="flex items-center justify-center gap-2 py-3 text-[10px] text-slate-500">
             <span>Less</span>
             <div className="flex gap-0.5">
@@ -156,10 +159,13 @@ export default function TopCountriesMap({ data }: { data: CountryData[] }) {
           </div>
         </div>
 
-        {/* List */}
+        {/* Countries list */}
         <div className="min-w-0">
-          <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
-            {data.slice(0, 15).map(country => {
+          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1">
+            <Globe className="w-3 h-3" /> Top Countries
+          </div>
+          <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+            {countries.slice(0, 15).map(country => {
               const pct = max > 0 ? (country.visitors / max) * 100 : 0;
               return (
                 <div key={country.code} className="group">
@@ -186,6 +192,42 @@ export default function TopCountriesMap({ data }: { data: CountryData[] }) {
           </div>
         </div>
       </div>
+
+      {/* Top Cities */}
+      {cities.length > 0 && (
+        <div className="border-t border-slate-100 pt-5">
+          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1">
+            <MapPin className="w-3 h-3" /> Top Cities
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {cities.slice(0, 15).map((c, idx) => {
+              const pct = maxCity > 0 ? (c.visitors / maxCity) * 100 : 0;
+              return (
+                <div key={`${c.city}-${c.country}-${idx}`} className="min-w-0 p-3 rounded-lg border border-slate-100 hover:border-orange-200 hover:bg-orange-50/30 transition">
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-base flex-shrink-0" aria-hidden>{codeToEmoji(c.country)}</span>
+                      <div className="min-w-0">
+                        <div className="text-sm font-semibold text-slate-900 truncate">{c.city}</div>
+                        <div className="text-[10px] text-slate-500 truncate">{COUNTRY_NAMES[c.country] || c.country}</div>
+                      </div>
+                    </div>
+                    <span className="text-sm font-bold text-orange-600 flex-shrink-0">
+                      {c.visitors}
+                    </span>
+                  </div>
+                  <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-orange-400 to-orange-600 rounded-full"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

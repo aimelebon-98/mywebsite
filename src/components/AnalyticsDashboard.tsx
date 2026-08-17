@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { markAsInternalUser, unmarkInternalUser, resetVisitorId, checkInternalStatus } from "@/components/AnalyticsTracker";
@@ -33,6 +33,7 @@ interface AnalyticsData {
   topReferrers: Array<{ domain: string; count: number }>;
   topPages: Array<{ path: string; views: number }>;
   topCountries: Array<{ code: string; visitors: number }>;
+  topCities: Array<{ city: string; country: string; visitors: number }>;
   funnel: {
     visitors: number;
     productViews: number;
@@ -679,7 +680,7 @@ export default function AnalyticsDashboard() {
       <p className="text-xs text-gray-400 text-center">
         Comparisons show {data.periodLabel.toLowerCase()} vs {data.previousLabel.toLowerCase()}. Bots filtered automatically.
       </p>
-      {data.topCountries && data.topCountries.length > 0 && <TopCountriesMap data={data.topCountries} />}
+      {((data.topCountries?.length ?? 0) > 0 || (data.topCities?.length ?? 0) > 0) && <TopCountriesMap countries={data.topCountries || []} cities={data.topCities || []} />}
     </div>
   );
 }
