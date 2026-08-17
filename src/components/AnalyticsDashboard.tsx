@@ -349,7 +349,8 @@ export default function AnalyticsDashboard() {
                 const labelMap: Record<string, string> = {
                   page_view: "viewed",
                   product_view: "viewed product",
-                  add_to_cart: "added to Cart {"\u2192"} Checkout_click: "clicked checkout",
+                  add_to_cart: "added to cart",
+                  checkout_click: "clicked checkout",
                   wishlist_add: "added to wishlist",
                   newsletter_signup: "subscribed",
                   search: "searched",
