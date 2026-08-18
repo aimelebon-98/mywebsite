@@ -1,10 +1,10 @@
-// route: catalog/feed.xml (Meta-eligibility filter added)
+// route: catalog/feed.xml - full multi-currency support (USD/EUR/GBP/NGN/GHS/XOF/KES/ZAR)
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { products } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 
-export const revalidate = 3600;
+// force-dynamic ONLY - no revalidate (revalidate conflicts with dynamic and caches the route statically)
 export const dynamic = "force-dynamic";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.newdealzone.com";
@@ -12,6 +12,39 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.newdealzone.co
 const CATEGORY_GPC: Record<string, string> = {
   sneakers: "187", running: "187", formal: "187",
   boots: "187", sandals: "187", casual: "187",
+};
+
+// Shipping country mapping - which country code to declare per currency
+const CURRENCY_COUNTRY: Record<string, string> = {
+  NGN: "NG",
+  GHS: "GH",
+  KES: "KE",
+  ZAR: "ZA",
+  XOF: "TG",
+  EUR: "FR",
+  GBP: "GB",
+  USD: "US",
+};
+
+// Supported currencies with decimals + rounding rules
+interface CurrencyMeta { decimals: number; roundTo?: number }
+const CURRENCY_META: Record<string, CurrencyMeta> = {
+  USD: { decimals: 2 },
+  EUR: { decimals: 2 },
+  GBP: { decimals: 2 },
+  NGN: { decimals: 0, roundTo: 100 },
+  GHS: { decimals: 2 },
+  XOF: { decimals: 0, roundTo: 100 },
+  KES: { decimals: 0, roundTo: 10 },
+  ZAR: { decimals: 2 },
+};
+
+const SUPPORTED_CURRENCIES = Object.keys(CURRENCY_META);
+
+// Fallback rates if exchange-rates API is down
+const FALLBACK_RATES: Record<string, number> = {
+  USD: 1, EUR: 0.92, GBP: 0.79,
+  NGN: 1500, GHS: 12.5, XOF: 600, KES: 128, ZAR: 18.5,
 };
 
 function xmlEscape(s: string | null | undefined): string {
@@ -43,6 +76,23 @@ function safeJson<T>(raw: string | null | undefined, fallback: T): T {
   try { return JSON.parse(raw) as T; } catch { return fallback; }
 }
 
+// Convert USD price to target currency
+function convertPrice(
+  usdPrice: number,
+  currency: string,
+  rates: Record<string, number>
+): string {
+  const meta = CURRENCY_META[currency] || { decimals: 2 };
+  const rate = rates[currency] || 1;
+  let converted = usdPrice * rate;
+
+  if (meta.roundTo && meta.roundTo > 1) {
+    converted = Math.round(converted / meta.roundTo) * meta.roundTo;
+  }
+
+  return converted.toFixed(meta.decimals);
+}
+
 function buildItem(opts: {
   id: string; itemGroupId: string; title: string; description: string;
   link: string; imageLink: string; additionalImages: string[];
@@ -51,6 +101,7 @@ function buildItem(opts: {
   mpn: string; material: string; color: string; sizes: string[];
   customLabel0: string; customLabel1: string; customLabel2: string;
   customLabel3: string; customLabel4: string;
+  currency: string;
 }): string {
   const sizesXml = opts.sizes.length > 0
     ? `    <g:size>${xmlEscape(opts.sizes.join(", "))}</g:size>\n`
@@ -59,6 +110,8 @@ function buildItem(opts: {
     .slice(0, 10)
     .map(url => `    <g:additional_image_link>${xmlEscape(url)}</g:additional_image_link>`)
     .join("\n");
+
+  const shippingCountry = CURRENCY_COUNTRY[opts.currency] || "NG";
 
   return `  <item>
     <g:id>${xmlEscape(opts.id)}</g:id>
@@ -78,9 +131,9 @@ ${opts.salePrice ? `    <g:sale_price>${opts.salePrice}</g:sale_price>\n` : ""} 
     <g:identifier_exists>false</g:identifier_exists>
 ${opts.customLabel0 ? `    <g:custom_label_0>${xmlEscape(opts.customLabel0)}</g:custom_label_0>\n` : ""}${opts.customLabel1 ? `    <g:custom_label_1>${xmlEscape(opts.customLabel1)}</g:custom_label_1>\n` : ""}${opts.customLabel2 ? `    <g:custom_label_2>${xmlEscape(opts.customLabel2)}</g:custom_label_2>\n` : ""}${opts.customLabel3 ? `    <g:custom_label_3>${xmlEscape(opts.customLabel3)}</g:custom_label_3>\n` : ""}${opts.customLabel4 ? `    <g:custom_label_4>${xmlEscape(opts.customLabel4)}</g:custom_label_4>\n` : ""}
 ${opts.material ? `    <g:material>${xmlEscape(opts.material)}</g:material>\n` : ""}${opts.color ? `    <g:color>${xmlEscape(opts.color)}</g:color>\n` : ""}${sizesXml}    <g:shipping>
-      <g:country>${currency === "XOF" ? "TG" : "NG"}</g:country>
+      <g:country>${shippingCountry}</g:country>
       <g:service>Standard</g:service>
-      <g:price>0 ${currency}</g:price>
+      <g:price>0 ${opts.currency}</g:price>
     </g:shipping>
   </item>`;
 }
@@ -89,35 +142,35 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const lang = (url.searchParams.get("lang") || "").toLowerCase();
   const langFilter: "en" | "fr" | "both" = lang === "en" ? "en" : lang === "fr" ? "fr" : "both";
-  const currency = (url.searchParams.get("currency") || "USD").toUpperCase();
 
-  // Fetch live exchange rates for conversion
-  let ngnRate = 1364;
-  let xofRate = 568;
+  // Validate currency param - default USD
+  const rawCurrency = (url.searchParams.get("currency") || "USD").toUpperCase();
+  const currency = SUPPORTED_CURRENCIES.includes(rawCurrency) ? rawCurrency : "USD";
+
+  // Fetch live exchange rates directly from open.er-api.com (avoid self-referencing cached route)
+  let rates: Record<string, number> = { ...FALLBACK_RATES };
   try {
-    const rateRes = await fetch("https://www.newdealzone.com/api/exchange-rates", { next: { revalidate: 3600 } });
+    const rateRes = await fetch("https://open.er-api.com/v6/latest/USD", {
+      signal: AbortSignal.timeout(5000),
+    });
     if (rateRes.ok) {
-      const rates = await rateRes.json();
-      if (rates?.rates?.NGN) ngnRate = Number(rates.rates.NGN);
-      if (rates?.rates?.XOF) xofRate = Number(rates.rates.XOF);
+      const data = await rateRes.json();
+      if (data.result === "success" && data.rates) {
+        for (const code of SUPPORTED_CURRENCIES) {
+          if (typeof data.rates[code] === "number") {
+            rates[code] = data.rates[code];
+          }
+        }
+      }
     }
-  } catch { /* fallback rates */ }
+  } catch { /* use fallback rates */ }
 
-  function convertPrice(usdPrice: number): { value: string; currency: string } {
-    if (currency === "NGN") {
-      return { value: Math.round(usdPrice * ngnRate).toString(), currency: "NGN" };
-    }
-    if (currency === "XOF") {
-      return { value: Math.round(usdPrice * xofRate).toString(), currency: "XOF" };
-    }
-    return { value: usdPrice.toFixed(2), currency: "USD" };
-  }
   try {
-    // CRITICAL: filter by both active AND metaEligible
     const rows = await db
       .select()
       .from(products)
       .where(and(eq(products.active, true), eq(products.metaEligible, true)));
+
     const items: string[] = [];
 
     for (const p of rows) {
@@ -129,14 +182,19 @@ export async function GET(req: Request) {
 
       const additionalImages = images.filter(img => img && img !== primaryImage).slice(0, 10);
       const availability = (p.stock ?? 0) > 0 ? "in stock" : "out of stock";
+
       const priceNum = Number(p.price ?? 0);
       const compareNum = p.comparePrice ? Number(p.comparePrice) : 0;
-      let regularPrice = priceNum;
-      let salePrice: number | null = null;
+      let regularUsd = priceNum;
+      let saleUsd: number | null = null;
       if (compareNum > priceNum) {
-        regularPrice = compareNum;
-        salePrice = priceNum;
+        regularUsd = compareNum;
+        saleUsd = priceNum;
       }
+
+      // Convert prices
+      const regularConverted = `${convertPrice(regularUsd, currency, rates)} ${currency}`;
+      const saleConverted = saleUsd !== null ? `${convertPrice(saleUsd, currency, rates)} ${currency}` : null;
 
       const brand = p.brand || "New Deal Zone";
       const category = p.category || "sneakers";
@@ -151,53 +209,77 @@ export async function GET(req: Request) {
 
       const labelFeatured = p.featured === true ? "featured" : "";
       const labelPremium = priceNum > 50 ? "premium" : priceNum >= 30 ? "mid" : "starter";
-      const labelSale = salePrice !== null ? "sale" : "";
+      const labelSale = saleUsd !== null ? "sale" : "";
       const labelOrigin = (p.originCountry || "").toUpperCase();
       const labelCategory = category;
 
-      // EN variant (skip if lang=fr requested)
+      // EN variant
       if (langFilter !== "fr") {
         items.push(buildItem({
-          id: `${p.id}_en`, itemGroupId: String(p.id),
-          title: enTitle, description: enDesc,
+          id: `${p.id}_en`,
+          itemGroupId: String(p.id),
+          title: enTitle,
+          description: enDesc,
           link: `${SITE_URL}/en/product/${enSlug}`,
-          imageLink: primaryImage, additionalImages,
-          availability, price: `${convertPrice(regularPrice).value} ${convertPrice(regularPrice).currency}`,
-          salePrice: salePrice !== null ? `${convertPrice(salePrice).value} ${convertPrice(salePrice).currency}` : null,
+          imageLink: primaryImage,
+          additionalImages,
+          availability,
+          price: regularConverted,
+          salePrice: saleConverted,
           brand, category, gpc, productType, mpn,
-          material: p.material || "", color: primaryColor, sizes,
-          customLabel0: labelFeatured, customLabel1: labelPremium,
-          customLabel2: "en", customLabel3: labelOrigin,
+          material: p.material || "",
+          color: primaryColor,
+          sizes,
+          customLabel0: labelFeatured,
+          customLabel1: labelPremium,
+          customLabel2: "en",
+          customLabel3: labelOrigin,
           customLabel4: labelCategory,
+          currency,
         }));
       }
 
-      // FR variant (skip if lang=en requested)
+      // FR variant
       if (langFilter !== "en" && (p.nameFr || p.slugFr)) {
         const frSlug = p.slugFr || enSlug;
         const frTitle = (p.nameFr || p.name || "").slice(0, 150);
         const frDesc = stripHtml(p.shortDescriptionFr || p.descriptionFr || p.nameFr || p.name || "").slice(0, 5000);
 
         items.push(buildItem({
-          id: `${p.id}_fr`, itemGroupId: String(p.id),
-          title: frTitle, description: frDesc,
+          id: `${p.id}_fr`,
+          itemGroupId: String(p.id),
+          title: frTitle,
+          description: frDesc,
           link: `${SITE_URL}/fr/product/${frSlug}`,
-          imageLink: primaryImage, additionalImages,
-          availability, price: `${convertPrice(regularPrice).value} ${convertPrice(regularPrice).currency}`,
-          salePrice: salePrice !== null ? `${convertPrice(salePrice).value} ${convertPrice(salePrice).currency}` : null,
+          imageLink: primaryImage,
+          additionalImages,
+          availability,
+          price: regularConverted,
+          salePrice: saleConverted,
           brand, category, gpc, productType, mpn,
-          material: p.material || "", color: primaryColor, sizes,
-          customLabel0: labelFeatured, customLabel1: labelPremium,
-          customLabel2: "fr", customLabel3: labelOrigin,
+          material: p.material || "",
+          color: primaryColor,
+          sizes,
+          customLabel0: labelFeatured,
+          customLabel1: labelPremium,
+          customLabel2: "fr",
+          customLabel3: labelOrigin,
           customLabel4: labelCategory,
+          currency,
         }));
       }
     }
 
+    const feedTitle = [
+      "New Deal Zone Product Feed",
+      langFilter === "en" ? "(English)" : langFilter === "fr" ? "(Francais)" : "",
+      currency !== "USD" ? `- ${currency}` : "",
+    ].filter(Boolean).join(" ");
+
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">
 <channel>
-  <title>New Deal Zone Product Feed${langFilter === "en" ? " (English)" : langFilter === "fr" ? " (Francais)" : ""}${currency !== "USD" ? " - " + currency : ""}</title>
+  <title>${feedTitle}</title>
   <link>${SITE_URL}</link>
   <description>Authentic footwear catalog for New Deal Zone - fast delivery across Africa</description>
 ${items.join("\n")}
@@ -208,7 +290,10 @@ ${items.join("\n")}
       status: 200,
       headers: {
         "Content-Type": "application/xml; charset=utf-8",
-        "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
+        "Cache-Control": "no-store",
+        "X-Feed-Currency": currency,
+        "X-Feed-Items": String(items.length),
+        "X-Feed-Lang": langFilter,
       },
     });
   } catch (err) {
