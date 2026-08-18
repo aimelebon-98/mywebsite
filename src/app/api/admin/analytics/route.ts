@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { analyticsEvents, newsletter } from "@/db/schema";
 import { and, gte, lt, desc, sql } from "drizzle-orm";
@@ -103,6 +103,9 @@ export async function GET(req: NextRequest) {
       .orderBy(desc(analyticsEvents.createdAt))
       .limit(50000);
 
+    // Filter out bots from human-facing analytics (KEEP bots in DB for review)
+    const humans = current.filter(e => !((e as unknown as { isBot?: boolean }).isBot));
+
     // Fetch previous period (same length window)
     const previous = await db
       .select()
@@ -116,9 +119,9 @@ export async function GET(req: NextRequest) {
     const kpis = computeKpis(current);
     const previousKpis = computeKpis(previous);
 
-    // Timeline
+    // Timeline (humans only)
     const timeline: Record<string, { visits: number; carts: number; checkouts: number }> = {};
-    current.forEach(e => {
+    humans.forEach(e => {
       const day = e.createdAt.toISOString().slice(0, 10);
       if (!timeline[day]) timeline[day] = { visits: 0, carts: 0, checkouts: 0 };
       if (e.eventType === "page_view") timeline[day].visits++;
@@ -126,9 +129,9 @@ export async function GET(req: NextRequest) {
       if (e.eventType === "checkout_click") timeline[day].checkouts++;
     });
 
-    // Top products
+    // Top products (humans only)
     const productMap: Record<string, { name: string; views: number; carts: number; checkouts: number }> = {};
-    current.forEach(e => {
+    humans.forEach(e => {
       if (!e.productId || !e.productName) return;
       if (!productMap[e.productId]) productMap[e.productId] = { name: e.productName, views: 0, carts: 0, checkouts: 0 };
       if (e.eventType === "product_view") productMap[e.productId].views++;
@@ -140,9 +143,9 @@ export async function GET(req: NextRequest) {
       .sort((a, b) => (b.views + b.carts * 3 + b.checkouts * 10) - (a.views + a.carts * 3 + a.checkouts * 10))
       .slice(0, 10);
 
-    // Top blog posts
+    // Top blog posts (humans only)
     const postMap: Record<string, { name: string; views: number }> = {};
-    current.forEach(e => {
+    humans.forEach(e => {
       if (e.eventType !== "blog_view" || !e.postId) return;
       if (!postMap[e.postId]) postMap[e.postId] = { name: e.productName || "Untitled", views: 0 };
       postMap[e.postId].views++;
@@ -152,9 +155,9 @@ export async function GET(req: NextRequest) {
       .sort((a, b) => b.views - a.views)
       .slice(0, 5);
 
-    // Top searches
+    // Top searches (humans only)
     const searchMap: Record<string, number> = {};
-    current.forEach(e => {
+    humans.forEach(e => {
       if (e.eventType !== "search" || !e.searchQuery) return;
       const q = e.searchQuery.toLowerCase().trim();
       if (!q) return;
@@ -165,10 +168,10 @@ export async function GET(req: NextRequest) {
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
 
-    // Top referrers
+    // Top referrers (humans only)
     const host = req.headers.get("host")?.replace(/^www\./, "") || "";
     const referrerMap: Record<string, number> = {};
-    current.forEach(e => {
+    humans.forEach(e => {
       if (!e.referrer) return;
       try {
         const url = new URL(e.referrer);
@@ -182,11 +185,10 @@ export async function GET(req: NextRequest) {
       .sort((a, b) => b.count - a.count)
       .slice(0, 8);
 
-    // Top countries
+    // Top countries (humans only)
     const countryMap: Record<string, Set<string>> = {};
-    current.forEach(e => {
-      const ev = e as unknown as { country?: string; isBot?: boolean };
-      if (ev.isBot) return;
+    humans.forEach(e => {
+      const ev = e as unknown as { country?: string };
       const c = ev.country;
       if (!c || c.length !== 2) return;
       if (!countryMap[c]) countryMap[c] = new Set();
@@ -197,11 +199,10 @@ export async function GET(req: NextRequest) {
       .sort((a, b) => b.visitors - a.visitors)
       .slice(0, 30);
 
-    // Top cities
+    // Top cities (humans only)
     const cityMap: Record<string, { city: string; country: string; visitors: Set<string> }> = {};
-    current.forEach(e => {
-      const ev = e as unknown as { city?: string; country?: string; isBot?: boolean };
-      if (ev.isBot) return;
+    humans.forEach(e => {
+      const ev = e as unknown as { city?: string; country?: string };
       const city = ev.city;
       const country = ev.country || "";
       if (!city || city.length < 2) return;
@@ -214,9 +215,9 @@ export async function GET(req: NextRequest) {
       .sort((a, b) => b.visitors - a.visitors)
       .slice(0, 30);
 
-    // Top pages
+    // Top pages (humans only)
     const pageMap: Record<string, number> = {};
-    current.forEach(e => {
+    humans.forEach(e => {
       if (e.eventType !== "page_view") return;
       pageMap[e.path] = (pageMap[e.path] || 0) + 1;
     });
