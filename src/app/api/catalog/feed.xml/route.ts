@@ -1,10 +1,13 @@
-// route: catalog/feed.xml - full multi-currency support (USD/EUR/GBP/NGN/GHS/XOF/KES/ZAR)
+// route: catalog/feed.xml - multi-currency + backward-compat bare-UUID mode
+// Behavior:
+//   ?lang=en           -> emits {id}_en items only
+//   ?lang=fr           -> emits {id}_fr items only
+//   (no lang param)    -> emits bare {id} items only (backward-compat with old catalog)
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { products } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 
-// force-dynamic ONLY - no revalidate (revalidate conflicts with dynamic and caches the route statically)
 export const dynamic = "force-dynamic";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.newdealzone.com";
@@ -14,19 +17,11 @@ const CATEGORY_GPC: Record<string, string> = {
   boots: "187", sandals: "187", casual: "187",
 };
 
-// Shipping country mapping - which country code to declare per currency
 const CURRENCY_COUNTRY: Record<string, string> = {
-  NGN: "NG",
-  GHS: "GH",
-  KES: "KE",
-  ZAR: "ZA",
-  XOF: "TG",
-  EUR: "FR",
-  GBP: "GB",
-  USD: "US",
+  NGN: "NG", GHS: "GH", KES: "KE", ZAR: "ZA",
+  XOF: "TG", EUR: "FR", GBP: "GB", USD: "US",
 };
 
-// Supported currencies with decimals + rounding rules
 interface CurrencyMeta { decimals: number; roundTo?: number }
 const CURRENCY_META: Record<string, CurrencyMeta> = {
   USD: { decimals: 2 },
@@ -38,10 +33,8 @@ const CURRENCY_META: Record<string, CurrencyMeta> = {
   KES: { decimals: 0, roundTo: 10 },
   ZAR: { decimals: 2 },
 };
-
 const SUPPORTED_CURRENCIES = Object.keys(CURRENCY_META);
 
-// Fallback rates if exchange-rates API is down
 const FALLBACK_RATES: Record<string, number> = {
   USD: 1, EUR: 0.92, GBP: 0.79,
   NGN: 1500, GHS: 12.5, XOF: 600, KES: 128, ZAR: 18.5,
@@ -50,25 +43,17 @@ const FALLBACK_RATES: Record<string, number> = {
 function xmlEscape(s: string | null | undefined): string {
   if (!s) return "";
   return String(s)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;")
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&apos;")
     .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, "");
 }
 
 function stripHtml(s: string | null | undefined): string {
   if (!s) return "";
   return String(s)
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/\s+/g, " ")
-    .trim();
+    .replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"').replace(/\s+/g, " ").trim();
 }
 
 function safeJson<T>(raw: string | null | undefined, fallback: T): T {
@@ -76,20 +61,13 @@ function safeJson<T>(raw: string | null | undefined, fallback: T): T {
   try { return JSON.parse(raw) as T; } catch { return fallback; }
 }
 
-// Convert USD price to target currency
-function convertPrice(
-  usdPrice: number,
-  currency: string,
-  rates: Record<string, number>
-): string {
+function convertPrice(usdPrice: number, currency: string, rates: Record<string, number>): string {
   const meta = CURRENCY_META[currency] || { decimals: 2 };
   const rate = rates[currency] || 1;
   let converted = usdPrice * rate;
-
   if (meta.roundTo && meta.roundTo > 1) {
     converted = Math.round(converted / meta.roundTo) * meta.roundTo;
   }
-
   return converted.toFixed(meta.decimals);
 }
 
@@ -140,14 +118,22 @@ ${opts.material ? `    <g:material>${xmlEscape(opts.material)}</g:material>\n` :
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
-  const lang = (url.searchParams.get("lang") || "").toLowerCase();
-  const langFilter: "en" | "fr" | "both" = lang === "en" ? "en" : lang === "fr" ? "fr" : "both";
+  const langParam = (url.searchParams.get("lang") || "").toLowerCase();
 
-  // Validate currency param - default USD
+  // Mode detection:
+  //   no lang param      -> "bare" mode (backward-compat, IDs unsuffixed)
+  //   lang=en            -> "en" mode
+  //   lang=fr            -> "fr" mode
+  type Mode = "bare" | "en" | "fr";
+  let mode: Mode;
+  if (langParam === "en") mode = "en";
+  else if (langParam === "fr") mode = "fr";
+  else mode = "bare";
+
   const rawCurrency = (url.searchParams.get("currency") || "USD").toUpperCase();
   const currency = SUPPORTED_CURRENCIES.includes(rawCurrency) ? rawCurrency : "USD";
 
-  // Fetch live exchange rates directly from open.er-api.com (avoid self-referencing cached route)
+  // Live rates
   let rates: Record<string, number> = { ...FALLBACK_RATES };
   try {
     const rateRes = await fetch("https://open.er-api.com/v6/latest/USD", {
@@ -163,7 +149,7 @@ export async function GET(req: Request) {
         }
       }
     }
-  } catch { /* use fallback rates */ }
+  } catch { /* use fallback */ }
 
   try {
     const rows = await db
@@ -192,7 +178,6 @@ export async function GET(req: Request) {
         saleUsd = priceNum;
       }
 
-      // Convert prices
       const regularConverted = `${convertPrice(regularUsd, currency, rates)} ${currency}`;
       const saleConverted = saleUsd !== null ? `${convertPrice(saleUsd, currency, rates)} ${currency}` : null;
 
@@ -209,12 +194,42 @@ export async function GET(req: Request) {
 
       const labelFeatured = p.featured === true ? "featured" : "";
       const labelPremium = priceNum > 50 ? "premium" : priceNum >= 30 ? "mid" : "starter";
-      const labelSale = saleUsd !== null ? "sale" : "";
       const labelOrigin = (p.originCountry || "").toUpperCase();
       const labelCategory = category;
 
-      // EN variant
-      if (langFilter !== "fr") {
+      const hasFr = !!(p.nameFr || p.slugFr);
+      const frSlug = p.slugFr || enSlug;
+      const frTitle = (p.nameFr || p.name || "").slice(0, 150);
+      const frDesc = stripHtml(p.shortDescriptionFr || p.descriptionFr || p.nameFr || p.name || "").slice(0, 5000);
+
+      // BARE mode: emit ID without suffix (backward-compat with old catalog + old pixel events)
+      if (mode === "bare") {
+        items.push(buildItem({
+          id: String(p.id),
+          itemGroupId: String(p.id),
+          title: enTitle,
+          description: enDesc,
+          link: `${SITE_URL}/en/product/${enSlug}`,
+          imageLink: primaryImage,
+          additionalImages,
+          availability,
+          price: regularConverted,
+          salePrice: saleConverted,
+          brand, category, gpc, productType, mpn,
+          material: p.material || "",
+          color: primaryColor,
+          sizes,
+          customLabel0: labelFeatured,
+          customLabel1: labelPremium,
+          customLabel2: "",
+          customLabel3: labelOrigin,
+          customLabel4: labelCategory,
+          currency,
+        }));
+      }
+
+      // EN mode: emit {id}_en
+      if (mode === "en") {
         items.push(buildItem({
           id: `${p.id}_en`,
           itemGroupId: String(p.id),
@@ -239,12 +254,8 @@ export async function GET(req: Request) {
         }));
       }
 
-      // FR variant
-      if (langFilter !== "en" && (p.nameFr || p.slugFr)) {
-        const frSlug = p.slugFr || enSlug;
-        const frTitle = (p.nameFr || p.name || "").slice(0, 150);
-        const frDesc = stripHtml(p.shortDescriptionFr || p.descriptionFr || p.nameFr || p.name || "").slice(0, 5000);
-
+      // FR mode: emit {id}_fr (only if product has FR translation)
+      if (mode === "fr" && hasFr) {
         items.push(buildItem({
           id: `${p.id}_fr`,
           itemGroupId: String(p.id),
@@ -272,7 +283,7 @@ export async function GET(req: Request) {
 
     const feedTitle = [
       "New Deal Zone Product Feed",
-      langFilter === "en" ? "(English)" : langFilter === "fr" ? "(Francais)" : "",
+      mode === "en" ? "(English)" : mode === "fr" ? "(Francais)" : "(Bare IDs)",
       currency !== "USD" ? `- ${currency}` : "",
     ].filter(Boolean).join(" ");
 
@@ -291,9 +302,9 @@ ${items.join("\n")}
       headers: {
         "Content-Type": "application/xml; charset=utf-8",
         "Cache-Control": "no-store",
+        "X-Feed-Mode": mode,
         "X-Feed-Currency": currency,
         "X-Feed-Items": String(items.length),
-        "X-Feed-Lang": langFilter,
       },
     });
   } catch (err) {
