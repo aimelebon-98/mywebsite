@@ -130,8 +130,10 @@ export async function GET(req: Request) {
   else if (langParam === "fr") mode = "fr";
   else mode = "bare";
 
-  const rawCurrency = (url.searchParams.get("currency") || "USD").toUpperCase();
-  const currency = SUPPORTED_CURRENCIES.includes(rawCurrency) ? rawCurrency : "USD";
+  // Bare mode (old catalog) defaults to NGN. Per-language modes default to USD.
+  const defaultCurrency = mode === "bare" ? "NGN" : "USD";
+  const rawCurrency = (url.searchParams.get("currency") || defaultCurrency).toUpperCase();
+  const currency = SUPPORTED_CURRENCIES.includes(rawCurrency) ? rawCurrency : defaultCurrency;
 
   // Live rates
   let rates: Record<string, number> = { ...FALLBACK_RATES };
