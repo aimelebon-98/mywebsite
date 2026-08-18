@@ -5,7 +5,7 @@ import { products } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 
 export const revalidate = 3600;
-export const dynamic = "force-static";
+export const dynamic = "force-dynamic";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.newdealzone.com";
 
@@ -85,7 +85,10 @@ ${opts.material ? `    <g:material>${xmlEscape(opts.material)}</g:material>\n` :
   </item>`;
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const lang = (url.searchParams.get("lang") || "").toLowerCase();
+  const langFilter: "en" | "fr" | "both" = lang === "en" ? "en" : lang === "fr" ? "fr" : "both";
   try {
     // CRITICAL: filter by both active AND metaEligible
     const rows = await db
@@ -129,23 +132,25 @@ export async function GET() {
       const labelOrigin = (p.originCountry || "").toUpperCase();
       const labelCategory = category;
 
-      // EN variant
-      items.push(buildItem({
-        id: `${p.id}_en`, itemGroupId: String(p.id),
-        title: enTitle, description: enDesc,
-        link: `${SITE_URL}/en/product/${enSlug}`,
-        imageLink: primaryImage, additionalImages,
-        availability, price: `${regularPrice.toFixed(2)} USD`,
-        salePrice: salePrice !== null ? `${salePrice.toFixed(2)} USD` : null,
-        brand, category, gpc, productType, mpn,
-        material: p.material || "", color: primaryColor, sizes,
-        customLabel0: labelFeatured, customLabel1: labelPremium,
-        customLabel2: labelSale, customLabel3: labelOrigin,
-        customLabel4: labelCategory,
-      }));
+      // EN variant (skip if lang=fr requested)
+      if (langFilter !== "fr") {
+        items.push(buildItem({
+          id: `${p.id}_en`, itemGroupId: String(p.id),
+          title: enTitle, description: enDesc,
+          link: `${SITE_URL}/en/product/${enSlug}`,
+          imageLink: primaryImage, additionalImages,
+          availability, price: `${regularPrice.toFixed(2)} USD`,
+          salePrice: salePrice !== null ? `${salePrice.toFixed(2)} USD` : null,
+          brand, category, gpc, productType, mpn,
+          material: p.material || "", color: primaryColor, sizes,
+          customLabel0: labelFeatured, customLabel1: labelPremium,
+          customLabel2: labelSale, customLabel3: labelOrigin,
+          customLabel4: labelCategory,
+        }));
+      }
 
-      // FR variant
-      if (p.nameFr || p.slugFr) {
+      // FR variant (skip if lang=en requested)
+      if (langFilter !== "en" && (p.nameFr || p.slugFr)) {
         const frSlug = p.slugFr || enSlug;
         const frTitle = (p.nameFr || p.name || "").slice(0, 150);
         const frDesc = stripHtml(p.shortDescriptionFr || p.descriptionFr || p.nameFr || p.name || "").slice(0, 5000);
@@ -169,7 +174,7 @@ export async function GET() {
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">
 <channel>
-  <title>New Deal Zone Product Feed</title>
+  <title>New Deal Zone Product Feed${langFilter === "en" ? " (English)" : langFilter === "fr" ? " (Francais)" : ""}</title>
   <link>${SITE_URL}</link>
   <description>Authentic footwear catalog for New Deal Zone - fast delivery across Africa</description>
 ${items.join("\n")}
