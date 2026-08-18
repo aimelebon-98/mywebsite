@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { analyticsEvents, newsletter } from "@/db/schema";
-import { and, gte, lt, desc, sql } from "drizzle-orm";
+import { and, gte, lt, desc, sql, eq } from "drizzle-orm";
 
 type EventRow = typeof analyticsEvents.$inferSelect;
 
@@ -31,12 +31,14 @@ export async function GET(req: NextRequest) {
       const active = await db
         .select()
         .from(analyticsEvents)
-        .where(gte(analyticsEvents.createdAt, fiveMinAgo));
+        .where(and(gte(analyticsEvents.createdAt, fiveMinAgo), eq(analyticsEvents.isBot, false)));
       const activeVisitors = new Set(active.map(e => e.visitorId)).size;
 
-      const recent = await db
+      // Fetch more recent events to filter and keep 15 humans
+      const recentRaw = await db
         .select()
         .from(analyticsEvents)
+        .where(eq(analyticsEvents.isBot, false))
         .orderBy(desc(analyticsEvents.createdAt))
         .limit(15);
 
@@ -44,7 +46,7 @@ export async function GET(req: NextRequest) {
         ok: true,
         live: true,
         activeVisitors,
-        recentEvents: recent.map(e => ({
+        recentEvents: recentRaw.map(e => ({
           eventType: e.eventType,
           path: e.path,
           productName: e.productName,
