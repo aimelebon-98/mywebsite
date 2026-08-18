@@ -6,17 +6,18 @@ import { and, gte, lt, desc, sql } from "drizzle-orm";
 type EventRow = typeof analyticsEvents.$inferSelect;
 
 function computeKpis(events: EventRow[]) {
+  const filtered = events.filter(e => !((e as unknown as { isBot?: boolean }).isBot));
   return {
-    uniqueVisitors: new Set(events.map(e => e.visitorId)).size,
-    pageViews: events.filter(e => e.eventType === "page_view").length,
-    productViews: events.filter(e => e.eventType === "product_view").length,
-    addToCarts: events.filter(e => e.eventType === "add_to_cart").length,
-    checkoutClicks: events.filter(e => e.eventType === "checkout_click").length,
-    wishlistAdds: events.filter(e => e.eventType === "wishlist_add").length,
-    newsletterSignups: events.filter(e => e.eventType === "newsletter_signup").length,
-    searches: events.filter(e => e.eventType === "search").length,
-    blogViews: events.filter(e => e.eventType === "blog_view").length,
-    totalEvents: events.length,
+    uniqueVisitors: new Set(filtered.map(e => e.visitorId)).size,
+    pageViews: filtered.filter(e => e.eventType === "page_view").length,
+    productViews: filtered.filter(e => e.eventType === "product_view").length,
+    addToCarts: filtered.filter(e => e.eventType === "add_to_cart").length,
+    checkoutClicks: filtered.filter(e => e.eventType === "checkout_click").length,
+    wishlistAdds: filtered.filter(e => e.eventType === "wishlist_add").length,
+    newsletterSignups: filtered.filter(e => e.eventType === "newsletter_signup").length,
+    searches: filtered.filter(e => e.eventType === "search").length,
+    blogViews: filtered.filter(e => e.eventType === "blog_view").length,
+    totalEvents: filtered.length,
   };
 }
 
