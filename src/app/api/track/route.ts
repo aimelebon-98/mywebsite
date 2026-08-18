@@ -44,16 +44,21 @@ function checkRateLimit(ipHash: string): boolean {
   return true;
 }
 
+// DATACENTER/HOSTING KEYWORDS in ISP name = bot traffic
+const DC_ISP_REGEX = /amazon|aws|google|azure|microsoft|digitalocean|digital ocean|linode|vultr|hetzner|ovh|scaleway|choopa|contabo|leaseweb|hostwinds|colocrossing|cloudflare|fastly|akamai|godaddy|namecheap|dreamhost|hostgator|liquid web|rackspace|softlayer|joe's datacenter|servers com|host europe|meta platforms|facebook|serverion|colohouse|psychz|quadranet|as-choopa|websitewelcome|bandwagon|racknerd|nforce|redstation|steadfast|singlehop|packet|equinix|coresite|switch datacenters|interxion|cyxtera|dreamhost|inmotion|midphase|surpass hosting|colombia hosting|blacknight|bluehost|globalgateway|100tb|serverpronto|ubiquity|nine internet solutions|adman|as-13335|zenlayer/i;
+
 // DUAL-API GEO LOOKUP: tries ipwho.is FIRST, ipapi.co as fallback, ip-api.com as last resort
-async function lookupGeoWithFallbacks(ip: string, cfCountry: string): Promise<GeoData> {
-  const fallback: GeoData = { country: cfCountry || "", region: "", city: "" };
+type GeoLookupResult = GeoData & { isDatacenter: boolean; isp: string };
+
+async function lookupGeoWithFallbacks(ip: string, cfCountry: string): Promise<GeoLookupResult> {
+  const fallback: GeoLookupResult = { country: cfCountry || "", region: "", city: "", isDatacenter: false, isp: "" };
   if (!ip) return fallback;
 
-  // Attempt 1: ipwho.is (primary)
+  // Attempt 1: ipwho.is (primary) - now fetches connection.isp too
   try {
     const ctl = new AbortController();
     const timeout = setTimeout(() => ctl.abort(), 2000);
-    const res = await fetch(`https://ipwho.is/${encodeURIComponent(ip)}?fields=success,country_code,region,city`, {
+    const res = await fetch(`https://ipwho.is/${encodeURIComponent(ip)}?fields=success,country_code,region,city,connection`, {
       signal: ctl.signal,
       headers: { "User-Agent": "NDZ/1.0" }
     });
@@ -61,10 +66,14 @@ async function lookupGeoWithFallbacks(ip: string, cfCountry: string): Promise<Ge
     if (res.ok) {
       const data = await res.json();
       if (data.success !== false && data.city) {
+        const isp = String(data.connection?.isp || data.connection?.org || "");
+        const isDatacenter = DC_ISP_REGEX.test(isp);
         return {
           country: (data.country_code || cfCountry || "").toUpperCase().slice(0, 2),
           region: String(data.region || "").slice(0, 100),
           city: String(data.city || "").slice(0, 100),
+          isDatacenter,
+          isp: isp.slice(0, 100),
         };
       }
     }
@@ -82,20 +91,23 @@ async function lookupGeoWithFallbacks(ip: string, cfCountry: string): Promise<Ge
     if (res.ok) {
       const data = await res.json();
       if (data && !data.error && data.city) {
+        const isp = String(data.org || data.asn || "");
         return {
           country: String(data.country_code || cfCountry || "").toUpperCase().slice(0, 2),
           region: String(data.region || "").slice(0, 100),
           city: String(data.city || "").slice(0, 100),
+          isDatacenter: DC_ISP_REGEX.test(isp),
+          isp: isp.slice(0, 100),
         };
       }
     }
   } catch { /* try next */ }
 
-  // Attempt 3: ip-api.com (last resort, HTTP only)
+  // Attempt 3: ip-api.com (last resort, HTTP only) - includes hosting detection
   try {
     const ctl = new AbortController();
     const timeout = setTimeout(() => ctl.abort(), 2000);
-    const res = await fetch(`http://ip-api.com/json/${encodeURIComponent(ip)}?fields=status,countryCode,regionName,city`, {
+    const res = await fetch(`http://ip-api.com/json/${encodeURIComponent(ip)}?fields=status,countryCode,regionName,city,isp,hosting`, {
       signal: ctl.signal,
       headers: { "User-Agent": "NDZ/1.0" }
     });
@@ -103,10 +115,13 @@ async function lookupGeoWithFallbacks(ip: string, cfCountry: string): Promise<Ge
     if (res.ok) {
       const data = await res.json();
       if (data.status === "success" && data.city) {
+        const isp = String(data.isp || "");
         return {
           country: String(data.countryCode || cfCountry || "").toUpperCase().slice(0, 2),
           region: String(data.regionName || "").slice(0, 100),
           city: String(data.city || "").slice(0, 100),
+          isDatacenter: data.hosting === true || DC_ISP_REGEX.test(isp),
+          isp: isp.slice(0, 100),
         };
       }
     }
@@ -115,17 +130,18 @@ async function lookupGeoWithFallbacks(ip: string, cfCountry: string): Promise<Ge
   return fallback;
 }
 
-async function lookupGeo(ip: string, cfCountry: string): Promise<GeoData> {
-  // Cache by IP hash (not visitorId) so multiple visitors from same IP share cache
+type GeoCacheData = GeoData & { isDatacenter: boolean; isp: string };
+const geoCacheV2 = new Map<string, { data: GeoCacheData; expiresAt: number }>();
+
+async function lookupGeo(ip: string, cfCountry: string): Promise<GeoCacheData> {
   const cacheKey = hashIp(ip);
-  const cached = geoCache.get(cacheKey);
+  const cached = geoCacheV2.get(cacheKey);
   if (cached && cached.expiresAt > Date.now() && cached.data.city) return cached.data;
 
   const geo = await lookupGeoWithFallbacks(ip, cfCountry);
   
-  // Only cache if we got a city
   if (geo.city) {
-    geoCache.set(cacheKey, { data: geo, expiresAt: Date.now() + GEO_TTL });
+    geoCacheV2.set(cacheKey, { data: geo, expiresAt: Date.now() + GEO_TTL });
   }
   
   return geo;
@@ -172,19 +188,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true, rateLimited: true });
     }
 
-    const botCheck = detectBot(ua, path, acceptLang);
+    const botCheck: { isBot: boolean; reason: string } = detectBot(ua, path, acceptLang);
     const isBot = botCheck.isBot;
 
     const cfCountryRaw = req.headers.get("cf-ipcountry") || "";
     const cfCountry = cfCountryRaw && cfCountryRaw.length === 2 && cfCountryRaw !== "XX" && cfCountryRaw !== "T1"
       ? cfCountryRaw.toUpperCase() : "";
 
-    let geo: GeoData = { country: cfCountry, region: "", city: "" };
+    let geo: GeoCacheData = { country: cfCountry, region: "", city: "", isDatacenter: false, isp: "" };
     if (!isBot && clientIp && (body.eventType === "page_view" || body.eventType === "product_view")) {
       geo = await lookupGeo(clientIp, cfCountry);
+      // If IP belongs to hosting/datacenter provider, flag as bot
+      if (geo.isDatacenter) {
+        botCheck.isBot = true;
+        botCheck.reason = "datacenter_ip:" + geo.isp.slice(0, 40);
+      }
     } else if (cfCountry) {
       geo.country = cfCountry;
     }
+    const finalIsBot = isBot || botCheck.isBot;
 
     await db.insert(analyticsEvents).values({
       eventType: body.eventType || "unknown",
@@ -201,10 +223,10 @@ export async function POST(req: NextRequest) {
       region: geo.region,
       city: geo.city,
       ipHash,
-      isBot,
+      isBot: finalIsBot,
     });
 
-    return NextResponse.json({ ok: true, isBot, city: geo.city });
+    return NextResponse.json({ ok: true, isBot: finalIsBot, city: geo.city, dc: geo.isDatacenter });
   } catch {
     return NextResponse.json({ ok: true });
   }
