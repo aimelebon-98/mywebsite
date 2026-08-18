@@ -1,4 +1,4 @@
-// route: catalog/feed.xml (Meta-eligibility filter added)
+﻿// route: catalog/feed.xml (Meta-eligibility filter added)
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { products } from "@/db/schema";
@@ -144,7 +144,7 @@ export async function GET(req: Request) {
           brand, category, gpc, productType, mpn,
           material: p.material || "", color: primaryColor, sizes,
           customLabel0: labelFeatured, customLabel1: labelPremium,
-          customLabel2: labelSale, customLabel3: labelOrigin,
+          customLabel2: "en", customLabel3: labelOrigin,
           customLabel4: labelCategory,
         }));
       }
@@ -165,7 +165,7 @@ export async function GET(req: Request) {
           brand, category, gpc, productType, mpn,
           material: p.material || "", color: primaryColor, sizes,
           customLabel0: labelFeatured, customLabel1: labelPremium,
-          customLabel2: labelSale, customLabel3: labelOrigin,
+          customLabel2: "fr", customLabel3: labelOrigin,
           customLabel4: labelCategory,
         }));
       }
