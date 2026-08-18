@@ -1,4 +1,4 @@
-﻿// route: catalog/feed.xml (Meta-eligibility filter added)
+// route: catalog/feed.xml (Meta-eligibility filter added)
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { products } from "@/db/schema";
@@ -78,9 +78,9 @@ ${opts.salePrice ? `    <g:sale_price>${opts.salePrice}</g:sale_price>\n` : ""} 
     <g:identifier_exists>false</g:identifier_exists>
 ${opts.customLabel0 ? `    <g:custom_label_0>${xmlEscape(opts.customLabel0)}</g:custom_label_0>\n` : ""}${opts.customLabel1 ? `    <g:custom_label_1>${xmlEscape(opts.customLabel1)}</g:custom_label_1>\n` : ""}${opts.customLabel2 ? `    <g:custom_label_2>${xmlEscape(opts.customLabel2)}</g:custom_label_2>\n` : ""}${opts.customLabel3 ? `    <g:custom_label_3>${xmlEscape(opts.customLabel3)}</g:custom_label_3>\n` : ""}${opts.customLabel4 ? `    <g:custom_label_4>${xmlEscape(opts.customLabel4)}</g:custom_label_4>\n` : ""}
 ${opts.material ? `    <g:material>${xmlEscape(opts.material)}</g:material>\n` : ""}${opts.color ? `    <g:color>${xmlEscape(opts.color)}</g:color>\n` : ""}${sizesXml}    <g:shipping>
-      <g:country>NG</g:country>
+      <g:country>${currency === "XOF" ? "TG" : "NG"}</g:country>
       <g:service>Standard</g:service>
-      <g:price>0.00 USD</g:price>
+      <g:price>0 ${currency}</g:price>
     </g:shipping>
   </item>`;
 }
@@ -89,6 +89,29 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const lang = (url.searchParams.get("lang") || "").toLowerCase();
   const langFilter: "en" | "fr" | "both" = lang === "en" ? "en" : lang === "fr" ? "fr" : "both";
+  const currency = (url.searchParams.get("currency") || "USD").toUpperCase();
+
+  // Fetch live exchange rates for conversion
+  let ngnRate = 1364;
+  let xofRate = 568;
+  try {
+    const rateRes = await fetch("https://www.newdealzone.com/api/exchange-rates", { next: { revalidate: 3600 } });
+    if (rateRes.ok) {
+      const rates = await rateRes.json();
+      if (rates?.rates?.NGN) ngnRate = Number(rates.rates.NGN);
+      if (rates?.rates?.XOF) xofRate = Number(rates.rates.XOF);
+    }
+  } catch { /* fallback rates */ }
+
+  function convertPrice(usdPrice: number): { value: string; currency: string } {
+    if (currency === "NGN") {
+      return { value: Math.round(usdPrice * ngnRate).toString(), currency: "NGN" };
+    }
+    if (currency === "XOF") {
+      return { value: Math.round(usdPrice * xofRate).toString(), currency: "XOF" };
+    }
+    return { value: usdPrice.toFixed(2), currency: "USD" };
+  }
   try {
     // CRITICAL: filter by both active AND metaEligible
     const rows = await db
@@ -139,8 +162,8 @@ export async function GET(req: Request) {
           title: enTitle, description: enDesc,
           link: `${SITE_URL}/en/product/${enSlug}`,
           imageLink: primaryImage, additionalImages,
-          availability, price: `${regularPrice.toFixed(2)} USD`,
-          salePrice: salePrice !== null ? `${salePrice.toFixed(2)} USD` : null,
+          availability, price: `${convertPrice(regularPrice).value} ${convertPrice(regularPrice).currency}`,
+          salePrice: salePrice !== null ? `${convertPrice(salePrice).value} ${convertPrice(salePrice).currency}` : null,
           brand, category, gpc, productType, mpn,
           material: p.material || "", color: primaryColor, sizes,
           customLabel0: labelFeatured, customLabel1: labelPremium,
@@ -160,8 +183,8 @@ export async function GET(req: Request) {
           title: frTitle, description: frDesc,
           link: `${SITE_URL}/fr/product/${frSlug}`,
           imageLink: primaryImage, additionalImages,
-          availability, price: `${regularPrice.toFixed(2)} USD`,
-          salePrice: salePrice !== null ? `${salePrice.toFixed(2)} USD` : null,
+          availability, price: `${convertPrice(regularPrice).value} ${convertPrice(regularPrice).currency}`,
+          salePrice: salePrice !== null ? `${convertPrice(salePrice).value} ${convertPrice(salePrice).currency}` : null,
           brand, category, gpc, productType, mpn,
           material: p.material || "", color: primaryColor, sizes,
           customLabel0: labelFeatured, customLabel1: labelPremium,
@@ -174,7 +197,7 @@ export async function GET(req: Request) {
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">
 <channel>
-  <title>New Deal Zone Product Feed${langFilter === "en" ? " (English)" : langFilter === "fr" ? " (Francais)" : ""}</title>
+  <title>New Deal Zone Product Feed${langFilter === "en" ? " (English)" : langFilter === "fr" ? " (Francais)" : ""}${currency !== "USD" ? " - " + currency : ""}</title>
   <link>${SITE_URL}</link>
   <description>Authentic footwear catalog for New Deal Zone - fast delivery across Africa</description>
 ${items.join("\n")}
