@@ -1,4 +1,4 @@
-﻿import { pgTable, text, numeric, integer, boolean, timestamp, uuid } from "drizzle-orm/pg-core";
+import { pgTable, text, numeric, integer, boolean, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const products = pgTable("products", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -428,3 +428,116 @@ export const customerCoupons = pgTable("customer_coupons", {
 export type Coupon = typeof coupons.$inferSelect;
 export type NewCoupon = typeof coupons.$inferInsert;
 export type CustomerCoupon = typeof customerCoupons.$inferSelect;
+
+
+// ============================================================
+// MULTI-VENDOR SYSTEM
+// ============================================================
+
+export const vendors = pgTable("vendors", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  storeName: text("store_name").notNull(),
+  storeSlug: text("store_slug").notNull().unique(),
+  storeDescription: text("store_description").notNull().default(""),
+  storeDescriptionFr: text("store_description_fr").notNull().default(""),
+  logo: text("logo").notNull().default(""),
+  banner: text("banner").notNull().default(""),
+  trustTagline: text("trust_tagline").notNull().default("2+ years selling premium footwear"),
+  trustTaglineFr: text("trust_tagline_fr").notNull().default("2+ ans de vente de chaussures premium"),
+  contactName: text("contact_name").notNull().default(""),
+  phone: text("phone").notNull().default(""),
+  whatsapp: text("whatsapp").notNull().default(""),
+  country: text("country").notNull().default("NG"),
+  city: text("city").notNull().default(""),
+  bankName: text("bank_name").notNull().default(""),
+  bankAccount: text("bank_account").notNull().default(""),
+  bankAccountName: text("bank_account_name").notNull().default(""),
+  commissionRate: numeric("commission_rate", { precision: 5, scale: 2 }).notNull().default("10.00"),
+  status: text("status").notNull().default("pending"),
+  fulfillmentRate: numeric("fulfillment_rate", { precision: 5, scale: 2 }).notNull().default("100.00"),
+  totalSales: integer("total_sales").notNull().default(0),
+  totalEarnings: numeric("total_earnings", { precision: 12, scale: 2 }).notNull().default("0"),
+  pendingPayout: numeric("pending_payout", { precision: 12, scale: 2 }).notNull().default("0"),
+  totalPaidOut: numeric("total_paid_out", { precision: 12, scale: 2 }).notNull().default("0"),
+  adminNote: text("admin_note").notNull().default(""),
+  approvedAt: timestamp("approved_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const vendorSessions = pgTable("vendor_sessions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  token: text("token").notNull().unique(),
+  vendorId: uuid("vendor_id").notNull(),
+  ipAddress: text("ip_address").notNull().default(""),
+  userAgent: text("user_agent").notNull().default(""),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const vendorApplications = pgTable("vendor_applications", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  applicantName: text("applicant_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull().default(""),
+  whatsapp: text("whatsapp").notNull().default(""),
+  storeName: text("store_name").notNull(),
+  storeDescription: text("store_description").notNull().default(""),
+  productCategories: text("product_categories").notNull().default("[]"),
+  country: text("country").notNull().default("NG"),
+  city: text("city").notNull().default(""),
+  instagramUrl: text("instagram_url").notNull().default(""),
+  websiteUrl: text("website_url").notNull().default(""),
+  additionalInfo: text("additional_info").notNull().default(""),
+  status: text("status").notNull().default("pending"),
+  adminNote: text("admin_note").notNull().default(""),
+  reviewedAt: timestamp("reviewed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const vendorProducts = pgTable("vendor_products", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  productId: uuid("product_id").notNull().unique(),
+  vendorId: uuid("vendor_id").notNull(),
+  status: text("status").notNull().default("pending"),
+  adminNote: text("admin_note").notNull().default(""),
+  submittedAt: timestamp("submitted_at").defaultNow().notNull(),
+  approvedAt: timestamp("approved_at"),
+});
+
+export const vendorOrders = pgTable("vendor_orders", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  orderId: uuid("order_id").notNull(),
+  vendorId: uuid("vendor_id").notNull(),
+  items: text("items").notNull().default("[]"),
+  subtotal: numeric("subtotal", { precision: 12, scale: 2 }).notNull().default("0"),
+  commissionRate: numeric("commission_rate", { precision: 5, scale: 2 }).notNull().default("10.00"),
+  commissionAmount: numeric("commission_amount", { precision: 12, scale: 2 }).notNull().default("0"),
+  vendorEarning: numeric("vendor_earning", { precision: 12, scale: 2 }).notNull().default("0"),
+  currency: text("currency").notNull().default("USD"),
+  status: text("status").notNull().default("pending"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const vendorPayouts = pgTable("vendor_payouts", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  vendorId: uuid("vendor_id").notNull(),
+  amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
+  currency: text("currency").notNull().default("USD"),
+  method: text("method").notNull().default("bank_transfer"),
+  reference: text("reference").notNull().default(""),
+  note: text("note").notNull().default(""),
+  status: text("status").notNull().default("pending"),
+  requestedAt: timestamp("requested_at").defaultNow().notNull(),
+  paidAt: timestamp("paid_at"),
+  processedBy: text("processed_by").notNull().default(""),
+});
+
+export type Vendor = typeof vendors.$inferSelect;
+export type VendorSession = typeof vendorSessions.$inferSelect;
+export type VendorApplication = typeof vendorApplications.$inferSelect;
+export type VendorProduct = typeof vendorProducts.$inferSelect;
+export type VendorOrder = typeof vendorOrders.$inferSelect;
+export type VendorPayout = typeof vendorPayouts.$inferSelect;

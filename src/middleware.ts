@@ -35,6 +35,7 @@ const PUBLIC_API_ROUTES = [
   "/api/fb-capi",            // Meta Conversions API (server-side pixel)
   "/api/catalog",            // Product catalog feed for Meta + Google Merchant
   "/api/indexnow",       // IndexNow ping endpoint (Bing/Yandex/Naver)
+  "/api/vendor",             // Vendor auth + dashboard endpoints
 ];
 
 // Admin routes (own auth already applied - middleware just lets them through)

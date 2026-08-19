@@ -350,3 +350,384 @@ export async function sendOrderConfirmationEmail(
     return false;
   }
 }
+
+
+// ============================================================
+// VENDOR: APPLICATION RECEIVED (auto reply after submission)
+// ============================================================
+export async function sendVendorApplicationReceivedEmail(
+  to: string,
+  applicantName: string,
+  storeName: string,
+  locale: "en" | "fr" = "en"
+): Promise<boolean> {
+  if (!resend) return false;
+
+  const subject = locale === "fr"
+    ? "Candidature vendeur recue - NewDealZone"
+    : "Vendor application received - NewDealZone";
+
+  const t = locale === "fr" ? {
+    heading: "Candidature recue !",
+    hi: "Bonjour",
+    intro1: `Merci d'avoir postule pour devenir vendeur sur NewDealZone avec votre boutique <strong>${storeName}</strong>.`,
+    intro2: "Notre equipe examinera votre candidature sous 24 a 48 heures. Vous recevrez un email des qu'une decision sera prise.",
+    while: "En attendant :",
+    tip1: "Preparez vos meilleures photos produits (haute qualite)",
+    tip2: "Rassemblez vos coordonnees bancaires pour les paiements",
+    tip3: "Reflechissez a vos prix et politiques d'expedition",
+    thanks: "Merci de vouloir rejoindre NewDealZone !",
+  } : {
+    heading: "Application received!",
+    hi: "Hi",
+    intro1: `Thank you for applying to become a vendor on NewDealZone with your store <strong>${storeName}</strong>.`,
+    intro2: "Our team will review your application within 24 to 48 hours. You will receive an email as soon as a decision is made.",
+    while: "In the meantime:",
+    tip1: "Prepare your best product photos (high quality)",
+    tip2: "Gather your bank details for payouts",
+    tip3: "Think about your pricing and shipping policies",
+    thanks: "Thank you for wanting to join NewDealZone!",
+  };
+
+  const html = `
+    <div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;max-width:560px;margin:0 auto;padding:20px;background:#f9fafb;">
+      ${brandHeader()}
+      <div style="background:#fff;padding:30px;border:1px solid #eee;border-top:none;">
+        <div style="text-align:center;margin-bottom:20px;">
+          <div style="display:inline-block;width:48px;height:48px;background:#fef3c7;border-radius:50%;line-height:48px;">
+            <span style="color:#d97706;font-size:22px;">&#8987;</span>
+          </div>
+          <h1 style="color:#111827;margin:12px 0 4px 0;font-size:22px;">${t.heading}</h1>
+        </div>
+        <p style="font-size:15px;color:#333;margin:0 0 12px 0;">${t.hi} ${applicantName},</p>
+        <p style="color:#4b5563;line-height:1.6;margin:0 0 16px 0;">${t.intro1}</p>
+        <p style="color:#4b5563;line-height:1.6;margin:0 0 20px 0;">${t.intro2}</p>
+        <div style="background:#f9fafb;border-radius:12px;padding:16px;margin:20px 0;">
+          <div style="font-weight:700;color:#111827;font-size:14px;margin-bottom:8px;">${t.while}</div>
+          <ul style="margin:0;padding-left:20px;color:#4b5563;font-size:13px;line-height:1.8;">
+            <li>${t.tip1}</li>
+            <li>${t.tip2}</li>
+            <li>${t.tip3}</li>
+          </ul>
+        </div>
+        <p style="color:#6b7280;font-size:13px;text-align:center;margin-top:24px;">${t.thanks}</p>
+      </div>
+      ${brandFooter(locale)}
+    </div>
+  `;
+
+  try {
+    await resend.emails.send({ from: FROM, to, subject, html });
+    return true;
+  } catch (err) {
+    console.error("[Email] Vendor application email failed:", err);
+    return false;
+  }
+}
+
+// ============================================================
+// VENDOR: APPLICATION APPROVED (with login credentials)
+// ============================================================
+export async function sendVendorApprovedEmail(
+  to: string,
+  applicantName: string,
+  storeName: string,
+  tempPassword: string,
+  locale: "en" | "fr" = "en"
+): Promise<boolean> {
+  if (!resend) return false;
+
+  const subject = locale === "fr"
+    ? "Votre boutique est approuvee - NewDealZone"
+    : "Your store is approved - NewDealZone";
+
+  const loginUrl = `${SITE_URL}/${locale}/vendor/login`;
+
+  const t = locale === "fr" ? {
+    heading: "Felicitations, vous etes vendeur !",
+    hi: "Bonjour",
+    intro: `Votre boutique <strong>${storeName}</strong> a ete approuvee. Vous pouvez maintenant vous connecter et commencer a vendre.`,
+    credsTitle: "Vos identifiants de connexion",
+    emailLabel: "Email",
+    passwordLabel: "Mot de passe temporaire",
+    changePassword: "Changez votre mot de passe apres la premiere connexion.",
+    nextSteps: "Prochaines etapes",
+    step1: "Connectez-vous a votre tableau de bord vendeur",
+    step2: "Completez votre profil (logo, banniere, coordonnees bancaires)",
+    step3: "Ajoutez vos premiers produits (validation admin sous 24h)",
+    step4: "Commencez a recevoir des commandes",
+    cta: "Se connecter au tableau de bord",
+  } : {
+    heading: "Congratulations, you are a vendor!",
+    hi: "Hi",
+    intro: `Your store <strong>${storeName}</strong> has been approved. You can now log in and start selling.`,
+    credsTitle: "Your login credentials",
+    emailLabel: "Email",
+    passwordLabel: "Temporary password",
+    changePassword: "Change your password after your first login.",
+    nextSteps: "Next steps",
+    step1: "Log in to your vendor dashboard",
+    step2: "Complete your profile (logo, banner, bank details)",
+    step3: "Add your first products (admin approval within 24h)",
+    step4: "Start receiving orders",
+    cta: "Log in to dashboard",
+  };
+
+  const html = `
+    <div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;max-width:560px;margin:0 auto;padding:20px;background:#f9fafb;">
+      ${brandHeader()}
+      <div style="background:#fff;padding:30px;border:1px solid #eee;border-top:none;">
+        <div style="text-align:center;margin-bottom:20px;">
+          <div style="display:inline-block;width:48px;height:48px;background:#d1fae5;border-radius:50%;line-height:48px;">
+            <span style="color:#059669;font-size:24px;">&#10003;</span>
+          </div>
+          <h1 style="color:#111827;margin:12px 0 4px 0;font-size:22px;">${t.heading}</h1>
+        </div>
+        <p style="font-size:15px;color:#333;margin:0 0 12px 0;">${t.hi} ${applicantName},</p>
+        <p style="color:#4b5563;line-height:1.6;margin:0 0 20px 0;">${t.intro}</p>
+
+        <div style="background:linear-gradient(135deg,#CA3F2E 0%,#8B2A1E 100%);border-radius:12px;padding:20px;margin:20px 0;color:white;">
+          <div style="font-weight:700;font-size:14px;margin-bottom:12px;">${t.credsTitle}</div>
+          <div style="background:rgba(255,255,255,0.15);border-radius:8px;padding:12px;margin-bottom:8px;">
+            <div style="font-size:11px;opacity:0.8;text-transform:uppercase;letter-spacing:1px;">${t.emailLabel}</div>
+            <div style="font-family:monospace;font-size:14px;margin-top:4px;">${to}</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.15);border-radius:8px;padding:12px;">
+            <div style="font-size:11px;opacity:0.8;text-transform:uppercase;letter-spacing:1px;">${t.passwordLabel}</div>
+            <div style="font-family:monospace;font-size:16px;margin-top:4px;font-weight:700;letter-spacing:2px;">${tempPassword}</div>
+          </div>
+          <div style="font-size:11px;margin-top:12px;opacity:0.85;">${t.changePassword}</div>
+        </div>
+
+        <div style="background:#f9fafb;border-radius:12px;padding:16px;margin:20px 0;">
+          <div style="font-weight:700;color:#111827;font-size:14px;margin-bottom:8px;">${t.nextSteps}</div>
+          <ol style="margin:0;padding-left:20px;color:#4b5563;font-size:13px;line-height:1.8;">
+            <li>${t.step1}</li>
+            <li>${t.step2}</li>
+            <li>${t.step3}</li>
+            <li>${t.step4}</li>
+          </ol>
+        </div>
+
+        <div style="text-align:center;margin:28px 0;">
+          <a href="${loginUrl}" style="background:#CA3F2E;color:white;padding:14px 32px;text-decoration:none;border-radius:10px;display:inline-block;font-weight:700;font-size:14px;">${t.cta}</a>
+        </div>
+      </div>
+      ${brandFooter(locale)}
+    </div>
+  `;
+
+  try {
+    await resend.emails.send({ from: FROM, to, subject, html });
+    return true;
+  } catch (err) {
+    console.error("[Email] Vendor approved email failed:", err);
+    return false;
+  }
+}
+
+// ============================================================
+// VENDOR: APPLICATION REJECTED
+// ============================================================
+export async function sendVendorRejectedEmail(
+  to: string,
+  applicantName: string,
+  reason: string,
+  locale: "en" | "fr" = "en"
+): Promise<boolean> {
+  if (!resend) return false;
+
+  const subject = locale === "fr"
+    ? "Candidature vendeur - Mise a jour"
+    : "Vendor application - Update";
+
+  const t = locale === "fr" ? {
+    heading: "Candidature examinee",
+    hi: "Bonjour",
+    intro: "Merci pour votre interet pour NewDealZone. Apres examen, nous ne pouvons pas approuver votre candidature pour le moment.",
+    reasonLabel: "Raison :",
+    encourage: "Vous pouvez postuler a nouveau apres avoir aborde les points ci-dessus. Nous serions ravis de vous revoir.",
+  } : {
+    heading: "Application reviewed",
+    hi: "Hi",
+    intro: "Thank you for your interest in NewDealZone. After review, we are unable to approve your application at this time.",
+    reasonLabel: "Reason:",
+    encourage: "You are welcome to reapply after addressing the points above. We would love to hear from you again.",
+  };
+
+  const html = `
+    <div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;max-width:560px;margin:0 auto;padding:20px;background:#f9fafb;">
+      ${brandHeader()}
+      <div style="background:#fff;padding:30px;border:1px solid #eee;border-top:none;">
+        <h1 style="color:#111827;margin:0 0 12px 0;font-size:22px;">${t.heading}</h1>
+        <p style="font-size:15px;color:#333;margin:0 0 12px 0;">${t.hi} ${applicantName},</p>
+        <p style="color:#4b5563;line-height:1.6;margin:0 0 16px 0;">${t.intro}</p>
+        ${reason ? `
+          <div style="background:#fef2f2;border-left:4px solid #ef4444;border-radius:8px;padding:14px;margin:16px 0;">
+            <div style="font-weight:700;color:#991b1b;font-size:13px;margin-bottom:6px;">${t.reasonLabel}</div>
+            <div style="color:#4b5563;font-size:13px;line-height:1.6;">${reason}</div>
+          </div>
+        ` : ""}
+        <p style="color:#4b5563;line-height:1.6;margin:16px 0 0 0;">${t.encourage}</p>
+      </div>
+      ${brandFooter(locale)}
+    </div>
+  `;
+
+  try {
+    await resend.emails.send({ from: FROM, to, subject, html });
+    return true;
+  } catch (err) {
+    console.error("[Email] Vendor rejected email failed:", err);
+    return false;
+  }
+}
+
+// ============================================================
+// VENDOR: PRODUCT APPROVED / REJECTED
+// ============================================================
+export async function sendVendorProductStatusEmail(
+  to: string,
+  vendorName: string,
+  productName: string,
+  approved: boolean,
+  note: string,
+  locale: "en" | "fr" = "en"
+): Promise<boolean> {
+  if (!resend) return false;
+
+  const subject = approved
+    ? (locale === "fr" ? `Produit approuve : ${productName}` : `Product approved: ${productName}`)
+    : (locale === "fr" ? `Produit non approuve : ${productName}` : `Product not approved: ${productName}`);
+
+  const dashboardUrl = `${SITE_URL}/${locale}/vendor/products`;
+
+  const t = locale === "fr" ? {
+    hi: "Bonjour",
+    approvedHead: "Votre produit est en ligne !",
+    rejectedHead: "Produit necessite des modifications",
+    approvedMsg: `Votre produit <strong>${productName}</strong> a ete approuve et est maintenant visible sur NewDealZone.`,
+    rejectedMsg: `Votre produit <strong>${productName}</strong> n'a pas ete approuve. Veuillez consulter les commentaires ci-dessous et le soumettre a nouveau.`,
+    noteLabel: "Note admin :",
+    cta: "Voir mes produits",
+  } : {
+    hi: "Hi",
+    approvedHead: "Your product is live!",
+    rejectedHead: "Product needs updates",
+    approvedMsg: `Your product <strong>${productName}</strong> has been approved and is now visible on NewDealZone.`,
+    rejectedMsg: `Your product <strong>${productName}</strong> was not approved. Please review the feedback below and resubmit.`,
+    noteLabel: "Admin note:",
+    cta: "View my products",
+  };
+
+  const icon = approved ? "&#10003;" : "&#9888;";
+  const iconBg = approved ? "#d1fae5" : "#fef3c7";
+  const iconColor = approved ? "#059669" : "#d97706";
+  const heading = approved ? t.approvedHead : t.rejectedHead;
+  const message = approved ? t.approvedMsg : t.rejectedMsg;
+
+  const html = `
+    <div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;max-width:560px;margin:0 auto;padding:20px;background:#f9fafb;">
+      ${brandHeader()}
+      <div style="background:#fff;padding:30px;border:1px solid #eee;border-top:none;">
+        <div style="text-align:center;margin-bottom:20px;">
+          <div style="display:inline-block;width:48px;height:48px;background:${iconBg};border-radius:50%;line-height:48px;">
+            <span style="color:${iconColor};font-size:22px;">${icon}</span>
+          </div>
+          <h1 style="color:#111827;margin:12px 0 4px 0;font-size:22px;">${heading}</h1>
+        </div>
+        <p style="font-size:15px;color:#333;margin:0 0 12px 0;">${t.hi} ${vendorName},</p>
+        <p style="color:#4b5563;line-height:1.6;margin:0 0 16px 0;">${message}</p>
+        ${note ? `
+          <div style="background:#f9fafb;border-left:4px solid #CA3F2E;border-radius:8px;padding:14px;margin:16px 0;">
+            <div style="font-weight:700;color:#111827;font-size:13px;margin-bottom:6px;">${t.noteLabel}</div>
+            <div style="color:#4b5563;font-size:13px;line-height:1.6;">${note}</div>
+          </div>
+        ` : ""}
+        <div style="text-align:center;margin:28px 0;">
+          <a href="${dashboardUrl}" style="background:#CA3F2E;color:white;padding:14px 32px;text-decoration:none;border-radius:10px;display:inline-block;font-weight:700;font-size:14px;">${t.cta}</a>
+        </div>
+      </div>
+      ${brandFooter(locale)}
+    </div>
+  `;
+
+  try {
+    await resend.emails.send({ from: FROM, to, subject, html });
+    return true;
+  } catch (err) {
+    console.error("[Email] Vendor product status email failed:", err);
+    return false;
+  }
+}
+
+// ============================================================
+// VENDOR: PAYOUT PROCESSED
+// ============================================================
+export async function sendVendorPayoutProcessedEmail(
+  to: string,
+  vendorName: string,
+  amount: string,
+  currency: string,
+  reference: string,
+  locale: "en" | "fr" = "en"
+): Promise<boolean> {
+  if (!resend) return false;
+
+  const subject = locale === "fr"
+    ? `Paiement envoye : ${amount} ${currency}`
+    : `Payout sent: ${amount} ${currency}`;
+
+  const t = locale === "fr" ? {
+    heading: "Paiement envoye !",
+    hi: "Bonjour",
+    intro: `Votre paiement de <strong>${amount} ${currency}</strong> a ete traite et envoye a votre compte bancaire.`,
+    refLabel: "Reference de transaction :",
+    thanks: "Merci de vendre avec NewDealZone !",
+    cta: "Voir mes gains",
+  } : {
+    heading: "Payout sent!",
+    hi: "Hi",
+    intro: `Your payout of <strong>${amount} ${currency}</strong> has been processed and sent to your bank account.`,
+    refLabel: "Transaction reference:",
+    thanks: "Thank you for selling with NewDealZone!",
+    cta: "View earnings",
+  };
+
+  const earningsUrl = `${SITE_URL}/${locale}/vendor/earnings`;
+
+  const html = `
+    <div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;max-width:560px;margin:0 auto;padding:20px;background:#f9fafb;">
+      ${brandHeader()}
+      <div style="background:#fff;padding:30px;border:1px solid #eee;border-top:none;">
+        <div style="text-align:center;margin-bottom:20px;">
+          <div style="display:inline-block;width:48px;height:48px;background:#d1fae5;border-radius:50%;line-height:48px;">
+            <span style="color:#059669;font-size:24px;">&#128176;</span>
+          </div>
+          <h1 style="color:#111827;margin:12px 0 4px 0;font-size:22px;">${t.heading}</h1>
+        </div>
+        <p style="font-size:15px;color:#333;margin:0 0 12px 0;">${t.hi} ${vendorName},</p>
+        <p style="color:#4b5563;line-height:1.6;margin:0 0 16px 0;">${t.intro}</p>
+        ${reference ? `
+          <div style="background:#f9fafb;border-radius:8px;padding:14px;margin:16px 0;">
+            <div style="font-weight:700;color:#111827;font-size:13px;margin-bottom:6px;">${t.refLabel}</div>
+            <div style="color:#4b5563;font-family:monospace;font-size:14px;">${reference}</div>
+          </div>
+        ` : ""}
+        <p style="color:#4b5563;line-height:1.6;margin:16px 0 0 0;">${t.thanks}</p>
+        <div style="text-align:center;margin:28px 0;">
+          <a href="${earningsUrl}" style="background:#CA3F2E;color:white;padding:14px 32px;text-decoration:none;border-radius:10px;display:inline-block;font-weight:700;font-size:14px;">${t.cta}</a>
+        </div>
+      </div>
+      ${brandFooter(locale)}
+    </div>
+  `;
+
+  try {
+    await resend.emails.send({ from: FROM, to, subject, html });
+    return true;
+  } catch (err) {
+    console.error("[Email] Payout email failed:", err);
+    return false;
+  }
+}
