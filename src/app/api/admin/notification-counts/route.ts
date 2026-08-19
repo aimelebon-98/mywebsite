@@ -1,7 +1,7 @@
-// v2 - includes newsletter count
+// v3 - includes vendor applications count
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { orders, blogComments, reviews, newsletter } from "@/db/schema";
+import { orders, blogComments, reviews, newsletter, vendorApplications } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
 
 export async function GET() {
@@ -9,6 +9,7 @@ export async function GET() {
   let commentCount = 0;
   let reviewCount = 0;
   let newsletterCount = 0;
+  let vendorAppsCount = 0;
 
   try {
     const [r] = await db.select({ count: sql<number>`count(*)` }).from(orders).where(eq(orders.status, "pending"));
@@ -30,10 +31,16 @@ export async function GET() {
     newsletterCount = Number(r?.count || 0);
   } catch { /* ignore */ }
 
+  try {
+    const [r] = await db.select({ count: sql<number>`count(*)` }).from(vendorApplications).where(eq(vendorApplications.status, "pending"));
+    vendorAppsCount = Number(r?.count || 0);
+  } catch { /* ignore */ }
+
   return NextResponse.json({
     orders: orderCount,
     comments: commentCount,
     reviews: reviewCount,
     newsletter: newsletterCount,
+    vendorApplications: vendorAppsCount,
   });
 }

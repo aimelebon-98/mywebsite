@@ -2,9 +2,11 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { vendorApplications, vendors } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { sendVendorApplicationReceivedEmail } from "@/lib/email";
+import { sendVendorApplicationReceivedEmail, sendAdminNewVendorApplicationEmail } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
+
+const ADMIN_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL || "komlaimelebon@gmail.com";
 
 export async function POST(req: Request) {
   try {
@@ -34,13 +36,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid email" }, { status: 400 });
     }
 
-    // Check if already a vendor
     const [existingVendor] = await db.select().from(vendors).where(eq(vendors.email, emailNorm)).limit(1);
     if (existingVendor) {
       return NextResponse.json({ error: "You are already registered as a vendor with this email." }, { status: 409 });
     }
 
-    // Check for existing pending application
     const [existingApp] = await db.select().from(vendorApplications)
       .where(eq(vendorApplications.email, emailNorm))
       .limit(1);
@@ -49,9 +49,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "You already have a pending application. We'll review it soon." }, { status: 409 });
     }
 
-    const categoriesJson = Array.isArray(productCategories)
-      ? JSON.stringify(productCategories)
-      : "[]";
+    const cats: string[] = Array.isArray(productCategories) ? productCategories : [];
+    const categoriesJson = JSON.stringify(cats);
 
     await db.insert(vendorApplications).values({
       applicantName: String(applicantName).slice(0, 100),
@@ -68,9 +67,28 @@ export async function POST(req: Request) {
       additionalInfo: String(additionalInfo || "").slice(0, 2000),
     });
 
-    // Send auto-reply email (non-blocking)
     const lang = locale === "fr" ? "fr" : "en";
-    sendVendorApplicationReceivedEmail(emailNorm, applicantName, storeName, lang).catch(() => {});
+
+    // Send auto-reply to applicant (non-blocking)
+    sendVendorApplicationReceivedEmail(emailNorm, applicantName, storeName, lang)
+      .then(ok => console.log("[Vendor Apply] Applicant email sent:", ok))
+      .catch(e => console.error("[Vendor Apply] Applicant email failed:", e));
+
+    // Send alert to admin (non-blocking, with logging)
+    sendAdminNewVendorApplicationEmail(ADMIN_EMAIL, {
+      applicantName,
+      email: emailNorm,
+      phone: phone || "",
+      storeName,
+      storeDescription: storeDescription || "",
+      country: country || "NG",
+      city: city || "",
+      categories: cats,
+      instagramUrl: instagramUrl || "",
+      websiteUrl: websiteUrl || "",
+    })
+      .then(ok => console.log("[Vendor Apply] Admin email sent to " + ADMIN_EMAIL + ":", ok))
+      .catch(e => console.error("[Vendor Apply] Admin email failed:", e));
 
     return NextResponse.json({ success: true, message: "Application submitted" });
   } catch (error) {

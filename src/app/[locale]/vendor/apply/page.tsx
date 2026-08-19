@@ -1,9 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Store, Send, CheckCircle2, ArrowLeft, Loader2 } from "lucide-react";
+
+const BRAND_RED = "#CA3F2E";
+const BRAND_RED_DARK = "#8B2A1E";
 
 const CATEGORIES = [
   { value: "sneakers", en: "Sneakers", fr: "Baskets" },
@@ -32,7 +35,6 @@ const COUNTRIES = [
 
 export default function VendorApplyPage() {
   const params = useParams();
-  const router = useRouter();
   const locale = (params?.locale as string) || "en";
   const isFr = locale === "fr";
 
@@ -154,7 +156,11 @@ export default function VendorApplyPage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-3">{t.successHead}</h1>
           <p className="text-gray-600 text-base leading-relaxed mb-4">{t.successMsg}</p>
           <p className="text-gray-500 text-sm mb-8">{t.successCheck}</p>
-          <Link href={`/${locale}`} className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition-colors">
+          <Link
+            href={`/${locale}`}
+            className="inline-flex items-center gap-2 px-6 py-3 text-white font-semibold rounded-xl transition-colors"
+            style={{ backgroundColor: BRAND_RED }}
+          >
             <ArrowLeft className="w-4 h-4" />
             {t.backHome}
           </Link>
@@ -167,14 +173,14 @@ export default function VendorApplyPage() {
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: BRAND_RED }}>
             <Store className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">{t.heading}</h1>
           <p className="text-gray-600 text-base max-w-xl mx-auto">{t.subtitle}</p>
           <div className="mt-4 text-sm text-gray-500">
             {t.haveAccount}{" "}
-            <Link href={`/${locale}/vendor/login`} className="text-red-600 font-semibold hover:underline">{t.login}</Link>
+            <Link href={`/${locale}/vendor/login`} className="font-semibold hover:underline" style={{ color: BRAND_RED }}>{t.login}</Link>
           </div>
         </div>
 
@@ -190,19 +196,19 @@ export default function VendorApplyPage() {
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.fullName} *</label>
-                <input type="text" required value={form.applicantName} onChange={e => setForm({ ...form, applicantName: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm" />
+                <input type="text" required value={form.applicantName} onChange={e => setForm({ ...form, applicantName: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent text-sm" style={{ outlineColor: BRAND_RED }} />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.email} *</label>
-                <input type="email" required value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm" />
+                <input type="email" required value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.phone}</label>
-                <input type="tel" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm" />
+                <input type="tel" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.whatsapp}</label>
-                <input type="tel" value={form.whatsapp} onChange={e => setForm({ ...form, whatsapp: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm" />
+                <input type="tel" value={form.whatsapp} onChange={e => setForm({ ...form, whatsapp: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
               </div>
             </div>
           </section>
@@ -212,11 +218,11 @@ export default function VendorApplyPage() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.storeName} *</label>
-                <input type="text" required value={form.storeName} onChange={e => setForm({ ...form, storeName: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm" />
+                <input type="text" required value={form.storeName} onChange={e => setForm({ ...form, storeName: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.storeDesc}</label>
-                <textarea rows={4} placeholder={t.storeDescPlaceholder} value={form.storeDescription} onChange={e => setForm({ ...form, storeDescription: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm resize-none" />
+                <textarea rows={4} placeholder={t.storeDescPlaceholder} value={form.storeDescription} onChange={e => setForm({ ...form, storeDescription: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm resize-none" />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.categories}</label>
@@ -225,7 +231,13 @@ export default function VendorApplyPage() {
                   {CATEGORIES.map(cat => {
                     const checked = form.productCategories.includes(cat.value);
                     return (
-                      <button key={cat.value} type="button" onClick={() => toggleCategory(cat.value)} className={`px-3 py-2 rounded-lg border-2 text-sm font-medium transition-all ${checked ? "bg-red-600 border-red-600 text-white" : "bg-white border-gray-200 text-gray-700 hover:border-red-300"}`}>
+                      <button
+                        key={cat.value}
+                        type="button"
+                        onClick={() => toggleCategory(cat.value)}
+                        className={`px-3 py-2 rounded-lg border-2 text-sm font-medium transition-all ${checked ? "text-white" : "bg-white border-gray-200 text-gray-700 hover:border-gray-300"}`}
+                        style={checked ? { backgroundColor: BRAND_RED, borderColor: BRAND_RED } : undefined}
+                      >
                         {isFr ? cat.fr : cat.en}
                       </button>
                     );
@@ -235,7 +247,7 @@ export default function VendorApplyPage() {
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.country} *</label>
-                  <select required value={form.country} onChange={e => setForm({ ...form, country: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm bg-white">
+                  <select required value={form.country} onChange={e => setForm({ ...form, country: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-white">
                     {COUNTRIES.map(c => (
                       <option key={c.value} value={c.value}>{isFr ? c.fr : c.en}</option>
                     ))}
@@ -243,27 +255,34 @@ export default function VendorApplyPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.city}</label>
-                  <input type="text" value={form.city} onChange={e => setForm({ ...form, city: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm" />
+                  <input type="text" value={form.city} onChange={e => setForm({ ...form, city: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.instagram}</label>
-                  <input type="url" placeholder="https://instagram.com/..." value={form.instagramUrl} onChange={e => setForm({ ...form, instagramUrl: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm" />
+                  <input type="url" placeholder="https://instagram.com/..." value={form.instagramUrl} onChange={e => setForm({ ...form, instagramUrl: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.website}</label>
-                  <input type="url" placeholder="https://..." value={form.websiteUrl} onChange={e => setForm({ ...form, websiteUrl: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm" />
+                  <input type="url" placeholder="https://..." value={form.websiteUrl} onChange={e => setForm({ ...form, websiteUrl: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.additional}</label>
-                <textarea rows={3} placeholder={t.additionalPlaceholder} value={form.additionalInfo} onChange={e => setForm({ ...form, additionalInfo: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm resize-none" />
+                <textarea rows={3} placeholder={t.additionalPlaceholder} value={form.additionalInfo} onChange={e => setForm({ ...form, additionalInfo: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm resize-none" />
               </div>
             </div>
           </section>
 
           <div>
             <p className="text-xs text-gray-500 mb-4 leading-relaxed">{t.terms}</p>
-            <button type="submit" disabled={submitting} className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold text-base rounded-xl transition-colors">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full flex items-center justify-center gap-2 px-6 py-4 text-white font-bold text-base rounded-xl transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+              style={{ backgroundColor: submitting ? "#9ca3af" : BRAND_RED }}
+              onMouseOver={e => { if (!submitting) e.currentTarget.style.backgroundColor = BRAND_RED_DARK; }}
+              onMouseOut={e => { if (!submitting) e.currentTarget.style.backgroundColor = BRAND_RED; }}
+            >
               {submitting ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />

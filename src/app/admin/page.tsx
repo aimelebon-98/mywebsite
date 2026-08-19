@@ -235,7 +235,7 @@ export default function AdminPage() {
     if (authStep !== "authenticated") return;
     const fetchCounts = () => {
       Promise.all([
-        fetch("/api/admin/notification-counts").then(r => r.ok ? r.json() : { orders: 0, comments: 0, reviews: 0, newsletter: 0 }),
+        fetch("/api/admin/notification-counts").then(r => r.ok ? r.json() : { orders: 0, comments: 0, reviews: 0, newsletter: 0, vendorApplications: 0 }),
         fetch("/api/admin/tickets/unread").then(r => r.ok ? r.json() : { count: 0 }),
       ]).then(([counts, unread]) => {
         setNotifCounts({ ...counts, tickets: unread.count || 0 });

@@ -3,6 +3,9 @@
 import { useState, useEffect } from "react";
 import { Store, Check, X, Mail, Phone, MapPin, Globe, Calendar, Copy, CheckCheck, Loader2 } from "lucide-react";
 
+const BRAND_RED = "#CA3F2E";
+const BRAND_RED_DARK = "#8B2A1E";
+
 function InstagramIcon({ className = "w-4 h-4" }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -120,19 +123,29 @@ export default function VendorApplicationsManager() {
   return (
     <div>
       <div className="flex flex-wrap gap-2 mb-6">
-        {(["pending", "approved", "rejected", "all"] as const).map(f => (
-          <button key={f} onClick={() => setFilter(f)} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === f ? "bg-red-600 text-white" : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50"}`}>
-            {f.charAt(0).toUpperCase() + f.slice(1)}
-            {f === "pending" && pendingCount > 0 && (
-              <span className="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold rounded-full bg-white text-red-600">{pendingCount}</span>
-            )}
-          </button>
-        ))}
+        {(["pending", "approved", "rejected", "all"] as const).map(f => {
+          const isActive = filter === f;
+          return (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isActive ? "text-white" : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50"}`}
+              style={isActive ? { backgroundColor: BRAND_RED } : undefined}
+            >
+              {f.charAt(0).toUpperCase() + f.slice(1)}
+              {f === "pending" && pendingCount > 0 && (
+                <span className="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold rounded-full bg-white" style={{ color: BRAND_RED }}>
+                  {pendingCount}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-red-600" />
+          <Loader2 className="w-8 h-8 animate-spin" style={{ color: BRAND_RED }} />
         </div>
       ) : apps.length === 0 ? (
         <div className="bg-white rounded-xl p-12 text-center text-gray-500">
@@ -174,7 +187,13 @@ export default function VendorApplicationsManager() {
                       </div>
                     )}
                   </div>
-                  <button onClick={() => setSelectedApp(app)} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors">
+                  <button
+                    onClick={() => setSelectedApp(app)}
+                    className="px-4 py-2 text-white text-sm font-semibold rounded-lg transition-colors"
+                    style={{ backgroundColor: BRAND_RED }}
+                    onMouseOver={e => (e.currentTarget.style.backgroundColor = BRAND_RED_DARK)}
+                    onMouseOut={e => (e.currentTarget.style.backgroundColor = BRAND_RED)}
+                  >
                     Review
                   </button>
                 </div>
@@ -237,14 +256,14 @@ export default function VendorApplicationsManager() {
               {selectedApp.instagramUrl && (
                 <div className="flex items-center gap-2 text-sm">
                   <InstagramIcon className="w-4 h-4 text-pink-500" />
-                  <a href={selectedApp.instagramUrl} target="_blank" rel="noopener noreferrer" className="text-red-600 hover:underline break-all">{selectedApp.instagramUrl}</a>
+                  <a href={selectedApp.instagramUrl} target="_blank" rel="noopener noreferrer" className="hover:underline break-all" style={{ color: BRAND_RED }}>{selectedApp.instagramUrl}</a>
                 </div>
               )}
 
               {selectedApp.websiteUrl && (
                 <div className="flex items-center gap-2 text-sm">
                   <Globe className="w-4 h-4 text-blue-500" />
-                  <a href={selectedApp.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-red-600 hover:underline break-all">{selectedApp.websiteUrl}</a>
+                  <a href={selectedApp.websiteUrl} target="_blank" rel="noopener noreferrer" className="hover:underline break-all" style={{ color: BRAND_RED }}>{selectedApp.websiteUrl}</a>
                 </div>
               )}
 
@@ -267,11 +286,20 @@ export default function VendorApplicationsManager() {
                     <textarea rows={3} placeholder="Optional for approval, required for rejection..." value={reviewNote} onChange={e => setReviewNote(e.target.value)} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm resize-none" />
                   </div>
                   <div className="flex gap-3">
-                    <button onClick={() => handleReview("reject")} disabled={processing} className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 border-red-300 text-red-700 font-semibold rounded-lg hover:bg-red-50 disabled:opacity-50 transition-colors">
+                    <button
+                      onClick={() => handleReview("reject")}
+                      disabled={processing}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 font-semibold rounded-lg hover:bg-red-50 disabled:opacity-50 transition-colors"
+                      style={{ borderColor: BRAND_RED, color: BRAND_RED }}
+                    >
                       <X className="w-4 h-4" />
                       Reject
                     </button>
-                    <button onClick={() => handleReview("approve")} disabled={processing} className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg disabled:opacity-50 transition-colors">
+                    <button
+                      onClick={() => handleReview("approve")}
+                      disabled={processing}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg disabled:opacity-50 transition-colors"
+                    >
                       {processing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                       Approve
                     </button>
@@ -308,7 +336,7 @@ export default function VendorApplicationsManager() {
               </div>
               <div>
                 <div className="text-xs font-semibold text-gray-500 uppercase mb-1">Temporary Password</div>
-                <div className="font-mono text-base font-bold text-red-600 tracking-widest">{credentials.password}</div>
+                <div className="font-mono text-base font-bold tracking-widest" style={{ color: BRAND_RED }}>{credentials.password}</div>
               </div>
               <div>
                 <div className="text-xs font-semibold text-gray-500 uppercase mb-1">Store URL</div>
@@ -320,7 +348,13 @@ export default function VendorApplicationsManager() {
                 {copied ? <CheckCheck className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
                 {copied ? "Copied!" : "Copy All"}
               </button>
-              <button onClick={closeCredentials} className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors">
+              <button
+                onClick={closeCredentials}
+                className="flex-1 px-4 py-3 text-white font-semibold rounded-lg transition-colors"
+                style={{ backgroundColor: BRAND_RED }}
+                onMouseOver={e => (e.currentTarget.style.backgroundColor = BRAND_RED_DARK)}
+                onMouseOut={e => (e.currentTarget.style.backgroundColor = BRAND_RED)}
+              >
                 Done
               </button>
             </div>
