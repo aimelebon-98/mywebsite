@@ -449,10 +449,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               Complete the Look */}
               {relatedProducts.length > 0 && (
                 <div className="mt-8">
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-gray-700 mb-3">{isFr ? "Completez le look" : "
-              {product?.id && <SellerInfoCard productId={product.id} />}
-
-              Complete the Look"}</h3>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-gray-700 mb-3">{isFr ? "Completez le look" : "Complete the Look"}</h3>
                   <div className="grid grid-cols-3 gap-3">
                     {relatedProducts.slice(0, 3).map((rp) => (
                       <div key={rp.id} className="group relative">
