@@ -462,6 +462,7 @@ export const vendors = pgTable("vendors", {
   pendingPayout: numeric("pending_payout", { precision: 12, scale: 2 }).notNull().default("0"),
   totalPaidOut: numeric("total_paid_out", { precision: 12, scale: 2 }).notNull().default("0"),
   adminNote: text("admin_note").notNull().default(""),
+  mustChangePassword: boolean("must_change_password").notNull().default(true),
   approvedAt: timestamp("approved_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
