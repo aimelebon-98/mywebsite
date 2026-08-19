@@ -33,7 +33,7 @@ interface Application {
   reviewedAt: string | null;
 }
 
-export default function VendorApplicationsPage() {
+export default function VendorApplicationsManager() {
   const [apps, setApps] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "pending" | "approved" | "rejected">("pending");
@@ -118,15 +118,7 @@ export default function VendorApplicationsPage() {
   const pendingCount = apps.filter(a => a.status === "pending").length;
 
   return (
-    <div className="p-4 md:p-6 max-w-7xl">
-      <div className="mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 flex items-center gap-3">
-          <Store className="w-7 h-7 text-red-600" />
-          Vendor Applications
-        </h1>
-        <p className="text-gray-500 text-sm mt-1">Review and approve vendor applications</p>
-      </div>
-
+    <div>
       <div className="flex flex-wrap gap-2 mb-6">
         {(["pending", "approved", "rejected", "all"] as const).map(f => (
           <button key={f} onClick={() => setFilter(f)} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === f ? "bg-red-600 text-white" : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50"}`}>

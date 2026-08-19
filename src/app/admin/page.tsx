@@ -5,7 +5,7 @@ import {
   Package, Plus, Settings, BarChart3, LogOut, Edit, Trash2, Eye, EyeOff, Star, Search, Menu, X, Home,
   Shield, Users, Download, Upload, RefreshCw, Lock, MessageSquare, Key, AlertTriangle, TrendingUp,
   DollarSign, ShoppingBag, CheckCircle, Clock, Copy, Tag, Globe, ChevronDown, ChevronUp, ExternalLink,
-  Mail, LifeBuoy, Ticket
+  Mail, LifeBuoy, Ticket, Store
 } from "lucide-react";
 import Link from "next/link";
 import { BookOpen, UsersRound, PenLine, HelpCircle, ChevronRight, Gift } from "lucide-react";
@@ -28,6 +28,7 @@ import ProfitDashboard from "@/components/ProfitDashboard";
 import BundlesManager from "@/components/BundlesManager";
 import CurrencySelector from "@/components/CurrencySelector";
 import CouponsManager from "@/components/CouponsManager";
+import VendorApplicationsManager from "@/components/VendorApplicationsManager";
 interface Product {
   id: string;
   name: string;
@@ -91,7 +92,7 @@ interface StoreSettings {
   lockoutMinutes: number;
 }
 
-type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments" | "orders" | "product-faqs" | "analytics" | "newsletter" | "bundles" | "blog-categories" | "customers" | "tickets" | "coupons" | "profit";
+type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments" | "orders" | "product-faqs" | "analytics" | "newsletter" | "bundles" | "blog-categories" | "customers" | "tickets" | "coupons" | "profit" | "vendor-applications";
 
 export default function AdminPage() {
   const [authStep, setAuthStep] = useState<"loading" | "verify" | "access-code" | "password" | "authenticated">("loading");
@@ -124,7 +125,7 @@ export default function AdminPage() {
       const hash = typeof window !== "undefined" ? window.location.hash.replace("#", "") : "";
       const stored = typeof window !== "undefined" ? localStorage.getItem("sv_admin_tab") : null;
       const candidate = hash || stored || "";
-      const validTabs: Tab[] = ["dashboard","products","add","edit","categories","reviews","settings","security","blog","blog-add","blog-edit","authors","comments","orders","analytics","product-faqs","newsletter","customers","tickets","bundles","blog-categories","coupons","profit"];
+      const validTabs: Tab[] = ["dashboard","products","add","edit","categories","reviews","settings","security","blog","blog-add","blog-edit","authors","comments","orders","analytics","product-faqs","newsletter","customers","tickets","bundles","blog-categories","coupons","profit","vendor-applications"];
       console.log("[Admin] Restoring tab. hash=" + hash + ", stored=" + stored + ", candidate=" + candidate);
       if (candidate && validTabs.includes(candidate as Tab)) {
         if (candidate === "edit") setActiveTabRaw("products");
@@ -160,7 +161,7 @@ export default function AdminPage() {
   const [productsMenuOpen, setProductsMenuOpen] = useState(false);
   const [blogMenuOpen, setBlogMenuOpen] = useState(false);
   const [notification, setNotification] = useState("");
-  const [notifCounts, setNotifCounts] = useState<{ orders: number; comments: number; reviews: number; newsletter: number; tickets: number }>({ orders: 0, comments: 0, reviews: 0, newsletter: 0, tickets: 0 });
+  const [notifCounts, setNotifCounts] = useState<{ orders: number; comments: number; reviews: number; newsletter: number; tickets: number; vendorApplications: number }>({ orders: 0, comments: 0, reviews: 0, newsletter: 0, tickets: 0, vendorApplications: 0 });
   const [notificationType, setNotificationType] = useState<"success" | "error">("success");
 
   const showNotification = (msg: string, type: "success" | "error" = "success") => {
@@ -731,6 +732,7 @@ export default function AdminPage() {
             { id: "orders" as Tab, icon: ShoppingBag, label: "Orders", badge: notifCounts.orders },
             { id: "customers" as Tab, icon: Users, label: "Customers", badge: 0 },
             { id: "tickets" as Tab, icon: LifeBuoy, label: "Support Tickets", badge: notifCounts.tickets },
+            { id: "vendor-applications" as Tab, icon: Store, label: "Vendor Applications", badge: notifCounts.vendorApplications },
             { id: "authors" as Tab, icon: UsersRound, label: "Authors", badge: 0 },
             { id: "comments" as Tab, icon: MessageSquare, label: "Comments", badge: notifCounts.comments },
             { id: "newsletter" as Tab, icon: Mail, label: "Newsletter", badge: notifCounts.newsletter },
@@ -1040,6 +1042,10 @@ export default function AdminPage() {
 
           {activeTab === "tickets" && (
             <TicketsManager />
+          )}
+
+          {activeTab === "vendor-applications" && (
+            <VendorApplicationsManager />
           )}
 
           {activeTab === "bundles" && (
