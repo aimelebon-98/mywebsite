@@ -490,7 +490,7 @@ export async function sendVendorApprovedEmail(
           <div style="font-weight:700;font-size:14px;margin-bottom:12px;">${t.credsTitle}</div>
           <div style="background:rgba(255,255,255,0.15);border-radius:8px;padding:12px;margin-bottom:8px;">
             <div style="font-size:11px;opacity:0.8;text-transform:uppercase;letter-spacing:1px;">${t.emailLabel}</div>
-            <div style="font-family:monospace;font-size:14px;margin-top:4px;">${to}</div>
+            <div style="font-family:monospace;font-size:14px;margin-top:4px;color:#ffffff;"><a href="mailto:${to}" style="color:#ffffff !important;text-decoration:none !important;">${to}</a></div>
           </div>
           <div style="background:rgba(255,255,255,0.15);border-radius:8px;padding:12px;">
             <div style="font-size:11px;opacity:0.8;text-transform:uppercase;letter-spacing:1px;">${t.passwordLabel}</div>
