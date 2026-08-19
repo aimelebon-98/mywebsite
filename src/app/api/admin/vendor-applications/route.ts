@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { vendorApplications, vendors } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
-import { requireAdmin } from "@/lib/auth";
+import { requireAdmin } from "@/lib/admin-auth";
 import { hashVendorPassword, generateRandomPassword, generateUniqueStoreSlug } from "@/lib/vendor-auth";
 import { sendVendorApprovedEmail, sendVendorRejectedEmail } from "@/lib/email";
 
