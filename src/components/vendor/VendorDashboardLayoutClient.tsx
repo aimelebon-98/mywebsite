@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  LayoutDashboard, Package, ShoppingBag, DollarSign, Settings, LogOut, Menu, X, ExternalLink, Store, Loader2
+  LayoutDashboard, Package, ShoppingBag, DollarSign, Settings, LogOut, Menu, X, ExternalLink, Store, Loader2, Sparkles
 } from "lucide-react";
 
 const BRAND_RED = "#CA3F2E";
@@ -70,6 +70,7 @@ export default function VendorDashboardLayoutClient({ children }: { children: Re
     orders: "Commandes",
     earnings: "Gains",
     settings: "Param\u00e8tres",
+    concierge: "Concierge",
     logout: "D\u00e9connexion",
     viewStore: "Voir ma boutique",
     verified: "V\u00e9rifi\u00e9",
@@ -79,6 +80,7 @@ export default function VendorDashboardLayoutClient({ children }: { children: Re
     orders: "Orders",
     earnings: "Earnings",
     settings: "Settings",
+    concierge: "Concierge",
     logout: "Logout",
     viewStore: "View my store",
     verified: "Verified",
@@ -87,6 +89,7 @@ export default function VendorDashboardLayoutClient({ children }: { children: Re
   const menu = [
     { href: `/${locale}/vendor/dashboard`, icon: LayoutDashboard, label: t.dashboard },
     { href: `/${locale}/vendor/products`, icon: Package, label: t.products },
+    { href: `/${locale}/vendor/concierge`, icon: Sparkles, label: t.concierge },
     { href: `/${locale}/vendor/orders`, icon: ShoppingBag, label: t.orders },
     { href: `/${locale}/vendor/earnings`, icon: DollarSign, label: t.earnings },
     { href: `/${locale}/vendor/settings`, icon: Settings, label: t.settings },

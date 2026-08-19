@@ -542,3 +542,33 @@ export type VendorApplication = typeof vendorApplications.$inferSelect;
 export type VendorProduct = typeof vendorProducts.$inferSelect;
 export type VendorOrder = typeof vendorOrders.$inferSelect;
 export type VendorPayout = typeof vendorPayouts.$inferSelect;
+
+// ============================================================
+// CONCIERGE SERVICE - vendor pays admin to create products
+// ============================================================
+export const conciergeRequests = pgTable("concierge_requests", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  vendorId: uuid("vendor_id").notNull(),
+  tier: text("tier").notNull().default("basic"),
+  fee: numeric("fee", { precision: 10, scale: 2 }).notNull().default("0"),
+  productName: text("product_name").notNull(),
+  productBrand: text("product_brand").notNull().default(""),
+  productCategory: text("product_category").notNull().default("sneakers"),
+  productPrice: numeric("product_price", { precision: 10, scale: 2 }).notNull(),
+  productComparePrice: numeric("product_compare_price", { precision: 10, scale: 2 }),
+  productMaterial: text("product_material").notNull().default(""),
+  productSizes: text("product_sizes").notNull().default("[]"),
+  productColors: text("product_colors").notNull().default("[]"),
+  productStock: integer("product_stock").notNull().default(0),
+  sourceImages: text("source_images").notNull().default("[]"),
+  notes: text("notes").notNull().default(""),
+  status: text("status").notNull().default("pending"),
+  adminNote: text("admin_note").notNull().default(""),
+  vendorResponse: text("vendor_response").notNull().default(""),
+  createdProductId: uuid("created_product_id"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type ConciergeRequest = typeof conciergeRequests.$inferSelect;
