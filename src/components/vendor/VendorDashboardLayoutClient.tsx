@@ -67,20 +67,20 @@ export default function VendorDashboardLayoutClient({ children }: { children: Re
   const t = isFr ? {
     dashboard: "Tableau de bord",
     products: "Produits",
+    concierge: "Concierge",
     orders: "Commandes",
     earnings: "Gains",
     settings: "Param\u00e8tres",
-    concierge: "Concierge",
     logout: "D\u00e9connexion",
     viewStore: "Voir ma boutique",
     verified: "V\u00e9rifi\u00e9",
   } : {
     dashboard: "Dashboard",
     products: "Products",
+    concierge: "Concierge",
     orders: "Orders",
     earnings: "Earnings",
     settings: "Settings",
-    concierge: "Concierge",
     logout: "Logout",
     viewStore: "View my store",
     verified: "Verified",
@@ -107,15 +107,16 @@ export default function VendorDashboardLayoutClient({ children }: { children: Re
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 transform transition-transform lg:relative lg:translate-x-0 flex flex-col ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
-        <div className="p-5 border-b border-gray-100">
+      {/* Sidebar - fixed height, flex column with scrollable middle */}
+      <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-100 transform transition-transform lg:relative lg:translate-x-0 flex flex-col h-screen lg:sticky lg:top-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        {/* Header - fixed at top */}
+        <div className="p-5 border-b border-gray-100 flex-shrink-0">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 min-w-0">
               {vendor.logo ? (
-                <img src={vendor.logo} alt={vendor.storeName} className="w-10 h-10 rounded-xl object-cover" />
+                <img src={vendor.logo} alt={vendor.storeName} className="w-10 h-10 rounded-xl object-cover flex-shrink-0" />
               ) : (
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: BRAND_RED }}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: BRAND_RED }}>
                   <Store className="w-5 h-5 text-white" />
                 </div>
               )}
@@ -127,13 +128,14 @@ export default function VendorDashboardLayoutClient({ children }: { children: Re
                 </div>
               </div>
             </div>
-            <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-1">
+            <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-1 flex-shrink-0">
               <X className="w-5 h-5" />
             </button>
           </div>
         </div>
 
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+        {/* Menu - scrollable middle */}
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto min-h-0">
           {menu.map(item => {
             const active = pathname === item.href || pathname.startsWith(item.href + "/");
             return (
@@ -145,28 +147,29 @@ export default function VendorDashboardLayoutClient({ children }: { children: Re
                 style={active ? { backgroundColor: BRAND_RED } : undefined}
               >
                 <item.icon className="w-5 h-5 flex-shrink-0" />
-                {item.label}
+                <span className="truncate">{item.label}</span>
               </Link>
             );
           })}
         </nav>
 
-        <div className="p-3 border-t border-gray-100 space-y-2">
+        {/* Footer actions - fixed at bottom */}
+        <div className="p-3 border-t border-gray-100 space-y-1 flex-shrink-0 bg-white">
           <a
             href={`/${locale}/store/${vendor.storeSlug}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50"
           >
-            <ExternalLink className="w-4 h-4" />
-            {t.viewStore}
+            <ExternalLink className="w-4 h-4 flex-shrink-0" />
+            <span className="truncate">{t.viewStore}</span>
           </a>
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50"
           >
-            <LogOut className="w-4 h-4" />
-            {t.logout}
+            <LogOut className="w-4 h-4 flex-shrink-0" />
+            <span className="truncate">{t.logout}</span>
           </button>
         </div>
       </aside>
@@ -181,7 +184,7 @@ export default function VendorDashboardLayoutClient({ children }: { children: Re
           <button onClick={() => setSidebarOpen(true)} className="p-2 hover:bg-gray-100 rounded-lg">
             <Menu className="w-5 h-5" />
           </button>
-          <div className="font-bold text-sm text-gray-900">{vendor.storeName}</div>
+          <div className="font-bold text-sm text-gray-900 truncate">{vendor.storeName}</div>
           <div className="w-9"></div>
         </header>
 
