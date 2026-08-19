@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Wrench, Sparkles } from "lucide-react";
+import { ArrowLeft, Wrench, Sparkles, Loader2 } from "lucide-react";
 import VendorProductForm, { emptyProduct, type ProductFormData } from "@/components/vendor/VendorProductForm";
 import ConciergeForm from "@/components/vendor/ConciergeForm";
 
@@ -17,9 +17,18 @@ export default function VendorAddProductPage() {
   const locale = (params?.locale as string) || "en";
 
   const [mode, setMode] = useState<Mode>("diy");
+  const [vendorCurrency, setVendorCurrency] = useState<string>("USD");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/vendor/me").then(r => r.json()).then(d => {
+      setVendorCurrency(d.vendor?.preferredCurrency || "USD");
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, []);
 
   async function submit(data: ProductFormData) {
-    const payload = { ...data, description: data.shortDescription || data.name };
+    const payload = { ...data, description: data.shortDescription || data.name, currency: data.currency || vendorCurrency };
     const res = await fetch("/api/vendor/products", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -30,6 +39,10 @@ export default function VendorAddProductPage() {
     router.push(`/${locale}/vendor/products`);
   }
 
+  if (loading) return <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin" style={{ color: BRAND_RED }} /></div>;
+
+  const initial: ProductFormData = { ...emptyProduct(), currency: vendorCurrency };
+
   return (
     <div className="max-w-4xl">
       <Link href={`/${locale}/vendor/products`} className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-4">
@@ -39,10 +52,9 @@ export default function VendorAddProductPage() {
 
       <div className="mb-6">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">Add new product</h1>
-        <p className="text-gray-500 text-sm">Choose how you want to add this product.</p>
+        <p className="text-gray-500 text-sm">Choose how you want to add this product. Prices in <strong>{vendorCurrency}</strong> - <Link href={`/${locale}/vendor/settings`} className="underline" style={{ color: BRAND_RED }}>change</Link>.</p>
       </div>
 
-      {/* Mode selector */}
       <div className="grid md:grid-cols-2 gap-3 mb-8">
         <button
           type="button"
@@ -82,7 +94,7 @@ export default function VendorAddProductPage() {
       </div>
 
       {mode === "diy" ? (
-        <VendorProductForm initial={emptyProduct()} submitLabel="Submit for review" onSubmit={submit} />
+        <VendorProductForm initial={initial} submitLabel="Submit for review" onSubmit={submit} />
       ) : (
         <ConciergeForm onSuccess={() => router.push(`/${locale}/vendor/concierge`)} />
       )}

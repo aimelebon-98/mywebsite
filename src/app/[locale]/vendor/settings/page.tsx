@@ -26,6 +26,7 @@ interface VendorSettings {
   bankAccount: string;
   bankAccountName: string;
   commissionRate: string;
+  preferredCurrency: string;
 }
 
 const COUNTRIES = [
@@ -325,6 +326,24 @@ export default function VendorSettingsPage() {
                 <input type="text" value={settings.trustTaglineFr} onChange={e => setSettings({ ...settings, trustTaglineFr: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
               </div>
             </div>
+          </div>
+
+          {/* Currency preference */}
+          <div className="bg-white rounded-2xl p-6 border border-gray-100 space-y-4">
+            <div>
+              <h3 className="font-bold text-gray-900">Preferred currency</h3>
+              <p className="text-sm text-gray-500 mt-1">Enter product prices + see earnings in this currency. Auto-converted to USD in the database.</p>
+            </div>
+            <select value={settings.preferredCurrency || "USD"} onChange={e => setSettings({ ...settings, preferredCurrency: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-white">
+              <option value="USD">USD - US Dollar</option>
+              <option value="NGN">NGN - Nigerian Naira</option>
+              <option value="XOF">FCFA - West African CFA</option>
+              <option value="EUR">EUR - Euro</option>
+              <option value="GHS">GHS - Ghanaian Cedi</option>
+              <option value="GBP">GBP - British Pound</option>
+              <option value="KES">KES - Kenyan Shilling</option>
+              <option value="ZAR">ZAR - South African Rand</option>
+            </select>
           </div>
 
           <div className="flex justify-end">

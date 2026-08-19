@@ -19,6 +19,24 @@ async function slugifyUnique(base: string): Promise<string> {
   }
 }
 
+// Fetch live USD rates
+async function fetchRates(): Promise<Record<string, number>> {
+  try {
+    const res = await fetch("https://api.exchangerate-api.com/v4/latest/USD", { next: { revalidate: 3600 } });
+    const data = await res.json();
+    return data.rates || {};
+  } catch {
+    return { USD: 1, NGN: 1364, XOF: 568, EUR: 0.92, GHS: 13, GBP: 0.79, KES: 130, ZAR: 18 };
+  }
+}
+
+function toUsd(amount: number, currency: string, rates: Record<string, number>): number {
+  if (currency === "USD") return amount;
+  const rate = rates[currency];
+  if (!rate) return amount;
+  return amount / rate;
+}
+
 export async function GET() {
   try {
     const vendor = await getCurrentVendor();
@@ -65,7 +83,7 @@ export async function POST(req: Request) {
   try {
     const vendor = await getCurrentVendor();
     if (!vendor) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    if (vendor.status !== "approved") return NextResponse.json({ error: "Your account must be approved to add products" }, { status: 403 });
+    if (vendor.status !== "approved") return NextResponse.json({ error: "Your account must be approved" }, { status: 403 });
 
     const body = await req.json();
     const {
@@ -73,7 +91,7 @@ export async function POST(req: Request) {
       description, descriptionFr,
       shortDescription, shortDescriptionFr,
       longDescription, longDescriptionFr,
-      price, comparePrice,
+      price, comparePrice, currency,
       category, brand, material, sku,
       sizes, colors, images, imageUrl,
       stock, tags, tagsFr,
@@ -93,11 +111,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid price" }, { status: 400 });
     }
 
+    // Convert to USD if currency is set
+    const vAny = vendor as unknown as { preferredCurrency?: string };
+    const vendorCurrency = String(currency || vAny.preferredCurrency || "USD");
+    const rates = await fetchRates();
+    const priceUsd = toUsd(priceNum, vendorCurrency, rates);
+    const compareNum = parseFloat(String(comparePrice || "0"));
+    const compareUsd = compareNum > 0 ? toUsd(compareNum, vendorCurrency, rates) : null;
+
     const slug = await slugifyUnique(name);
     const slugFr = nameFr ? await slugifyUnique(nameFr) : slug + "-fr";
 
-    // Compute cost estimate (informational; commission is calculated at order time)
-    // Vendors don't see cost - we treat their selling price as USD
     const [newProduct] = await db.insert(products).values({
       name: String(name).slice(0, 200),
       nameFr: nameFr ? String(nameFr).slice(0, 200) : null,
@@ -109,9 +133,9 @@ export async function POST(req: Request) {
       shortDescriptionFr: shortDescriptionFr ? String(shortDescriptionFr).slice(0, 500) : null,
       longDescription: String(longDescription || "").slice(0, 20000),
       longDescriptionFr: longDescriptionFr ? String(longDescriptionFr).slice(0, 20000) : null,
-      price: priceNum.toFixed(2),
+      price: priceUsd.toFixed(2),
       costPrice: "0",
-      comparePrice: comparePrice && parseFloat(String(comparePrice)) > 0 ? parseFloat(String(comparePrice)).toFixed(2) : null,
+      comparePrice: compareUsd ? compareUsd.toFixed(2) : null,
       category: String(category || "sneakers"),
       brand: String(brand || "").slice(0, 100),
       material: String(material || "").slice(0, 200),
@@ -132,9 +156,9 @@ export async function POST(req: Request) {
       ogImage: ogImage || imageUrl,
       originCountry: String(originCountry || vendor.country || "NG").slice(0, 5),
       originCity: String(originCity || vendor.city || "Abuja").slice(0, 60),
-      supplierPrice: "0",
-      supplierCurrency: "USD",
-      active: false, // hidden until admin approves
+      supplierPrice: priceNum.toFixed(2),
+      supplierCurrency: vendorCurrency,
+      active: false,
     }).returning();
 
     await db.insert(vendorProducts).values({
@@ -146,7 +170,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       message: "Product submitted for approval",
-      product: { id: newProduct.id, slug: newProduct.slug },
+      product: { id: newProduct.id, slug: newProduct.slug, priceUsd: priceUsd.toFixed(2), currency: vendorCurrency },
     });
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);

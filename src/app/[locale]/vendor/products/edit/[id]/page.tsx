@@ -17,15 +17,18 @@ export default function VendorEditProductPage() {
   const [initial, setInitial] = useState<ProductFormData | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [vendorCurrency, setVendorCurrency] = useState("USD");
 
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch("/api/vendor/products/" + id);
-        if (res.status === 404) { setNotFound(true); setLoading(false); return; }
-        const data = await res.json();
-        const p = data.product;
-        if (!p) { setNotFound(true); setLoading(false); return; }
+        const [me, prod] = await Promise.all([
+          fetch("/api/vendor/me").then(r => r.json()),
+          fetch("/api/vendor/products/" + id).then(async r => { if (r.status === 404) return null; return r.json(); }),
+        ]);
+        setVendorCurrency(me.vendor?.preferredCurrency || "USD");
+        if (!prod || !prod.product) { setNotFound(true); return; }
+        const p = prod.product;
 
         const parsed = emptyProduct();
         parsed.name = p.name || "";
@@ -36,7 +39,9 @@ export default function VendorEditProductPage() {
         parsed.shortDescriptionFr = p.shortDescriptionFr || "";
         parsed.longDescription = p.longDescription || "";
         parsed.longDescriptionFr = p.longDescriptionFr || "";
-        parsed.price = p.price || "";
+        // Show price in vendor's original currency (supplierPrice + supplierCurrency)
+        parsed.price = p.supplierPrice && parseFloat(p.supplierPrice) > 0 ? p.supplierPrice : p.price;
+        parsed.currency = p.supplierCurrency || me.vendor?.preferredCurrency || "USD";
         parsed.comparePrice = p.comparePrice || "";
         parsed.category = p.category || "sneakers";
         parsed.brand = p.brand || "";
@@ -72,7 +77,7 @@ export default function VendorEditProductPage() {
     const res = await fetch("/api/vendor/products/" + id, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify({ ...data, currency: data.currency || vendorCurrency }),
     });
     const j = await res.json();
     if (!res.ok) throw new Error(j.error || "Failed");

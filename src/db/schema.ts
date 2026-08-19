@@ -454,6 +454,7 @@ export const vendors = pgTable("vendors", {
   bankName: text("bank_name").notNull().default(""),
   bankAccount: text("bank_account").notNull().default(""),
   bankAccountName: text("bank_account_name").notNull().default(""),
+  preferredCurrency: text("preferred_currency").notNull().default("USD"),
   commissionRate: numeric("commission_rate", { precision: 5, scale: 2 }).notNull().default("10.00"),
   status: text("status").notNull().default("pending"),
   fulfillmentRate: numeric("fulfillment_rate", { precision: 5, scale: 2 }).notNull().default("100.00"),

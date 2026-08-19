@@ -8,7 +8,7 @@ export async function GET() {
     const vendor = await getCurrentVendor();
     if (!vendor) return NextResponse.json({ vendor: null });
 
-    const vendorAny = vendor as unknown as { mustChangePassword?: boolean };
+    const vAny = vendor as unknown as { mustChangePassword?: boolean; preferredCurrency?: string; conciergeDebt?: string };
     return NextResponse.json({
       vendor: {
         id: vendor.id,
@@ -23,7 +23,9 @@ export async function GET() {
         pendingPayout: vendor.pendingPayout,
         totalPaidOut: vendor.totalPaidOut,
         fulfillmentRate: vendor.fulfillmentRate,
-        mustChangePassword: vendorAny.mustChangePassword ?? false,
+        mustChangePassword: vAny.mustChangePassword ?? false,
+        preferredCurrency: vAny.preferredCurrency || "USD",
+        conciergeDebt: vAny.conciergeDebt || "0",
       },
     });
   } catch (error) {

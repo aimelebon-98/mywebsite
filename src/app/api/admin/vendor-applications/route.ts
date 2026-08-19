@@ -4,6 +4,7 @@ import { vendorApplications, vendors } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { requireAdmin } from "@/lib/admin-auth";
 import { hashVendorPassword, generateRandomPassword, generateUniqueStoreSlug } from "@/lib/vendor-auth";
+import { defaultCurrencyForCountry } from "@/lib/vendor-currency";
 import { sendVendorApprovedEmail, sendVendorRejectedEmail } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
@@ -85,6 +86,7 @@ export async function POST(req: Request) {
         country: app.country,
         city: app.city,
         commissionRate: commission,
+        preferredCurrency: defaultCurrencyForCountry(app.country),
         status: "approved",
         approvedAt: new Date(),
       }).returning();
