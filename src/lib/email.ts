@@ -731,3 +731,113 @@ export async function sendVendorPayoutProcessedEmail(
     return false;
   }
 }
+
+// ============================================================
+// ADMIN: NEW VENDOR APPLICATION ALERT
+// ============================================================
+export interface VendorApplicationSummary {
+  applicantName: string;
+  email: string;
+  phone: string;
+  storeName: string;
+  storeDescription: string;
+  country: string;
+  city: string;
+  categories: string[];
+  instagramUrl?: string;
+  websiteUrl?: string;
+}
+
+export async function sendAdminNewVendorApplicationEmail(
+  adminEmail: string,
+  app: VendorApplicationSummary
+): Promise<boolean> {
+  if (!resend) {
+    console.warn("[Email] Admin notification skipped - RESEND_API_KEY not configured");
+    return false;
+  }
+
+  const subject = `New vendor application: ${app.storeName}`;
+  const adminUrl = `${SITE_URL}/admin`;
+
+  const catsHtml = app.categories.length > 0
+    ? app.categories.map(c => `<span style="display:inline-block;background:#f3f4f6;color:#374151;font-size:12px;padding:3px 8px;border-radius:6px;margin:2px;">${c}</span>`).join("")
+    : `<span style="color:#9ca3af;font-size:12px;">None specified</span>`;
+
+  const html = `
+    <div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;max-width:560px;margin:0 auto;padding:20px;background:#f9fafb;">
+      ${brandHeader()}
+      <div style="background:#fff;padding:30px;border:1px solid #eee;border-top:none;">
+        <div style="text-align:center;margin-bottom:20px;">
+          <div style="display:inline-block;width:48px;height:48px;background:#fef3c7;border-radius:50%;line-height:48px;">
+            <span style="color:#d97706;font-size:24px;">&#128188;</span>
+          </div>
+          <h1 style="color:#111827;margin:12px 0 4px 0;font-size:22px;">New Vendor Application</h1>
+          <p style="color:#6b7280;font-size:13px;margin:0;">A new vendor wants to join NewDealZone</p>
+        </div>
+
+        <div style="background:linear-gradient(135deg,#CA3F2E 0%,#8B2A1E 100%);border-radius:12px;padding:20px;margin:20px 0;color:white;">
+          <div style="font-size:11px;font-weight:700;opacity:0.85;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Store</div>
+          <div style="font-size:22px;font-weight:900;margin-bottom:6px;">${app.storeName}</div>
+          <div style="font-size:13px;opacity:0.95;">by ${app.applicantName}</div>
+        </div>
+
+        <table cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;margin-top:16px;">
+          <tr>
+            <td style="padding:8px 0;color:#6b7280;font-size:12px;text-transform:uppercase;font-weight:700;letter-spacing:1px;width:120px;">Email</td>
+            <td style="padding:8px 0;color:#111827;font-size:14px;word-break:break-all;">${app.email}</td>
+          </tr>
+          ${app.phone ? `
+          <tr>
+            <td style="padding:8px 0;color:#6b7280;font-size:12px;text-transform:uppercase;font-weight:700;letter-spacing:1px;">Phone</td>
+            <td style="padding:8px 0;color:#111827;font-size:14px;">${app.phone}</td>
+          </tr>` : ""}
+          <tr>
+            <td style="padding:8px 0;color:#6b7280;font-size:12px;text-transform:uppercase;font-weight:700;letter-spacing:1px;">Location</td>
+            <td style="padding:8px 0;color:#111827;font-size:14px;">${app.city}${app.city ? ", " : ""}${app.country}</td>
+          </tr>
+          <tr>
+            <td style="padding:8px 0;color:#6b7280;font-size:12px;text-transform:uppercase;font-weight:700;letter-spacing:1px;vertical-align:top;">Categories</td>
+            <td style="padding:8px 0;">${catsHtml}</td>
+          </tr>
+          ${app.instagramUrl ? `
+          <tr>
+            <td style="padding:8px 0;color:#6b7280;font-size:12px;text-transform:uppercase;font-weight:700;letter-spacing:1px;">Instagram</td>
+            <td style="padding:8px 0;"><a href="${app.instagramUrl}" style="color:#CA3F2E;font-size:13px;word-break:break-all;">${app.instagramUrl}</a></td>
+          </tr>` : ""}
+          ${app.websiteUrl ? `
+          <tr>
+            <td style="padding:8px 0;color:#6b7280;font-size:12px;text-transform:uppercase;font-weight:700;letter-spacing:1px;">Website</td>
+            <td style="padding:8px 0;"><a href="${app.websiteUrl}" style="color:#CA3F2E;font-size:13px;word-break:break-all;">${app.websiteUrl}</a></td>
+          </tr>` : ""}
+        </table>
+
+        ${app.storeDescription ? `
+          <div style="background:#f9fafb;border-radius:10px;padding:14px;margin-top:16px;">
+            <div style="font-weight:700;color:#374151;font-size:12px;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">About</div>
+            <div style="color:#4b5563;font-size:13px;line-height:1.6;">${app.storeDescription}</div>
+          </div>
+        ` : ""}
+
+        <div style="text-align:center;margin:28px 0 12px 0;">
+          <a href="${adminUrl}" style="background:#CA3F2E;color:white;padding:14px 32px;text-decoration:none;border-radius:10px;display:inline-block;font-weight:700;font-size:14px;">Review in Admin Panel</a>
+        </div>
+        <p style="color:#9ca3af;font-size:12px;text-align:center;margin-top:16px;">Open the Vendor Applications tab to approve or reject.</p>
+      </div>
+      ${brandFooter("en")}
+    </div>
+  `;
+
+  try {
+    const result = await resend.emails.send({ from: FROM, to: adminEmail, subject, html });
+    if (result.error) {
+      console.error("[Email] Admin notification Resend error:", result.error);
+      return false;
+    }
+    console.log("[Email] Admin notification sent, id:", result.data?.id);
+    return true;
+  } catch (err) {
+    console.error("[Email] Admin notification exception:", err);
+    return false;
+  }
+}
