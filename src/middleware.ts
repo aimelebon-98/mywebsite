@@ -36,6 +36,7 @@ const PUBLIC_API_ROUTES = [
   "/api/catalog",            // Product catalog feed for Meta + Google Merchant
   "/api/indexnow",       // IndexNow ping endpoint (Bing/Yandex/Naver)
   "/api/vendor",             // Vendor auth + dashboard endpoints
+  "/api/store",              // Public storefront + seller info card
 ];
 
 // Admin routes (own auth already applied - middleware just lets them through)
