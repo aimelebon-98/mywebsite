@@ -185,7 +185,7 @@ export default function ConciergeRequestsManager() {
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-1.5">Created product ID (when completing)</label>
                         <input type="text" placeholder="Paste UUID of the product you created" value={createdProductId} onChange={e => setCreatedProductId(e.target.value)} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-mono" />
-                        <p className="text-xs text-gray-500 mt-1">Create the product normally in Products tab, then paste its ID here and complete.</p>
+                        <p className="text-xs text-gray-500 mt-1">Step 1: Go to admin Products tab and create the product normally. Step 2: Copy its ID from the URL (edit page) or products list. Step 3: Paste UUID here and click Complete - it will auto-appear in the vendor dashboard.</p>
                       </div>
                     )}
 

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Wrench, Sparkles, Loader2 } from "lucide-react";
+import { displayCurrency } from "@/lib/vendor-currency";
 import VendorProductForm, { emptyProduct, type ProductFormData } from "@/components/vendor/VendorProductForm";
 import ConciergeForm from "@/components/vendor/ConciergeForm";
 
@@ -52,7 +53,7 @@ export default function VendorAddProductPage() {
 
       <div className="mb-6">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">Add new product</h1>
-        <p className="text-gray-500 text-sm">Choose how you want to add this product. Prices in <strong>{vendorCurrency}</strong> - <Link href={`/${locale}/vendor/settings`} className="underline" style={{ color: BRAND_RED }}>change</Link>.</p>
+        <p className="text-gray-500 text-sm">Choose how you want to add this product. Prices in <strong>{displayCurrency(vendorCurrency)}</strong> - <Link href={`/${locale}/vendor/settings`} className="underline" style={{ color: BRAND_RED }}>change</Link>.</p>
       </div>
 
       <div className="grid md:grid-cols-2 gap-3 mb-8">

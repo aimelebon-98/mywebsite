@@ -122,7 +122,7 @@ export default function VendorConciergePage() {
                     )}
                     {r.status === "completed" && r.createdProductId && (
                       <div className="mt-2 text-xs text-green-700 font-semibold">
-                        Product is live on the site
+                        Product is live and in your Products list
                       </div>
                     )}
                   </div>

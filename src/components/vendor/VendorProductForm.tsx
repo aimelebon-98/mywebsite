@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { Upload, Loader2, X, Plus, Save, AlertCircle, CheckCircle2 } from "lucide-react";
+import { displayCurrency } from "@/lib/vendor-currency";
 
 const BRAND_RED = "#CA3F2E";
 const BRAND_RED_DARK = "#8B2A1E";
@@ -271,11 +272,11 @@ export default function VendorProductForm({ initial, submitLabel, onSubmit, isEd
 
               <div className="grid md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Price ({data.currency}) *</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Price ({displayCurrency(data.currency)}) *</label>
                   <input type="number" step="0.01" min="0" required value={data.price} onChange={e => setData({ ...data, price: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Compare-at price ({data.currency})</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Compare-at price ({displayCurrency(data.currency)})</label>
                   <input type="number" step="0.01" min="0" value={data.comparePrice} onChange={e => setData({ ...data, comparePrice: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
                   <p className="text-xs text-gray-500 mt-1">Original price (shows discount)</p>
                 </div>
