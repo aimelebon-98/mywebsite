@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { reviews } from "@/db/schema";
-import { getCustomerFromRequest } from "@/lib/auth-customer";
+import { getCustomerFromRequest } from "@/lib/customer-auth";
 import { eq, desc } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const customerName = customer.name || "";
+    const customerName = (customer as any).name || (customer as any).fullName || "";
     const rows = await db
       .select()
       .from(reviews)
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const customerName = customer.name || body.customerName || "Customer";
+    const customerName = (customer as any).name || (customer as any).fullName || body.customerName || "Customer";
     const initials = customerName
       .split(" ")
       .map((w: string) => w[0]?.toUpperCase() || "")

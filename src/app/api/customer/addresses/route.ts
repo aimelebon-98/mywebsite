@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { customerAddresses } from "@/db/schema";
-import { getCustomerFromRequest } from "@/lib/auth-customer";
+import { getCustomerFromRequest } from "@/lib/customer-auth";
 import { eq, desc } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
@@ -46,8 +46,8 @@ export async function POST(request: NextRequest) {
       .values({
         customerId: customer.id,
         label: String(body.label || "Home").trim().slice(0, 50),
-        fullName: String(body.fullName || customer.name || "").trim().slice(0, 100),
-        phone: String(body.phone || customer.phone || "").trim().slice(0, 30),
+        fullName: String(body.fullName || (customer as any).name || (customer as any).fullName || "").trim().slice(0, 100),
+        phone: String(body.phone || (customer as any).phone || "").trim().slice(0, 30),
         street: String(body.street || body.address || body.addressLine1 || "").trim().slice(0, 300),
         city: String(body.city || "").trim().slice(0, 100),
         state: String(body.state || "").trim().slice(0, 100),

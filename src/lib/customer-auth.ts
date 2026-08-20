@@ -82,3 +82,61 @@ export async function requireCustomer(): Promise<Customer> {
   if (!customer) throw new Error("UNAUTHORIZED");
   return customer;
 }
+
+// ── Auth helper for NextRequest / route handlers ──
+export async function getCustomerFromRequest(request?: any) {
+  try {
+    const { db } = await import("@/db");
+    const { customers, customerSessions } = await import("@/db/schema");
+    const { eq, and, gt } = await import("drizzle-orm");
+    const { cookies } = await import("next/headers");
+
+    let token: string | undefined;
+
+    if (request?.cookies) {
+      token = request.cookies.get("ndz_customer_session")?.value ||
+              request.cookies.get("customer_session")?.value ||
+              request.cookies.get("session")?.value;
+    }
+
+    if (!token && request?.headers) {
+      const auth = request.headers.get("authorization");
+      if (auth?.startsWith("Bearer ")) {
+        token = auth.slice(7).trim();
+      }
+    }
+
+    if (!token) {
+      try {
+        const cookieStore = await cookies();
+        token = cookieStore.get("ndz_customer_session")?.value ||
+                cookieStore.get("customer_session")?.value ||
+                cookieStore.get("session")?.value;
+      } catch {}
+    }
+
+    if (!token) return null;
+
+    const [session] = await db
+      .select()
+      .from(customerSessions)
+      .where(
+        and(
+          eq(customerSessions.token, token),
+          gt(customerSessions.expiresAt, new Date())
+        )
+      );
+
+    if (!session) return null;
+
+    const [customer] = await db
+      .select()
+      .from(customers)
+      .where(eq(customers.id, session.customerId));
+
+    return customer || null;
+  } catch (error) {
+    console.error("getCustomerFromRequest error:", error);
+    return null;
+  }
+}
