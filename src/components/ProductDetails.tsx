@@ -1119,7 +1119,12 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               <h2 className="text-3xl lg:text-4xl font-black tracking-tight">{t("customerReviews")}</h2>
               <p className="text-gray-500 mt-1">{reviewsLabel}</p>
             </div>
-            <button onClick={() => { const next = !showReviewForm; setShowReviewForm(next); setReviewSuccess(false); if (next) setTimeout(() => reviewFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 100); }} className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition self-start shadow-lg shadow-gray-900/10">
+            <button onClick={() => { const next = !showReviewForm; setShowReviewForm(next); setReviewSuccess(false); if (next) setTimeout(() => {
+                  if (reviewFormRef.current) {
+                    const y = reviewFormRef.current.getBoundingClientRect().top + window.scrollY - 120;
+                    window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+                  }
+                }, 100); }} className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition self-start shadow-lg shadow-gray-900/10">
               <MessageSquare className="w-4 h-4" />
               {t("writeReview")}
             </button>

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { reviews, products } from "@/db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { reviews } from "@/db/schema";
+import { eq, and, desc, sql } from "drizzle-orm";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -39,7 +39,12 @@ export async function GET(req: NextRequest) {
     if (!productId) {
       return NextResponse.json({ error: "Product ID required" }, { status: 400 });
     }
-    // Only fetch APPROVED reviews for public product display
+    
+    // Auto-ensure approved column exists on GET calls
+    try {
+      await db.execute(sql`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS approved boolean NOT NULL DEFAULT true`);
+    } catch { /* ignore */ }
+
     const rows = await db.select().from(reviews)
       .where(and(eq(reviews.productId, productId), eq(reviews.approved, true)))
       .orderBy(desc(reviews.createdAt));
@@ -77,7 +82,11 @@ export async function POST(req: NextRequest) {
     const sanitizedCommentFr = cleanText(rawCommentFr || rawComment);
     const avatar = getInitials(customerName);
 
-    // Requires admin approval before appearing publicly
+    // Auto-ensure column exists before insert
+    try {
+      await db.execute(sql`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS approved boolean NOT NULL DEFAULT false`);
+    } catch { /* ignore */ }
+
     const [newReview] = await db.insert(reviews).values({
       productId,
       customerName: sanitizedName,

@@ -53,6 +53,9 @@ function isApiRequestAllowed(request: NextRequest): boolean {
   const { pathname } = request.nextUrl;
   const headers = request.headers;
 
+  // Always allow /api/settings for internal middleware resolution
+  if (pathname === "/api/settings") return true;
+
   // Admin routes handle their own auth via requireAdmin()
   if (pathname.startsWith(ADMIN_API_PREFIX)) {
     // Unauthenticated admin auth/login endpoints must be accessible

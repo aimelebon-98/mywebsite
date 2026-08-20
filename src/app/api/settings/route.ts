@@ -6,7 +6,6 @@ import { requireAdmin } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
-// Fields that must NEVER be exposed to public unauthenticated requests
 const SENSITIVE_FIELDS = ["adminPassword", "adminPath"];
 
 function stripSensitive(row: Record<string, unknown>): Record<string, unknown> {
@@ -40,13 +39,11 @@ export async function GET(req: Request) {
     const [st] = await db.select().from(settings).where(eq(settings.id, 1)).limit(1);
     if (!st) return NextResponse.json({});
 
-    // Admin or Internal Middleware gets full settings (including adminPath for routing)
     if (isAdmin) {
       const { adminPassword, ...rest } = st as Record<string, unknown>;
       return NextResponse.json(rest);
     }
 
-    // Public gets only safe fields
     return NextResponse.json(stripSensitive(st as Record<string, unknown>));
   } catch (error) {
     console.error("[Settings GET] Error:", error);
@@ -71,7 +68,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    const rawMsg = error instanceof Error ? error.message : "Failed to update settings"; const msg = process.env.NODE_ENV === "development" ? rawMsg : "Failed to update settings";
+    const msg = process.env.NODE_ENV === "development" ? (error instanceof Error ? error.message : String(error)) : "Failed to update settings";
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
