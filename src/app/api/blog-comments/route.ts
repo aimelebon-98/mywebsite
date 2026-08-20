@@ -1,87 +1,68 @@
-import { verifyTurnstile } from "@/lib/turnstile";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { blogComments } from "@/db/schema";
-import { eq, and, desc, asc } from "drizzle-orm";
-import { validateSubmission, checkRateLimit, getClientIp } from "@/lib/anti-spam";
-import { requireAdmin, verifyAdmin } from "@/lib/admin-auth";
+import { eq, and, desc } from "drizzle-orm";
+import { verifyTurnstile } from "@/lib/turnstile";
+import { isRateLimited } from "@/lib/rate-limit";
+import { headers } from "next/headers";
 
-export async function GET(request: NextRequest) {
+export const dynamic = "force-dynamic";
+
+export async function GET(req: Request) {
   try {
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = new URL(req.url);
     const postId = searchParams.get("postId");
-    const includeUnapproved = searchParams.get("all") === "true";
 
-    // Admin-only if requesting unapproved (moderation view)
-    if (includeUnapproved) {
-      const isAdmin = await verifyAdmin();
-      if (!isAdmin) return new NextResponse("Not Found", { status: 404 });
+    if (!postId) {
+      return NextResponse.json({ error: "postId is required" }, { status: 400 });
     }
 
-    if (!postId && !includeUnapproved) {
-      return NextResponse.json({ error: "postId required" }, { status: 400 });
-    }
+    const comments = await db.select().from(blogComments)
+      .where(and(eq(blogComments.postId, postId), eq(blogComments.approved, true)))
+      .orderBy(desc(blogComments.createdAt));
 
-    const conditions = [];
-    if (postId) conditions.push(eq(blogComments.postId, postId));
-    if (!includeUnapproved) conditions.push(eq(blogComments.approved, true));
-
-    const result = await db.select().from(blogComments)
-      .where(conditions.length > 0 ? and(...conditions) : undefined)
-      .orderBy(asc(blogComments.createdAt));
-
-    return NextResponse.json(result);
+    return NextResponse.json(comments);
   } catch (error) {
-    console.error("Error fetching comments:", error);
     return NextResponse.json({ error: "Failed to fetch comments" }, { status: 500 });
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(req: Request) {
   try {
-    const body = await request.json();
-    const ip = getClientIp(request.headers);
-    const spamReason = validateSubmission({
-      honeypot: body.honeypot,
-      timestamp: typeof body.timestamp === "number" ? body.timestamp : undefined,
-      referer: request.headers.get("referer"),
-      host: request.headers.get("host"),
-      minSecondsToSubmit: 3,
-    });
-    if (spamReason) {
-      console.log(`[Comments] Blocked ${spamReason} from ${ip}`);
-      return NextResponse.json({ success: true, message: "Comment received" });
-    }
-    if (!checkRateLimit(`comment:${ip}`, 5, 3600)) {
-      return NextResponse.json({ success: true, message: "Comment received" });
-    }
-    const { postId, parentId, authorName, authorEmail, content } = body;
+    const h = await headers();
+    const ip = h.get("cf-connecting-ip") || h.get("x-forwarded-for")?.split(",")[0] || h.get("x-real-ip") || "";
 
-    if (turnstileToken) { const captchaOk = await verifyTurnstile(turnstileToken, ip); if (!captchaOk) return NextResponse.json({ error: "Security check failed" }, { status: 403 }); }
-     {
+    if (isRateLimited(ip, 10, 60000)) {
+      return NextResponse.json({ error: "Too many comments submitted. Please wait a minute." }, { status: 429 });
+    }
+
+    const body = await req.json();
+    const { postId, parentId, authorName, authorEmail, content, turnstileToken } = body;
+
+    if (!postId || !authorName || !content) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    // Simple spam guard: content too short/long
-    if (content.trim().length < 2 || content.length > 5000) {
-      return NextResponse.json({ error: "Invalid content length" }, { status: 400 });
+    if (turnstileToken) {
+      const captchaOk = await verifyTurnstile(String(turnstileToken), ip);
+      if (!captchaOk) {
+        return NextResponse.json({ error: "Security check failed. Please refresh and try again." }, { status: 403 });
+      }
     }
 
-
-    const result = await db.insert(blogComments).values({
-      postId,
-      parentId: parentId || null,
-      authorName: authorName.trim().slice(0, 100),
-      authorEmail: (authorEmail || "").trim().slice(0, 200),
-      content: content.trim(),
-      approved: false,
+    const [inserted] = await db.insert(blogComments).values({
+      postId: String(postId),
+      parentId: parentId ? String(parentId) : null,
+      authorName: String(authorName).slice(0, 100),
+      authorEmail: authorEmail ? String(authorEmail).slice(0, 100) : null,
+      content: String(content).slice(0, 2000),
+      approved: true,
       likes: 0,
-      ipAddress: ip,
     }).returning();
 
-    return NextResponse.json({ success: true, comment: result[0] }, { status: 201 });
+    return NextResponse.json({ success: true, comment: inserted });
   } catch (error) {
-    console.error("Error creating comment:", error);
-    return NextResponse.json({ error: "Failed to submit comment" }, { status: 500 });
+    const msg = error instanceof Error ? error.message : "Failed to post comment";
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
