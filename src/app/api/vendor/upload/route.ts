@@ -1,39 +1,30 @@
 import { NextResponse } from "next/server";
 import { put } from "@vercel/blob";
-import { getCurrentVendor } from "@/lib/vendor-auth";
+import { requireVendor } from "@/lib/vendor-auth";
+import { validateUploadFile } from "@/lib/upload-guard";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 30;
 
 export async function POST(req: Request) {
   try {
-    const vendor = await getCurrentVendor();
-    if (!vendor) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const vendor = await requireVendor();
 
     const formData = await req.formData();
-    const file = formData.get("file") as File | null;
-    const kind = (formData.get("kind") as string) || "image";
+    const file = formData.get("file") as File;
+    const check = validateUploadFile(file);
+    if (!check.valid) {
+      return NextResponse.json({ error: check.error }, { status: 400 });
+    }
 
-    if (!file) return NextResponse.json({ error: "No file provided" }, { status: 400 });
-
-    const maxSize = 5 * 1024 * 1024;
-    if (file.size > maxSize) return NextResponse.json({ error: "File too large (max 5 MB)" }, { status: 400 });
-
-    if (!file.type.startsWith("image/")) return NextResponse.json({ error: "Only images allowed" }, { status: 400 });
-
-    const ext = file.name.split(".").pop() || "jpg";
-    const safeSlug = vendor.storeSlug.replace(/[^a-z0-9-]/gi, "");
-    const path = `vendors/${safeSlug}/${kind}-${Date.now()}.${ext}`;
-
-    const buffer = await file.arrayBuffer();
-    const blob = await put(path, buffer, {
+    const cleanName = (file.name || "image.jpg").replace(/[^a-zA-Z0-9.-]/g, "_");
+    const blob = await put(`vendors/${vendor.id}/${Date.now()}-${cleanName}`, file, {
       access: "public",
-      contentType: file.type,
+      contentType: file.type || "image/jpeg",
     });
 
-    return NextResponse.json({ success: true, url: blob.url });
+    return NextResponse.json({ url: blob.url });
   } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ error: msg }, { status: 500 });
+    const msg = error instanceof Error ? error.message : "Unauthorized or upload failed";
+    return NextResponse.json({ error: msg }, { status: 401 });
   }
 }

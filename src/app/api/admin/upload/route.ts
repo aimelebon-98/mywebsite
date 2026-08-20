@@ -1,54 +1,31 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { put } from "@vercel/blob";
 import { requireAdmin } from "@/lib/admin-auth";
+import { validateUploadFile } from "@/lib/upload-guard";
 
-export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function POST(request: NextRequest) {
-  const unauth = await requireAdmin();
-  if (unauth) return unauth;
+export async function POST(req: Request) {
+  const authErr = await requireAdmin();
+  if (authErr) return authErr;
 
   try {
-    const form = await request.formData();
-    const file = form.get("file") as File | null;
-    if (!file) {
-      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+    const formData = await req.formData();
+    const file = formData.get("file") as File;
+    const check = validateUploadFile(file);
+    if (!check.valid) {
+      return NextResponse.json({ error: check.error }, { status: 400 });
     }
 
-    // Basic validation
-    if (!file.type.startsWith("image/")) {
-      return NextResponse.json({ error: "Only image files allowed" }, { status: 400 });
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      return NextResponse.json({ error: "Max 10MB" }, { status: 400 });
-    }
-
-    // Sanitize filename
-    const original = file.name || "upload";
-    const cleanName = original
-      .toLowerCase()
-      .replace(/[^a-z0-9.-]/g, "-")
-      .replace(/-+/g, "-")
-      .slice(0, 80);
-    const timestamp = Date.now().toString(36);
-    const finalName = `products/${timestamp}-${cleanName}`;
-
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
-      return NextResponse.json({
-        error: "BLOB_READ_WRITE_TOKEN not configured. Add Vercel Blob storage in your Vercel dashboard."
-      }, { status: 500 });
-    }
-
-    const blob = await put(finalName, file, {
+    const cleanName = (file.name || "image.jpg").replace(/[^a-zA-Z0-9.-]/g, "_");
+    const blob = await put(`admin/${Date.now()}-${cleanName}`, file, {
       access: "public",
-      addRandomSuffix: false,
-      contentType: file.type,
+      contentType: file.type || "image/jpeg",
     });
 
-    return NextResponse.json({ url: blob.url, pathname: blob.pathname });
-  } catch (err) {
-    console.error("Upload error:", err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return NextResponse.json({ url: blob.url });
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Upload failed";
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
