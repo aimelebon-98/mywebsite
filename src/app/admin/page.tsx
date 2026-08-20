@@ -32,6 +32,7 @@ import VendorApplicationsManager from "@/components/VendorApplicationsManager";
 import ConciergeRequestsManager from "@/components/ConciergeRequestsManager";
 import VendorsManager from "@/components/VendorsManager";
 import VendorProductsManager from "@/components/VendorProductsManager";
+import ReviewsManager from "@/components/ReviewsManager";
 import VendorPayoutsManager from "@/components/VendorPayoutsManager";
 interface Product {
   id: string;
@@ -1019,24 +1020,7 @@ export default function AdminPage() {
             />
           )}
 
-          {activeTab === "reviews" && (
-            <div className="bg-white rounded-2xl border border-gray-100 p-6">
-              <h3 className="font-bold mb-4">Product Reviews</h3>
-              <p className="text-gray-500 text-sm">Customer reviews are displayed on product pages. Reviews can be submitted by customers directly on the product page.</p>
-              <div className="mt-6 grid sm:grid-cols-3 gap-4">
-                {[
-                  { label: "Total Reviews", value: products.reduce((sum, p) => sum + (p.reviewCount || 0), 0) },
-                  { label: "Avg. Rating", value: (products.filter(p => p.rating).reduce((sum, p) => sum + parseFloat(p.rating || "0"), 0) / Math.max(1, products.filter(p => p.rating).length)).toFixed(1) },
-                  { label: "Products with Reviews", value: products.filter(p => (p.reviewCount || 0) > 0).length },
-                ].map((stat) => (
-                  <div key={stat.label} className="p-4 bg-gray-50 rounded-xl text-center">
-                    <p className="text-2xl font-bold">{stat.value}</p>
-                    <p className="text-xs text-gray-500">{stat.label}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {activeTab === "reviews" && <ReviewsManager />}
 
           {activeTab === "profit" && <ProfitDashboard />}
 
