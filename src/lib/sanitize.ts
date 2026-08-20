@@ -113,3 +113,7 @@ export function validateLength(
   }
   return null;
 }
+
+// ── Backward-compatible alias ──
+// BlogPostContent.tsx imports sanitizeHtml
+export const sanitizeHtml = sanitizeContent;

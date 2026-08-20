@@ -120,3 +120,20 @@ export function rateLimitByIP(
 
   return null;
 }
+
+// ── Backward-compatible alias ──
+// Existing routes import isRateLimited(identifier, endpoint?, max?, windowMs?)
+export function isRateLimited(
+  identifier: string,
+  endpoint?: string,
+  max?: number,
+  windowMs?: number
+): boolean {
+  const key = endpoint ? `${identifier}:${endpoint}` : identifier;
+  const config = {
+    max: max ?? RATE_LIMITS.api.max,
+    windowMs: windowMs ?? RATE_LIMITS.api.windowMs,
+  };
+  const { allowed } = checkRateLimit(key, config);
+  return !allowed;
+}
