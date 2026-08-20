@@ -9,42 +9,38 @@ const LOCALES = ["en", "fr"];
 // ============================================================
 // API ACCESS CONTROL
 // ============================================================
-// Public routes (allowed from anywhere - needed for forms, tracking, etc.)
 const PUBLIC_API_ROUTES = [
-  "/api/track",              // Analytics beacon
-  "/api/newsletter",         // Newsletter subscribe (POST)
-  "/api/wishlist",           // Wishlist toggle
-  "/api/blog-comments",      // Comment submit + like
-  "/api/reviews",            // Review submit
-  "/api/setup",              // First-time setup
-  "/api/health",             // Health check
-  "/api/settings",           // Settings (used by middleware itself)
-  "/api/orders",             // Order submit from cart
-  // Public read-only endpoints (needed for public pages + language switcher)
-  "/api/products",           // Product data (used by shop, quick view, language switcher)
-  "/api/blog",               // Blog post data (used by blog pages, language switcher)
-  "/api/blog-categories",    // Blog categories (public)
-  "/api/authors",            // Author data
-  "/api/categories",         // Product categories
-  "/api/search-suggestions", // Search autocomplete
-  "/api/product-faqs",       // Product FAQ display
-  "/api/bundles",            // Bundle deals display
-  "/api/exchange-rates",     // Currency conversion rates
+  "/api/track",
+  "/api/newsletter",
+  "/api/wishlist",
+  "/api/blog-comments",
+  "/api/reviews",
+  "/api/setup",
+  "/api/health",
+  "/api/settings",
+  "/api/orders",
+  "/api/products",
+  "/api/blog",
+  "/api/blog-categories",
+  "/api/authors",
+  "/api/categories",
+  "/api/search-suggestions",
+  "/api/product-faqs",
+  "/api/bundles",
+  "/api/exchange-rates",
   "/api/geo-currency",
-  "/api/customer",       // Auto-detect currency by country
-  "/api/fb-capi",            // Meta Conversions API (server-side pixel)
-  "/api/catalog",            // Product catalog feed for Meta + Google Merchant
-  "/api/indexnow",       // IndexNow ping endpoint (Bing/Yandex/Naver)
-  "/api/vendor",             // Vendor auth + dashboard endpoints
-  "/api/store",              // Public storefront + seller info card
+  "/api/customer",
+  "/api/fb-capi",
+  "/api/catalog",
+  "/api/indexnow",
+  "/api/vendor",
+  "/api/store",
 ];
 
-// Admin routes (own auth already applied - middleware just lets them through)
 const ADMIN_API_PREFIX = "/api/admin";
 
-// Whitelisted IPs (bypass all restrictions)
 const WHITELIST_IPS = [
-  "102.64.152.45",  // Your IP
+  "102.64.152.45",
 ];
 
 function isPublicApiRoute(pathname: string): boolean {
@@ -57,33 +53,25 @@ function isApiRequestAllowed(request: NextRequest): boolean {
   const { pathname } = request.nextUrl;
   const headers = request.headers;
 
-  // Admin routes handle their own auth via requireAdmin()
-    if (pathname.startsWith(ADMIN_API_PREFIX)) {
+  if (pathname.startsWith(ADMIN_API_PREFIX)) {
     if (pathname === "/api/admin/login") return true;
     const adminSession = request.cookies.get("admin_session")?.value;
-    if (!adminSession) return false; // Edge block unauthenticated admin API access
+    if (!adminSession) return false;
     return true;
   }
 
-  // Public routes - always allow
   if (isPublicApiRoute(pathname)) return true;
-
-  // Internal middleware calls (from this middleware to /api/settings)
   if (headers.get("x-internal") === "middleware") return true;
 
-  // Get client IP
-  // Cloudflare-aware IP detection (cf-connecting-ip = real client)
   const cfIp = headers.get("cf-connecting-ip") || "";
   const forwardedFor = headers.get("x-forwarded-for") || "";
   const realIp = headers.get("x-real-ip") || "";
   const clientIp = (cfIp || forwardedFor.split(",").pop()?.trim() || realIp).trim();
 
-  // Whitelisted IPs (hardcoded + env var)
   const envIps = (process.env.API_WHITELIST_IPS || "").split(",").map(s => s.trim()).filter(Boolean);
   const allWhitelistedIps = [...WHITELIST_IPS, ...envIps];
   if (clientIp && allWhitelistedIps.includes(clientIp)) return true;
 
-  // Same-origin check: allow requests coming from your own website
   const referer = headers.get("referer") || "";
   const origin = headers.get("origin") || "";
   const host = headers.get("host") || "";
@@ -94,31 +82,24 @@ function isApiRequestAllowed(request: NextRequest): boolean {
     if (origin.includes(cleanHost)) return true;
   }
 
-  // Same-origin fetch header (modern browsers)
   const secFetchSite = headers.get("sec-fetch-site");
   if (secFetchSite === "same-origin" || secFetchSite === "same-site") return true;
 
-  // Direct API access from external = blocked
   return false;
 }
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // ============================================================
-  // 1. API ROUTES - centralized protection
-  // ============================================================
+  // 1. API ROUTES
   if (pathname.startsWith("/api")) {
     if (!isApiRequestAllowed(request)) {
-      // Return 404 to hide that the route exists
       return new NextResponse("Not Found", { status: 404 });
     }
     return NextResponse.next();
   }
 
-  // ============================================================
-  // 2. Skip Next.js internals + static files
-  // ============================================================
+  // 2. Skip Next.js static files
   if (
     pathname.startsWith("/_next") ||
     pathname === "/favicon.ico" ||
@@ -127,9 +108,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // ============================================================
-  // 3. Admin path routing (existing logic)
-  // ============================================================
+  // 3. Admin path routing
   let customAdminPath = "admin";
   try {
     const settingsUrl = new URL("/api/settings", request.url);
@@ -138,13 +117,15 @@ export async function middleware(request: NextRequest) {
     });
     if (res.ok) {
       const settings = await res.json();
-      customAdminPath = (settings.adminPath || "admin").toLowerCase().trim();
+      if (settings.adminPath) {
+        customAdminPath = String(settings.adminPath).toLowerCase().trim();
+      }
     }
   } catch (error) {
     console.error("Middleware settings fetch error:", error);
   }
 
-  const hasCustomPath = customAdminPath && customAdminPath !== "admin";
+  const hasCustomPath = Boolean(customAdminPath && customAdminPath !== "admin");
 
   const segments = pathname.split("/").filter(Boolean);
   const firstSegment = segments[0]?.toLowerCase() || "";
@@ -152,6 +133,7 @@ export async function middleware(request: NextRequest) {
   const effectiveSegments = isLocalePrefixed ? segments.slice(1) : segments;
   const effectiveFirstSegment = effectiveSegments[0]?.toLowerCase() || "";
 
+  // Block default /admin route if custom admin path is active
   if (effectiveFirstSegment === "admin") {
     const isRewrite = request.headers.get("x-admin-rewrite") === "true";
     if (hasCustomPath && !isRewrite) {
@@ -165,17 +147,17 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (hasCustomPath && effectiveSegments.length === 1 && effectiveFirstSegment === customAdminPath) {
+  // Rewrite custom admin path (e.g. /jevw or /en/jevw) to /admin
+  if (hasCustomPath && effectiveFirstSegment === customAdminPath) {
+    const remainingSegments = effectiveSegments.slice(1);
     const url = request.nextUrl.clone();
-    url.pathname = "/admin";
+    url.pathname = "/admin" + (remainingSegments.length > 0 ? "/" + remainingSegments.join("/") : "");
     const response = NextResponse.rewrite(url);
     response.headers.set("x-admin-rewrite", "true");
     return response;
   }
 
-  // ============================================================
   // 4. Everything else - i18n routing
-  // ============================================================
   return intlMiddleware(request);
 }
 

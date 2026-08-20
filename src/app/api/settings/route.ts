@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { settings } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { requireAdmin, hashAdminPassword } from "@/lib/admin-auth";
+import { requireAdmin } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
-// Fields that must NEVER be exposed to unauthenticated requests
+// Fields that must NEVER be exposed to public unauthenticated requests
 const SENSITIVE_FIELDS = ["adminPassword", "adminPath"];
 
 function stripSensitive(row: Record<string, unknown>): Record<string, unknown> {
@@ -17,9 +17,11 @@ function stripSensitive(row: Record<string, unknown>): Record<string, unknown> {
   return cleaned;
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const isAdmin = await (async () => {
+    const isInternalMiddleware = req.headers.get("x-internal") === "middleware";
+
+    const isAdmin = isInternalMiddleware || await (async () => {
       try {
         const { cookies } = await import("next/headers");
         const cookieStore = await cookies();
@@ -36,7 +38,7 @@ export async function GET() {
     const [st] = await db.select().from(settings).where(eq(settings.id, 1)).limit(1);
     if (!st) return NextResponse.json({});
 
-    // Admin gets full settings (including adminPath for routing)
+    // Admin or Internal Middleware gets full settings (including adminPath for routing)
     if (isAdmin) {
       const { adminPassword, ...rest } = st as Record<string, unknown>;
       return NextResponse.json(rest);
@@ -45,6 +47,7 @@ export async function GET() {
     // Public gets only safe fields
     return NextResponse.json(stripSensitive(st as Record<string, unknown>));
   } catch (error) {
+    console.error("[Settings GET] Error:", error);
     return NextResponse.json({ error: "Failed to fetch settings" }, { status: 500 });
   }
 }
@@ -55,7 +58,6 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    // Prevent overwriting id
     delete body.id;
     const [existing] = await db.select().from(settings).where(eq(settings.id, 1)).limit(1);
 
