@@ -1,3 +1,4 @@
+import Turnstile from "@/components/Turnstile";
 "use client";
 
 import { useState, useEffect } from "react";
@@ -91,7 +92,8 @@ export default function CommentSection({ postId }: Props) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [content, setContent] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  
+  const [turnstileToken, setTurnstileToken] = useState("");
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
   const [replyTo, setReplyTo] = useState<BlogComment | null>(null);

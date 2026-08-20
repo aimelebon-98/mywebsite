@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { trackEvent } from "@/components/AnalyticsTracker";
+import Turnstile from "@/components/Turnstile";
 
 const STORAGE_KEY = "solevault_exit_popup_shown";
 const STORAGE_EXPIRES_DAYS = 7;
@@ -19,10 +20,10 @@ export default function ExitIntentPopup() {
   const [subscribing, setSubscribing] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
   const [timeLeft, setTimeLeft] = useState(600);
+  const [turnstileToken, setTurnstileToken] = useState("");
 
   useEffect(() => {
     setPortalTarget(document.body);
-    // Detect locale from URL path
     const path = window.location.pathname;
     setIsFr(path.startsWith("/fr"));
   }, []);
@@ -48,7 +49,6 @@ export default function ExitIntentPopup() {
       try {
         window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ timestamp: Date.now() }));
       } catch { /* ignore */ }
-      // Remove all listeners immediately after first trigger
       if (mouseLeaveHandler) document.removeEventListener("mouseleave", mouseLeaveHandler);
       if (scrollHandler) window.removeEventListener("scroll", scrollHandler);
       if (fallbackTimer) clearTimeout(fallbackTimer);
@@ -118,7 +118,7 @@ export default function ExitIntentPopup() {
       await fetch("/api/newsletter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), honeypot: "", timestamp: formOpenTime }),
+        body: JSON.stringify({ email: email.trim(), honeypot: "", timestamp: formOpenTime, turnstileToken }),
       });
       try { trackEvent({ eventType: "newsletter_signup", metadata: { source: "exit_intent" } }); } catch {}
       setSubscribed(true);
@@ -146,7 +146,6 @@ export default function ExitIntentPopup() {
         onClick={(e) => e.stopPropagation()}
         className="relative bg-white rounded-3xl shadow-2xl overflow-hidden max-w-md w-full exit-slide-up"
       >
-        {/* Close button */}
         <button
           onClick={handleClose}
           className="absolute top-4 right-4 z-10 w-9 h-9 bg-white/90 backdrop-blur rounded-full flex items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-white transition shadow-md"
@@ -158,7 +157,6 @@ export default function ExitIntentPopup() {
           </svg>
         </button>
 
-        {/* Header */}
         <div className="relative overflow-hidden px-8 pt-10 pb-6 text-center" style={{ background: "linear-gradient(135deg, #CA3F2E 0%, #8B2A1E 100%)" }}>
           <div className="absolute -top-8 -right-8 w-32 h-32 bg-white rounded-full blur-3xl opacity-20 pointer-events-none" />
           <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-white rounded-full blur-2xl opacity-10 pointer-events-none" />
@@ -180,9 +178,6 @@ export default function ExitIntentPopup() {
             </div>
 
             <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/15 backdrop-blur rounded-full text-white text-[10px] font-bold uppercase tracking-widest mb-3">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3">
-                <path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4" />
-              </svg>
               {isFr ? "Offre exclusive" : "Exclusive offer"}
             </div>
 
@@ -195,7 +190,6 @@ export default function ExitIntentPopup() {
           </div>
         </div>
 
-        {/* Body */}
         <div className="p-8">
           <div className="text-center mb-6">
             <div className="text-5xl sm:text-6xl font-black text-gray-900 mb-1">
@@ -216,94 +210,52 @@ export default function ExitIntentPopup() {
 
               <form onSubmit={handleSubscribe} className="space-y-3">
                 <div className="relative">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400">
-                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" />
-                  </svg>
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder={isFr ? "votre@email.com" : "your@email.com"}
-                    className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#CA3F2E] transition"
+                    className="w-full px-4 py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#CA3F2E] transition"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={subscribing || !email.trim()}
-                  className="w-full py-3.5 bg-gray-900 hover:bg-[#CA3F2E] text-white rounded-xl text-sm font-bold transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full py-3.5 bg-gray-900 hover:bg-[#CA3F2E] text-white rounded-xl text-sm font-bold transition disabled:opacity-50"
                 >
                   {subscribing
                     ? (isFr ? "Envoi..." : "Sending...")
                     : (isFr ? "Obtenir mon code" : "Get my code")}
                 </button>
+                <div className="hidden">
+                  <Turnstile
+                    mode="auto"
+                    action="exit-intent-newsletter"
+                    onVerify={(tok) => setTurnstileToken(tok)}
+                    onError={() => setTurnstileToken("")}
+                  />
+                </div>
               </form>
             </>
           ) : (
-            <>
-              <div className="text-center mb-4">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs font-bold mb-3">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  {isFr ? "Inscrit avec succes !" : "Successfully subscribed!"}
-                </div>
-                <p className="text-sm text-gray-600">
-                  {isFr ? "Utilisez ce code au checkout via WhatsApp :" : "Use this code at WhatsApp checkout:"}
-                </p>
+            <div className="text-center mb-4">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs font-bold mb-3">
+                {isFr ? "Inscrit avec succes !" : "Successfully subscribed!"}
               </div>
-
-              <div className="relative bg-gradient-to-br from-gray-50 to-white border-2 border-dashed border-[#CA3F2E] rounded-xl p-4 mb-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="text-2xl font-black text-[#CA3F2E] tracking-widest">
-                    {DISCOUNT_CODE}
-                  </div>
-                  <button
-                    onClick={handleCopy}
-                    className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition ${
-                      copied ? "bg-green-500 text-white" : "bg-gray-900 hover:bg-[#CA3F2E] text-white"
-                    }`}
-                  >
-                    {copied ? (
-                      <>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5"><polyline points="20 6 9 17 4 12" /></svg>
-                        {isFr ? "Copie !" : "Copied!"}
-                      </>
-                    ) : (
-                      <>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
-                        {isFr ? "Copier" : "Copy"}
-                      </>
-                    )}
-                  </button>
-                </div>
+              <div className="text-2xl font-black text-[#CA3F2E] tracking-widest my-2">
+                {DISCOUNT_CODE}
               </div>
-
               <button
-                onClick={handleClose}
-                className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-xl text-sm font-bold transition"
+                onClick={handleCopy}
+                className="w-full py-3 bg-gray-900 text-white rounded-xl text-sm font-bold transition mt-3"
               >
-                {isFr ? "Continuer mes achats" : "Continue shopping"}
+                {copied ? (isFr ? "Copie !" : "Copied!") : (isFr ? "Copier le code" : "Copy code")}
               </button>
-            </>
+            </div>
           )}
-
-          <p className="text-center text-[10px] text-gray-400 mt-4 leading-relaxed">
-            {isFr
-              ? "Valable pour les nouvelles commandes. Une utilisation par client. Pas cumulable avec d'autres offres."
-              : "Valid for new orders. One use per customer. Cannot be combined with other offers."}
-          </p>
         </div>
       </div>
-
-      <style>{`
-        @keyframes exit-fade-in-kf { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes exit-slide-up-kf { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
-        @keyframes exit-bounce-slow-kf { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-        .exit-fade-in { animation: exit-fade-in-kf 0.3s ease-out; }
-        .exit-slide-up { animation: exit-slide-up-kf 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-        .exit-bounce-slow { animation: exit-bounce-slow-kf 2s ease-in-out infinite; }
-      `}</style>
     </div>
   );
 
