@@ -1,27 +1,38 @@
 import { headers } from "next/headers";
 
-/**
- * Validates that state-changing requests (POST/PUT/DELETE) originate from your website.
- */
-export async function verifyRequestOrigin(): Promise<boolean> {
-  const h = await headers();
-  const origin = h.get("origin") || "";
-  const referer = h.get("referer") || "";
-  const host = h.get("host") || "";
+export async function verifyRequestOrigin(request?: Request): Promise<boolean> {
+  try {
+    let origin: string | null = null;
+    let referer: string | null = null;
 
-  if (!host) return true; // Fail-open for server-to-server calls if host header missing
+    if (request && request.headers) {
+      origin = request.headers.get("origin");
+      referer = request.headers.get("referer");
+    } else {
+      try {
+        const h = await headers();
+        origin = h.get("origin");
+        referer = h.get("referer");
+      } catch {}
+    }
 
-  const cleanHost = host.replace(/^www\./, "").toLowerCase();
+    const allowed = [
+      "https://www.newdealzone.com",
+      "https://newdealzone.com",
+      "http://localhost:3000",
+      "http://localhost:3001",
+    ];
 
-  if (origin) {
-    const cleanOrigin = origin.replace(/^https?:\/\/(www\.)?/, "").toLowerCase();
-    if (!cleanOrigin.includes(cleanHost)) return false;
+    if (origin) {
+      return allowed.some((domain) => origin === domain || origin.startsWith(domain + "/"));
+    }
+
+    if (referer) {
+      return allowed.some((domain) => referer.startsWith(domain + "/") || referer === domain);
+    }
+
+    return true;
+  } catch {
+    return false;
   }
-
-  if (referer) {
-    const cleanReferer = referer.replace(/^https?:\/\/(www\.)?/, "").toLowerCase();
-    if (!cleanReferer.includes(cleanHost)) return false;
-  }
-
-  return true;
 }

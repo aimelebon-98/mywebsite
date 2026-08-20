@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { supportTickets } from "@/db/schema";
+import { supportTickets, customerSessions } from "@/db/schema";
 import { getCustomerFromRequest } from "@/lib/customer-auth";
+import { isRateLimited } from "@/lib/rate-limit";
+import { verifyRequestOrigin } from "@/lib/csrf";
+import { stripHtml } from "@/lib/sanitize";
 import { and, eq } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
@@ -39,6 +42,15 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
+    const ip = request.headers.get("cf-connecting-ip") || request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "127.0.0.1";
+    if (isRateLimited(ip, 20, 60000)) {
+      return NextResponse.json({ error: "Too many requests. Please wait a minute." }, { status: 429 });
+    }
+
+    if (!await verifyRequestOrigin(request)) {
+      return NextResponse.json({ error: "Invalid request origin" }, { status: 403 });
+    }
+
     const customer = await getCustomerFromRequest(request);
     if (!customer) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -53,7 +65,7 @@ export async function PATCH(
       .set({
         lastMessageAt: new Date(),
         unreadByAdmin: true,
-        status: body.status !== undefined ? String(body.status) : undefined,
+        status: body.status !== undefined ? stripHtml(String(body.status)) : undefined,
       })
       .where(and(eq(supportTickets.id, id), eq(supportTickets.customerId, customer.id)))
       .returning();

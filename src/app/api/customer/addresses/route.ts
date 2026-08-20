@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { customerAddresses } from "@/db/schema";
+import { customerAddresses, customerSessions } from "@/db/schema";
 import { getCustomerFromRequest } from "@/lib/customer-auth";
+import { isRateLimited } from "@/lib/rate-limit";
+import { verifyRequestOrigin } from "@/lib/csrf";
+import { stripHtml } from "@/lib/sanitize";
 import { eq, desc } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
@@ -27,6 +30,15 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = request.headers.get("cf-connecting-ip") || request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "127.0.0.1";
+    if (isRateLimited(ip, 20, 60000)) {
+      return NextResponse.json({ error: "Too many requests. Please slow down." }, { status: 429 });
+    }
+
+    if (!await verifyRequestOrigin(request)) {
+      return NextResponse.json({ error: "Invalid request origin" }, { status: 403 });
+    }
+
     const customer = await getCustomerFromRequest(request);
     if (!customer) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -45,14 +57,14 @@ export async function POST(request: NextRequest) {
       .insert(customerAddresses)
       .values({
         customerId: customer.id,
-        label: String(body.label || "Home").trim().slice(0, 50),
-        fullName: String(body.fullName || (customer as any).name || (customer as any).fullName || "").trim().slice(0, 100),
-        phone: String(body.phone || (customer as any).phone || "").trim().slice(0, 30),
-        street: String(body.street || body.address || body.addressLine1 || "").trim().slice(0, 300),
-        city: String(body.city || "").trim().slice(0, 100),
-        state: String(body.state || "").trim().slice(0, 100),
-        country: String(body.country || "Nigeria").trim().slice(0, 100),
-        postalCode: String(body.postalCode || body.zipCode || "").trim().slice(0, 20),
+        label: stripHtml(String(body.label || "Home")).slice(0, 50),
+        fullName: stripHtml(String(body.fullName || (customer as any).name || "")).slice(0, 100),
+        phone: stripHtml(String(body.phone || (customer as any).phone || "")).slice(0, 30),
+        street: stripHtml(String(body.street || body.address || body.addressLine1 || "")).slice(0, 300),
+        city: stripHtml(String(body.city || "")).slice(0, 100),
+        state: stripHtml(String(body.state || "")).slice(0, 100),
+        country: stripHtml(String(body.country || "Nigeria")).slice(0, 100),
+        postalCode: stripHtml(String(body.postalCode || body.zipCode || "")).slice(0, 20),
         isDefault: Boolean(body.isDefault),
       })
       .returning();
