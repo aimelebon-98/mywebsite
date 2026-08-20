@@ -1,5 +1,5 @@
-import { sanitizeHtml } from "@/lib/sanitize";
 "use client";
+import { sanitizeHtml } from "@/lib/sanitize";
 import { trackEvent } from "@/components/AnalyticsTracker";
 
 import { useEffect, useState, useMemo } from "react";
