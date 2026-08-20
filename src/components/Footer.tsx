@@ -1,9 +1,9 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/routing";
-import { useState } from "react";
-import { ArrowRight, Mail } from "lucide-react";
+import { Store,  useTranslations } from "next-intl";
+import { Store,  Link } from "@/i18n/routing";
+import { Store,  useState } from "react";
+import { Store,  ArrowRight, Mail } from "lucide-react";
 
 export default function Footer() {
   const t = useTranslations("footer");
@@ -160,7 +160,27 @@ export default function Footer() {
               <li><Link prefetch={false} href="/wishlist" className="text-sm hover:text-white transition">{t("myWishlist")}</Link></li>
               <li><Link prefetch={false} href="/shop" className="text-sm hover:text-white transition">{t("shop")}</Link></li>
               <li><Link prefetch={false} href="/faq" className="text-sm hover:text-white transition">{t("helpCenter")}</Link></li>
+            </ul>          {/* Vendor / Marketplace Links */}
+          <div>
+            <h3 className="text-xs font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-1.5">
+              <Store className="w-3.5 h-3.5 text-[#CA3F2E]" />
+              {isFr ? "Espace Vendeurs" : "Marketplace"}
+            </h3>
+            <ul className="space-y-2.5 text-xs text-gray-400">
+              <li>
+                <Link href={`/${locale}/vendor/apply`} className="hover:text-white transition flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#CA3F2E]" />
+                  {isFr ? "Vendre sur NewDealZone" : "Sell on NewDealZone"}
+                </Link>
+              </li>
+              <li>
+                <Link href={`/${locale}/vendor/login`} className="hover:text-white transition">
+                  {isFr ? "Connexion Vendeur" : "Vendor Login & Dashboard"}
+                </Link>
+              </li>
             </ul>
+          </div>
+
           </div>
         </div>
 

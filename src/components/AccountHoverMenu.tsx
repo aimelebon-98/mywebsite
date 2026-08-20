@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useRef, useEffect } from "react";
-import { useLocale } from "next-intl";
-import { useCustomer } from "@/lib/customer-context";
-import {
+import { Store, Briefcase,  useState, useRef, useEffect } from "react";
+import { Store, Briefcase,  useLocale } from "next-intl";
+import { Store, Briefcase,  useCustomer } from "@/lib/customer-context";
+import { Store, Briefcase, 
   User, LayoutDashboard, Package, LogOut, LogIn
 } from "lucide-react";
 
