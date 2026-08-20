@@ -8,7 +8,7 @@ import Navbar from "@/components/Navbar";
 import AccountSidebar from "@/components/AccountSidebar";
 import AccountMobileBar from "@/components/AccountMobileBar";
 import Footer from "@/components/Footer";
-import { Star, Loader2, Trash2, Package, RefreshCw, AlertTriangle } from "lucide-react";
+import { Star, Loader2, Trash2, Package, RefreshCw, AlertTriangle, Clock, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 
 function d(s: string): string {
@@ -23,6 +23,7 @@ interface ReviewRow {
   comment: string;
   commentFr: string | null;
   verified: boolean;
+  approved: boolean;
   createdAt: string;
   productName: string | null;
   productImage: string | null;
@@ -32,7 +33,7 @@ interface ReviewRow {
 function StarRow({ rating }: { rating: number }) {
   return (
     <div className="flex items-center gap-0.5">
-      {[1,2,3,4,5].map(s => (
+      {[1, 2, 3, 4, 5].map((s) => (
         <Star
           key={s}
           className="w-3.5 h-3.5"
@@ -89,17 +90,20 @@ export default function Page() {
     try {
       const res = await fetch(`/api/customer/reviews?id=${id}`, { method: "DELETE" });
       if (res.ok) {
-        setReviews(prev => prev.filter(r => r.id !== id));
+        setReviews((prev) => prev.filter((r) => r.id !== id));
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     setDeleting(null);
   };
 
-  if (loading || !customer) return (
-    <div className="min-h-screen flex items-center justify-center">
-      <Loader2 className="w-8 h-8 animate-spin text-[#CA3F2E]" />
-    </div>
-  );
+  if (loading || !customer)
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[#CA3F2E]" />
+      </div>
+    );
 
   const title = isFr ? "Mes avis" : "My Reviews";
 
@@ -110,7 +114,9 @@ export default function Page() {
       <main className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 pb-4 lg:pt-8 lg:pb-8">
           <div className="lg:grid lg:grid-cols-[260px_1fr] lg:gap-8">
-            <div className="hidden lg:block"><AccountSidebar /></div>
+            <div className="hidden lg:block">
+              <AccountSidebar />
+            </div>
             <div>
               <AccountMobileBar title={title} onOpen={() => setMenuOpen(true)} />
 
@@ -119,7 +125,11 @@ export default function Page() {
                   <Star className="w-6 h-6 lg:w-7 lg:h-7 text-[#CA3F2E]" />
                   <h1 className="text-2xl lg:text-3xl font-black text-gray-900">{title}</h1>
                 </div>
-                <button onClick={fetchReviews} className="p-2 rounded-xl hover:bg-gray-100 transition" title="Refresh">
+                <button
+                  onClick={fetchReviews}
+                  className="p-2 rounded-xl hover:bg-gray-100 transition"
+                  title="Refresh"
+                >
                   <RefreshCw className={"w-4 h-4 text-gray-500" + (fetching ? " animate-spin" : "")} />
                 </button>
               </div>
@@ -143,8 +153,8 @@ export default function Page() {
                   </h2>
                   <p className="text-sm text-gray-500 mb-5">
                     {isFr
-                      ? d("Vos avis appara\u00eetront ici apr\u00e8s votre achat.")
-                      : "Your reviews will appear here after you make a purchase."}
+                      ? d("Vos avis appara\u00eetront ici apr\u00e8s votre publication.")
+                      : "Your reviews will appear here after you submit them on a product page."}
                   </p>
                   <Link
                     href={`/${locale}/shop`}
@@ -156,19 +166,28 @@ export default function Page() {
               ) : (
                 <div className="space-y-3">
                   <p className="text-sm text-gray-500 mb-2">
-                    {reviews.length} {reviews.length === 1
-                      ? (isFr ? "avis" : "review")
-                      : (isFr ? "avis" : "reviews")}
-                    {" "}{isFr ? d("publi\u00e9s sous le nom") : "posted as"}{" "}
+                    {reviews.length}{" "}
+                    {reviews.length === 1
+                      ? isFr
+                        ? "avis"
+                        : "review"
+                      : isFr
+                      ? "avis"
+                      : "reviews"}{" "}
+                    {isFr ? d("soumis sous le nom") : "submitted as"}{" "}
                     <span className="font-semibold text-gray-800">{customer.name}</span>
                   </p>
 
-                  {reviews.map(r => (
+                  {reviews.map((r) => (
                     <div key={r.id} className="bg-white border border-gray-200 rounded-2xl p-4 flex gap-4">
                       {/* Product image */}
                       <div className="w-16 h-16 flex-shrink-0 bg-gray-100 rounded-xl overflow-hidden">
                         {r.productImage ? (
-                          <img src={r.productImage} alt={r.productName || ""} className="w-full h-full object-cover" />
+                          <img
+                            src={r.productImage}
+                            alt={r.productName || ""}
+                            className="w-full h-full object-cover"
+                          />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
                             <Package className="w-6 h-6 text-gray-300" />
@@ -192,25 +211,42 @@ export default function Page() {
                                 {r.productName || r.productId}
                               </p>
                             )}
-                            <div className="flex items-center gap-2 mt-1">
+
+                            <div className="flex items-center gap-2 mt-1 flex-wrap">
                               <StarRow rating={r.rating} />
+
+                              {/* Moderation Status Badge */}
+                              {r.approved ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-green-700 bg-green-50 px-2 py-0.5 rounded-full border border-green-200">
+                                  <CheckCircle2 className="w-3 h-3" />
+                                  {isFr ? "Approuvé & Publié" : "Published"}
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                                  <Clock className="w-3 h-3" />
+                                  {isFr ? "En attente de modération" : "Pending Moderation"}
+                                </span>
+                              )}
+
                               {r.verified && (
-                                <span className="text-[10px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded">
-                                  {isFr ? d("V\u00e9rifi\u00e9") : "Verified"}
+                                <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
+                                  {isFr ? d("V\u00e9rifi\u00e9") : "Verified Buyer"}
                                 </span>
                               )}
                             </div>
                           </div>
+
                           <button
                             onClick={() => handleDelete(r.id)}
                             disabled={deleting === r.id}
                             className="p-2 rounded-lg text-red-400 hover:bg-red-50 transition disabled:opacity-40 flex-shrink-0"
                             title={isFr ? "Supprimer" : "Delete"}
                           >
-                            {deleting === r.id
-                              ? <Loader2 className="w-4 h-4 animate-spin" />
-                              : <Trash2 className="w-4 h-4" />
-                            }
+                            {deleting === r.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
                           </button>
                         </div>
 
@@ -222,21 +258,14 @@ export default function Page() {
 
                         <p className="text-xs text-gray-400 mt-2">
                           {new Date(r.createdAt).toLocaleDateString(isFr ? "fr-FR" : "en-US", {
-                            year: "numeric", month: "long", day: "numeric"
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
                           })}
                         </p>
                       </div>
                     </div>
                   ))}
-
-                  <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
-                    <p className="font-semibold mb-1">{isFr ? "Comment" : "How reviews work"}</p>
-                    <p>
-                      {isFr
-                        ? d("Les avis sont li\u00e9s \u00e0 votre nom d\u0027affichage. Si vous changez votre nom, les anciens avis ne seront plus affich\u00e9s ici.")
-                        : "Reviews are matched by your display name. If you change your name, older reviews may not appear here."}
-                    </p>
-                  </div>
                 </div>
               )}
             </div>

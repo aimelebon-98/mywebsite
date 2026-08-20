@@ -1,5 +1,6 @@
 "use client";
 import { sanitizeHtml } from "@/lib/sanitize";
+import { useCustomer } from "@/lib/customer-context";
 import { useCurrency } from "@/lib/currency-context";
 import { parseColorVariants } from "@/lib/color-variants";
 import { getProductName, getProductShortDescription, getProductLongDescription } from "@/lib/product-i18n";
@@ -49,6 +50,7 @@ function getAvatarColor(name: string) {
 }
 
 export default function ProductDetails({ product, initialReviews = [], relatedProducts = [], locale: propLocale }: ProductDetailsProps) {
+  const { customer } = useCustomer();
 
   // Meta Pixel: fire ViewContent when product page loads
   const __fbProductId = (product as unknown as { id?: string })?.id ?? "";
@@ -151,7 +153,8 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
   const [reviews, setReviews] = useState<Review[]>(initialReviews);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const reviewFormRef = useRef<HTMLDivElement>(null);
-  const [reviewName, setReviewName] = useState("");
+  const [reviewName, setReviewName] = useState(customer?.name || "");
+  useEffect(() => { if (customer?.name) setReviewName(customer.name); }, [customer?.name]);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
