@@ -8,8 +8,8 @@ export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
-    // Ensure Postgres column exists
     try {
+      await db.execute(sql`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS customer_id uuid`);
       await db.execute(sql`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS approved boolean NOT NULL DEFAULT true`);
     } catch { /* ignore */ }
 
@@ -18,15 +18,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const cId = customer.id;
     const cName = customer.name?.trim() || "";
-    const cEmail = customer.email?.trim() || "";
-
-    if (!cName && !cEmail) {
-      return NextResponse.json({ reviews: [] });
-    }
 
     const conditions = [];
+    if (cId) conditions.push(eq(reviews.customerId, cId));
     if (cName) conditions.push(ilike(reviews.customerName, cName));
+
+    if (conditions.length === 0) {
+      return NextResponse.json({ reviews: [] });
+    }
 
     const rows = await db
       .select({
@@ -37,6 +38,7 @@ export async function GET(request: NextRequest) {
         comment: reviews.comment,
         commentFr: reviews.commentFr,
         verified: reviews.verified,
+        approved: reviews.approved,
         createdAt: reviews.createdAt,
         productName: products.name,
         productImage: products.imageUrl,
@@ -44,7 +46,7 @@ export async function GET(request: NextRequest) {
       })
       .from(reviews)
       .leftJoin(products, eq(reviews.productId, products.id))
-      .where(conditions.length > 0 ? or(...conditions) : undefined)
+      .where(or(...conditions))
       .orderBy(desc(reviews.createdAt));
 
     return NextResponse.json({ reviews: rows });
