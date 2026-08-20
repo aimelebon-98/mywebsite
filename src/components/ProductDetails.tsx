@@ -197,16 +197,31 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
       const res = await fetch("/api/reviews", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: product.id, customerName: reviewName, rating: reviewRating, comment: reviewComment }),
+        body: JSON.stringify({
+          productId: product.id,
+          customerName: reviewName.trim(),
+          rating: Number(reviewRating) || 5,
+          comment: (reviewComment || "").trim(),
+        }),
       });
+      const data = await res.json().catch(() => ({}));
       if (res.ok) {
-        const newReview = await res.json();
-        setReviews(prev => [newReview, ...prev]);
-        setReviewName(""); setReviewRating(5); setReviewComment(""); setShowReviewForm(false);
+        const reviewObj = data?.review || data;
+        if (reviewObj && typeof reviewObj === "object" && reviewObj.id) {
+          setReviews(prev => [reviewObj, ...prev]);
+        }
+        setReviewName("");
+        setReviewRating(5);
+        setReviewComment("");
+        setShowReviewForm(false);
         setReviewSuccess(true);
-        setTimeout(() => setReviewSuccess(false), 6000);
+        setTimeout(() => setReviewSuccess(false), 8000);
+      } else {
+        console.error("[Review submit failed]", data?.error || res.status);
       }
-    } catch { /* ignore */ }
+    } catch (err) {
+      console.error("[Review submit error]", err);
+    }
     setSubmittingReview(false);
   };
 

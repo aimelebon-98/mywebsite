@@ -1,5 +1,5 @@
 "use client";
-import { sanitizeHtml } from "@/lib/sanitize";
+import {  sanitizeHtml , sanitizeRichHtml } from "@/lib/sanitize";
 import { trackEvent } from "@/components/AnalyticsTracker";
 
 import { useEffect, useState, useMemo } from "react";
@@ -266,7 +266,7 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
             <div
               id="blog-content"
               className="max-w-none scroll-mt-24 blog-body"
-              dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }}
+              dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(post.content) }}
             />
 
             {/* Word count footer */}
