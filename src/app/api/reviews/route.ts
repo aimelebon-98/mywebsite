@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { reviews } from "@/db/schema";
+import { reviews, products } from "@/db/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
+import { getCustomerFromRequest } from "@/lib/customer-auth";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -40,8 +41,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Product ID required" }, { status: 400 });
     }
     
-    // Auto-ensure approved column exists on GET calls
     try {
+      await db.execute(sql`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS customer_id uuid`);
       await db.execute(sql`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS approved boolean NOT NULL DEFAULT true`);
     } catch { /* ignore */ }
 
@@ -71,7 +72,12 @@ export async function POST(req: NextRequest) {
 
     const { productId, customerName, rating, comment, commentFr } = parsed.data;
 
-    const sanitizedName = cleanText(customerName);
+    // Check if customer is logged in
+    const customer = await getCustomerFromRequest(req);
+    const loggedInId = customer?.id || null;
+    const finalName = customer?.name?.trim() || customerName;
+
+    const sanitizedName = cleanText(finalName);
     if (!sanitizedName) {
       return NextResponse.json({ error: "Please enter a valid name" }, { status: 400 });
     }
@@ -80,23 +86,31 @@ export async function POST(req: NextRequest) {
     const rawCommentFr = (commentFr || "").trim();
     const sanitizedComment = cleanText(rawComment || rawCommentFr);
     const sanitizedCommentFr = cleanText(rawCommentFr || rawComment);
-    const avatar = getInitials(customerName);
+    const avatar = getInitials(sanitizedName);
 
-    // Auto-ensure column exists before insert
+    // Auto-ensure columns exist in Postgres
     try {
+      await db.execute(sql`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS customer_id uuid`);
       await db.execute(sql`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS approved boolean NOT NULL DEFAULT false`);
     } catch { /* ignore */ }
 
-    const [newReview] = await db.insert(reviews).values({
+    // Build clean insert payload
+    const insertData: Record<string, unknown> = {
       productId,
       customerName: sanitizedName,
       rating,
       comment: sanitizedComment || "Verified Review",
       commentFr: sanitizedCommentFr || "Avis Vérifié",
       avatar,
-      verified: false,
+      verified: Boolean(loggedInId),
       approved: false,
-    }).returning();
+    };
+
+    if (loggedInId) {
+      insertData.customerId = loggedInId;
+    }
+
+    const [newReview] = await db.insert(reviews).values(insertData as any).returning();
 
     return NextResponse.json({
       success: true,
