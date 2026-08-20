@@ -19,9 +19,9 @@ function cleanText(str: string): string {
 const createCommentSchema = z.object({
   postId: z.string().min(1, "Post ID required"),
   parentId: z.string().nullable().optional(),
-  authorName: z.string().trim().min(2, "Name required").max(100),
+  authorName: z.string().trim().min(1, "Please enter your name").max(100),
   authorEmail: z.string().trim().max(200).optional().default(""),
-  content: z.string().trim().min(3, "Comment required").max(5000),
+  content: z.string().trim().min(1, "Please write a comment").max(5000),
 });
 
 export async function GET(req: NextRequest) {
