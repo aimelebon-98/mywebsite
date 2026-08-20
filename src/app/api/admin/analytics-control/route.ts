@@ -1,9 +1,11 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/admin-auth";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { analyticsEvents } from "@/db/schema";
 import { sql, eq } from "drizzle-orm";
 
 export async function DELETE(req: NextRequest) {
+  const authErr = await requireAdmin(); if (authErr) return authErr;
   try {
     const { searchParams } = new URL(req.url);
     const mode = searchParams.get("mode") || "all";

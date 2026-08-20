@@ -1,4 +1,5 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/admin-auth";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { blogCategories } from "@/db/schema";
 import { asc } from "drizzle-orm";
@@ -17,6 +18,7 @@ function slugify(s: string): string {
 }
 
 export async function POST(req: NextRequest) {
+  const authErr = await requireAdmin(); if (authErr) return authErr;
   try {
     const body = await req.json();
     const name = String(body.name || "").trim();

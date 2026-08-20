@@ -1,8 +1,10 @@
-﻿import { NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/admin-auth";
+import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
 
 export async function POST() {
+  const authErr = await requireAdmin(); if (authErr) return authErr;
   try {
     // Add column if it doesn't exist
     await db.execute(sql`

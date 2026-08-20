@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/admin-auth";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { analyticsEvents } from "@/db/schema";
@@ -38,6 +39,7 @@ const COUNTRY_CAPITALS: Record<string, { city: string; region: string }> = {
 };
 
 export async function POST() {
+  const authErr = await requireAdmin(); if (authErr) return authErr;
   try {
     // Fetch events with country set but empty city
     const events = await db

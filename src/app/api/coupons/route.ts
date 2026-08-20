@@ -1,3 +1,5 @@
+import { isRateLimited } from "@/lib/rate-limit";
+import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { coupons, customerCoupons } from "@/db/schema";
@@ -5,6 +7,7 @@ import { eq, and } from "drizzle-orm";
 import { getCurrentCustomer } from "@/lib/customer-auth";
 
 export async function POST(req: NextRequest) {
+  const h = await headers(); const ip = h.get("cf-connecting-ip") || h.get("x-forwarded-for")?.split(",")[0] || ""; if (isRateLimited(ip, 30, 60000)) return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
   try {
     const body = await req.json();
     const code = String(body.code || "").toUpperCase().trim();

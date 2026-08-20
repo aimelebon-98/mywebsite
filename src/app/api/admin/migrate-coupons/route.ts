@@ -1,8 +1,10 @@
+import { requireAdmin } from "@/lib/admin-auth";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
 
 export async function POST() {
+  const authErr = await requireAdmin(); if (authErr) return authErr;
   const results: string[] = [];
   try {
     await db.execute(sql`

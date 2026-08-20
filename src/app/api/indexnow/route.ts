@@ -1,3 +1,5 @@
+import { isRateLimited } from "@/lib/rate-limit";
+import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -22,6 +24,7 @@ const KEY_LOCATION = `https://${SITE_HOST}/${INDEXNOW_KEY}.txt`;
  *   });
  */
 export async function POST(req: NextRequest) {
+  const h = await headers(); const ip = h.get("cf-connecting-ip") || h.get("x-forwarded-for")?.split(",")[0] || ""; if (isRateLimited(ip, 30, 60000)) return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
   try {
     const body = await req.json().catch(() => ({}));
     let urls: string[] = [];

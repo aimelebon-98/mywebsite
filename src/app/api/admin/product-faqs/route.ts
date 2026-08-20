@@ -1,4 +1,5 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/admin-auth";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { productFaqs } from "@/db/schema";
 import { asc } from "drizzle-orm";
@@ -13,6 +14,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const authErr = await requireAdmin(); if (authErr) return authErr;
   try {
     const body = await req.json();
     const [created] = await db.insert(productFaqs).values({

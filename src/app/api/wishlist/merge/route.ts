@@ -1,3 +1,5 @@
+import { isRateLimited } from "@/lib/rate-limit";
+import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { wishlist } from "@/db/schema";
@@ -6,6 +8,7 @@ import { getCurrentCustomer } from "@/lib/customer-auth";
 
 // Merge guest visitor wishlist into logged-in customer wishlist
 export async function POST(req: NextRequest) {
+  const h = await headers(); const ip = h.get("cf-connecting-ip") || h.get("x-forwarded-for")?.split(",")[0] || ""; if (isRateLimited(ip, 30, 60000)) return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
   try {
     const { visitorId } = await req.json();
     if (!visitorId) return NextResponse.json({ error: "Missing visitorId" }, { status: 400 });

@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/admin-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { analyticsEvents } from "@/db/schema";
@@ -90,6 +91,7 @@ export async function GET(req: NextRequest) {
 
 // Mark existing events as bots retroactively based on UA patterns
 export async function POST(req: NextRequest) {
+  const authErr = await requireAdmin(); if (authErr) return authErr;
   try {
     const body = await req.json().catch(() => ({}));
     const dryRun = body.dryRun !== false;

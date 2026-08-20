@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/admin-auth";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { analyticsEvents } from "@/db/schema";
@@ -70,6 +71,7 @@ export async function GET() {
 }
 
 export async function POST() {
+  const authErr = await requireAdmin(); if (authErr) return authErr;
   try {
     // Auto-fill: any human event with country but no city gets country capital as best-guess
     const events = await db

@@ -1,3 +1,5 @@
+import { isRateLimited } from "@/lib/rate-limit";
+import { headers } from "next/headers";
 // route: fb-capi/track (cache bust 2026-08-11T19:15:47.7602167+00:00)
 import { NextRequest, NextResponse } from "next/server";
 import { sendCapiEvents, extractUserDataFromHeaders, type CapiEvent } from "@/lib/fb-capi";
@@ -6,6 +8,7 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
+  const h = await headers(); const ip = h.get("cf-connecting-ip") || h.get("x-forwarded-for")?.split(",")[0] || ""; if (isRateLimited(ip, 30, 60000)) return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
   try {
     const body = await req.json();
     const clientEvents = Array.isArray(body?.events) ? body.events : [];

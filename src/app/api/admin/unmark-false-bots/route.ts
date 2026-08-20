@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/admin-auth";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { analyticsEvents } from "@/db/schema";
@@ -6,6 +7,7 @@ import { eq } from "drizzle-orm";
 export const dynamic = "force-dynamic";
 
 export async function POST() {
+  const authErr = await requireAdmin(); if (authErr) return authErr;
   try {
     // Get all "bot" events
     const events = await db

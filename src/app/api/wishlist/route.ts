@@ -1,3 +1,5 @@
+import { isRateLimited } from "@/lib/rate-limit";
+import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { wishlist, products } from "@/db/schema";
@@ -80,6 +82,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const h = await headers(); const ip = h.get("cf-connecting-ip") || h.get("x-forwarded-for")?.split(",")[0] || ""; if (isRateLimited(ip, 30, 60000)) return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
   try {
     await ensureTable();
     const { visitorId, productId } = await req.json();
@@ -109,6 +112,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const h = await headers(); const ip = h.get("cf-connecting-ip") || h.get("x-forwarded-for")?.split(",")[0] || ""; if (isRateLimited(ip, 30, 60000)) return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
   try {
     await ensureTable();
     const { visitorId, productId } = await req.json();

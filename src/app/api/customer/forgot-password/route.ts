@@ -1,4 +1,5 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { isRateLimited } from "@/lib/rate-limit";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { customers, passwordResetTokens } from "@/db/schema";
 import { eq } from "drizzle-orm";

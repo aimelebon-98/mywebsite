@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/admin-auth";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { newsletter } from "@/db/schema";
@@ -17,6 +18,7 @@ export async function GET() {
 }
 
 export async function DELETE(request: Request) {
+  const authErr = await requireAdmin(); if (authErr) return authErr;
   try {
     const { id } = await request.json();
     if (!id) {

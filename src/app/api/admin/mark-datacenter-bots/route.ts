@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/admin-auth";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { analyticsEvents } from "@/db/schema";
@@ -25,6 +26,7 @@ const DATACENTER_CITIES: Record<string, string[]> = {
 };
 
 export async function POST() {
+  const authErr = await requireAdmin(); if (authErr) return authErr;
   try {
     const events = await db
       .select()
