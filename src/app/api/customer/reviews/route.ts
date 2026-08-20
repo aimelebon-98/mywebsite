@@ -1,67 +1,49 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { reviews, products } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
-import { getCurrentCustomer } from "@/lib/customer-auth";
+import { reviews } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { requireCustomer } from "@/lib/customer-auth";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const customer = await getCurrentCustomer();
-    if (!customer) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-    // Match reviews by customerName since reviews table has no customerId
-    const rows = await db.select({
-      id: reviews.id,
-      productId: reviews.productId,
-      customerName: reviews.customerName,
-      rating: reviews.rating,
-      comment: reviews.comment,
-      commentFr: reviews.commentFr,
-      verified: reviews.verified,
-      createdAt: reviews.createdAt,
-      productName: products.name,
-      productImage: products.imageUrl,
-      productSlug: products.slug,
-    })
-    .from(reviews)
-    .leftJoin(products, eq(reviews.productId, products.id))
-    .where(eq(reviews.customerName, customer.name))
-    .orderBy(desc(reviews.createdAt));
-
-    return NextResponse.json({ reviews: rows });
-  } catch (e) {
-    return NextResponse.json({ error: String(e) }, { status: 500 });
+    const customer = await requireCustomer();
+    const rows = await db.select().from(reviews).where(eq(reviews.customerId, customer.id));
+    return NextResponse.json(rows);
+  } catch {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 }
 
-export async function DELETE(request: NextRequest) {
+export async function POST(req: Request) {
   try {
-    const customer = await getCurrentCustomer();
-    if (!customer) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const customer = await requireCustomer();
+    const body = await req.json();
 
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
-    if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
-
-    // Verify review belongs to this customer (by name)
-    const [review] = await db.select().from(reviews).where(eq(reviews.id, id));
-    if (!review) return NextResponse.json({ error: "Not found" }, { status: 404 });
-    if (review.customerName !== customer.name) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!body.productId || !body.rating || !body.comment) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    await db.delete(reviews).where(eq(reviews.id, id));
+    const initials = String(customer.name || "CU")
+      .split(" ")
+      .map((w: string) => w[0]?.toUpperCase() || "")
+      .slice(0, 2)
+      .join("");
 
-    // Recalculate product stats
-    const remaining = await db.select().from(reviews).where(eq(reviews.productId, review.productId));
-    const count = remaining.length;
-    const avg = count > 0
-      ? (remaining.reduce((s, r) => s + r.rating, 0) / count).toFixed(1)
-      : "0";
-    await db.update(products).set({ reviewCount: count, rating: avg }).where(eq(products.id, review.productId));
+    const [inserted] = await db.insert(reviews).values({
+      productId: String(body.productId),
+      customerId: customer.id,
+      customerName: String(customer.name || "Customer").slice(0, 100),
+      rating: Math.min(5, Math.max(1, Number(body.rating) || 5)),
+      comment: String(body.comment).slice(0, 2000),
+      commentFr: body.commentFr ? String(body.commentFr).slice(0, 2000) : "",
+      avatar: initials || "CU",
+      verified: true,
+    }).returning();
 
-    return NextResponse.json({ ok: true });
-  } catch (e) {
-    return NextResponse.json({ error: String(e) }, { status: 500 });
+    return NextResponse.json({ success: true, review: inserted });
+  } catch {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 }

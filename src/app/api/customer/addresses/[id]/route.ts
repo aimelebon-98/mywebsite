@@ -1,34 +1,48 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { customerAddresses } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
-import { getCurrentCustomer } from "@/lib/customer-auth";
+import { requireCustomer } from "@/lib/customer-auth";
 
-export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const customer = await getCurrentCustomer();
-  if (!customer) return NextResponse.json({ error: "Not logged in" }, { status: 401 });
-  const { id } = await params;
-  const body = await req.json();
+export const dynamic = "force-dynamic";
 
-  if (body.isDefault) {
-    await db.update(customerAddresses).set({ isDefault: false })
-      .where(eq(customerAddresses.customerId, customer.id));
+export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const customer = await requireCustomer();
+    const { id } = await params;
+    const body = await req.json();
+
+    await db.update(customerAddresses)
+      .set({
+        label: body.label !== undefined ? String(body.label).slice(0, 50) : undefined,
+        fullName: body.fullName !== undefined ? String(body.fullName).slice(0, 100) : undefined,
+        phone: body.phone !== undefined ? String(body.phone).slice(0, 30) : undefined,
+        addressLine1: body.addressLine1 !== undefined ? String(body.addressLine1).slice(0, 200) : undefined,
+        addressLine2: body.addressLine2 !== undefined ? String(body.addressLine2).slice(0, 200) : undefined,
+        city: body.city !== undefined ? String(body.city).slice(0, 80) : undefined,
+        state: body.state !== undefined ? String(body.state).slice(0, 80) : undefined,
+        country: body.country !== undefined ? String(body.country).slice(0, 80) : undefined,
+        postalCode: body.postalCode !== undefined ? String(body.postalCode).slice(0, 20) : undefined,
+        isDefault: body.isDefault !== undefined ? Boolean(body.isDefault) : undefined,
+      })
+      .where(and(eq(customerAddresses.id, id), eq(customerAddresses.customerId, customer.id)));
+
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
-  const [updated] = await db.update(customerAddresses).set(body)
-    .where(and(eq(customerAddresses.id, id), eq(customerAddresses.customerId, customer.id)))
-    .returning();
-
-  return NextResponse.json({ address: updated });
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const customer = await getCurrentCustomer();
-  if (!customer) return NextResponse.json({ error: "Not logged in" }, { status: 401 });
-  const { id } = await params;
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const customer = await requireCustomer();
+    const { id } = await params;
 
-  await db.delete(customerAddresses)
-    .where(and(eq(customerAddresses.id, id), eq(customerAddresses.customerId, customer.id)));
+    await db.delete(customerAddresses)
+      .where(and(eq(customerAddresses.id, id), eq(customerAddresses.customerId, customer.id)));
 
-  return NextResponse.json({ ok: true });
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 }
