@@ -196,38 +196,54 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
   };
 
   const handleSubmitReview = async () => {
-    if (!reviewName.trim()) return;
+    const finalName = (reviewName || customer?.name || "").trim();
+    if (!finalName) {
+      setReviewError(isFr ? "Veuillez entrer votre nom." : "Please enter your name.");
+      return;
+    }
+    if (!product?.id) {
+      setReviewError(isFr ? "ID du produit manquant." : "Product ID is missing.");
+      return;
+    }
+
     setSubmittingReview(true);
+    setReviewError("");
     try {
+      const commentVal = (reviewComment || "").trim();
       const res = await fetch("/api/reviews", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           productId: product.id,
-          customerName: reviewName.trim(),
+          customerName: finalName,
           rating: Number(reviewRating) || 5,
-          comment: (reviewComment || "").trim(),
+          comment: commentVal,
+          commentFr: commentVal,
         }),
       });
+
       const data = await res.json().catch(() => ({}));
-      if (res.ok) {
-        const reviewObj = data?.review || data;
-        if (reviewObj && typeof reviewObj === "object" && reviewObj.id) {
-          setReviews(prev => [reviewObj, ...prev]);
-        }
-        setReviewName("");
+
+      if (res.ok && data.success) {
+        setReviewName(customer?.name || "");
         setReviewRating(5);
         setReviewComment("");
+        setReviewError("");
         setShowReviewForm(false);
         setReviewSuccess(true);
-        setTimeout(() => setReviewSuccess(false), 8000);
+        setTimeout(() => setReviewSuccess(false), 12000);
       } else {
-        console.error("[Review submit failed]", data?.error || res.status);
+        const errMsg = data?.error || (isFr ? "Échec de l'envoi de l'avis. Veuillez réessayer." : "Failed to submit review. Please try again.");
+        setReviewError(errMsg);
+        alert(errMsg);
       }
     } catch (err) {
-      console.error("[Review submit error]", err);
+      const netErr = isFr ? "Erreur réseau. Veuillez réessayer." : "Network error. Please try again.";
+      setReviewError(netErr);
+      alert(netErr);
+    } finally {
+      setSubmittingReview(false);
     }
-    setSubmittingReview(false);
   };
 
   const buildShareMessage = () => {
