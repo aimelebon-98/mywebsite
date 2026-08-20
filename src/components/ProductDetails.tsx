@@ -150,6 +150,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
   }, [product.id, product.name]);
   const [reviews, setReviews] = useState<Review[]>(initialReviews);
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const reviewFormRef = useRef<HTMLDivElement>(null);
   const [reviewName, setReviewName] = useState("");
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
@@ -1117,25 +1118,60 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               <h2 className="text-3xl lg:text-4xl font-black tracking-tight">{t("customerReviews")}</h2>
               <p className="text-gray-500 mt-1">{reviewsLabel}</p>
             </div>
-            <button onClick={() => { setShowReviewForm(!showReviewForm); setReviewSuccess(false); }} className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition self-start shadow-lg shadow-gray-900/10">
+            <button onClick={() => { const next = !showReviewForm; setShowReviewForm(next); setReviewSuccess(false); if (next) setTimeout(() => reviewFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 100); }} className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition self-start shadow-lg shadow-gray-900/10">
               <MessageSquare className="w-4 h-4" />
               {t("writeReview")}
             </button>
           </div>
 
-          {/* Review Success */}
+          {/* Review Success Banner */}
           {reviewSuccess && (
-            <div className="mb-8 p-5 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl animate-fade-in-up flex items-start gap-4">
+            <div className="mb-8 p-5 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl animate-fade-in-up flex items-start gap-4 shadow-sm">
               <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
                 <Check className="w-6 h-6 text-green-600" />
               </div>
-              <div>
-                <h4 className="font-bold text-green-900 text-lg">{t("thankYouReview")}</h4>
-                <p className="text-green-700 text-sm mt-1">{t("thankYouReviewDesc")}</p>
+              <div className="flex-1">
+                <h4 className="font-bold text-green-900 text-lg">{isFr ? "Merci pour votre avis !" : "Thank you for your review!"}</h4>
+                <p className="text-green-700 text-sm mt-1">{isFr ? "Votre avis a ete soumis avec succes." : "Your review has been submitted successfully."}</p>
               </div>
-              <button onClick={() => setReviewSuccess(false)} className="text-green-400 hover:text-green-600 transition flex-shrink-0 mt-1">
-                <Check className="w-4 h-4" />
+              <button onClick={() => setReviewSuccess(false)} className="text-green-500 hover:text-green-700 transition flex-shrink-0 mt-1">
+                <X className="w-5 h-5" />
               </button>
+            </div>
+          )}
+
+          {/* Review Form - immediately under Write a Review button */}
+          {showReviewForm && (
+            <div ref={reviewFormRef} className="mb-10 p-8 bg-white rounded-3xl border-2 border-gray-900 shadow-xl animate-fade-in-up">
+              <div className="flex items-center justify-between mb-6">
+                <h4 className="font-bold text-xl">{isFr ? "Partagez votre experience" : "Share Your Experience"}</h4>
+                <button type="button" onClick={() => setShowReviewForm(false)} className="text-gray-400 hover:text-gray-600 text-sm font-medium">
+                  {isFr ? "Annuler" : "Cancel"}
+                </button>
+              </div>
+              <div className="space-y-5">
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-gray-700">{isFr ? "Votre nom *" : "Your Name *"}</label>
+                  <input type="text" value={reviewName} onChange={(e) => setReviewName(e.target.value)} placeholder={isFr ? "ex: Jean Dupont" : "e.g., Alex Smith"} className="w-full px-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition text-sm" />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-gray-700">{isFr ? "Note" : "Rating"}</label>
+                  <div className="flex gap-1.5">
+                    {[1,2,3,4,5].map(i => (
+                      <button key={i} type="button" onClick={() => setReviewRating(i)} className="group">
+                        <Star className={`w-9 h-9 transition-all group-hover:scale-110 ${i <= reviewRating ? "text-amber-400 fill-amber-400" : "text-gray-200 hover:text-amber-200"}`} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-gray-700">{isFr ? "Votre commentaire" : "Your Review"}</label>
+                  <textarea value={reviewComment} onChange={(e) => setReviewComment(e.target.value)} placeholder={isFr ? "Que pensez-vous de ce produit ?" : "What did you think of this product?"} rows={4} className="w-full px-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition text-sm resize-none" />
+                </div>
+                <button type="button" onClick={handleSubmitReview} disabled={!reviewName.trim() || submittingReview} className="flex items-center gap-2 px-8 py-3.5 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition disabled:opacity-50 shadow-lg shadow-gray-900/10">
+                  <Send className="w-4 h-4" />{submittingReview ? (isFr ? "Envoi..." : "Submitting...") : (isFr ? "Soumettre mon avis" : "Submit Review")}
+                </button>
+              </div>
             </div>
           )}
 
@@ -1169,36 +1205,6 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               </div>
             </div>
           </div>
-
-          {/* Review Form */}
-          {showReviewForm && (
-            <div className="mb-10 p-8 bg-white rounded-3xl border border-gray-200 shadow-sm animate-fade-in-up">
-              <h4 className="font-bold text-xl mb-6">{t("shareExperience")}</h4>
-              <div className="space-y-5">
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">{t("yourName")}</label>
-                  <input type="text" value={reviewName} onChange={(e) => setReviewName(e.target.value)} placeholder={t("namePlaceholder")} className="w-full px-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition text-sm" />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">{t("yourRating")}</label>
-                  <div className="flex gap-1.5">
-                    {[1,2,3,4,5].map(i => (
-                      <button key={i} onClick={() => setReviewRating(i)} className="group">
-                        <Star className={`w-9 h-9 transition-all group-hover:scale-110 ${i <= reviewRating ? "text-amber-400 fill-amber-400" : "text-gray-200 hover:text-amber-200"}`} />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">{t("yourReview")}</label>
-                  <textarea value={reviewComment} onChange={(e) => setReviewComment(e.target.value)} placeholder={t("reviewPlaceholder")} rows={5} className="w-full px-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 transition text-sm resize-none" />
-                </div>
-                <button onClick={handleSubmitReview} disabled={!reviewName.trim() || submittingReview} className="flex items-center gap-2 px-8 py-3.5 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition disabled:opacity-50">
-                  <Send className="w-4 h-4" />{submittingReview ? t("submitting") : t("submitReview")}
-                </button>
-              </div>
-            </div>
-          )}
 
           {/* Reviews List */}
           <div className="space-y-5 mb-16">
