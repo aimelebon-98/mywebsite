@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/admin-auth";
 // v5 - includes vendor products + payouts
 import { NextResponse } from "next/server";
 import { db } from "@/db";

@@ -26,6 +26,12 @@ async function convertSupplierToNgn(supplierPrice: number, supplierCurrency: str
 import { sortByShippingTier } from "@/lib/shipping-tier";
 import { pingIndexNow } from "@/lib/indexnow-ping";
 
+// Strip sensitive pricing from public responses
+const SENSITIVE_FIELDS = ["costPrice", "supplierPrice", "supplierCurrency"];
+function stripPricing(p: Record<string, unknown>): Record<string, unknown> {
+  const c = { ...p }; SENSITIVE_FIELDS.forEach(f => delete c[f]); return c;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);

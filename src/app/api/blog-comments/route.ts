@@ -6,6 +6,17 @@ import { verifyTurnstile } from "@/lib/turnstile";
 import { isRateLimited } from "@/lib/rate-limit";
 import { headers } from "next/headers";
 
+// Strip all HTML tags to prevent stored XSS
+function sanitizeHtml(input: string): string {
+  return input
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;")
+    .replace(/\//g, "&#x2F;");
+}
+
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
@@ -39,9 +50,9 @@ export async function POST(req: Request) {
     const body = await req.json();
     const postId = body.postId ? String(body.postId) : "";
     const parentId = body.parentId ? String(body.parentId) : undefined;
-    const authorName = body.authorName ? String(body.authorName).slice(0, 100) : "";
-    const authorEmail = body.authorEmail ? String(body.authorEmail).slice(0, 100) : "";
-    const content = body.content ? String(body.content).slice(0, 2000) : "";
+    const authorName = body.authorName ? sanitizeHtml(String(body.authorName).slice(0, 100)) : "";
+    const authorEmail = body.authorEmail ? String(body.authorEmail).trim().toLowerCase().slice(0, 100) : "";
+    const content = body.content ? sanitizeHtml(String(body.content).slice(0, 2000)) : "";
     const turnstileToken = body.turnstileToken ? String(body.turnstileToken) : "";
 
     if (!postId || !authorName || !content) {

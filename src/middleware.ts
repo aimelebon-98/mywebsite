@@ -72,9 +72,11 @@ function isApiRequestAllowed(request: NextRequest): boolean {
   if (headers.get("x-internal") === "middleware") return true;
 
   // Get client IP
+  // Cloudflare-aware IP detection (cf-connecting-ip = real client)
+  const cfIp = headers.get("cf-connecting-ip") || "";
   const forwardedFor = headers.get("x-forwarded-for") || "";
   const realIp = headers.get("x-real-ip") || "";
-  const clientIp = (forwardedFor.split(",")[0] || realIp).trim();
+  const clientIp = (cfIp || forwardedFor.split(",").pop()?.trim() || realIp).trim();
 
   // Whitelisted IPs (hardcoded + env var)
   const envIps = (process.env.API_WHITELIST_IPS || "").split(",").map(s => s.trim()).filter(Boolean);

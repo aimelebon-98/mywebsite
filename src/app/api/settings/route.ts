@@ -6,10 +6,44 @@ import { requireAdmin } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
+// Fields that must NEVER be exposed to unauthenticated requests
+const SENSITIVE_FIELDS = ["adminPassword", "adminPath"];
+
+function stripSensitive(row: Record<string, unknown>): Record<string, unknown> {
+  const cleaned = { ...row };
+  for (const field of SENSITIVE_FIELDS) {
+    delete cleaned[field];
+  }
+  return cleaned;
+}
+
 export async function GET() {
   try {
+    const isAdmin = await (async () => {
+      try {
+        const { cookies } = await import("next/headers");
+        const cookieStore = await cookies();
+        const token = cookieStore.get("admin_session")?.value;
+        if (!token) return false;
+        const { adminSessions } = await import("@/db/schema");
+        const session = await db.select().from(adminSessions).where(eq(adminSessions.token, token));
+        return session.length > 0 && new Date(session[0].expiresAt) > new Date();
+      } catch {
+        return false;
+      }
+    })();
+
     const [st] = await db.select().from(settings).where(eq(settings.id, 1)).limit(1);
-    return NextResponse.json(st || {});
+    if (!st) return NextResponse.json({});
+
+    // Admin gets full settings (including adminPath for routing)
+    if (isAdmin) {
+      const { adminPassword, ...rest } = st as Record<string, unknown>;
+      return NextResponse.json(rest);
+    }
+
+    // Public gets only safe fields
+    return NextResponse.json(stripSensitive(st as Record<string, unknown>));
   } catch (error) {
     return NextResponse.json({ error: "Failed to fetch settings" }, { status: 500 });
   }
@@ -21,6 +55,8 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
+    // Prevent overwriting id
+    delete body.id;
     const [existing] = await db.select().from(settings).where(eq(settings.id, 1)).limit(1);
 
     if (existing) {

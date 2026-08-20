@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/admin-auth";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { customers, orders, customerAddresses } from "@/db/schema";
