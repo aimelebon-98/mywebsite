@@ -19,7 +19,9 @@ function stripSensitive(row: Record<string, unknown>): Record<string, unknown> {
 
 export async function GET(req: Request) {
   try {
-    const isInternalMiddleware = req.headers.get("x-internal") === "middleware";
+    const internalSecret = process.env.INTERNAL_API_SECRET || "ndz-internal-2024";
+    const headerVal = req.headers.get("x-internal");
+    const isInternalMiddleware = headerVal === internalSecret || headerVal === "middleware";
 
     const isAdmin = isInternalMiddleware || await (async () => {
       try {
