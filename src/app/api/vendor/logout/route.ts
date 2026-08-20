@@ -8,7 +8,6 @@ export async function POST() {
     await destroyVendorSession();
     return NextResponse.json({ success: true });
   } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json({ error: "Failed to destroy vendor session" }, { status: 500 });
   }
 }

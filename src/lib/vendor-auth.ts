@@ -6,7 +6,7 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 
 const SESSION_COOKIE = "ndz_vendor_session";
-const SESSION_DURATION_DAYS = 30;
+const SESSION_DURATION_DAYS = 7;
 
 export function generateVendorToken(): string {
   return crypto.randomBytes(48).toString("hex");
