@@ -1,3 +1,5 @@
+import { isRateLimited } from "@/lib/rate-limit";
+import { verifyRequestOrigin } from "@/lib/csrf";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { customers, coupons, customerCoupons } from "@/db/schema";
