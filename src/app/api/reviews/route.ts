@@ -14,8 +14,8 @@ const createReviewSchema = z.object({
   productId: z.string().uuid("Invalid product ID"),
   customerName: z.string().trim().min(2, "Name required").max(100),
   rating: z.number().int().min(1, "Rating must be between 1 and 5").max(5),
-  comment: z.string().trim().min(3, "Comment required").max(1000),
-  commentFr: z.string().trim().max(1000).optional(),
+  comment: z.string().trim().max(1000).optional().default(""),
+  commentFr: z.string().trim().max(1000).optional().default(""),
 });
 
 export async function GET(req: NextRequest) {
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
     const { productId, customerName, rating, comment, commentFr } = parsed.data;
 
     const sanitizedName = sanitizeHtml(customerName);
-    const sanitizedComment = sanitizeHtml(comment);
+    const sanitizedComment = comment ? sanitizeHtml(comment) : "";
     const sanitizedCommentFr = commentFr ? sanitizeHtml(commentFr) : "";
     const avatar = getInitials(sanitizedName);
 
