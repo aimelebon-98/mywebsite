@@ -48,10 +48,10 @@ export default function AccountHoverMenu({ iconColor, iconHoverBg }: Props) {
       >
         <Link
           href={`/${locale}/account/login`}
-          aria-label={isFr ? "Compte" : "Account"}
+          aria-label={isFr ? "Connexion" : "Sign in"}
           className={"relative inline-flex p-2 rounded-xl transition " + iconHoverBg}
         >
-          <User className={"w-5 h-5 " + iconColor} />
+          <LogIn className={"w-5 h-5 " + iconColor} />
         </Link>
 
         <div
