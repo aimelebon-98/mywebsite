@@ -65,6 +65,7 @@ export const categories = pgTable("categories", {
 export const reviews = pgTable("reviews", {
   id: uuid("id").defaultRandom().primaryKey(),
   productId: uuid("product_id").notNull(),
+  customerId: uuid("customer_id"),
   customerName: text("customer_name").notNull(),
   rating: integer("rating").notNull().default(5),
   comment: text("comment").notNull().default(""),

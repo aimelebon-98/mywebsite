@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Star, CheckCircle2, Trash2, Clock, Check, MessageSquare, ShieldCheck } from "lucide-react";
+import { Star, CheckCircle2, Trash2, Clock, Check, MessageSquare, ShieldCheck, CheckSquare, Square, X } from "lucide-react";
 
 type AdminReview = {
   id: string;
@@ -22,6 +22,10 @@ export default function ReviewsManager() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "pending" | "approved">("pending");
   const [actionId, setActionId] = useState<string | null>(null);
+  
+  // Bulk selection state
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkLoading, setBulkLoading] = useState(false);
 
   const fetchReviews = async () => {
     setLoading(true);
@@ -30,6 +34,7 @@ export default function ReviewsManager() {
       if (res.ok) {
         const data = await res.json();
         setReviews(data);
+        setSelectedIds([]); // Reset selections on refetch
       }
     } catch (e) {
       console.error("Failed to fetch admin reviews", e);
@@ -42,6 +47,7 @@ export default function ReviewsManager() {
     fetchReviews();
   }, [filter]);
 
+  // Single review actions
   const handleToggleApprove = async (id: string, currentApproved: boolean) => {
     setActionId(id);
     try {
@@ -50,9 +56,7 @@ export default function ReviewsManager() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ approved: !currentApproved }),
       });
-      if (res.ok) {
-        fetchReviews();
-      }
+      if (res.ok) fetchReviews();
     } catch (e) {
       console.error("Failed to update approval status", e);
     } finally {
@@ -68,9 +72,7 @@ export default function ReviewsManager() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ verified: !currentVerified }),
       });
-      if (res.ok) {
-        fetchReviews();
-      }
+      if (res.ok) fetchReviews();
     } catch (e) {
       console.error("Failed to update verified status", e);
     } finally {
@@ -83,9 +85,7 @@ export default function ReviewsManager() {
     setActionId(id);
     try {
       const res = await fetch(`/api/admin/reviews/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        fetchReviews();
-      }
+      if (res.ok) fetchReviews();
     } catch (e) {
       console.error("Failed to delete review", e);
     } finally {
@@ -93,8 +93,47 @@ export default function ReviewsManager() {
     }
   };
 
+  // Selection handlers
+  const toggleSelectAll = () => {
+    if (selectedIds.length === reviews.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(reviews.map(r => r.id));
+    }
+  };
+
+  const toggleSelectOne = (id: string) => {
+    setSelectedIds(prev =>
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
+
+  // Bulk actions handler
+  const handleBulkAction = async (action: "approve" | "unapprove" | "verify" | "unverify" | "delete") => {
+    if (selectedIds.length === 0) return;
+    if (action === "delete" && !confirm(`Delete ${selectedIds.length} selected reviews?`)) return;
+
+    setBulkLoading(true);
+    try {
+      const res = await fetch("/api/admin/reviews/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: selectedIds, action }),
+      });
+      if (res.ok) {
+        fetchReviews();
+      }
+    } catch (e) {
+      console.error("Bulk action failed", e);
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
+  const isAllSelected = reviews.length > 0 && selectedIds.length === reviews.length;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-20">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
         <div>
@@ -142,6 +181,79 @@ export default function ReviewsManager() {
         </div>
       </div>
 
+      {/* Controls Bar: Select All */}
+      {reviews.length > 0 && (
+        <div className="flex items-center justify-between bg-white px-6 py-3 rounded-xl border border-gray-100 text-sm">
+          <button
+            onClick={toggleSelectAll}
+            className="flex items-center gap-2 font-semibold text-gray-700 hover:text-gray-900 transition"
+          >
+            {isAllSelected ? (
+              <CheckSquare className="w-4 h-4 text-[#CA3F2E]" />
+            ) : (
+              <Square className="w-4 h-4 text-gray-400" />
+            )}
+            Select All ({reviews.length})
+          </button>
+          {selectedIds.length > 0 && (
+            <span className="text-xs font-bold text-[#CA3F2E]">
+              {selectedIds.length} review{selectedIds.length > 1 ? "s" : ""} selected
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Floating Bulk Actions Bar */}
+      {selectedIds.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-900 text-white px-6 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 border border-gray-800 animate-fade-in-up">
+          <span className="text-xs font-bold px-2.5 py-1 bg-gray-800 rounded-lg text-amber-400">
+            {selectedIds.length} Selected
+          </span>
+
+          <div className="h-4 w-px bg-gray-700" />
+
+          <button
+            onClick={() => handleBulkAction("approve")}
+            disabled={bulkLoading}
+            className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 disabled:opacity-50"
+          >
+            <Check className="w-3.5 h-3.5" /> Approve Selected
+          </button>
+
+          <button
+            onClick={() => handleBulkAction("unapprove")}
+            disabled={bulkLoading}
+            className="px-3.5 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 rounded-xl text-xs font-bold transition disabled:opacity-50"
+          >
+            Unapprove
+          </button>
+
+          <button
+            onClick={() => handleBulkAction("verify")}
+            disabled={bulkLoading}
+            className="px-3.5 py-1.5 bg-green-950 text-green-400 border border-green-700/50 hover:bg-green-900 rounded-xl text-xs font-bold transition disabled:opacity-50"
+          >
+            Mark Verified
+          </button>
+
+          <button
+            onClick={() => handleBulkAction("delete")}
+            disabled={bulkLoading}
+            className="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 disabled:opacity-50"
+          >
+            <Trash2 className="w-3.5 h-3.5" /> Delete
+          </button>
+
+          <button
+            onClick={() => setSelectedIds([])}
+            className="p-1 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white transition ml-2"
+            title="Deselect all"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Reviews List */}
       {loading ? (
         <div className="p-12 text-center text-gray-400 bg-white rounded-2xl border border-gray-100">
@@ -157,116 +269,136 @@ export default function ReviewsManager() {
         </div>
       ) : (
         <div className="grid gap-4">
-          {reviews.map((rev) => (
-            <div
-              key={rev.id}
-              className={`p-6 rounded-2xl border transition bg-white ${
-                rev.approved ? "border-gray-200" : "border-amber-200 bg-amber-50/20"
-              }`}
-            >
-              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 bg-gray-900 text-white font-bold text-sm rounded-full flex items-center justify-center flex-shrink-0">
-                    {rev.avatar || "ND"}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-bold text-gray-900">{rev.customerName}</span>
-                      {rev.verified ? (
-                        <span className="text-[10px] font-bold px-2.5 py-0.5 bg-green-100 text-green-700 rounded-full flex items-center gap-1">
-                          <ShieldCheck className="w-3 h-3" /> Verified Purchase
-                        </span>
+          {reviews.map((rev) => {
+            const isSelected = selectedIds.includes(rev.id);
+            return (
+              <div
+                key={rev.id}
+                className={`p-6 rounded-2xl border transition bg-white relative ${
+                  isSelected
+                    ? "border-[#CA3F2E] ring-2 ring-[#CA3F2E]/20 bg-red-50/10"
+                    : rev.approved
+                    ? "border-gray-200"
+                    : "border-amber-200 bg-amber-50/20"
+                }`}
+              >
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                  <div className="flex items-start gap-4">
+                    {/* Checkbox */}
+                    <button
+                      type="button"
+                      onClick={() => toggleSelectOne(rev.id)}
+                      className="mt-1 flex-shrink-0 text-gray-400 hover:text-[#CA3F2E] transition"
+                    >
+                      {isSelected ? (
+                        <CheckSquare className="w-5 h-5 text-[#CA3F2E]" />
                       ) : (
-                        <span className="text-[10px] font-medium px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full">
-                          Unverified
-                        </span>
+                        <Square className="w-5 h-5" />
                       )}
-                      <span className="text-xs text-gray-400">
-                        {new Date(rev.createdAt).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </span>
+                    </button>
+
+                    <div className="w-10 h-10 bg-gray-900 text-white font-bold text-sm rounded-full flex items-center justify-center flex-shrink-0">
+                      {rev.avatar || "ND"}
                     </div>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-gray-900">{rev.customerName}</span>
+                        {rev.verified ? (
+                          <span className="text-[10px] font-bold px-2.5 py-0.5 bg-green-100 text-green-700 rounded-full flex items-center gap-1">
+                            <ShieldCheck className="w-3 h-3" /> Verified Purchase
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-medium px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full">
+                            Unverified
+                          </span>
+                        )}
+                        <span className="text-xs text-gray-400">
+                          {new Date(rev.createdAt).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </span>
+                      </div>
 
-                    <p className="text-xs font-semibold text-gray-500 mt-0.5">
-                      Product: <span className="text-gray-900 font-bold">{rev.productName || rev.productId}</span>
-                    </p>
+                      <p className="text-xs font-semibold text-gray-500 mt-0.5">
+                        Product: <span className="text-gray-900 font-bold">{rev.productName || rev.productId}</span>
+                      </p>
 
-                    {/* Star Rating */}
-                    <div className="flex items-center gap-1 mt-2">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star
-                          key={star}
-                          className={`w-4 h-4 ${
-                            star <= rev.rating ? "text-amber-400 fill-amber-400" : "text-gray-200"
-                          }`}
-                        />
-                      ))}
+                      {/* Star Rating */}
+                      <div className="flex items-center gap-1 mt-2">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            className={`w-4 h-4 ${
+                              star <= rev.rating ? "text-amber-400 fill-amber-400" : "text-gray-200"
+                            }`}
+                          />
+                        ))}
+                      </div>
+
+                      {/* Comment Body */}
+                      <p className="text-sm text-gray-800 mt-3 leading-relaxed bg-gray-50 p-3.5 rounded-xl border border-gray-100">
+                        "{rev.comment}"
+                      </p>
                     </div>
-
-                    {/* Comment Body */}
-                    <p className="text-sm text-gray-800 mt-3 leading-relaxed bg-gray-50 p-3.5 rounded-xl border border-gray-100">
-                      "{rev.comment}"
-                    </p>
                   </div>
-                </div>
 
-                {/* Status & Actions */}
-                <div className="flex items-center gap-3 sm:flex-col sm:items-end flex-shrink-0">
-                  <span
-                    className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${
-                      rev.approved
-                        ? "bg-green-100 text-green-700"
-                        : "bg-amber-100 text-amber-800"
-                    }`}
-                  >
-                    {rev.approved ? <Check className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
-                    {rev.approved ? "Approved" : "Pending Review"}
-                  </span>
-
-                  <div className="flex items-center gap-2 mt-2 flex-wrap sm:justify-end">
-                    {/* Toggle Verified Badge Button */}
-                    <button
-                      onClick={() => handleToggleVerified(rev.id, rev.verified)}
-                      disabled={actionId === rev.id}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition border ${
-                        rev.verified
-                          ? "border-green-300 text-green-700 bg-green-50 hover:bg-green-100"
-                          : "border-gray-300 text-gray-600 bg-white hover:bg-gray-50"
-                      }`}
-                      title="Toggle Verified Purchase badge"
-                    >
-                      {rev.verified ? "✓ Verified" : "+ Mark Verified"}
-                    </button>
-
-                    {/* Toggle Approval Button */}
-                    <button
-                      onClick={() => handleToggleApprove(rev.id, rev.approved)}
-                      disabled={actionId === rev.id}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                  {/* Status & Actions */}
+                  <div className="flex items-center gap-3 sm:flex-col sm:items-end flex-shrink-0">
+                    <span
+                      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${
                         rev.approved
-                          ? "bg-gray-100 hover:bg-gray-200 text-gray-700"
-                          : "bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-amber-100 text-amber-800"
                       }`}
                     >
-                      {rev.approved ? "Unapprove" : "Approve & Publish"}
-                    </button>
+                      {rev.approved ? <Check className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
+                      {rev.approved ? "Approved" : "Pending Review"}
+                    </span>
 
-                    <button
-                      onClick={() => handleDelete(rev.id)}
-                      disabled={actionId === rev.id}
-                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition"
-                      title="Delete Review"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-2 mt-2 flex-wrap sm:justify-end">
+                      {/* Toggle Verified Badge Button */}
+                      <button
+                        onClick={() => handleToggleVerified(rev.id, rev.verified)}
+                        disabled={actionId === rev.id}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition border ${
+                          rev.verified
+                            ? "border-green-300 text-green-700 bg-green-50 hover:bg-green-100"
+                            : "border-gray-300 text-gray-600 bg-white hover:bg-gray-50"
+                        }`}
+                        title="Toggle Verified Purchase badge"
+                      >
+                        {rev.verified ? "✓ Verified" : "+ Mark Verified"}
+                      </button>
+
+                      {/* Toggle Approval Button */}
+                      <button
+                        onClick={() => handleToggleApprove(rev.id, rev.approved)}
+                        disabled={actionId === rev.id}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                          rev.approved
+                            ? "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                            : "bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20"
+                        }`}
+                      >
+                        {rev.approved ? "Unapprove" : "Approve & Publish"}
+                      </button>
+
+                      <button
+                        onClick={() => handleDelete(rev.id)}
+                        disabled={actionId === rev.id}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition"
+                        title="Delete Review"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
