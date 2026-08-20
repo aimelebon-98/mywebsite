@@ -1,15 +1,6 @@
-import sanitizeHtml from "sanitize-html";
+import sanitizeHtmlLib from "sanitize-html";
 
-/**
- * Sanitize user-generated HTML content.
- * Strips all dangerous tags, attributes, and event handlers.
- *
- * Usage:
- *   import { sanitizeContent, sanitizeComment } from "@/lib/sanitize";
- *   const safe = sanitizeContent(body.longDescription);
- */
-
-const PRODUCT_HTML_OPTIONS: sanitizeHtml.IOptions = {
+const PRODUCT_HTML_OPTIONS: sanitizeHtmlLib.IOptions = {
   allowedTags: [
     "p", "br", "hr",
     "h2", "h3", "h4",
@@ -36,55 +27,43 @@ const PRODUCT_HTML_OPTIONS: sanitizeHtml.IOptions = {
     img: ["http", "https", "data"],
   },
   transformTags: {
-    a: sanitizeHtml.simpleTransform("a", { rel: "noopener noreferrer", target: "_blank" }),
+    a: sanitizeHtmlLib.simpleTransform("a", { rel: "noopener noreferrer", target: "_blank" }),
   },
-  // Strip all on* event handlers
   allowedScriptDomains: [],
   allowedScriptHostnames: [],
 };
 
-const COMMENT_HTML_OPTIONS: sanitizeHtml.IOptions = {
+const COMMENT_HTML_OPTIONS: sanitizeHtmlLib.IOptions = {
   allowedTags: ["p", "br", "strong", "em", "b", "i"],
   allowedAttributes: {},
   allowedSchemes: [],
 };
 
-const PLAIN_TEXT_OPTIONS: sanitizeHtml.IOptions = {
+const PLAIN_TEXT_OPTIONS: sanitizeHtmlLib.IOptions = {
   allowedTags: [],
   allowedAttributes: {},
 };
 
-/**
- * Sanitize rich HTML content (product descriptions, blog posts).
- * Allows formatting tags, tables, links, images.
- */
 export function sanitizeContent(html: string): string {
   if (!html) return "";
-  return sanitizeHtml(html, PRODUCT_HTML_OPTIONS);
+  return sanitizeHtmlLib(html, PRODUCT_HTML_OPTIONS);
 }
 
-/**
- * Sanitize short user comments (reviews, blog comments).
- * Allows only basic text formatting.
- */
+// Export alias for BlogPostContent and other components
+export function sanitizeHtml(html: string): string {
+  return sanitizeContent(html);
+}
+
 export function sanitizeComment(text: string): string {
   if (!text) return "";
-  return sanitizeHtml(text, COMMENT_HTML_OPTIONS);
+  return sanitizeHtmlLib(text, COMMENT_HTML_OPTIONS);
 }
 
-/**
- * Strip ALL HTML — returns plain text only.
- * Use for names, subjects, labels, slugs.
- */
 export function stripHtml(text: string): string {
   if (!text) return "";
-  return sanitizeHtml(text, PLAIN_TEXT_OPTIONS).trim();
+  return sanitizeHtmlLib(text, PLAIN_TEXT_OPTIONS).trim();
 }
 
-/**
- * Validate and sanitize a URL.
- * Returns empty string if invalid or javascript: URI.
- */
 export function sanitizeUrl(url: string): string {
   if (!url) return "";
   const trimmed = url.trim();
@@ -99,10 +78,6 @@ export function sanitizeUrl(url: string): string {
   }
 }
 
-/**
- * Validate input length and reject (not truncate) oversized input.
- * Returns null if valid, error message if too long.
- */
 export function validateLength(
   value: string,
   maxLength: number,
@@ -113,7 +88,3 @@ export function validateLength(
   }
   return null;
 }
-
-// ── Backward-compatible alias ──
-// BlogPostContent.tsx imports sanitizeHtml
-export const sanitizeHtml = sanitizeContent;
