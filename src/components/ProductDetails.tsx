@@ -1,5 +1,4 @@
-"use client";
-import { sanitizeHtml } from "@/lib/sanitize-html";
+"use client";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { useCurrency } from "@/lib/currency-context";
 import { parseColorVariants } from "@/lib/color-variants";
