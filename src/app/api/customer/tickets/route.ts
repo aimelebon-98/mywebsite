@@ -30,10 +30,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const ip =
-      request.headers.get("cf-connecting-ip") ||
-      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-      "127.0.0.1";
+    const ip = request.headers.get("cf-connecting-ip") || request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "127.0.0.1";
     if (isRateLimited(ip, 10, 60000)) {
       return NextResponse.json({ error: "Too many ticket requests. Please wait a minute." }, { status: 429 });
     }
@@ -43,7 +40,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized. Please log in again." }, { status: 401 });
     }
 
-    let body: Record<string, unknown> = {};
+    let body: any = {};
     try {
       body = await request.json();
     } catch {
@@ -58,11 +55,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Subject is required" }, { status: 400 });
     }
 
+    // Auto-ensure ALL Postgres table columns exist
     try {
       await db.execute(sql`ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS priority text NOT NULL DEFAULT 'normal'`);
       await db.execute(sql`ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS unread_by_admin boolean NOT NULL DEFAULT true`);
       await db.execute(sql`ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS unread_by_customer boolean NOT NULL DEFAULT false`);
       await db.execute(sql`ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS last_message_at timestamp DEFAULT now()`);
+      await db.execute(sql`ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS updated_at timestamp DEFAULT now()`);
     } catch { /* ignore */ }
 
     const now = new Date();
@@ -77,23 +76,40 @@ export async function POST(request: NextRequest) {
         unreadByAdmin: true,
         unreadByCustomer: false,
         lastMessageAt: now,
+        createdAt: now,
+        updatedAt: now,
       } as typeof supportTickets.$inferInsert)
       .returning();
 
+    // Insert first message if provided
     if (messageVal && inserted?.id) {
+      try {
+        await db.execute(sql`
+          CREATE TABLE IF NOT EXISTS support_messages (
+            id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+            ticket_id uuid NOT NULL,
+            sender_type text NOT NULL,
+            sender_name text NOT NULL DEFAULT '',
+            message text NOT NULL,
+            created_at timestamp DEFAULT now()
+          );
+        `);
+      } catch { /* ignore */ }
+
       try {
         await db.insert(supportMessages).values({
           ticketId: inserted.id,
           senderType: "customer",
           senderName: customer.name || "Customer",
           message: messageVal,
+          createdAt: now,
         });
       } catch (msgErr) {
-        console.warn("[Tickets] first message insert skipped:", msgErr);
+        console.warn("[Tickets] supportMessages insert fallback:", msgErr);
         try {
           await db.execute(sql`
-            INSERT INTO support_messages (ticket_id, sender_type, sender_name, message)
-            VALUES (${inserted.id}, 'customer', ${customer.name || "Customer"}, ${messageVal})
+            INSERT INTO support_messages (ticket_id, sender_type, sender_name, message, created_at)
+            VALUES (${inserted.id}, 'customer', ${customer.name || 'Customer'}, ${messageVal}, ${now})
           `);
         } catch { /* ignore */ }
       }
@@ -102,7 +118,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, ticket: inserted }, { status: 201 });
   } catch (error) {
     console.error("[Tickets POST Error]", error);
-    const msg = error instanceof Error ? error.message : "Failed to create ticket";
+    const msg = error instanceof Error ? error.message : String(error);
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
