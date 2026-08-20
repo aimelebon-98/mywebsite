@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
     const sortByCountry = searchParams.get("sortByCountry");
     const sorted = sortByCountry ? sortByShippingTier(result, sortByCountry) : result;
 
-    return NextResponse.json(sorted);
+    return NextResponse.json(sorted.map(p => stripPricing(p as unknown as Record<string, unknown>)));
   } catch (error) {
     console.error("Error fetching products:", error);
     return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 });

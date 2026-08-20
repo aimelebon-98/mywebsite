@@ -50,7 +50,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
     return NextResponse.json({
       product: {
-        ...product,
+        ...Object.fromEntries(Object.entries(product).filter(([k]) => !["costPrice"].includes(k))),
         vendorStatus: vp.status,
         adminNote: vp.adminNote,
         displayCurrency,
@@ -58,7 +58,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       },
     });
   } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
+    const msg = process.env.NODE_ENV === "development" ? (error instanceof Error ? error.message : String(error)) : "Internal server error";
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
@@ -141,7 +141,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
     return NextResponse.json({ success: true, message: "Product updated and resubmitted for approval" });
   } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
+    const msg = process.env.NODE_ENV === "development" ? (error instanceof Error ? error.message : String(error)) : "Internal server error";
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
@@ -160,7 +160,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
+    const msg = process.env.NODE_ENV === "development" ? (error instanceof Error ? error.message : String(error)) : "Internal server error";
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

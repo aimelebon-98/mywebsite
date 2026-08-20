@@ -105,9 +105,10 @@ export async function generateUniqueStoreSlug(name: string): Promise<string> {
 
 export function generateRandomPassword(length: number = 12): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+  const bytes = crypto.randomBytes(length);
   let password = "";
   for (let i = 0; i < length; i++) {
-    password += chars.charAt(Math.floor(Math.random() * chars.length));
+    password += chars.charAt(bytes[i] % chars.length);
   }
   return password;
 }

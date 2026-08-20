@@ -63,7 +63,7 @@ function isApiRequestAllowed(request: NextRequest): boolean {
   }
 
   if (isPublicApiRoute(pathname)) return true;
-  if (headers.get("x-internal") === "middleware") return true;
+  const internalSecret = process.env.INTERNAL_API_SECRET || "ndz-internal-2024"; if (headers.get("x-internal") === internalSecret) return true;
 
   const cfIp = headers.get("cf-connecting-ip") || "";
   const forwardedFor = headers.get("x-forwarded-for") || "";
@@ -115,7 +115,7 @@ export async function middleware(request: NextRequest) {
   try {
     const settingsUrl = new URL("/api/settings", request.url);
     const res = await fetch(settingsUrl.toString(), {
-      headers: { "x-internal": "middleware" },
+      headers: { "x-internal": process.env.INTERNAL_API_SECRET || "ndz-internal-2024" },
     });
     if (res.ok) {
       const settings = await res.json();

@@ -74,7 +74,7 @@ export async function GET() {
 
     return NextResponse.json({ products: merged });
   } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
+    const msg = process.env.NODE_ENV === "development" ? (error instanceof Error ? error.message : String(error)) : "Internal server error";
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
@@ -173,7 +173,7 @@ export async function POST(req: Request) {
       product: { id: newProduct.id, slug: newProduct.slug, priceUsd: priceUsd.toFixed(2), currency: vendorCurrency },
     });
   } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
+    const msg = process.env.NODE_ENV === "development" ? (error instanceof Error ? error.message : String(error)) : "Internal server error";
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
