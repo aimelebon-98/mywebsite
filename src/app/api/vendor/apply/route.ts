@@ -43,7 +43,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    if (turnstileToken) {
+    if (process.env.TURNSTILE_SECRET_KEY) {
+      if (!turnstileToken) {
+        return NextResponse.json({ error: "Security verification required. Please refresh and try again." }, { status: 403 });
+      }
       const captchaOk = await verifyTurnstile(turnstileToken, ip);
       if (!captchaOk) {
         return NextResponse.json({ error: "Security verification failed. Please refresh and try again." }, { status: 403 });
@@ -104,7 +107,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, message: "Application submitted" });
   } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
+    const msg = "Application submission failed";
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

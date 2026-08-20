@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const turnstileToken = String(body.turnstileToken || "");
-    const ipReq = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "";
+    const ipReq = req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for")?.split(",").pop()?.trim() || "";
     if (process.env.TURNSTILE_SECRET_KEY && turnstileToken) {
       const ok = await verifyTurnstile(turnstileToken, ipReq);
       if (!ok) return NextResponse.json({ error: "Security check failed. Please refresh and try again." }, { status: 403 });
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       email, passwordHash, name, phone, locale,
     }).returning();
 
-    const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "";
+    const ip = req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for")?.split(",").pop()?.trim() || "";
     const ua = req.headers.get("user-agent") || "";
     await createSession(newCustomer.id, ip, ua);
 
@@ -91,6 +91,7 @@ export async function POST(req: NextRequest) {
       welcomeCoupon: welcomeCouponForEmail ? { code: welcomeCouponForEmail.code } : null,
     });
   } catch (error) {
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+    console.error("[Customer Register]", error instanceof Error ? error.message : "unknown");
+    return NextResponse.json({ error: "Registration failed" }, { status: 500 });
   }
 }

@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     const email = String(body.email || "").toLowerCase().trim();
     const password = String(body.password || "");
     const turnstileToken = String(body.turnstileToken || "");
-    const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "";
+    const ip = req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for")?.split(",").pop()?.trim() || "";
 
     // Only enforce Turnstile if secret is configured AND a token was submitted
     // (allows checkout auth flow to work without token; still protects login page which always sends one)
@@ -55,6 +55,7 @@ export async function POST(req: NextRequest) {
       customer: { id: customer.id, email: customer.email, name: customer.name, phone: customer.phone },
     });
   } catch (error) {
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+    console.error("[Customer Login]", error instanceof Error ? error.message : "unknown");
+    return NextResponse.json({ error: "Login failed" }, { status: 500 });
   }
 }

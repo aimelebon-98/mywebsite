@@ -37,6 +37,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ ok: true });
   } catch (e) {
-    return NextResponse.json({ error: String(e) }, { status: 500 });
+    console.error("[Delete Account]", e instanceof Error ? e.message : "unknown");
+    return NextResponse.json({ error: "Account deletion failed" }, { status: 500 });
   }
 }

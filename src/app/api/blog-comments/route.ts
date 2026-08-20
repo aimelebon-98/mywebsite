@@ -79,7 +79,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, comment: inserted });
   } catch (error) {
-    const msg = error instanceof Error ? error.message : "Failed to post comment";
+    const msg = "Failed to post comment";
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
