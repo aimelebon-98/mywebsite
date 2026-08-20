@@ -88,8 +88,7 @@ export default function VendorApplyPage() {
     backHome: "Retour \u00e0 l'accueil",
     haveAccount: "D\u00e9j\u00e0 vendeur ?",
     login: "Se connecter",
-    securityFail: "V\u00e9rification de s\u00e9curit\u00e9 \u00e9chou\u00e9e. Veuillez patienter puis r\u00e9essayer.",
-    protectedBy: "Prot\u00e9g\u00e9 par Cloudflare Turnstile",
+    turnstileRequired: "Veuillez valider la v\u00e9rification de s\u00e9curit\u00e9 ci-dessous.",
   } : {
     heading: "Become a vendor on NewDealZone",
     subtitle: "Join our marketplace and sell your footwear to thousands of customers across Africa and beyond.",
@@ -119,8 +118,7 @@ export default function VendorApplyPage() {
     backHome: "Back to home",
     haveAccount: "Already a vendor?",
     login: "Log in",
-    securityFail: "Security verification failed. Please wait and try again.",
-    protectedBy: "Protected by Cloudflare Turnstile",
+    turnstileRequired: "Please complete the security verification below.",
   };
 
   function toggleCategory(cat: string) {
@@ -137,8 +135,7 @@ export default function VendorApplyPage() {
     setError(null);
 
     if (!turnstileToken) {
-      setError(t.securityFail);
-      setTurnstileReset(k => k + 1);
+      setError(t.turnstileRequired);
       return;
     }
 
@@ -292,7 +289,24 @@ export default function VendorApplyPage() {
           </section>
 
           <div>
-            <p className="text-xs text-gray-500 mb-4 leading-relaxed">{t.terms}</p>
+            <p className="text-xs text-gray-500 mb-3 leading-relaxed">{t.terms}</p>
+
+            {/* VISIBLE TURNSTILE WIDGET */}
+            <div className="flex justify-center items-center min-h-[65px] my-4">
+              <Turnstile
+                mode="interactive"
+                theme="light"
+                action="vendor-apply"
+                onVerify={(tok) => {
+                  setTurnstileToken(tok);
+                  setError(null);
+                }}
+                onExpire={() => setTurnstileToken("")}
+                onError={() => setTurnstileToken("")}
+                resetKey={turnstileReset}
+              />
+            </div>
+
             <button
               type="submit"
               disabled={submitting}
@@ -313,19 +327,6 @@ export default function VendorApplyPage() {
                 </>
               )}
             </button>
-
-            <div className="hidden">
-              <Turnstile
-                mode="auto"
-                action="vendor-apply"
-                onVerify={(tok) => setTurnstileToken(tok)}
-                onExpire={() => setTurnstileToken("")}
-                onError={() => setTurnstileToken("")}
-                resetKey={turnstileReset}
-              />
-            </div>
-
-            <p className="text-center text-[10px] text-gray-400 mt-3">{t.protectedBy}</p>
           </div>
         </form>
       </div>

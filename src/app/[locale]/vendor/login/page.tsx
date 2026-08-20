@@ -33,9 +33,7 @@ export default function VendorLoginPage() {
     noAccount: "Pas encore vendeur ?",
     apply: "Postuler maintenant",
     backHome: "Retour au site",
-    securityCheck: "V\u00e9rification de s\u00e9curit\u00e9 en cours...",
-    securityFail: "V\u00e9rification de s\u00e9curit\u00e9 \u00e9chou\u00e9e. Veuillez patienter.",
-    protectedBy: "Prot\u00e9g\u00e9 par Cloudflare Turnstile",
+    turnstileRequired: "Veuillez valider la v\u00e9rification de s\u00e9curit\u00e9 ci-dessus.",
   } : {
     heading: "Vendor login",
     subtitle: "Sign in to your dashboard",
@@ -46,9 +44,7 @@ export default function VendorLoginPage() {
     noAccount: "Not a vendor yet?",
     apply: "Apply now",
     backHome: "Back to site",
-    securityCheck: "Security verification in progress...",
-    securityFail: "Security verification failed. Please wait.",
-    protectedBy: "Protected by Cloudflare Turnstile",
+    turnstileRequired: "Please complete the security verification above.",
   };
 
   async function handleSubmit(e: React.FormEvent) {
@@ -56,8 +52,7 @@ export default function VendorLoginPage() {
     setError(null);
 
     if (!turnstileToken) {
-      setError(t.securityFail);
-      setTurnstileReset(k => k + 1);
+      setError(t.turnstileRequired);
       return;
     }
 
@@ -142,6 +137,22 @@ export default function VendorLoginPage() {
             </div>
           </div>
 
+          {/* VISIBLE TURNSTILE WIDGET */}
+          <div className="flex justify-center items-center min-h-[65px] pt-1">
+            <Turnstile
+              mode="interactive"
+              theme="light"
+              action="vendor-login"
+              onVerify={(tok) => {
+                setTurnstileToken(tok);
+                setError(null);
+              }}
+              onExpire={() => setTurnstileToken("")}
+              onError={() => setTurnstileToken("")}
+              resetKey={turnstileReset}
+            />
+          </div>
+
           <button
             type="submit"
             disabled={submitting}
@@ -162,19 +173,6 @@ export default function VendorLoginPage() {
               </>
             )}
           </button>
-
-          <div className="hidden">
-            <Turnstile
-              mode="auto"
-              action="vendor-login"
-              onVerify={(tok) => setTurnstileToken(tok)}
-              onExpire={() => setTurnstileToken("")}
-              onError={() => setTurnstileToken("")}
-              resetKey={turnstileReset}
-            />
-          </div>
-
-          <p className="text-center text-[10px] text-gray-400">{t.protectedBy}</p>
 
           <div className="text-center text-sm text-gray-500 pt-2">
             {t.noAccount}{" "}
