@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Store, Send, CheckCircle2, ArrowLeft, Loader2 } from "lucide-react";
+import Turnstile from "@/components/Turnstile";
 
 const BRAND_RED = "#CA3F2E";
 const BRAND_RED_DARK = "#8B2A1E";
@@ -55,6 +56,8 @@ export default function VendorApplyPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileReset, setTurnstileReset] = useState(0);
 
   const t = isFr ? {
     heading: "Devenez vendeur sur NewDealZone",
@@ -85,6 +88,8 @@ export default function VendorApplyPage() {
     backHome: "Retour \u00e0 l'accueil",
     haveAccount: "D\u00e9j\u00e0 vendeur ?",
     login: "Se connecter",
+    securityFail: "V\u00e9rification de s\u00e9curit\u00e9 \u00e9chou\u00e9e. Veuillez patienter puis r\u00e9essayer.",
+    protectedBy: "Prot\u00e9g\u00e9 par Cloudflare Turnstile",
   } : {
     heading: "Become a vendor on NewDealZone",
     subtitle: "Join our marketplace and sell your footwear to thousands of customers across Africa and beyond.",
@@ -114,6 +119,8 @@ export default function VendorApplyPage() {
     backHome: "Back to home",
     haveAccount: "Already a vendor?",
     login: "Log in",
+    securityFail: "Security verification failed. Please wait and try again.",
+    protectedBy: "Protected by Cloudflare Turnstile",
   };
 
   function toggleCategory(cat: string) {
@@ -128,15 +135,26 @@ export default function VendorApplyPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+
+    if (!turnstileToken) {
+      setError(t.securityFail);
+      setTurnstileReset(k => k + 1);
+      return;
+    }
+
     setSubmitting(true);
     try {
       const res = await fetch("/api/vendor/apply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, locale }),
+        body: JSON.stringify({ ...form, locale, turnstileToken }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed");
+      if (!res.ok) {
+        setTurnstileReset(k => k + 1);
+        setTurnstileToken("");
+        throw new Error(data.error || "Failed");
+      }
       setSuccess(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
@@ -295,6 +313,19 @@ export default function VendorApplyPage() {
                 </>
               )}
             </button>
+
+            <div className="hidden">
+              <Turnstile
+                mode="auto"
+                action="vendor-apply"
+                onVerify={(tok) => setTurnstileToken(tok)}
+                onExpire={() => setTurnstileToken("")}
+                onError={() => setTurnstileToken("")}
+                resetKey={turnstileReset}
+              />
+            </div>
+
+            <p className="text-center text-[10px] text-gray-400 mt-3">{t.protectedBy}</p>
           </div>
         </form>
       </div>

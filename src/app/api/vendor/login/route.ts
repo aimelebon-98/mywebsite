@@ -3,15 +3,26 @@ import { db } from "@/db";
 import { vendors } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { verifyVendorPassword, createVendorSession } from "@/lib/vendor-auth";
+import { verifyTurnstile } from "@/lib/turnstile";
 import { headers } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const { email, password } = await req.json();
+    const { email, password, turnstileToken } = await req.json();
     if (!email || !password) {
       return NextResponse.json({ error: "Email and password required" }, { status: 400 });
+    }
+
+    const h = await headers();
+    const ip = h.get("cf-connecting-ip") || h.get("x-forwarded-for")?.split(",")[0] || h.get("x-real-ip") || "";
+    const ua = h.get("user-agent") || "";
+
+    // Verify Turnstile before touching DB
+    const captchaOk = await verifyTurnstile(turnstileToken || "", ip);
+    if (!captchaOk) {
+      return NextResponse.json({ error: "Security verification failed. Please refresh and try again." }, { status: 403 });
     }
 
     const emailNorm = String(email).toLowerCase().trim();
@@ -35,10 +46,6 @@ export async function POST(req: Request) {
     if (vendor.status === "suspended") {
       return NextResponse.json({ error: "Your account is suspended. Contact support." }, { status: 403 });
     }
-
-    const h = await headers();
-    const ip = h.get("cf-connecting-ip") || h.get("x-forwarded-for")?.split(",")[0] || h.get("x-real-ip") || "";
-    const ua = h.get("user-agent") || "";
 
     await createVendorSession(vendor.id, ip, ua);
 

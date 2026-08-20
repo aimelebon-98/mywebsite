@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Store, Mail, Lock, Loader2, ArrowRight, Eye, EyeOff } from "lucide-react";
+import Turnstile from "@/components/Turnstile";
 
 const BRAND_RED = "#CA3F2E";
 const BRAND_RED_DARK = "#8B2A1E";
@@ -19,6 +20,8 @@ export default function VendorLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileReset, setTurnstileReset] = useState(0);
 
   const t = isFr ? {
     heading: "Espace vendeur",
@@ -30,6 +33,9 @@ export default function VendorLoginPage() {
     noAccount: "Pas encore vendeur ?",
     apply: "Postuler maintenant",
     backHome: "Retour au site",
+    securityCheck: "V\u00e9rification de s\u00e9curit\u00e9 en cours...",
+    securityFail: "V\u00e9rification de s\u00e9curit\u00e9 \u00e9chou\u00e9e. Veuillez patienter.",
+    protectedBy: "Prot\u00e9g\u00e9 par Cloudflare Turnstile",
   } : {
     heading: "Vendor login",
     subtitle: "Sign in to your dashboard",
@@ -40,20 +46,34 @@ export default function VendorLoginPage() {
     noAccount: "Not a vendor yet?",
     apply: "Apply now",
     backHome: "Back to site",
+    securityCheck: "Security verification in progress...",
+    securityFail: "Security verification failed. Please wait.",
+    protectedBy: "Protected by Cloudflare Turnstile",
   };
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+
+    if (!turnstileToken) {
+      setError(t.securityFail);
+      setTurnstileReset(k => k + 1);
+      return;
+    }
+
     setSubmitting(true);
     try {
       const res = await fetch("/api/vendor/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, turnstileToken }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Login failed");
+      if (!res.ok) {
+        setTurnstileReset(k => k + 1);
+        setTurnstileToken("");
+        throw new Error(data.error || "Login failed");
+      }
 
       if (data.vendor?.mustChangePassword) {
         router.push(`/${locale}/vendor/change-password`);
@@ -142,6 +162,19 @@ export default function VendorLoginPage() {
               </>
             )}
           </button>
+
+          <div className="hidden">
+            <Turnstile
+              mode="auto"
+              action="vendor-login"
+              onVerify={(tok) => setTurnstileToken(tok)}
+              onExpire={() => setTurnstileToken("")}
+              onError={() => setTurnstileToken("")}
+              resetKey={turnstileReset}
+            />
+          </div>
+
+          <p className="text-center text-[10px] text-gray-400">{t.protectedBy}</p>
 
           <div className="text-center text-sm text-gray-500 pt-2">
             {t.noAccount}{" "}

@@ -3,6 +3,8 @@ import { db } from "@/db";
 import { vendorApplications, vendors } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { sendVendorApplicationReceivedEmail, sendAdminNewVendorApplicationEmail } from "@/lib/email";
+import { verifyTurnstile } from "@/lib/turnstile";
+import { headers } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
@@ -25,10 +27,20 @@ export async function POST(req: Request) {
       websiteUrl,
       additionalInfo,
       locale,
+      turnstileToken,
     } = body;
 
     if (!applicantName || !email || !storeName) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    const h = await headers();
+    const ip = h.get("cf-connecting-ip") || h.get("x-forwarded-for")?.split(",")[0] || h.get("x-real-ip") || "";
+
+    // Verify Turnstile before touching DB or sending emails
+    const captchaOk = await verifyTurnstile(turnstileToken || "", ip);
+    if (!captchaOk) {
+      return NextResponse.json({ error: "Security verification failed. Please refresh and try again." }, { status: 403 });
     }
 
     const emailNorm = String(email).toLowerCase().trim();
@@ -69,12 +81,10 @@ export async function POST(req: Request) {
 
     const lang = locale === "fr" ? "fr" : "en";
 
-    // Send auto-reply to applicant (non-blocking)
     sendVendorApplicationReceivedEmail(emailNorm, applicantName, storeName, lang)
       .then(ok => console.log("[Vendor Apply] Applicant email sent:", ok))
       .catch(e => console.error("[Vendor Apply] Applicant email failed:", e));
 
-    // Send alert to admin (non-blocking, with logging)
     sendAdminNewVendorApplicationEmail(ADMIN_EMAIL, {
       applicantName,
       email: emailNorm,
