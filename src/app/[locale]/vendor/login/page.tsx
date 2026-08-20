@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Store, Mail, Lock, Loader2, ArrowRight, Eye, EyeOff } from "lucide-react";
-import Turnstile from "@/components/Turnstile";
+import TurnstileGate from "@/components/TurnstileGate";
 
 const BRAND_RED = "#CA3F2E";
 const BRAND_RED_DARK = "#8B2A1E";
@@ -21,7 +21,6 @@ export default function VendorLoginPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [turnstileToken, setTurnstileToken] = useState("");
-  const [turnstileReset, setTurnstileReset] = useState(0);
 
   const t = isFr ? {
     heading: "Espace vendeur",
@@ -33,7 +32,6 @@ export default function VendorLoginPage() {
     noAccount: "Pas encore vendeur ?",
     apply: "Postuler maintenant",
     backHome: "Retour au site",
-    turnstileRequired: "Veuillez valider la v\u00e9rification de s\u00e9curit\u00e9 ci-dessus.",
   } : {
     heading: "Vendor login",
     subtitle: "Sign in to your dashboard",
@@ -44,18 +42,11 @@ export default function VendorLoginPage() {
     noAccount: "Not a vendor yet?",
     apply: "Apply now",
     backHome: "Back to site",
-    turnstileRequired: "Please complete the security verification above.",
   };
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-
-    if (!turnstileToken) {
-      setError(t.turnstileRequired);
-      return;
-    }
-
     setSubmitting(true);
     try {
       const res = await fetch("/api/vendor/login", {
@@ -64,11 +55,7 @@ export default function VendorLoginPage() {
         body: JSON.stringify({ email, password, turnstileToken }),
       });
       const data = await res.json();
-      if (!res.ok) {
-        setTurnstileReset(k => k + 1);
-        setTurnstileToken("");
-        throw new Error(data.error || "Login failed");
-      }
+      if (!res.ok) throw new Error(data.error || "Login failed");
 
       if (data.vendor?.mustChangePassword) {
         router.push(`/${locale}/vendor/change-password`);
@@ -82,112 +69,98 @@ export default function VendorLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
-      <div className="max-w-md w-full">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: BRAND_RED }}>
-            <Store className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{t.heading}</h1>
-          <p className="text-gray-500 text-sm">{t.subtitle}</p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-md p-6 md:p-8 space-y-5">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-              {error}
+    <TurnstileGate action="vendor-login" isFr={isFr} locale={locale} onVerify={setTurnstileToken}>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
+        <div className="max-w-md w-full">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: BRAND_RED }}>
+              <Store className="w-8 h-8 text-white" />
             </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.email}</label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2"
-                style={{ boxShadow: "none" }}
-                onFocus={e => (e.currentTarget.style.borderColor = BRAND_RED)}
-                onBlur={e => (e.currentTarget.style.borderColor = "")}
-              />
-            </div>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{t.heading}</h1>
+            <p className="text-gray-500 text-sm">{t.subtitle}</p>
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.password}</label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type={showPassword ? "text" : "password"}
-                required
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-          </div>
-
-          {/* VISIBLE TURNSTILE WIDGET */}
-          <div className="flex justify-center items-center min-h-[65px] pt-1">
-            <Turnstile
-              mode="interactive"
-              theme="light"
-              action="vendor-login"
-              onVerify={(tok) => {
-                setTurnstileToken(tok);
-                setError(null);
-              }}
-              onExpire={() => setTurnstileToken("")}
-              onError={() => setTurnstileToken("")}
-              resetKey={turnstileReset}
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full flex items-center justify-center gap-2 px-6 py-3.5 text-white font-bold text-base rounded-xl transition-colors disabled:opacity-50"
-            style={{ backgroundColor: BRAND_RED }}
-            onMouseOver={e => { if (!submitting) e.currentTarget.style.backgroundColor = BRAND_RED_DARK; }}
-            onMouseOut={e => { if (!submitting) e.currentTarget.style.backgroundColor = BRAND_RED; }}
-          >
-            {submitting ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                {t.loggingIn}
-              </>
-            ) : (
-              <>
-                {t.login}
-                <ArrowRight className="w-4 h-4" />
-              </>
+          <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-md p-6 md:p-8 space-y-5">
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                {error}
+              </div>
             )}
-          </button>
 
-          <div className="text-center text-sm text-gray-500 pt-2">
-            {t.noAccount}{" "}
-            <Link href={`/${locale}/vendor/apply`} className="font-semibold hover:underline" style={{ color: BRAND_RED }}>
-              {t.apply}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.email}</label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2"
+                  style={{ boxShadow: "none" }}
+                  onFocus={e => (e.currentTarget.style.borderColor = BRAND_RED)}
+                  onBlur={e => (e.currentTarget.style.borderColor = "")}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.password}</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full flex items-center justify-center gap-2 px-6 py-3.5 text-white font-bold text-base rounded-xl transition-colors disabled:opacity-50"
+              style={{ backgroundColor: BRAND_RED }}
+              onMouseOver={e => { if (!submitting) e.currentTarget.style.backgroundColor = BRAND_RED_DARK; }}
+              onMouseOut={e => { if (!submitting) e.currentTarget.style.backgroundColor = BRAND_RED; }}
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  {t.loggingIn}
+                </>
+              ) : (
+                <>
+                  {t.login}
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+
+            <div className="text-center text-sm text-gray-500 pt-2">
+              {t.noAccount}{" "}
+              <Link href={`/${locale}/vendor/apply`} className="font-semibold hover:underline" style={{ color: BRAND_RED }}>
+                {t.apply}
+              </Link>
+            </div>
+          </form>
+
+          <div className="text-center mt-6">
+            <Link href={`/${locale}`} className="text-sm text-gray-500 hover:text-gray-700">
+              &larr; {t.backHome}
             </Link>
           </div>
-        </form>
-
-        <div className="text-center mt-6">
-          <Link href={`/${locale}`} className="text-sm text-gray-500 hover:text-gray-700">
-            &larr; {t.backHome}
-          </Link>
         </div>
       </div>
-    </div>
+    </TurnstileGate>
   );
 }

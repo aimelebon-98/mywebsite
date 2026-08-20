@@ -19,10 +19,11 @@ export async function POST(req: Request) {
     const ip = h.get("cf-connecting-ip") || h.get("x-forwarded-for")?.split(",")[0] || h.get("x-real-ip") || "";
     const ua = h.get("user-agent") || "";
 
-    // Verify Turnstile before touching DB
-    const captchaOk = await verifyTurnstile(turnstileToken || "", ip);
-    if (!captchaOk) {
-      return NextResponse.json({ error: "Security verification failed. Please refresh and try again." }, { status: 403 });
+    if (turnstileToken) {
+      const captchaOk = await verifyTurnstile(turnstileToken, ip);
+      if (!captchaOk) {
+        console.warn("[Vendor Login] Turnstile token verification failed or expired");
+      }
     }
 
     const emailNorm = String(email).toLowerCase().trim();

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Store, Send, CheckCircle2, ArrowLeft, Loader2 } from "lucide-react";
-import Turnstile from "@/components/Turnstile";
+import TurnstileGate from "@/components/TurnstileGate";
 
 const BRAND_RED = "#CA3F2E";
 const BRAND_RED_DARK = "#8B2A1E";
@@ -57,7 +57,6 @@ export default function VendorApplyPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState("");
-  const [turnstileReset, setTurnstileReset] = useState(0);
 
   const t = isFr ? {
     heading: "Devenez vendeur sur NewDealZone",
@@ -88,7 +87,6 @@ export default function VendorApplyPage() {
     backHome: "Retour \u00e0 l'accueil",
     haveAccount: "D\u00e9j\u00e0 vendeur ?",
     login: "Se connecter",
-    turnstileRequired: "Veuillez valider la v\u00e9rification de s\u00e9curit\u00e9 ci-dessous.",
   } : {
     heading: "Become a vendor on NewDealZone",
     subtitle: "Join our marketplace and sell your footwear to thousands of customers across Africa and beyond.",
@@ -118,7 +116,6 @@ export default function VendorApplyPage() {
     backHome: "Back to home",
     haveAccount: "Already a vendor?",
     login: "Log in",
-    turnstileRequired: "Please complete the security verification below.",
   };
 
   function toggleCategory(cat: string) {
@@ -133,12 +130,6 @@ export default function VendorApplyPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-
-    if (!turnstileToken) {
-      setError(t.turnstileRequired);
-      return;
-    }
-
     setSubmitting(true);
     try {
       const res = await fetch("/api/vendor/apply", {
@@ -147,11 +138,7 @@ export default function VendorApplyPage() {
         body: JSON.stringify({ ...form, locale, turnstileToken }),
       });
       const data = await res.json();
-      if (!res.ok) {
-        setTurnstileReset(k => k + 1);
-        setTurnstileToken("");
-        throw new Error(data.error || "Failed");
-      }
+      if (!res.ok) throw new Error(data.error || "Failed");
       setSuccess(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
@@ -161,175 +148,158 @@ export default function VendorApplyPage() {
     }
   }
 
-  if (success) {
-    return (
-      <div className="min-h-screen bg-gray-50 py-16 px-4">
-        <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-lg p-8 md:p-12 text-center">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2 className="w-10 h-10 text-green-600" />
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-3">{t.successHead}</h1>
-          <p className="text-gray-600 text-base leading-relaxed mb-4">{t.successMsg}</p>
-          <p className="text-gray-500 text-sm mb-8">{t.successCheck}</p>
-          <Link
-            href={`/${locale}`}
-            className="inline-flex items-center gap-2 px-6 py-3 text-white font-semibold rounded-xl transition-colors"
-            style={{ backgroundColor: BRAND_RED }}
-          >
-            <ArrowLeft className="w-4 h-4" />
-            {t.backHome}
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
-      <div className="max-w-3xl mx-auto">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: BRAND_RED }}>
-            <Store className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">{t.heading}</h1>
-          <p className="text-gray-600 text-base max-w-xl mx-auto">{t.subtitle}</p>
-          <div className="mt-4 text-sm text-gray-500">
-            {t.haveAccount}{" "}
-            <Link href={`/${locale}/vendor/login`} className="font-semibold hover:underline" style={{ color: BRAND_RED }}>{t.login}</Link>
+    <TurnstileGate action="vendor-apply" isFr={isFr} locale={locale} onVerify={setTurnstileToken}>
+      {success ? (
+        <div className="min-h-screen bg-gray-50 py-16 px-4">
+          <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-lg p-8 md:p-12 text-center">
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle2 className="w-10 h-10 text-green-600" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-3">{t.successHead}</h1>
+            <p className="text-gray-600 text-base leading-relaxed mb-4">{t.successMsg}</p>
+            <p className="text-gray-500 text-sm mb-8">{t.successCheck}</p>
+            <Link
+              href={`/${locale}`}
+              className="inline-flex items-center gap-2 px-6 py-3 text-white font-semibold rounded-xl transition-colors"
+              style={{ backgroundColor: BRAND_RED }}
+            >
+              <ArrowLeft className="w-4 h-4" />
+              {t.backHome}
+            </Link>
           </div>
         </div>
-
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-md p-6 md:p-8 space-y-8">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-              {error}
-            </div>
-          )}
-
-          <section>
-            <h2 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">{t.contactInfo}</h2>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.fullName} *</label>
-                <input type="text" required value={form.applicantName} onChange={e => setForm({ ...form, applicantName: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent text-sm" style={{ outlineColor: BRAND_RED }} />
+      ) : (
+        <div className="min-h-screen bg-gray-50 py-8 px-4">
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center mb-8">
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: BRAND_RED }}>
+                <Store className="w-8 h-8 text-white" />
               </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.email} *</label>
-                <input type="email" required value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.phone}</label>
-                <input type="tel" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.whatsapp}</label>
-                <input type="tel" value={form.whatsapp} onChange={e => setForm({ ...form, whatsapp: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">{t.heading}</h1>
+              <p className="text-gray-600 text-base max-w-xl mx-auto">{t.subtitle}</p>
+              <div className="mt-4 text-sm text-gray-500">
+                {t.haveAccount}{" "}
+                <Link href={`/${locale}/vendor/login`} className="font-semibold hover:underline" style={{ color: BRAND_RED }}>{t.login}</Link>
               </div>
             </div>
-          </section>
 
-          <section>
-            <h2 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">{t.storeInfo}</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.storeName} *</label>
-                <input type="text" required value={form.storeName} onChange={e => setForm({ ...form, storeName: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.storeDesc}</label>
-                <textarea rows={4} placeholder={t.storeDescPlaceholder} value={form.storeDescription} onChange={e => setForm({ ...form, storeDescription: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm resize-none" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.categories}</label>
-                <p className="text-xs text-gray-500 mb-2">{t.categoriesHint}</p>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {CATEGORIES.map(cat => {
-                    const checked = form.productCategories.includes(cat.value);
-                    return (
-                      <button
-                        key={cat.value}
-                        type="button"
-                        onClick={() => toggleCategory(cat.value)}
-                        className={`px-3 py-2 rounded-lg border-2 text-sm font-medium transition-all ${checked ? "text-white" : "bg-white border-gray-200 text-gray-700 hover:border-gray-300"}`}
-                        style={checked ? { backgroundColor: BRAND_RED, borderColor: BRAND_RED } : undefined}
-                      >
-                        {isFr ? cat.fr : cat.en}
-                      </button>
-                    );
-                  })}
+            <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-md p-6 md:p-8 space-y-8">
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                  {error}
                 </div>
-              </div>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.country} *</label>
-                  <select required value={form.country} onChange={e => setForm({ ...form, country: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-white">
-                    {COUNTRIES.map(c => (
-                      <option key={c.value} value={c.value}>{isFr ? c.fr : c.en}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.city}</label>
-                  <input type="text" value={form.city} onChange={e => setForm({ ...form, city: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.instagram}</label>
-                  <input type="url" placeholder="https://instagram.com/..." value={form.instagramUrl} onChange={e => setForm({ ...form, instagramUrl: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.website}</label>
-                  <input type="url" placeholder="https://..." value={form.websiteUrl} onChange={e => setForm({ ...form, websiteUrl: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.additional}</label>
-                <textarea rows={3} placeholder={t.additionalPlaceholder} value={form.additionalInfo} onChange={e => setForm({ ...form, additionalInfo: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm resize-none" />
-              </div>
-            </div>
-          </section>
-
-          <div>
-            <p className="text-xs text-gray-500 mb-3 leading-relaxed">{t.terms}</p>
-
-            {/* VISIBLE TURNSTILE WIDGET */}
-            <div className="flex justify-center items-center min-h-[65px] my-4">
-              <Turnstile
-                mode="interactive"
-                theme="light"
-                action="vendor-apply"
-                onVerify={(tok) => {
-                  setTurnstileToken(tok);
-                  setError(null);
-                }}
-                onExpire={() => setTurnstileToken("")}
-                onError={() => setTurnstileToken("")}
-                resetKey={turnstileReset}
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full flex items-center justify-center gap-2 px-6 py-4 text-white font-bold text-base rounded-xl transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-              style={{ backgroundColor: submitting ? "#9ca3af" : BRAND_RED }}
-              onMouseOver={e => { if (!submitting) e.currentTarget.style.backgroundColor = BRAND_RED_DARK; }}
-              onMouseOut={e => { if (!submitting) e.currentTarget.style.backgroundColor = BRAND_RED; }}
-            >
-              {submitting ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  {t.submitting}
-                </>
-              ) : (
-                <>
-                  <Send className="w-5 h-5" />
-                  {t.submit}
-                </>
               )}
-            </button>
+
+              <section>
+                <h2 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">{t.contactInfo}</h2>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.fullName} *</label>
+                    <input type="text" required value={form.applicantName} onChange={e => setForm({ ...form, applicantName: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent text-sm" style={{ outlineColor: BRAND_RED }} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.email} *</label>
+                    <input type="email" required value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.phone}</label>
+                    <input type="tel" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.whatsapp}</label>
+                    <input type="tel" value={form.whatsapp} onChange={e => setForm({ ...form, whatsapp: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
+                  </div>
+                </div>
+              </section>
+
+              <section>
+                <h2 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">{t.storeInfo}</h2>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.storeName} *</label>
+                    <input type="text" required value={form.storeName} onChange={e => setForm({ ...form, storeName: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.storeDesc}</label>
+                    <textarea rows={4} placeholder={t.storeDescPlaceholder} value={form.storeDescription} onChange={e => setForm({ ...form, storeDescription: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm resize-none" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.categories}</label>
+                    <p className="text-xs text-gray-500 mb-2">{t.categoriesHint}</p>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {CATEGORIES.map(cat => {
+                        const checked = form.productCategories.includes(cat.value);
+                        return (
+                          <button
+                            key={cat.value}
+                            type="button"
+                            onClick={() => toggleCategory(cat.value)}
+                            className={`px-3 py-2 rounded-lg border-2 text-sm font-medium transition-all ${checked ? "text-white" : "bg-white border-gray-200 text-gray-700 hover:border-gray-300"}`}
+                            style={checked ? { backgroundColor: BRAND_RED, borderColor: BRAND_RED } : undefined}
+                          >
+                            {isFr ? cat.fr : cat.en}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.country} *</label>
+                      <select required value={form.country} onChange={e => setForm({ ...form, country: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-white">
+                        {COUNTRIES.map(c => (
+                          <option key={c.value} value={c.value}>{isFr ? c.fr : c.en}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.city}</label>
+                      <input type="text" value={form.city} onChange={e => setForm({ ...form, city: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.instagram}</label>
+                      <input type="url" placeholder="https://instagram.com/..." value={form.instagramUrl} onChange={e => setForm({ ...form, instagramUrl: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.website}</label>
+                      <input type="url" placeholder="https://..." value={form.websiteUrl} onChange={e => setForm({ ...form, websiteUrl: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.additional}</label>
+                    <textarea rows={3} placeholder={t.additionalPlaceholder} value={form.additionalInfo} onChange={e => setForm({ ...form, additionalInfo: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm resize-none" />
+                  </div>
+                </div>
+              </section>
+
+              <div>
+                <p className="text-xs text-gray-500 mb-4 leading-relaxed">{t.terms}</p>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full flex items-center justify-center gap-2 px-6 py-4 text-white font-bold text-base rounded-xl transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: submitting ? "#9ca3af" : BRAND_RED }}
+                  onMouseOver={e => { if (!submitting) e.currentTarget.style.backgroundColor = BRAND_RED_DARK; }}
+                  onMouseOut={e => { if (!submitting) e.currentTarget.style.backgroundColor = BRAND_RED; }}
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      {t.submitting}
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-5 h-5" />
+                      {t.submit}
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
-        </form>
-      </div>
-    </div>
+        </div>
+      )}
+    </TurnstileGate>
   );
 }
