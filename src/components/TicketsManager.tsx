@@ -125,7 +125,7 @@ export default function TicketsManager() {
   });
 
   const unreadCount = tickets.filter(t => t.unreadByAdmin).length;
-  const openCount = tickets.filter(t => t.status === "open").length;
+  const openCount = tickets.filter(t => t.status === "open" || t.status === "in_progress").length;
 
   // Detail view
   if (selectedId && detail) {
@@ -236,7 +236,7 @@ export default function TicketsManager() {
         </div>
         <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
           <p className="text-2xl font-black text-blue-600">{openCount}</p>
-          <p className="text-xs text-gray-500 mt-1">Open</p>
+          <p className="text-xs text-gray-500 mt-1">Active</p>
         </div>
         <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
           <p className="text-2xl font-black text-red-600">{unreadCount}</p>

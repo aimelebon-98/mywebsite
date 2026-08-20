@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { supportTickets } from "@/db/schema";
+import { supportTickets, supportMessages } from "@/db/schema";
 import { getCustomerFromRequest } from "@/lib/customer-auth";
 import { isRateLimited } from "@/lib/rate-limit";
 import { stripHtml } from "@/lib/sanitize";
@@ -30,7 +30,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const ip = request.headers.get("cf-connecting-ip") || request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "127.0.0.1";
+    const ip =
+      request.headers.get("cf-connecting-ip") ||
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      "127.0.0.1";
     if (isRateLimited(ip, 10, 60000)) {
       return NextResponse.json({ error: "Too many ticket requests. Please wait a minute." }, { status: 429 });
     }
@@ -40,7 +43,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized. Please log in again." }, { status: 401 });
     }
 
-    let body: any = {};
+    let body: Record<string, unknown> = {};
     try {
       body = await request.json();
     } catch {
@@ -48,28 +51,53 @@ export async function POST(request: NextRequest) {
     }
 
     const subjectVal = stripHtml(String(body.subject || "")).trim().slice(0, 200);
-    const categoryVal = stripHtml(String(body.category || "general")).trim();
+    const categoryVal = stripHtml(String(body.category || "general")).trim() || "general";
+    const messageVal = stripHtml(String(body.message || body.content || "")).trim().slice(0, 5000);
 
     if (!subjectVal) {
       return NextResponse.json({ error: "Subject is required" }, { status: 400 });
     }
 
-    // Auto-ensure Postgres table has necessary columns
     try {
       await db.execute(sql`ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS priority text NOT NULL DEFAULT 'normal'`);
       await db.execute(sql`ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS unread_by_admin boolean NOT NULL DEFAULT true`);
       await db.execute(sql`ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS unread_by_customer boolean NOT NULL DEFAULT false`);
+      await db.execute(sql`ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS last_message_at timestamp DEFAULT now()`);
     } catch { /* ignore */ }
 
+    const now = new Date();
     const [inserted] = await db
       .insert(supportTickets)
       .values({
         customerId: customer.id,
         subject: subjectVal,
-        category: categoryVal || "general",
+        category: categoryVal,
         status: "open",
-      })
+        priority: "normal",
+        unreadByAdmin: true,
+        unreadByCustomer: false,
+        lastMessageAt: now,
+      } as typeof supportTickets.$inferInsert)
       .returning();
+
+    if (messageVal && inserted?.id) {
+      try {
+        await db.insert(supportMessages).values({
+          ticketId: inserted.id,
+          senderType: "customer",
+          senderName: customer.name || "Customer",
+          message: messageVal,
+        });
+      } catch (msgErr) {
+        console.warn("[Tickets] first message insert skipped:", msgErr);
+        try {
+          await db.execute(sql`
+            INSERT INTO support_messages (ticket_id, sender_type, sender_name, message)
+            VALUES (${inserted.id}, 'customer', ${customer.name || "Customer"}, ${messageVal})
+          `);
+        } catch { /* ignore */ }
+      }
+    }
 
     return NextResponse.json({ success: true, ticket: inserted }, { status: 201 });
   } catch (error) {
