@@ -156,6 +156,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
   const [reviewComment, setReviewComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewSuccess, setReviewSuccess] = useState(false);
+  const [reviewError, setReviewError] = useState("");
   const REVIEWS_PER_PAGE = 2;
   const [visibleReviews, setVisibleReviews] = useState(REVIEWS_PER_PAGE);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -1149,6 +1150,11 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                   {isFr ? "Annuler" : "Cancel"}
                 </button>
               </div>
+              {reviewError && (
+                <div className="mb-4 p-3.5 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl font-medium">
+                  {reviewError}
+                </div>
+              )}
               <div className="space-y-5">
                 <div>
                   <label className="block text-sm font-semibold mb-2 text-gray-700">{isFr ? "Votre nom *" : "Your Name *"}</label>

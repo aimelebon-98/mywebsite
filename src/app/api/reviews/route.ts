@@ -6,16 +6,22 @@ import { isRateLimited } from "@/lib/rate-limit";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { z } from "zod";
 
+export const dynamic = "force-dynamic";
+
 function getInitials(name: string): string {
-  return name.split(" ").map(w => w[0]?.toUpperCase() || "").slice(0, 2).join("") || "ND";
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+  return (name.slice(0, 2) || "ND").toUpperCase();
 }
 
 const createReviewSchema = z.object({
-  productId: z.string().uuid("Invalid product ID"),
-  customerName: z.string().trim().min(2, "Name required").max(100),
-  rating: z.coerce.number().int().min(1).max(5),
-  comment: z.string().trim().max(1000).optional().default(""),
-  commentFr: z.string().trim().max(1000).optional().default(""),
+  productId: z.string().min(1, "Product ID is required"),
+  customerName: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
+  rating: z.coerce.number().int().min(1, "Rating must be between 1 and 5").max(5, "Rating must be between 1 and 5"),
+  comment: z.string().trim().max(2000).optional().default(""),
+  commentFr: z.string().trim().max(2000).optional().default(""),
 });
 
 export async function GET(req: NextRequest) {
@@ -38,11 +44,11 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const ip = req.headers.get("cf-connecting-ip") ||
-               req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
-               req.headers.get("x-real-ip") || "";
+               req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+               req.headers.get("x-real-ip") || "anonymous-client";
 
-    if (isRateLimited(ip, 5, 60000)) {
-      return NextResponse.json({ error: "Too many submissions. Please wait 1 minute." }, { status: 429 });
+    if (isRateLimited(ip, "reviews", 10, 60000)) {
+      return NextResponse.json({ error: "Too many submissions. Please wait 1 minute before trying again." }, { status: 429 });
     }
 
     let body: unknown;
@@ -58,21 +64,31 @@ export async function POST(req: NextRequest) {
     }
 
     const { productId, customerName, rating, comment, commentFr } = parsed.data;
-    const sanitizedName = sanitizeHtml(customerName);
-    const sanitizedComment = comment ? sanitizeHtml(comment) : "";
-    const sanitizedCommentFr = commentFr ? sanitizeHtml(commentFr) : "";
-    const avatar = getInitials(sanitizedName);
+    
+    // Check product exists
+    const [prod] = await db.select({ id: products.id }).from(products).where(eq(products.id, productId)).limit(1);
+    if (!prod) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    }
+
+    const cleanName = (sanitizeHtml(customerName) || customerName).trim().slice(0, 100);
+    const rawComment = (comment || "").trim();
+    const rawCommentFr = (commentFr || "").trim();
+    const cleanComment = rawComment ? (sanitizeHtml(rawComment) || rawComment).slice(0, 2000) : "";
+    const cleanCommentFr = rawCommentFr ? (sanitizeHtml(rawCommentFr) || rawCommentFr).slice(0, 2000) : "";
+    const avatar = getInitials(cleanName);
 
     const [newReview] = await db.insert(reviews).values({
       productId,
-      customerName: sanitizedName,
+      customerName: cleanName,
       rating,
-      comment: sanitizedComment,
-      commentFr: sanitizedCommentFr,
+      comment: cleanComment || cleanCommentFr || "Verified Review",
+      commentFr: cleanCommentFr || cleanComment || "Avis Vérifié",
       avatar,
       verified: false,
     }).returning();
 
+    // Recalculate average rating & review count
     try {
       const all = await db.select({ rating: reviews.rating }).from(reviews).where(eq(reviews.productId, productId));
       if (all.length > 0) {
@@ -90,6 +106,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, review: newReview }, { status: 201 });
   } catch (error) {
     console.error("[Reviews POST]", error);
-    return NextResponse.json({ error: "Failed to submit review" }, { status: 500 });
+    const msg = error instanceof Error ? error.message : "Failed to submit review";
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
