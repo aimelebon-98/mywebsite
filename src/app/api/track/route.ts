@@ -1,3 +1,5 @@
+import { isRateLimited } from "@/lib/rate-limit";
+import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { analyticsEvents } from "@/db/schema";

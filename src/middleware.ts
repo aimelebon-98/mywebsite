@@ -58,7 +58,12 @@ function isApiRequestAllowed(request: NextRequest): boolean {
   const headers = request.headers;
 
   // Admin routes handle their own auth via requireAdmin()
-  if (pathname.startsWith(ADMIN_API_PREFIX)) return true;
+    if (pathname.startsWith(ADMIN_API_PREFIX)) {
+    if (pathname === "/api/admin/login") return true;
+    const adminSession = request.cookies.get("admin_session")?.value;
+    if (!adminSession) return false; // Edge block unauthenticated admin API access
+    return true;
+  }
 
   // Public routes - always allow
   if (isPublicApiRoute(pathname)) return true;
