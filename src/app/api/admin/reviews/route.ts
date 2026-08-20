@@ -11,13 +11,13 @@ export async function GET(req: NextRequest) {
   if (unauth) return unauth;
 
   try {
-    // Ensure Postgres has the approved column
+    const { searchParams } = new URL(req.url);
+    const filter = searchParams.get("filter") || "all";
+
+    // Auto-approve existing historical reviews if they were created before moderation was enabled
     try {
       await db.execute(sql`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS approved boolean NOT NULL DEFAULT true`);
     } catch { /* ignore */ }
-
-    const { searchParams } = new URL(req.url);
-    const filter = searchParams.get("filter") || "all";
 
     const rows = await db.select({
       id: reviews.id,
