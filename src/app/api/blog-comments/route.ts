@@ -1,85 +1,77 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { blogComments } from "@/db/schema";
-import { eq, and, desc } from "drizzle-orm";
-import { verifyTurnstile } from "@/lib/turnstile";
+import { eq, desc } from "drizzle-orm";
 import { isRateLimited } from "@/lib/rate-limit";
-import { headers } from "next/headers";
+import { sanitizeHtml } from "@/lib/sanitize";
+import { z } from "zod";
 
-// Strip all HTML tags to prevent stored XSS
-function sanitizeHtml(input: string): string {
-  return input
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#x27;")
-    .replace(/\//g, "&#x2F;");
-}
+const createCommentSchema = z.object({
+  postId: z.string().uuid("Invalid blog post ID"),
+  parentId: z.string().uuid().nullable().optional(),
+  authorName: z.string().trim().min(2, "Name required").max(100),
+  content: z.string().trim().min(3, "Comment required").max(2000),
+});
 
-export const dynamic = "force-dynamic";
-
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const postId = searchParams.get("postId");
 
     if (!postId) {
-      return NextResponse.json({ error: "postId is required" }, { status: 400 });
+      return NextResponse.json({ error: "Post ID required" }, { status: 400 });
     }
 
     const comments = await db.select().from(blogComments)
-      .where(and(eq(blogComments.postId, postId), eq(blogComments.approved, true)))
+      .where(eq(blogComments.postId, postId))
       .orderBy(desc(blogComments.createdAt));
 
     return NextResponse.json(comments);
   } catch (error) {
+    console.error("[Blog Comments GET] Error:", error);
     return NextResponse.json({ error: "Failed to fetch comments" }, { status: 500 });
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const h = await headers();
-    const ip = h.get("cf-connecting-ip") || h.get("x-forwarded-for")?.split(",")[0] || h.get("x-real-ip") || "";
+    const ip = req.headers.get("cf-connecting-ip") ||
+               req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+               req.headers.get("x-real-ip") || "";
 
-    if (isRateLimited(ip, 10, 60000)) {
-      return NextResponse.json({ error: "Too many comments submitted. Please wait a minute." }, { status: 429 });
+    if (isRateLimited(ip, 5, 60000)) {
+      return NextResponse.json({ error: "Too many comments. Please wait 1 minute." }, { status: 429 });
     }
 
-    const body = await req.json();
-    const postId = body.postId ? String(body.postId) : "";
-    const parentId = body.parentId ? String(body.parentId) : undefined;
-    const authorName = body.authorName ? sanitizeHtml(String(body.authorName).slice(0, 100)) : "";
-    const authorEmail = body.authorEmail ? String(body.authorEmail).trim().toLowerCase().slice(0, 100) : "";
-    const content = body.content ? sanitizeHtml(String(body.content).slice(0, 2000)) : "";
-    const turnstileToken = body.turnstileToken ? String(body.turnstileToken) : "";
-
-    if (!postId || !authorName || !content) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON format" }, { status: 400 });
     }
 
-    if (turnstileToken) {
-      const captchaOk = await verifyTurnstile(turnstileToken, ip);
-      if (!captchaOk) {
-        return NextResponse.json({ error: "Security check failed. Please refresh and try again." }, { status: 403 });
-      }
+    const parsed = createCommentSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.issues[0]?.message || "Invalid input" }, { status: 400 });
     }
 
-    const [inserted] = await db.insert(blogComments).values({
+    const { postId, parentId, authorName, content } = parsed.data;
+
+    const sanitizedAuthor = sanitizeHtml(authorName);
+    const sanitizedContent = sanitizeHtml(content);
+
+    const [comment] = await db.insert(blogComments).values({
       postId,
-      parentId,
-      authorName,
-      authorEmail,
-      content,
+      parentId: parentId || null,
+      authorName: sanitizedAuthor,
+      content: sanitizedContent,
       approved: true,
       likes: 0,
-      ipAddress: ip.slice(0, 50),
     }).returning();
 
-    return NextResponse.json({ success: true, comment: inserted });
+    return NextResponse.json({ success: true, comment }, { status: 201 });
   } catch (error) {
-    const msg = "Failed to post comment";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    console.error("[Blog Comments POST] Error:", error);
+    return NextResponse.json({ error: "Failed to submit comment" }, { status: 500 });
   }
 }
