@@ -1,5 +1,5 @@
-import Turnstile from "@/components/Turnstile";
 "use client";
+import Turnstile from "@/components/Turnstile";
 
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
