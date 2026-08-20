@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/i18n/routing";
-import { ArrowRight, Mail, Store } from "lucide-react";
+import { ArrowRight, Mail, Store, ShoppingBag, HelpCircle, User, Briefcase } from "lucide-react";
 
 export default function Footer() {
   const t = useTranslations("footer");
@@ -57,6 +57,7 @@ export default function Footer() {
 
   return (
     <footer className="bg-gray-950 text-gray-400">
+      {/* Newsletter Bar */}
       <div className="border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -87,7 +88,7 @@ export default function Footer() {
                 <button
                   type="submit"
                   disabled={subStatus === "loading"}
-                  className="flex items-center gap-2 px-5 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-semibold transition disabled:opacity-50 whitespace-nowrap"
+                  className="flex items-center gap-2 px-5 py-3 bg-[#CA3F2E] hover:bg-[#8B2A1E] text-white rounded-xl text-sm font-semibold transition disabled:opacity-50 whitespace-nowrap"
                 >
                   {subStatus === "loading" ? "..." : <>{t("subscribe")} <ArrowRight className="w-4 h-4" /></>}
                 </button>
@@ -97,9 +98,11 @@ export default function Footer() {
         </div>
       </div>
 
+      {/* Main Footer Links */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
-          <div className="col-span-2 md:col-span-1">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 lg:gap-10">
+          {/* Brand Info */}
+          <div className="col-span-2 md:col-span-3 lg:col-span-1">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden" style={{ background: "linear-gradient(135deg, #CA3F2E 0%, #8B2A1E 100%)" }}>
                 <svg viewBox="0 0 24 24" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -130,8 +133,12 @@ export default function Footer() {
             </div>
           </div>
 
+          {/* Column 1: SHOP */}
           <div>
-            <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">{t("shop")}</h4>
+            <h4 className="text-white font-bold mb-4 text-xs uppercase tracking-wider flex items-center gap-2">
+              <ShoppingBag className="w-4 h-4 text-[#CA3F2E]" />
+              {t("shop")}
+            </h4>
             <ul className="space-y-3">
               <li><Link prefetch={false} href="/shop?category=sneakers" className="text-sm hover:text-white transition">Sneakers</Link></li>
               <li><Link prefetch={false} href="/shop?category=running" className="text-sm hover:text-white transition">Running</Link></li>
@@ -142,8 +149,12 @@ export default function Footer() {
             </ul>
           </div>
 
+          {/* Column 2: SUPPORT */}
           <div>
-            <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">{t("support")}</h4>
+            <h4 className="text-white font-bold mb-4 text-xs uppercase tracking-wider flex items-center gap-2">
+              <HelpCircle className="w-4 h-4 text-[#CA3F2E]" />
+              {t("support")}
+            </h4>
             <ul className="space-y-3">
               <li><Link prefetch={false} href="/blog" className="text-sm hover:text-white transition">Blog</Link></li>
               <li><Link prefetch={false} href="/faq" className="text-sm hover:text-white transition">{t("faq")}</Link></li>
@@ -155,28 +166,36 @@ export default function Footer() {
             </ul>
           </div>
 
+          {/* Column 3: ACCOUNT */}
           <div>
-            <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">{t("account")}</h4>
-            <ul className="space-y-3 mb-6">
+            <h4 className="text-white font-bold mb-4 text-xs uppercase tracking-wider flex items-center gap-2">
+              <User className="w-4 h-4 text-[#CA3F2E]" />
+              {t("account")}
+            </h4>
+            <ul className="space-y-3">
               <li><Link prefetch={false} href="/cart" className="text-sm hover:text-white transition">{t("myCart")}</Link></li>
               <li><Link prefetch={false} href="/wishlist" className="text-sm hover:text-white transition">{t("myWishlist")}</Link></li>
               <li><Link prefetch={false} href="/shop" className="text-sm hover:text-white transition">{t("shop")}</Link></li>
               <li><Link prefetch={false} href="/faq" className="text-sm hover:text-white transition">{t("helpCenter")}</Link></li>
             </ul>
+          </div>
 
-            <h4 className="text-white font-semibold mb-3 text-sm uppercase tracking-wider flex items-center gap-1.5">
-              <Store className="w-3.5 h-3.5 text-[#CA3F2E]" />
-              {isFr ? "Espace Vendeurs" : "Marketplace"}
+          {/* Column 4: MARKETPLACE (Dedicated Column) */}
+          <div>
+            <h4 className="text-white font-bold mb-4 text-xs uppercase tracking-wider flex items-center gap-2">
+              <Store className="w-4 h-4 text-[#CA3F2E]" />
+              {isFr ? "ESPACE VENDEURS" : "MARKETPLACE"}
             </h4>
-            <ul className="space-y-2.5 text-sm">
+            <ul className="space-y-3">
               <li>
-                <Link prefetch={false} href="/vendor/apply" className="hover:text-white transition flex items-center gap-1.5 text-[#CA3F2E]">
+                <Link prefetch={false} href="/vendor/apply" className="text-sm text-[#CA3F2E] font-medium hover:underline transition flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#CA3F2E]" />
                   {isFr ? "Devenir vendeur" : "Become a Seller"}
                 </Link>
               </li>
               <li>
-                <Link prefetch={false} href="/vendor/login" className="hover:text-white transition">
+                <Link prefetch={false} href="/vendor/login" className="text-sm hover:text-white transition flex items-center gap-2">
+                  <Briefcase className="w-3.5 h-3.5 text-gray-400" />
                   {isFr ? "Portail vendeur" : "Vendor Portal"}
                 </Link>
               </li>
@@ -184,6 +203,7 @@ export default function Footer() {
           </div>
         </div>
 
+        {/* Bottom Bar: Payments & Copyright */}
         <div className="border-t border-gray-800 mt-12 pt-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 pb-6 border-b border-gray-800">
             <div className="flex items-center gap-3">
