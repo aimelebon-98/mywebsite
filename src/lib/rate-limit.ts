@@ -1,16 +1,3 @@
-/**
- * In-memory rate limiter for Vercel serverless.
- *
- * LIMITATION: Vercel serverless functions are stateless.
- * This limiter works per-instance (single cold start).
- * For production-grade rate limiting, use Vercel KV or Upstash Redis.
- *
- * This still protects against:
- * - Single-connection brute force
- * - Slow-rate credential stuffing
- * - Burst attacks within a single instance lifecycle
- */
-
 interface RateLimitEntry {
   count: number;
   resetAt: number;
@@ -18,7 +5,6 @@ interface RateLimitEntry {
 
 const store = new Map<string, RateLimitEntry>();
 
-// Cleanup stale entries every 5 minutes
 const CLEANUP_INTERVAL = 5 * 60 * 1000;
 let lastCleanup = Date.now();
 
@@ -32,9 +18,7 @@ function cleanup() {
 }
 
 export interface RateLimitConfig {
-  /** Maximum requests allowed in the window */
   max: number;
-  /** Window duration in milliseconds */
   windowMs: number;
 }
 
@@ -48,13 +32,6 @@ export const RATE_LIMITS = {
   vendorApplication: { max: 2, windowMs: 24 * 60 * 60 * 1000 } as RateLimitConfig,
 } as const;
 
-/**
- * Check if a request should be rate-limited.
- *
- * @param identifier - Unique key (IP + endpoint, or email + endpoint)
- * @param config - Rate limit configuration
- * @returns { allowed: boolean, remaining: number, resetAt: number }
- */
 export function checkRateLimit(
   identifier: string,
   config: RateLimitConfig
@@ -78,9 +55,6 @@ export function checkRateLimit(
   return { allowed: true, remaining: config.max - entry.count, resetAt: entry.resetAt };
 }
 
-/**
- * Get client IP from request headers (Cloudflare-aware).
- */
 export function getClientIP(request: Request): string {
   return (
     request.headers.get("cf-connecting-ip") ||
@@ -90,10 +64,6 @@ export function getClientIP(request: Request): string {
   );
 }
 
-/**
- * Convenience: rate-limit by IP for a given endpoint.
- * Returns a Response if limited, null if allowed.
- */
 export function rateLimitByIP(
   request: Request,
   endpoint: string,
@@ -121,19 +91,39 @@ export function rateLimitByIP(
   return null;
 }
 
-// ── Backward-compatible alias ──
-// Existing routes import isRateLimited(identifier, endpoint?, max?, windowMs?)
+/**
+ * Backward-compatible helper that accepts both:
+ * - isRateLimited(ip, 5, 60000)
+ * - isRateLimited(ip, "endpoint", 5, 60000)
+ * - isRateLimited(ip)
+ */
 export function isRateLimited(
   identifier: string,
-  endpoint?: string,
-  max?: number,
-  windowMs?: number
+  limitOrEndpoint?: number | string,
+  windowMsOrLimit?: number,
+  maybeWindowMs?: number
 ): boolean {
+  let endpoint = "";
+  let max = RATE_LIMITS.api.max;
+  let windowMs = RATE_LIMITS.api.windowMs;
+
+  if (typeof limitOrEndpoint === "number") {
+    max = limitOrEndpoint;
+    if (typeof windowMsOrLimit === "number") {
+      windowMs = windowMsOrLimit;
+    }
+  } else if (typeof limitOrEndpoint === "string") {
+    endpoint = limitOrEndpoint;
+    if (typeof windowMsOrLimit === "number") {
+      max = windowMsOrLimit;
+    }
+    if (typeof maybeWindowMs === "number") {
+      windowMs = maybeWindowMs;
+    }
+  }
+
   const key = endpoint ? `${identifier}:${endpoint}` : identifier;
-  const config = {
-    max: max ?? RATE_LIMITS.api.max,
-    windowMs: windowMs ?? RATE_LIMITS.api.windowMs,
-  };
+  const config: RateLimitConfig = { max, windowMs };
   const { allowed } = checkRateLimit(key, config);
   return !allowed;
 }

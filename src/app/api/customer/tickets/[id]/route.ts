@@ -1,43 +1,69 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { supportTickets } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
-import { requireCustomer } from "@/lib/customer-auth";
+import { getCustomerFromRequest } from "@/lib/auth-customer";
+import { and, eq } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> | { id: string } }
+) {
   try {
-    const customer = await requireCustomer();
-    const { id } = await params;
+    const customer = await getCustomerFromRequest(request);
+    if (!customer) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    const [ticket] = await db.select().from(supportTickets)
-      .where(and(eq(supportTickets.id, id), eq(supportTickets.customerId, customer.id)))
-      .limit(1);
+    const resolvedParams = await Promise.resolve(params);
+    const { id } = resolvedParams;
 
-    if (!ticket) return NextResponse.json({ error: "Not found" }, { status: 404 });
-    return NextResponse.json(ticket);
+    const [ticket] = await db
+      .select()
+      .from(supportTickets)
+      .where(and(eq(supportTickets.id, id), eq(supportTickets.customerId, customer.id)));
+
+    if (!ticket) {
+      return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ ticket });
   } catch {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Failed to fetch ticket" }, { status: 500 });
   }
 }
 
-export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> | { id: string } }
+) {
   try {
-    const customer = await requireCustomer();
-    const { id } = await params;
-    const body = await req.json();
+    const customer = await getCustomerFromRequest(request);
+    if (!customer) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    await db.update(supportTickets)
+    const resolvedParams = await Promise.resolve(params);
+    const { id } = resolvedParams;
+    const body = await request.json();
+
+    const [updated] = await db
+      .update(supportTickets)
       .set({
-        message: body.message !== undefined ? String(body.message).slice(0, 5000) : undefined,
-        status: body.status === "closed" ? "closed" : undefined,
-        updatedAt: new Date(),
+        lastMessageAt: new Date(),
+        unreadByAdmin: true,
+        status: body.status !== undefined ? String(body.status) : undefined,
       })
-      .where(and(eq(supportTickets.id, id), eq(supportTickets.customerId, customer.id)));
+      .where(and(eq(supportTickets.id, id), eq(supportTickets.customerId, customer.id)))
+      .returning();
 
-    return NextResponse.json({ success: true });
+    if (!updated) {
+      return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ ticket: updated });
   } catch {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Failed to update ticket" }, { status: 500 });
   }
 }

@@ -1,44 +1,54 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { supportTickets } from "@/db/schema";
+import { getCustomerFromRequest } from "@/lib/auth-customer";
 import { eq, desc } from "drizzle-orm";
-import { requireCustomer } from "@/lib/customer-auth";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const customer = await requireCustomer();
-    const rows = await db.select().from(supportTickets)
+    const customer = await getCustomerFromRequest(request);
+    if (!customer) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const tickets = await db
+      .select()
+      .from(supportTickets)
       .where(eq(supportTickets.customerId, customer.id))
       .orderBy(desc(supportTickets.createdAt));
-    return NextResponse.json(rows);
+
+    return NextResponse.json({ tickets });
   } catch {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Failed to fetch tickets" }, { status: 500 });
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const customer = await requireCustomer();
-    const body = await req.json();
-
-    if (!body.subject || !body.message) {
-      return NextResponse.json({ error: "Subject and message required" }, { status: 400 });
+    const customer = await getCustomerFromRequest(request);
+    if (!customer) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const [inserted] = await db.insert(supportTickets).values({
-      customerId: customer.id,
-      customerName: String(customer.name || "").slice(0, 100),
-      customerEmail: String(customer.email || "").slice(0, 100),
-      subject: String(body.subject).slice(0, 200),
-      message: String(body.message).slice(0, 5000),
-      status: "open",
-      priority: String(body.priority || "normal").slice(0, 20),
-    }).returning();
+    const body = await request.json();
 
-    return NextResponse.json({ success: true, ticket: inserted });
+    const [inserted] = await db
+      .insert(supportTickets)
+      .values({
+        customerId: customer.id,
+        subject: String(body.subject || "").slice(0, 200),
+        category: String(body.category || "general"),
+        priority: String(body.priority || "normal"),
+        status: "open",
+        unreadByAdmin: true,
+        unreadByCustomer: false,
+      })
+      .returning();
+
+    return NextResponse.json({ ticket: inserted }, { status: 201 });
   } catch {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Failed to create ticket" }, { status: 500 });
   }
 }
