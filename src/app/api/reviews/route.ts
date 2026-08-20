@@ -1,189 +1,100 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { reviews, products, adminSessions } from "@/db/schema";
+import { reviews, products } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
-import { validateSubmission, checkRateLimit, getClientIp } from "@/lib/anti-spam";
-import { cookies } from "next/headers";
+import { isRateLimited } from "@/lib/rate-limit";
+import { sanitizeHtml } from "@/lib/sanitize";
+import { z } from "zod";
 
-async function verifyAdmin(): Promise<boolean> {
-  try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("admin_session")?.value;
-    if (!token) return false;
-    const session = await db.select().from(adminSessions).where(eq(adminSessions.token, token));
-    if (session.length === 0) return false;
-    return new Date(session[0].expiresAt) > new Date();
-  } catch {
-    return false;
-  }
+function getInitials(name: string): string {
+  return name.split(" ").map(w => w[0]?.toUpperCase() || "").slice(0, 2).join("") || "ND";
 }
 
-// Robust body parser - handles UTF-8 correctly regardless of client encoding
-async function parseBody(request: NextRequest): Promise<Record<string, unknown>> {
-  try {
-    // First try native json() - works for properly-encoded clients
-    return await request.json();
-  } catch {
-    // Fallback: read as UTF-8 bytes and force decode
-    try {
-      const buffer = await request.arrayBuffer();
-      const text = new TextDecoder("utf-8", { fatal: false }).decode(buffer);
-      return JSON.parse(text);
-    } catch {
-      return {};
-    }
-  }
-}
+const createReviewSchema = z.object({
+  productId: z.string().uuid("Invalid product ID"),
+  customerName: z.string().trim().min(2, "Name required").max(100),
+  rating: z.number().int().min(1, "Rating must be between 1 and 5").max(5),
+  comment: z.string().trim().min(3, "Comment required").max(1000),
+  commentFr: z.string().trim().max(1000).optional(),
+});
 
-async function recalculateProductStats(productId: string) {
-  const productReviews = await db.select().from(reviews).where(eq(reviews.productId, productId));
-  const count = productReviews.length;
-  let avgRating = "0";
-  if (count > 0) {
-    const sum = productReviews.reduce((acc, r) => acc + (r.rating || 0), 0);
-    avgRating = (sum / count).toFixed(1);
-  }
-  await db.update(products)
-    .set({ reviewCount: count, rating: avgRating })
-    .where(eq(products.id, productId));
-}
-
-export async function GET(request: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = new URL(req.url);
     const productId = searchParams.get("productId");
-    const admin = searchParams.get("admin") === "true";
-
-    if (admin) {
-      const isAdmin = await verifyAdmin();
-      if (!isAdmin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      const all = await db.select().from(reviews).orderBy(desc(reviews.createdAt));
-      return NextResponse.json(all);
-    }
 
     if (!productId) {
-      return NextResponse.json({ error: "productId required" }, { status: 400 });
+      return NextResponse.json({ error: "Product ID required" }, { status: 400 });
     }
 
-    const result = await db.select().from(reviews)
+    const rows = await db.select().from(reviews)
       .where(eq(reviews.productId, productId))
       .orderBy(desc(reviews.createdAt));
 
-    return NextResponse.json(result);
+    return NextResponse.json(rows);
   } catch (error) {
-    console.error("Error fetching reviews:", error);
+    console.error("[Reviews GET] Error:", error);
     return NextResponse.json({ error: "Failed to fetch reviews" }, { status: 500 });
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    const body = await parseBody(request);
-    const ip = getClientIp(request.headers);
-    const spamReason = validateSubmission({
-      honeypot: body.honeypot,
-      timestamp: typeof body.timestamp === "number" ? body.timestamp : undefined,
-      referer: request.headers.get("referer"),
-      host: request.headers.get("host"),
-      minSecondsToSubmit: 3,
-    });
-    if (spamReason) {
-      console.log(`[Reviews] Blocked ${spamReason} from ${ip}`);
-      return NextResponse.json({ success: true, message: "Review submitted" });
-    }
-    if (!checkRateLimit(`review:${ip}`, 3, 3600)) {
-      return NextResponse.json({ success: true, message: "Review submitted" });
-    }
-    const productId = body.productId as string | undefined;
-    const customerName = body.customerName as string | undefined;
-    const rating = body.rating as number | string | undefined;
-    const comment = body.comment as string | undefined;
-    const commentFr = body.commentFr as string | undefined;
+    const ip = req.headers.get("cf-connecting-ip") ||
+               req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+               req.headers.get("x-real-ip") || "";
 
-    if (!productId || !customerName || !rating) {
-      return NextResponse.json({ error: "productId, customerName, and rating are required" }, { status: 400 });
+    if (isRateLimited(ip, 3, 60000)) {
+      return NextResponse.json({ error: "Too many submissions. Please wait 1 minute." }, { status: 429 });
     }
 
-    const avatar = String(customerName)
-      .split(" ")
-      .map(w => w[0]?.toUpperCase() || "")
-      .slice(0, 2)
-      .join("");
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON format" }, { status: 400 });
+    }
 
-    const result = await db.insert(reviews).values({
-      productId: String(productId),
-      customerName: String(customerName),
-      rating: parseInt(String(rating)),
-      comment: comment ? String(comment) : "",
-      commentFr: commentFr ? String(commentFr) : null,
+    const parsed = createReviewSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.issues[0]?.message || "Invalid input" }, { status: 400 });
+    }
+
+    const { productId, customerName, rating, comment, commentFr } = parsed.data;
+
+    const sanitizedName = sanitizeHtml(customerName);
+    const sanitizedComment = sanitizeHtml(comment);
+    const sanitizedCommentFr = commentFr ? sanitizeHtml(commentFr) : "";
+    const avatar = getInitials(sanitizedName);
+
+    const [newReview] = await db.insert(reviews).values({
+      productId,
+      customerName: sanitizedName,
+      rating,
+      comment: sanitizedComment,
+      commentFr: sanitizedCommentFr,
       avatar,
       verified: false,
     }).returning();
 
-    await recalculateProductStats(String(productId));
-
-    return NextResponse.json(result[0], { status: 201 });
-  } catch (error) {
-    console.error("Error creating review:", error);
-    return NextResponse.json({ error: "Failed to create review" }, { status: 500 });
-  }
-}
-
-export async function PUT(request: NextRequest) {
-  try {
-    const isAdmin = await verifyAdmin();
-    if (!isAdmin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
-    if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
-
-    const body = await parseBody(request);
-    const updates: Record<string, unknown> = {};
-
-    if (body.customerName !== undefined) updates.customerName = String(body.customerName);
-    if (body.comment !== undefined) updates.comment = String(body.comment);
-    if (body.commentFr !== undefined) updates.commentFr = body.commentFr ? String(body.commentFr) : null;
-    if (body.rating !== undefined) updates.rating = parseInt(String(body.rating));
-    if (body.verified !== undefined) updates.verified = Boolean(body.verified);
-
-    if (Object.keys(updates).length === 0) {
-      return NextResponse.json({ error: "No fields to update" }, { status: 400 });
+    // Recalculate product rating asynchronously
+    try {
+      const allProductReviews = await db.select({ rating: reviews.rating }).from(reviews).where(eq(reviews.productId, productId));
+      if (allProductReviews.length > 0) {
+        const sum = allProductReviews.reduce((acc, r) => acc + r.rating, 0);
+        const avg = (sum / allProductReviews.length).toFixed(1);
+        await db.update(products).set({
+          rating: avg,
+          reviewCount: allProductReviews.length,
+        }).where(eq(products.id, productId));
+      }
+    } catch (calcErr) {
+      console.warn("[Reviews] Rating re-calc skipped:", calcErr);
     }
 
-    const result = await db.update(reviews).set(updates).where(eq(reviews.id, id)).returning();
-    if (result.length === 0) return NextResponse.json({ error: "Review not found" }, { status: 404 });
-
-    if (body.rating !== undefined) {
-      await recalculateProductStats(result[0].productId);
-    }
-
-    return NextResponse.json(result[0]);
+    return NextResponse.json({ success: true, review: newReview }, { status: 201 });
   } catch (error) {
-    console.error("Error updating review:", error);
-    return NextResponse.json({ error: "Failed to update review" }, { status: 500 });
-  }
-}
-
-export async function DELETE(request: NextRequest) {
-  try {
-    const isAdmin = await verifyAdmin();
-    if (!isAdmin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
-    if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
-
-    const existing = await db.select().from(reviews).where(eq(reviews.id, id));
-    if (existing.length === 0) return NextResponse.json({ error: "Review not found" }, { status: 404 });
-    const productId = existing[0].productId;
-
-    await db.delete(reviews).where(eq(reviews.id, id));
-    await recalculateProductStats(productId);
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Error deleting review:", error);
-    return NextResponse.json({ error: "Failed to delete review" }, { status: 500 });
+    console.error("[Reviews POST] Error:", error);
+    return NextResponse.json({ error: "Failed to submit review" }, { status: 500 });
   }
 }

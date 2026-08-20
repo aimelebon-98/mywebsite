@@ -1,43 +1,47 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { newsletter } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { isRateLimited } from "@/lib/rate-limit";
-import { verifyTurnstile } from "@/lib/turnstile";
-import { headers } from "next/headers";
+import { z } from "zod";
 
-export const dynamic = "force-dynamic";
+const newsletterSchema = z.object({
+  email: z.string().trim().toLowerCase().email("Invalid email address").max(200),
+});
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const h = await headers();
-    const ip = h.get("cf-connecting-ip") || h.get("x-forwarded-for")?.split(",")[0] || h.get("x-real-ip") || "";
+    const ip = req.headers.get("cf-connecting-ip") ||
+               req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+               req.headers.get("x-real-ip") || "";
 
     if (isRateLimited(ip, 5, 60000)) {
-      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+      return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 });
     }
 
-    const { email, turnstileToken } = await req.json();
-
-    if (turnstileToken) {
-      const ok = await verifyTurnstile(turnstileToken, ip);
-      if (!ok) {
-        return NextResponse.json({ error: "Security check failed" }, { status: 403 });
-      }
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid request format" }, { status: 400 });
     }
 
-    const emailNorm = String(email || "").toLowerCase().trim();
-    if (!emailNorm || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailNorm)) {
-      return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
+    const parsed = newsletterSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.issues[0]?.message || "Invalid email" }, { status: 400 });
     }
 
-    const [existing] = await db.select().from(newsletter).where(eq(newsletter.email, emailNorm)).limit(1);
-    if (!existing) {
-      await db.insert(newsletter).values({ email: emailNorm });
+    const { email } = parsed.data;
+
+    const [existing] = await db.select().from(newsletter).where(eq(newsletter.email, email)).limit(1);
+    if (existing) {
+      return NextResponse.json({ message: "Already subscribed", subscribed: true });
     }
 
-    return NextResponse.json({ success: true });
+    await db.insert(newsletter).values({ email });
+    return NextResponse.json({ message: "Subscribed successfully", subscribed: true }, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    console.error("[Newsletter POST] Error:", error);
+    return NextResponse.json({ error: "Subscription failed" }, { status: 500 });
   }
 }
