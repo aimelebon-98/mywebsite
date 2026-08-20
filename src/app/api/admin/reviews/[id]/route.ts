@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { reviews, products } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { requireAdmin } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
@@ -35,6 +35,11 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   if (unauth) return unauth;
 
   try {
+    // Ensure Postgres column exists
+    try {
+      await db.execute(sql`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS approved boolean NOT NULL DEFAULT true`);
+    } catch { /* ignore */ }
+
     const { id } = await params;
     const body = await req.json();
 

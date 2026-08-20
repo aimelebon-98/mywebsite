@@ -2,12 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { reviews, products } from "@/db/schema";
 import { getCustomerFromRequest } from "@/lib/customer-auth";
-import { eq, ilike, or, desc } from "drizzle-orm";
+import { eq, ilike, or, desc, sql } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
+    // Ensure Postgres column exists
+    try {
+      await db.execute(sql`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS approved boolean NOT NULL DEFAULT true`);
+    } catch { /* ignore */ }
+
     const customer = await getCustomerFromRequest(request);
     if (!customer) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -20,7 +25,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ reviews: [] });
     }
 
-    // Join products table to get image, name, slug
     const conditions = [];
     if (cName) conditions.push(ilike(reviews.customerName, cName));
 

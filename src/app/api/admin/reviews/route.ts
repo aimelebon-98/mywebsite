@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { reviews, products } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { requireAdmin } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
@@ -11,6 +11,11 @@ export async function GET(req: NextRequest) {
   if (unauth) return unauth;
 
   try {
+    // Ensure Postgres has the approved column
+    try {
+      await db.execute(sql`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS approved boolean NOT NULL DEFAULT true`);
+    } catch { /* ignore */ }
+
     const { searchParams } = new URL(req.url);
     const filter = searchParams.get("filter") || "all";
 
