@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { reviews, products } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
-import { isRateLimited } from "@/lib/rate-limit";
-import { sanitizeHtml } from "@/lib/sanitize";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -16,10 +14,20 @@ function getInitials(name: string): string {
   return (name.slice(0, 2) || "ND").toUpperCase();
 }
 
+function cleanText(str: string): string {
+  if (!str) return "";
+  return str
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;")
+    .trim();
+}
+
 const createReviewSchema = z.object({
   productId: z.string().min(1, "Product ID is required"),
-  customerName: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
-  rating: z.coerce.number().int().min(1, "Rating must be between 1 and 5").max(5, "Rating must be between 1 and 5"),
+  customerName: z.string().trim().min(2, "Name required").max(100),
+  rating: z.coerce.number().int().min(1).max(5),
   comment: z.string().trim().max(2000).optional().default(""),
   commentFr: z.string().trim().max(2000).optional().default(""),
 });
@@ -43,52 +51,42 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const ip = req.headers.get("cf-connecting-ip") ||
-               req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-               req.headers.get("x-real-ip") || "anonymous-client";
-
-    if (isRateLimited(ip, "reviews", 10, 60000)) {
-      return NextResponse.json({ error: "Too many submissions. Please wait 1 minute before trying again." }, { status: 429 });
-    }
-
     let body: unknown;
     try {
       body = await req.json();
     } catch {
-      return NextResponse.json({ error: "Invalid JSON format" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
     }
 
     const parsed = createReviewSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.issues[0]?.message || "Invalid input" }, { status: 400 });
+      return NextResponse.json({ error: parsed.error.issues[0]?.message || "Invalid review data" }, { status: 400 });
     }
 
     const { productId, customerName, rating, comment, commentFr } = parsed.data;
-    
-    // Check product exists
-    const [prod] = await db.select({ id: products.id }).from(products).where(eq(products.id, productId)).limit(1);
-    if (!prod) {
-      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+
+    const sanitizedName = cleanText(customerName);
+    if (!sanitizedName) {
+      return NextResponse.json({ error: "Please enter a valid name" }, { status: 400 });
     }
 
-    const cleanName = (sanitizeHtml(customerName) || customerName).trim().slice(0, 100);
     const rawComment = (comment || "").trim();
     const rawCommentFr = (commentFr || "").trim();
-    const cleanComment = rawComment ? (sanitizeHtml(rawComment) || rawComment).slice(0, 2000) : "";
-    const cleanCommentFr = rawCommentFr ? (sanitizeHtml(rawCommentFr) || rawCommentFr).slice(0, 2000) : "";
-    const avatar = getInitials(cleanName);
+    const sanitizedComment = cleanText(rawComment || rawCommentFr);
+    const sanitizedCommentFr = cleanText(rawCommentFr || rawComment);
+    const avatar = getInitials(customerName);
 
     const [newReview] = await db.insert(reviews).values({
       productId,
-      customerName: cleanName,
+      customerName: sanitizedName,
       rating,
-      comment: cleanComment || cleanCommentFr || "Verified Review",
-      commentFr: cleanCommentFr || cleanComment || "Avis Vérifié",
+      comment: sanitizedComment || "Verified Review",
+      commentFr: sanitizedCommentFr || "Avis Vérifié",
       avatar,
       verified: false,
     }).returning();
 
-    // Recalculate average rating & review count
+    // Recalculate avg rating & count
     try {
       const all = await db.select({ rating: reviews.rating }).from(reviews).where(eq(reviews.productId, productId));
       if (all.length > 0) {
@@ -100,13 +98,13 @@ export async function POST(req: NextRequest) {
         }).where(eq(products.id, productId));
       }
     } catch (calcErr) {
-      console.warn("[Reviews] rating recalc skipped:", calcErr);
+      console.warn("[Reviews] recalc skipped:", calcErr);
     }
 
     return NextResponse.json({ success: true, review: newReview }, { status: 201 });
   } catch (error) {
-    console.error("[Reviews POST]", error);
-    const msg = error instanceof Error ? error.message : "Failed to submit review";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    console.error("[Reviews POST Error]", error);
+    const errMsg = error instanceof Error ? error.message : "Internal Server Error";
+    return NextResponse.json({ error: errMsg }, { status: 500 });
   }
 }
