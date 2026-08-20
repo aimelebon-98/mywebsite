@@ -4,6 +4,7 @@ import { vendorApplications, vendors } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { sendVendorApplicationReceivedEmail, sendAdminNewVendorApplicationEmail } from "@/lib/email";
 import { verifyTurnstile } from "@/lib/turnstile";
+import { isRateLimited } from "@/lib/rate-limit";
 import { headers } from "next/headers";
 
 export const dynamic = "force-dynamic";
@@ -12,6 +13,14 @@ const ADMIN_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL || "komlaimelebon@gmail
 
 export async function POST(req: Request) {
   try {
+    const h = await headers();
+    const ip = h.get("cf-connecting-ip") || h.get("x-forwarded-for")?.split(",")[0] || h.get("x-real-ip") || "";
+
+    // Rate Limit: Max 3 application submissions per hour per IP
+    if (isRateLimited(ip, 3, 3600000)) {
+      return NextResponse.json({ error: "Too many application submissions from this IP. Please try again later." }, { status: 429 });
+    }
+
     const body = await req.json();
     const {
       applicantName,
@@ -34,13 +43,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const h = await headers();
-    const ip = h.get("cf-connecting-ip") || h.get("x-forwarded-for")?.split(",")[0] || h.get("x-real-ip") || "";
-
     if (turnstileToken) {
       const captchaOk = await verifyTurnstile(turnstileToken, ip);
       if (!captchaOk) {
-        console.warn("[Vendor Apply] Turnstile token verification failed or expired");
+        return NextResponse.json({ error: "Security verification failed. Please refresh and try again." }, { status: 403 });
       }
     }
 
@@ -82,10 +88,7 @@ export async function POST(req: Request) {
 
     const lang = locale === "fr" ? "fr" : "en";
 
-    sendVendorApplicationReceivedEmail(emailNorm, applicantName, storeName, lang)
-      .then(ok => console.log("[Vendor Apply] Applicant email sent:", ok))
-      .catch(e => console.error("[Vendor Apply] Applicant email failed:", e));
-
+    sendVendorApplicationReceivedEmail(emailNorm, applicantName, storeName, lang).catch(() => {});
     sendAdminNewVendorApplicationEmail(ADMIN_EMAIL, {
       applicantName,
       email: emailNorm,
@@ -97,9 +100,7 @@ export async function POST(req: Request) {
       categories: cats,
       instagramUrl: instagramUrl || "",
       websiteUrl: websiteUrl || "",
-    })
-      .then(ok => console.log("[Vendor Apply] Admin email sent to " + ADMIN_EMAIL + ":", ok))
-      .catch(e => console.error("[Vendor Apply] Admin email failed:", e));
+    }).catch(() => {});
 
     return NextResponse.json({ success: true, message: "Application submitted" });
   } catch (error) {

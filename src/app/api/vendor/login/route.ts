@@ -4,25 +4,32 @@ import { vendors } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { verifyVendorPassword, createVendorSession } from "@/lib/vendor-auth";
 import { verifyTurnstile } from "@/lib/turnstile";
+import { isRateLimited } from "@/lib/rate-limit";
 import { headers } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
+    const h = await headers();
+    const ip = h.get("cf-connecting-ip") || h.get("x-forwarded-for")?.split(",")[0] || h.get("x-real-ip") || "";
+    const ua = h.get("user-agent") || "";
+
+    // 1. Rate Limit Guard: Max 5 attempts per 60 seconds
+    if (isRateLimited(ip, 5, 60000)) {
+      return NextResponse.json({ error: "Too many login attempts. Please wait 1 minute before trying again." }, { status: 429 });
+    }
+
     const { email, password, turnstileToken } = await req.json();
     if (!email || !password) {
       return NextResponse.json({ error: "Email and password required" }, { status: 400 });
     }
 
-    const h = await headers();
-    const ip = h.get("cf-connecting-ip") || h.get("x-forwarded-for")?.split(",")[0] || h.get("x-real-ip") || "";
-    const ua = h.get("user-agent") || "";
-
+    // 2. Security Verification
     if (turnstileToken) {
       const captchaOk = await verifyTurnstile(turnstileToken, ip);
       if (!captchaOk) {
-        console.warn("[Vendor Login] Turnstile token verification failed or expired");
+        return NextResponse.json({ error: "Security verification failed. Please refresh and try again." }, { status: 403 });
       }
     }
 
