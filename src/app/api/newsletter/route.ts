@@ -3,10 +3,12 @@ import { db } from "@/db";
 import { newsletter } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { isRateLimited } from "@/lib/rate-limit";
+import { verifyTurnstile } from "@/lib/turnstile";
 import { z } from "zod";
 
 const newsletterSchema = z.object({
   email: z.string().trim().toLowerCase().email("Invalid email address").max(200),
+  turnstileToken: z.string().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -31,7 +33,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: parsed.error.issues[0]?.message || "Invalid email" }, { status: 400 });
     }
 
-    const { email } = parsed.data;
+    const { email, turnstileToken } = parsed.data;
+
+    // Verify CAPTCHA if Turnstile is configured
+    if (process.env.TURNSTILE_SECRET_KEY && turnstileToken) {
+      const captchaOk = await verifyTurnstile(turnstileToken, ip);
+      if (!captchaOk) {
+        return NextResponse.json({ error: "CAPTCHA verification failed" }, { status: 403 });
+      }
+    }
 
     const [existing] = await db.select().from(newsletter).where(eq(newsletter.email, email)).limit(1);
     if (existing) {

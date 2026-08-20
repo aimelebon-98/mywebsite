@@ -1,4 +1,5 @@
 "use client";
+import { sanitizeHtml } from "@/lib/sanitize-html";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { useCurrency } from "@/lib/currency-context";
 import { parseColorVariants } from "@/lib/color-variants";
@@ -1014,7 +1015,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                       className={`product-long-desc overflow-hidden transition-all duration-500 ${
                         showFullDesc || longDesc.length <= 400 ? "max-h-[10000px]" : "max-h-[220px]"
                       }`}
-                      dangerouslySetInnerHTML={{ __html: longDesc }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(longDesc) }}
                     />
                   {/* Fade gradient - only when collapsed and long */}
                   {!showFullDesc && longDesc.length > 400 && (

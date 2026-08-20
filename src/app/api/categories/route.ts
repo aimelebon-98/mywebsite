@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { categories } from "@/db/schema";
 import { eq, asc } from "drizzle-orm";
@@ -80,6 +80,6 @@ export async function POST(request: NextRequest) {
     if (msg.includes("unique") || msg.includes("duplicate")) {
       return NextResponse.json({ error: "A category with that slug already exists" }, { status: 409 });
     }
-    return NextResponse.json({ error: "Failed to create category", details: msg }, { status: 500 });
+    const safeMsg = process.env.NODE_ENV === "development" ? msg : "Internal error"; return NextResponse.json({ error: "Failed to create category", details: safeMsg }, { status: 500 });
   }
 }

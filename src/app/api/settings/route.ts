@@ -69,7 +69,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    const msg = error instanceof Error ? error.message : "Failed to update settings";
+    const rawMsg = error instanceof Error ? error.message : "Failed to update settings"; const msg = process.env.NODE_ENV === "development" ? rawMsg : "Failed to update settings";
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
