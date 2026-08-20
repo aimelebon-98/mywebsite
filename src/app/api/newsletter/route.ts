@@ -1,43 +1,43 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { newsletter } from "@/db/schema";
-import { validateSubmission, checkRateLimit, getClientIp } from "@/lib/anti-spam";
+import { eq } from "drizzle-orm";
+import { isRateLimited } from "@/lib/rate-limit";
+import { verifyTurnstile } from "@/lib/turnstile";
+import { headers } from "next/headers";
 
-export async function POST(request: NextRequest) {
+export const dynamic = "force-dynamic";
+
+export async function POST(req: Request) {
   try {
-    const body = await request.json();
-    const { email, honeypot, timestamp } = body;
+    const h = await headers();
+    const ip = h.get("cf-connecting-ip") || h.get("x-forwarded-for")?.split(",")[0] || h.get("x-real-ip") || "";
 
-    // Anti-spam checks
-    const ip = getClientIp(request.headers);
-    const spamReason = validateSubmission({
-      honeypot,
-      timestamp,
-      referer: request.headers.get("referer"),
-      host: request.headers.get("host"),
-      minSecondsToSubmit: 2,
-    });
-
-    // Silently return success on spam (don't tell bots why they failed)
-    if (spamReason) {
-      console.log(`[Newsletter] Blocked spam: ${spamReason} from ${ip}`);
-      return NextResponse.json({ success: true, message: "Subscribed successfully!" });
+    if (isRateLimited(ip, 5, 60000)) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
     }
 
-    // Rate limit: 3 signups per IP per hour
-    if (!checkRateLimit(`newsletter:${ip}`, 3, 3600)) {
-      console.log(`[Newsletter] Rate limit hit for ${ip}`);
-      return NextResponse.json({ success: true, message: "Subscribed successfully!" });
+    const { email, turnstileToken } = await req.json();
+
+    if (turnstileToken) {
+      const ok = await verifyTurnstile(turnstileToken, ip);
+      if (!ok) {
+        return NextResponse.json({ error: "Security check failed" }, { status: 403 });
+      }
     }
 
-    if (!email || !email.includes("@")) {
-      return NextResponse.json({ error: "Valid email required" }, { status: 400 });
+    const emailNorm = String(email || "").toLowerCase().trim();
+    if (!emailNorm || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailNorm)) {
+      return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
     }
 
-    await db.insert(newsletter).values({ email }).onConflictDoNothing();
-    return NextResponse.json({ success: true, message: "Subscribed successfully!" });
+    const [existing] = await db.select().from(newsletter).where(eq(newsletter.email, emailNorm)).limit(1);
+    if (!existing) {
+      await db.insert(newsletter).values({ email: emailNorm });
+    }
+
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Newsletter error:", error);
-    return NextResponse.json({ error: "Failed to subscribe" }, { status: 500 });
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

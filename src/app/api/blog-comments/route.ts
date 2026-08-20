@@ -1,3 +1,4 @@
+import { verifyTurnstile } from "@/lib/turnstile";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { blogComments } from "@/db/schema";
@@ -56,7 +57,8 @@ export async function POST(request: NextRequest) {
     }
     const { postId, parentId, authorName, authorEmail, content } = body;
 
-    if (!postId || !authorName || !content) {
+    if (turnstileToken) { const captchaOk = await verifyTurnstile(turnstileToken, ip); if (!captchaOk) return NextResponse.json({ error: "Security check failed" }, { status: 403 }); }
+     {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 

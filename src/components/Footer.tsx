@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { ArrowRight, Mail, Store, ShoppingBag, HelpCircle, User, Briefcase } from "lucide-react";
+import Turnstile from "@/components/Turnstile";
 
 export default function Footer() {
   const t = useTranslations("footer");
@@ -11,6 +12,7 @@ export default function Footer() {
   const isFr = locale === "fr";
   const [email, setEmail] = useState("");
   const [subStatus, setSubStatus] = useState<"idle" | "loading" | "done">("idle");
+  const [turnstileToken, setTurnstileToken] = useState("");
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,7 +22,7 @@ export default function Footer() {
       await fetch("/api/newsletter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, turnstileToken }),
       });
       setSubStatus("done");
       setEmail("");
@@ -94,6 +96,15 @@ export default function Footer() {
                 </button>
               </form>
             )}
+
+            <div className="hidden">
+              <Turnstile
+                mode="auto"
+                action="newsletter"
+                onVerify={(tok) => setTurnstileToken(tok)}
+                onError={() => setTurnstileToken("")}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -180,7 +191,7 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Column 4: MARKETPLACE (Dedicated Column) */}
+          {/* Column 4: MARKETPLACE */}
           <div>
             <h4 className="text-white font-bold mb-4 text-xs uppercase tracking-wider flex items-center gap-2">
               <Store className="w-4 h-4 text-[#CA3F2E]" />
