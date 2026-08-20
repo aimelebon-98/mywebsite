@@ -1,3 +1,4 @@
+import { sanitizeHtml } from "@/lib/sanitize";
 "use client";
 import { useCurrency } from "@/lib/currency-context";
 import { parseColorVariants } from "@/lib/color-variants";

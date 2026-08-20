@@ -1,3 +1,4 @@
+import { sanitizeHtml } from "@/lib/sanitize";
 "use client";
 import { trackEvent } from "@/components/AnalyticsTracker";
 
@@ -265,7 +266,7 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
             <div
               id="blog-content"
               className="max-w-none scroll-mt-24 blog-body"
-              dangerouslySetInnerHTML={{ __html: post.content }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }}
             />
 
             {/* Word count footer */}
