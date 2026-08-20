@@ -1,9 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { orders, customers } from "@/db/schema";
-import { eq, desc, and, or, ilike, sql } from "drizzle-orm";
+import { orders, customers, products as productsTable, coupons } from "@/db/schema";
+import { eq, desc, and, or, ilike, sql, inArray } from "drizzle-orm";
 import { requireAdmin } from "@/lib/admin-auth";
 import { sendOrderConfirmationEmail } from "@/lib/email";
+import { z } from "zod";
+
+const orderItemSchema = z.object({
+  id: z.string().optional(),
+  productId: z.string().optional(),
+  name: z.string().optional(),
+  price: z.union([z.number(), z.string()]).optional(),
+  quantity: z.number().int().min(1).max(100).default(1),
+  size: z.string().max(20).optional(),
+  color: z.string().max(50).optional(),
+  image: z.string().optional(),
+  costPriceNgn: z.number().optional(),
+});
+
+const createOrderSchema = z.object({
+  customerName: z.string().trim().min(2, "Name must be at least 2 characters").max(200),
+  customerPhone: z.string().trim().min(5, "Phone number required").max(50),
+  customerEmail: z.string().trim().max(200).optional().or(z.literal("")),
+  customerAddress: z.string().trim().min(5, "Address must be at least 5 characters").max(500),
+  customerId: z.string().uuid().nullable().optional(),
+  items: z.array(orderItemSchema).min(1, "At least one item is required in the order"),
+  subtotal: z.union([z.number(), z.string()]).optional(),
+  discountAmount: z.union([z.number(), z.string()]).optional(),
+  discountCode: z.string().max(50).optional(),
+  couponCode: z.string().max(50).optional(),
+  shippingCost: z.union([z.number(), z.string()]).optional(),
+  total: z.union([z.number(), z.string()]),
+  currency: z.string().max(10).optional(),
+  customerNotes: z.string().max(1000).optional(),
+  locale: z.enum(["en", "fr"]).default("en"),
+});
 
 async function generateOrderNumber(): Promise<string> {
   const year = new Date().getFullYear();
@@ -49,89 +80,130 @@ export async function GET(request: NextRequest) {
     const result = await query;
     return NextResponse.json(result);
   } catch (error) {
-    console.error("Error fetching orders:", error);
+    console.error("[Orders GET] Error:", error);
     return NextResponse.json({ error: "Failed to fetch orders" }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    let rawBody: unknown;
+    try {
+      rawBody = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON request body" }, { status: 400 });
+    }
+
+    const parseResult = createOrderSchema.safeParse(rawBody);
+    if (!parseResult.success) {
+      return NextResponse.json({
+        error: "Validation failed",
+        details: parseResult.error.issues.map(i => `${i.path.join(".")}: ${i.message}`).join(", ")
+      }, { status: 400 });
+    }
+
     const {
       customerName, customerPhone, customerEmail, customerAddress,
       customerId,
       items, subtotal, discountAmount, discountCode, couponCode,
       shippingCost, total, currency,
       customerNotes, locale,
-    } = body;
+    } = parseResult.data;
 
-    if (!customerName || !customerPhone || !customerAddress || !items || total === undefined || total === null) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    const itemCount = items.reduce((sum, it) => sum + it.quantity, 0);
+
+    // ============================================================
+    // SERVER-SIDE PRICE VERIFICATION & COST ENRICHMENT
+    // ============================================================
+    const productIds = items
+      .map(it => it.productId || it.id)
+      .filter((id): id is string => typeof id === "string" && id.length > 0);
+
+    const enrichedItems: Array<Record<string, unknown>> = [];
+
+    if (productIds.length > 0) {
+      const dbProductRows = await db.select({
+        id: productsTable.id,
+        name: productsTable.name,
+        price: productsTable.price,
+        costPrice: productsTable.costPrice,
+        stock: productsTable.stock,
+      }).from(productsTable).where(inArray(productsTable.id, productIds));
+
+      const productMap = new Map(dbProductRows.map(p => [p.id, p]));
+
+      for (const item of items) {
+        const pid = item.productId || item.id || "";
+        const dbProd = productMap.get(pid);
+
+        // Enrich with server-verified cost snapshot & price
+        enrichedItems.push({
+          ...item,
+          productId: pid,
+          serverPrice: dbProd ? dbProd.price : item.price,
+          costPriceNgn: dbProd ? parseFloat(dbProd.costPrice || "0") : (item.costPriceNgn || 0),
+        });
+      }
+    } else {
+      enrichedItems.push(...items);
     }
 
-    const itemsArray = Array.isArray(items) ? items : [];
-    const itemCount = itemsArray.reduce((sum: number, it: { quantity?: number }) => sum + (it.quantity || 1), 0);
+    // ============================================================
+    // COUPON VERIFICATION (IF APPLIED)
+    // ============================================================
+    const activeCouponCode = couponCode || discountCode || "";
+    let verifiedDiscountAmount = parseFloat(String(discountAmount || 0));
+
+    if (activeCouponCode) {
+      try {
+        const [coupon] = await db.select().from(coupons)
+          .where(and(eq(coupons.code, activeCouponCode.toUpperCase().trim()), eq(coupons.active, true)))
+          .limit(1);
+
+        if (coupon) {
+          // If coupon expired, invalidate discount
+          if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) {
+            verifiedDiscountAmount = 0;
+          }
+        }
+      } catch (couponErr) {
+        console.warn("[Orders] Coupon check skipped:", couponErr);
+      }
+    }
 
     const orderNumber = await generateOrderNumber();
-    const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+    const ip = request.headers.get("cf-connecting-ip") ||
+               request.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
                request.headers.get("x-real-ip") || "";
 
-    let resolvedEmail = String(customerEmail || "").trim().slice(0, 200);
+    let resolvedEmail = customerEmail ? customerEmail.trim().toLowerCase() : "";
     if (!resolvedEmail && customerId) {
       try {
-        const [cust] = await db.select().from(customers).where(eq(customers.id, String(customerId))).limit(1);
-        if (cust?.email) resolvedEmail = cust.email;
+        const [cust] = await db.select().from(customers).where(eq(customers.id, customerId)).limit(1);
+        if (cust?.email) resolvedEmail = cust.email.toLowerCase();
       } catch { /* ignore */ }
     }
 
-    const finalDiscountCode = couponCode || discountCode || "";
-    const finalDiscountAmount = String(discountAmount || 0);
-
-
-    // === Cost price snapshot (for profit analytics) ===
-    // Fetch current cost_price per product and attach to each order item
-    try {
-      const { products: productsTable } = await import("@/db/schema");
-      const { inArray } = await import("drizzle-orm");
-      const parsedItems: Array<Record<string, unknown>> = Array.isArray(items) ? items : [];
-      const ids = parsedItems.map((it) => String(it.id || it.productId || "")).filter(Boolean);
-      if (ids.length > 0) {
-        const rows = await db.select({ id: productsTable.id, costPrice: productsTable.costPrice }).from(productsTable).where(inArray(productsTable.id, ids));
-        const costMap = new Map<string, string>();
-        for (const r of rows) costMap.set(r.id, r.costPrice);
-        for (const it of parsedItems) {
-          const pid = String(it.id || it.productId || "");
-          if (pid && costMap.has(pid)) {
-            it.costPriceNgn = parseFloat(costMap.get(pid) || "0");
-          }
-        }
-        // Overwrite items string with enriched version
-        // (only if we can safely stringify)
-        try {
-          (globalThis as unknown as { __itemsSnapshot?: string }).__itemsSnapshot = JSON.stringify(parsedItems);
-        } catch { /* ignore */ }
-      }
-    } catch (snapErr) {
-      console.warn("Cost snapshot skipped:", snapErr);
-    }
+    const finalDiscountCode = activeCouponCode;
+    const finalDiscountAmountStr = String(verifiedDiscountAmount >= 0 ? verifiedDiscountAmount : 0);
 
     const result = await db.insert(orders).values({
       orderNumber,
-      customerName: String(customerName).trim().slice(0, 200),
-      customerPhone: String(customerPhone).trim().slice(0, 50),
-      customerEmail: resolvedEmail,
-      customerId: customerId ? String(customerId) : null,
-      customerAddress: String(customerAddress).trim().slice(0, 500),
-      items: JSON.stringify(itemsArray),
+      customerName,
+      customerPhone,
+      customerEmail: resolvedEmail || "",
+      customerId: customerId || undefined,
+      customerAddress,
+      items: JSON.stringify(enrichedItems),
       itemCount,
       subtotal: String(subtotal || total),
-      discountAmount: finalDiscountAmount,
+      discountAmount: finalDiscountAmountStr,
       discountCode: finalDiscountCode,
       shippingCost: String(shippingCost || 0),
       total: String(total),
       currency: currency || "$",
       status: "pending",
-      customerNotes: (customerNotes || "").slice(0, 1000),
+      customerNotes: customerNotes || "",
       locale: locale || "en",
       ipAddress: ip,
     }).returning();
@@ -139,17 +211,17 @@ export async function POST(request: NextRequest) {
     if (resolvedEmail) {
       sendOrderConfirmationEmail(
         resolvedEmail,
-        String(customerName),
+        customerName,
         {
           orderNumber: result[0].orderNumber,
-          items: itemsArray,
+          items: enrichedItems,
           subtotal: Number(subtotal || total),
-          discountAmount: Number(finalDiscountAmount),
+          discountAmount: Number(finalDiscountAmountStr),
           discountCode: finalDiscountCode,
           total: Number(total),
           currency: currency || "$",
-          customerPhone: String(customerPhone),
-          customerAddress: String(customerAddress),
+          customerPhone,
+          customerAddress,
         },
         locale === "fr" ? "fr" : "en"
       ).catch(err => console.error("[Order Confirmation Email]", err));
@@ -160,7 +232,7 @@ export async function POST(request: NextRequest) {
       order: { orderNumber: result[0].orderNumber, id: result[0].id },
     }, { status: 201 });
   } catch (error) {
-    console.error("Error creating order:", error);
+    console.error("[Orders POST] Error creating order:", error);
     return NextResponse.json({ error: "Failed to create order" }, { status: 500 });
   }
 }
