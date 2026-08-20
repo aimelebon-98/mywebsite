@@ -94,6 +94,7 @@ export default function CommentSection({ postId }: Props) {
   const [content, setContent] = useState("");
   
   const [turnstileToken, setTurnstileToken] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
   const [replyTo, setReplyTo] = useState<BlogComment | null>(null);

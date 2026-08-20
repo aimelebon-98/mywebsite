@@ -37,27 +37,33 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { postId, parentId, authorName, authorEmail, content, turnstileToken } = body;
+    const postId = body.postId ? String(body.postId) : "";
+    const parentId = body.parentId ? String(body.parentId) : undefined;
+    const authorName = body.authorName ? String(body.authorName).slice(0, 100) : "";
+    const authorEmail = body.authorEmail ? String(body.authorEmail).slice(0, 100) : "";
+    const content = body.content ? String(body.content).slice(0, 2000) : "";
+    const turnstileToken = body.turnstileToken ? String(body.turnstileToken) : "";
 
     if (!postId || !authorName || !content) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
     if (turnstileToken) {
-      const captchaOk = await verifyTurnstile(String(turnstileToken), ip);
+      const captchaOk = await verifyTurnstile(turnstileToken, ip);
       if (!captchaOk) {
         return NextResponse.json({ error: "Security check failed. Please refresh and try again." }, { status: 403 });
       }
     }
 
     const [inserted] = await db.insert(blogComments).values({
-      postId: String(postId),
-      parentId: parentId ? String(parentId) : null,
-      authorName: String(authorName).slice(0, 100),
-      authorEmail: authorEmail ? String(authorEmail).slice(0, 100) : null,
-      content: String(content).slice(0, 2000),
+      postId,
+      parentId,
+      authorName,
+      authorEmail,
+      content,
       approved: true,
       likes: 0,
+      ipAddress: ip.slice(0, 50),
     }).returning();
 
     return NextResponse.json({ success: true, comment: inserted });
