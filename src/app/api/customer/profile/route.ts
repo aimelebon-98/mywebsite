@@ -1,42 +1,27 @@
-import { requireCustomer } from "@/lib/customer-auth";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { customers } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { getCurrentCustomer, hashPassword, verifyPassword } from "@/lib/customer-auth";
+import { requireCustomer } from "@/lib/customer-auth";
 
-export async function PATCH(req: NextRequest) {
-  const customer = await getCurrentCustomer();
-  if (!customer) return NextResponse.json({ error: "Not logged in" }, { status: 401 });
+export const dynamic = "force-dynamic";
 
-  const body = await req.json();
-  const updates: Record<string, unknown> = {};
+export async function PUT(req: Request) {
+  try {
+    const customer = await requireCustomer();
+    const { name, phone } = await req.json();
 
-  if (body.name !== undefined) updates.name = String(body.name).trim();
-  if (body.phone !== undefined) updates.phone = String(body.phone).trim();
+    await db.update(customers)
+      .set({
+        name: String(name || "").slice(0, 100),
+        phone: String(phone || "").slice(0, 30),
+        updatedAt: new Date(),
+      })
+      .where(eq(customers.id, customer.id));
 
-  // Password change requires current password
-  if (body.newPassword) {
-    if (!body.currentPassword) {
-      return NextResponse.json({ error: "Current password required" }, { status: 400 });
-    }
-    const valid = await verifyPassword(body.currentPassword, customer.passwordHash);
-    if (!valid) {
-      return NextResponse.json({ error: "Current password is incorrect" }, { status: 400 });
-    }
-    if (body.newPassword.length < 8) {
-      return NextResponse.json({ error: "New password must be at least 8 characters" }, { status: 400 });
-    }
-    updates.passwordHash = await hashPassword(body.newPassword);
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unauthorized";
+    return NextResponse.json({ error: msg }, { status: 401 });
   }
-
-  updates.updatedAt = new Date();
-
-  const [updated] = await db.update(customers).set(updates)
-    .where(eq(customers.id, customer.id)).returning();
-
-  return NextResponse.json({
-    ok: true,
-    customer: { id: updated.id, name: updated.name, email: updated.email, phone: updated.phone },
-  });
 }
