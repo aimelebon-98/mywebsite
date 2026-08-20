@@ -49,7 +49,6 @@ export function sanitizeContent(html: string): string {
   return sanitizeHtmlLib(html, PRODUCT_HTML_OPTIONS);
 }
 
-// Export alias for BlogPostContent and other components
 export function sanitizeHtml(html: string): string {
   return sanitizeContent(html);
 }
@@ -84,7 +83,7 @@ export function validateLength(
   fieldName: string
 ): string | null {
   if (value && value.length > maxLength) {
-    return `${fieldName} exceeds maximum length of ${maxLength} characters`;
+    return fieldName + " exceeds maximum length of " + maxLength + " characters";
   }
   return null;
 }
