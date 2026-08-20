@@ -1132,7 +1132,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                 <Check className="w-6 h-6 text-green-600" />
               </div>
               <div className="flex-1">
-                <h4 className="font-bold text-green-900 text-lg">{isFr ? "Merci pour votre avis !" : "Thank you for your review!"}</h4>
+                <h4 className="font-bold text-green-900 text-lg">{isFr ? "Merci ! Votre avis a été soumis et est en attente de modération." : "Thank you! Your review has been submitted and is awaiting admin moderation."}</h4>
                 <p className="text-green-700 text-sm mt-1">{isFr ? "Votre avis a ete soumis avec succes." : "Your review has been submitted successfully."}</p>
               </div>
               <button onClick={() => setReviewSuccess(false)} className="text-green-500 hover:text-green-700 transition flex-shrink-0 mt-1">

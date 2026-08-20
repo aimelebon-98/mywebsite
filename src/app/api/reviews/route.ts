@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { reviews, products } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -26,7 +26,7 @@ function cleanText(str: string): string {
 
 const createReviewSchema = z.object({
   productId: z.string().min(1, "Product ID is required"),
-  customerName: z.string().trim().min(2, "Name required").max(100),
+  customerName: z.string().trim().min(1, "Name required").max(100),
   rating: z.coerce.number().int().min(1).max(5),
   comment: z.string().trim().max(2000).optional().default(""),
   commentFr: z.string().trim().max(2000).optional().default(""),
@@ -39,8 +39,9 @@ export async function GET(req: NextRequest) {
     if (!productId) {
       return NextResponse.json({ error: "Product ID required" }, { status: 400 });
     }
+    // Only fetch APPROVED reviews for public product display
     const rows = await db.select().from(reviews)
-      .where(eq(reviews.productId, productId))
+      .where(and(eq(reviews.productId, productId), eq(reviews.approved, true)))
       .orderBy(desc(reviews.createdAt));
     return NextResponse.json(rows);
   } catch (error) {
@@ -55,12 +56,12 @@ export async function POST(req: NextRequest) {
     try {
       body = await req.json();
     } catch {
-      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid JSON format" }, { status: 400 });
     }
 
     const parsed = createReviewSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.issues[0]?.message || "Invalid review data" }, { status: 400 });
+      return NextResponse.json({ error: parsed.error.issues[0]?.message || "Invalid input" }, { status: 400 });
     }
 
     const { productId, customerName, rating, comment, commentFr } = parsed.data;
@@ -76,6 +77,7 @@ export async function POST(req: NextRequest) {
     const sanitizedCommentFr = cleanText(rawCommentFr || rawComment);
     const avatar = getInitials(customerName);
 
+    // Requires admin approval before appearing publicly
     const [newReview] = await db.insert(reviews).values({
       productId,
       customerName: sanitizedName,
@@ -84,27 +86,17 @@ export async function POST(req: NextRequest) {
       commentFr: sanitizedCommentFr || "Avis Vérifié",
       avatar,
       verified: false,
+      approved: false,
     }).returning();
 
-    // Recalculate avg rating & count
-    try {
-      const all = await db.select({ rating: reviews.rating }).from(reviews).where(eq(reviews.productId, productId));
-      if (all.length > 0) {
-        const sum = all.reduce((acc, r) => acc + r.rating, 0);
-        const avg = (sum / all.length).toFixed(1);
-        await db.update(products).set({
-          rating: avg,
-          reviewCount: all.length,
-        }).where(eq(products.id, productId));
-      }
-    } catch (calcErr) {
-      console.warn("[Reviews] recalc skipped:", calcErr);
-    }
-
-    return NextResponse.json({ success: true, review: newReview }, { status: 201 });
+    return NextResponse.json({
+      success: true,
+      message: "Review submitted successfully! It will appear once approved by admin.",
+      review: newReview,
+    }, { status: 201 });
   } catch (error) {
-    console.error("[Reviews POST Error]", error);
-    const errMsg = error instanceof Error ? error.message : "Internal Server Error";
-    return NextResponse.json({ error: errMsg }, { status: 500 });
+    console.error("[Reviews POST]", error);
+    const msg = error instanceof Error ? error.message : "Failed to submit review";
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

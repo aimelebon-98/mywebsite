@@ -71,6 +71,7 @@ export const reviews = pgTable("reviews", {
   commentFr: text("comment_fr"),
   avatar: text("avatar").notNull().default(""),
   verified: boolean("verified").notNull().default(true),
+  approved: boolean("approved").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
