@@ -73,15 +73,22 @@ export default function TicketsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ subject, category, message }),
       });
-      const data = await res.json();
-      if (!res.ok) setError(data.error || "Error");
-      else {
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data?.error || (isFr ? "Erreur lors de la création du ticket." : "Failed to create ticket."));
+      } else {
         setShowForm(false);
-        setSubject(""); setMessage(""); setCategory("order");
+        setSubject("");
+        setMessage("");
+        setCategory("order");
         await load();
       }
-    } catch { setError("Network error"); }
-    setSubmitting(false);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(msg || (isFr ? "Erreur réseau." : "Network error."));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const statusLabel = (st: string) => {
