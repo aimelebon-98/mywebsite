@@ -53,8 +53,10 @@ function isApiRequestAllowed(request: NextRequest): boolean {
   const { pathname } = request.nextUrl;
   const headers = request.headers;
 
+  // Admin routes handle their own auth via requireAdmin()
   if (pathname.startsWith(ADMIN_API_PREFIX)) {
-    if (pathname === "/api/admin/login") return true;
+    // Unauthenticated admin auth/login endpoints must be accessible
+    if (pathname === "/api/admin/login" || pathname === "/api/admin/auth") return true;
     const adminSession = request.cookies.get("admin_session")?.value;
     if (!adminSession) return false;
     return true;
