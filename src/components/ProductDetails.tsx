@@ -10,7 +10,7 @@ import { trackEvent } from "@/components/AnalyticsTracker";
 import ProductFaqDisplay from "@/components/ProductFaqDisplay";
 import { trackViewContent as fbTrackViewContent } from "@/lib/fbpixel";
 
-import { useState, useEffect, useRef } from "react";
+import { useMemo,  useState, useEffect, useRef  } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart-context";
 import { useWishlist } from "@/lib/wishlist-context";
@@ -50,6 +50,17 @@ function getAvatarColor(name: string) {
 }
 
 export default function ProductDetails({ product, initialReviews = [], relatedProducts = [], locale: propLocale }: ProductDetailsProps) {
+
+  // Stable deterministic counters (prevent quantity change re-renders from altering counts)
+  const productSeed = useMemo(() => {
+    const str = String(product?.id || product?.slug || "ndz-item");
+    let h = 0;
+    for (let i = 0; i < str.length; i++) h += str.charCodeAt(i);
+    return h;
+  }, [product?.id, product?.slug]);
+
+  const recentBuyersCount = useMemo(() => 12 + (productSeed % 11), [productSeed]);
+  const currentlyViewingCount = useMemo(() => 24 + (productSeed % 37), [productSeed]);
   const { customer } = useCustomer();
 
   // Meta Pixel: fire ViewContent when product page loads
@@ -476,7 +487,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                   })}
                 </div>
                 <div className="text-xs text-gray-700 flex-1">
-                  <span className="font-bold" style={{ color: "#CA3F2E" }}>{Math.floor(Math.random() * 15 + 5)} {isFr ? "personnes" : "people"}</span> {isFr ? "ont achete ceci ces dernieres 24h" : "bought this in the last 24 hours"}
+                  <span className="font-bold" style={{ color: "#CA3F2E" }}>{recentBuyersCount} {isFr ? "personnes" : "people"}</span> {isFr ? "ont achete ceci ces dernieres 24h" : "bought this in the last 24 hours"}
                 </div>
               </div>
 
@@ -770,7 +781,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                 {product.sku && <span className="text-gray-400">SKU: {product.sku}</span>}
                 <span className="text-gray-300">|</span>
                 <span className="flex items-center gap-1 text-gray-400">
-                  <Eye className="w-3.5 h-3.5" /> {Math.floor(Math.random() * 50 + 20)} {t("viewing")}
+                  <Eye className="w-3.5 h-3.5" /> {currentlyViewingCount} {t("viewing")}
                 </span>
               </div>
             </div>
@@ -860,7 +871,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                           // Simulate realistic sales count based on product age + rating
                           const base = 50;
                           const boost = Math.floor((product.reviewCount || 0) * 8);
-                          const total = base + boost + Math.floor(Math.random() * 30);
+                          const total = base + boost + ((productSeed * 7) % 25);
                           return total.toLocaleString();
                         })()}
                       </span>
