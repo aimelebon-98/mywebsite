@@ -97,3 +97,29 @@ export async function PATCH(
     );
   }
 }
+
+export async function DELETE(
+  request: Request,
+  props: { params: Promise<{ id: string }> }
+) {
+  try {
+    await requireAdmin();
+    const { id } = await props.params;
+
+    if (!id) {
+      return NextResponse.json({ error: "Ticket ID is required" }, { status: 400 });
+    }
+
+    await db
+      .delete(supportTickets)
+      .where(eq(supportTickets.id, id));
+
+    return NextResponse.json({ success: true, message: "Ticket deleted successfully" });
+  } catch (error: any) {
+    console.error("Error deleting support ticket:", error);
+    return NextResponse.json(
+      { error: "Failed to delete ticket", message: error?.message },
+      { status: 500 }
+    );
+  }
+}
