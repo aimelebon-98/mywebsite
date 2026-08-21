@@ -49,55 +49,68 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
   try {
     await ensureTables();
-    const { id } = await params;
+    const resolvedParams = await params;
+    const id = resolvedParams?.id;
 
-    if (!id || id === "undefined") {
+    if (!id || id === "undefined" || id === "null") {
       return NextResponse.json({ error: "Invalid ticket ID" }, { status: 400 });
     }
 
-    // Attempt Drizzle select with Left Join
     let ticketRow: any = null;
-    try {
-      const rows = await db
-        .select({
-          id: supportTickets.id,
-          customerId: supportTickets.customerId,
-          subject: supportTickets.subject,
-          category: supportTickets.category,
-          status: supportTickets.status,
-          priority: supportTickets.priority,
-          lastMessageAt: supportTickets.lastMessageAt,
-          unreadByAdmin: supportTickets.unreadByAdmin,
-          createdAt: supportTickets.createdAt,
-          customerName: customers.name,
-          customerEmail: customers.email,
-          customerPhone: customers.phone,
-        })
-        .from(supportTickets)
-        .leftJoin(customers, eq(supportTickets.customerId, customers.id))
-        .where(eq(supportTickets.id, id))
-        .limit(1);
 
-      ticketRow = rows[0];
-    } catch (dbErr) {
-      console.warn("[Admin Ticket GET LeftJoin failed, trying raw query]", dbErr);
-      // Fallback: direct SQL query
+    // Direct safe SQL query using text conversion (prevents PostgreSQL uuid cast crash)
+    try {
       const rawRes = await db.execute(sql`
-        SELECT 
-          t.id, t.customer_id as "customerId", t.subject, t.category, t.status, 
-          COALESCE(t.priority, 'normal') as priority, 
-          COALESCE(t.last_message_at, t.created_at) as "lastMessageAt", 
-          COALESCE(t.unread_by_admin, false) as "unreadByAdmin", 
+        SELECT
+          t.id,
+          t.customer_id as "customerId",
+          t.subject,
+          t.category,
+          t.status,
+          COALESCE(t.priority, 'normal') as priority,
+          COALESCE(t.last_message_at, t.created_at) as "lastMessageAt",
+          COALESCE(t.unread_by_admin, false) as "unreadByAdmin",
           t.created_at as "createdAt",
-          c.name as "customerName", c.email as "customerEmail", c.phone as "customerPhone"
+          c.name as "customerName",
+          c.email as "customerEmail",
+          c.phone as "customerPhone"
         FROM support_tickets t
         LEFT JOIN customers c ON t.customer_id = c.id
-        WHERE t.id = ${id}::uuid OR t.id::text = ${id}
+        WHERE t.id::text = ${id}
         LIMIT 1
       `);
       const rows = (rawRes as any).rows || rawRes;
-      if (rows && rows.length > 0) {
+      if (Array.isArray(rows) && rows.length > 0) {
         ticketRow = rows[0];
+      }
+    } catch (sqlErr) {
+      console.warn("[Admin Ticket GET raw query failed, trying Drizzle]", sqlErr);
+      try {
+        const rows = await db
+          .select({
+            id: supportTickets.id,
+            customerId: supportTickets.customerId,
+            subject: supportTickets.subject,
+            category: supportTickets.category,
+            status: supportTickets.status,
+            priority: supportTickets.priority,
+            lastMessageAt: supportTickets.lastMessageAt,
+            unreadByAdmin: supportTickets.unreadByAdmin,
+            createdAt: supportTickets.createdAt,
+            customerName: customers.name,
+            customerEmail: customers.email,
+            customerPhone: customers.phone,
+          })
+          .from(supportTickets)
+          .leftJoin(customers, eq(supportTickets.customerId, customers.id))
+          .where(eq(supportTickets.id, id))
+          .limit(1);
+
+        if (rows.length > 0) {
+          ticketRow = rows[0];
+        }
+      } catch (drizzleErr) {
+        console.error("[Admin Ticket GET Drizzle fallback failed]", drizzleErr);
       }
     }
 
@@ -108,9 +121,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     // Mark as read for admin safely
     try {
       await db.execute(sql`
-        UPDATE support_tickets 
-        SET unread_by_admin = false 
-        WHERE id = ${id}::uuid OR id::text = ${id}
+        UPDATE support_tickets
+        SET unread_by_admin = false
+        WHERE id::text = ${id}
       `);
     } catch (uErr) {
       console.error("[Admin Ticket mark read error]", uErr);
@@ -126,29 +139,36 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     }> = [];
 
     try {
-      const msgRows = await db
-        .select({
-          id: supportMessages.id,
-          senderType: supportMessages.senderType,
-          senderName: supportMessages.senderName,
-          message: supportMessages.message,
-          createdAt: supportMessages.createdAt,
-        })
-        .from(supportMessages)
-        .where(eq(supportMessages.ticketId, id))
-        .orderBy(asc(supportMessages.createdAt));
-
-      messages = msgRows;
+      const rawMsgs = await db.execute(sql`
+        SELECT
+          id,
+          sender_type as "senderType",
+          sender_name as "senderName",
+          message,
+          created_at as "createdAt"
+        FROM support_messages
+        WHERE ticket_id::text = ${id}
+        ORDER BY created_at ASC
+      `);
+      const rows = (rawMsgs as any).rows || rawMsgs;
+      if (Array.isArray(rows)) {
+        messages = rows as any[];
+      }
     } catch {
-      // Fallback direct SQL for messages
       try {
-        const rawMsgs = await db.execute(sql`
-          SELECT id, sender_type as "senderType", sender_name as "senderName", message, created_at as "createdAt"
-          FROM support_messages
-          WHERE ticket_id = ${id}::uuid OR ticket_id::text = ${id}
-          ORDER BY created_at ASC
-        `);
-        messages = ((rawMsgs as any).rows || rawMsgs) as any[];
+        const msgRows = await db
+          .select({
+            id: supportMessages.id,
+            senderType: supportMessages.senderType,
+            senderName: supportMessages.senderName,
+            message: supportMessages.message,
+            createdAt: supportMessages.createdAt,
+          })
+          .from(supportMessages)
+          .where(eq(supportMessages.ticketId, id))
+          .orderBy(asc(supportMessages.createdAt));
+
+        messages = msgRows;
       } catch {
         messages = [];
       }
@@ -173,7 +193,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   try {
     await ensureTables();
-    const { id } = await params;
+    const resolvedParams = await params;
+    const id = resolvedParams?.id;
     const body = await req.json();
     const message = stripHtml(String(body.message || "")).trim().slice(0, 5000);
     if (!message) {
@@ -191,7 +212,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           unread_by_admin = false,
           unread_by_customer = true,
           status = CASE WHEN status = 'open' THEN 'in_progress' ELSE status END
-      WHERE id = ${id}::uuid OR id::text = ${id}
+      WHERE id::text = ${id}
     `);
 
     return NextResponse.json({ success: true });
@@ -207,15 +228,16 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
   try {
     await ensureTables();
-    const { id } = await params;
+    const resolvedParams = await params;
+    const id = resolvedParams?.id;
     const body = await req.json();
 
     if (typeof body.status === "string") {
-      await db.execute(sql`UPDATE support_tickets SET status = ${body.status} WHERE id = ${id}::uuid OR id::text = ${id}`);
+      await db.execute(sql`UPDATE support_tickets SET status = ${body.status} WHERE id::text = ${id}`);
     }
 
     if (typeof body.priority === "string") {
-      await db.execute(sql`UPDATE support_tickets SET priority = ${body.priority} WHERE id = ${id}::uuid OR id::text = ${id}`);
+      await db.execute(sql`UPDATE support_tickets SET priority = ${body.priority} WHERE id::text = ${id}`);
     }
 
     return NextResponse.json({ success: true });
@@ -235,11 +257,12 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
 
   try {
     await ensureTables();
-    const { id } = await params;
+    const resolvedParams = await params;
+    const id = resolvedParams?.id;
     try {
-      await db.execute(sql`DELETE FROM support_messages WHERE ticket_id = ${id}::uuid OR ticket_id::text = ${id}`);
+      await db.execute(sql`DELETE FROM support_messages WHERE ticket_id::text = ${id}`);
     } catch { /* ignore */ }
-    await db.execute(sql`DELETE FROM support_tickets WHERE id = ${id}::uuid OR id::text = ${id}`);
+    await db.execute(sql`DELETE FROM support_tickets WHERE id::text = ${id}`);
     return NextResponse.json({ success: true });
   } catch (error: any) {
     return NextResponse.json({ error: error?.message || "Failed to delete ticket" }, { status: 500 });
