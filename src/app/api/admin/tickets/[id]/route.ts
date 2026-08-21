@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { supportTickets, supportMessages, customers } from "@/db/schema";
-import { eq, asc, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { requireAdmin } from "@/lib/admin-auth";
 import { stripHtml } from "@/lib/sanitize";
 
@@ -19,65 +18,99 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: "Invalid ticket ID" }, { status: 400 });
     }
 
-    // Ensure columns exist without throwing
+    // Ensure table & columns exist safely
     try {
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS support_tickets (
+          id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+          customer_id uuid NOT NULL,
+          subject text NOT NULL,
+          category text NOT NULL DEFAULT 'general',
+          status text NOT NULL DEFAULT 'open',
+          priority text NOT NULL DEFAULT 'normal',
+          last_message_at timestamp DEFAULT now() NOT NULL,
+          unread_by_admin boolean NOT NULL DEFAULT true,
+          unread_by_customer boolean NOT NULL DEFAULT false,
+          created_at timestamp DEFAULT now() NOT NULL,
+          updated_at timestamp DEFAULT now() NOT NULL
+        );
+      `);
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS support_messages (
+          id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+          ticket_id uuid NOT NULL,
+          sender_type text NOT NULL DEFAULT 'customer',
+          sender_name text NOT NULL DEFAULT '',
+          message text NOT NULL,
+          created_at timestamp DEFAULT now() NOT NULL
+        );
+      `);
       await db.execute(sql`ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS unread_by_admin boolean NOT NULL DEFAULT true`);
       await db.execute(sql`ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS priority text NOT NULL DEFAULT 'normal'`);
       await db.execute(sql`ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS last_message_at timestamp DEFAULT now()`);
-    } catch { /* ignore migration errors */ }
+    } catch { /* ignore migration warnings */ }
 
-    // Fetch ticket details with customer info
-    const ticketRows = await db
-      .select({
-        id: supportTickets.id,
-        customerId: supportTickets.customerId,
-        subject: supportTickets.subject,
-        category: supportTickets.category,
-        status: supportTickets.status,
-        priority: supportTickets.priority,
-        lastMessageAt: supportTickets.lastMessageAt,
-        unreadByAdmin: supportTickets.unreadByAdmin,
-        createdAt: supportTickets.createdAt,
-        customerName: customers.name,
-        customerEmail: customers.email,
-        customerPhone: customers.phone,
-      })
-      .from(supportTickets)
-      .leftJoin(customers, eq(supportTickets.customerId, customers.id))
-      .where(eq(sql`${supportTickets.id}::text`, id))
-      .limit(1);
+    // Fetch ticket details with customer JOIN via raw SQL
+    let ticket: any = null;
+    try {
+      const rawRes = await db.execute(sql`
+        SELECT
+          t.id::text as id,
+          t.customer_id::text as "customerId",
+          t.subject,
+          t.category,
+          t.status,
+          COALESCE(t.priority, 'normal') as priority,
+          COALESCE(t.last_message_at, t.created_at) as "lastMessageAt",
+          COALESCE(t.unread_by_admin, false) as "unreadByAdmin",
+          t.created_at as "createdAt",
+          COALESCE(c.name, 'Customer') as "customerName",
+          COALESCE(c.email, '') as "customerEmail",
+          COALESCE(c.phone, '') as "customerPhone"
+        FROM support_tickets t
+        LEFT JOIN customers c ON t.customer_id = c.id
+        WHERE t.id::text = ${id}
+        LIMIT 1
+      `);
 
-    if (!ticketRows || ticketRows.length === 0) {
+      const rows = (rawRes as any).rows || (Array.isArray(rawRes) ? rawRes : []);
+      if (rows.length > 0) {
+        ticket = rows[0];
+      }
+    } catch (err: any) {
+      console.error("[Admin Ticket GET raw query error]", err);
+      return NextResponse.json({ error: "Database query error: " + (err?.message || String(err)) }, { status: 500 });
+    }
+
+    if (!ticket) {
       return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
     }
 
-    const ticket = ticketRows[0];
-
-    // Mark ticket as read by admin
+    // Mark as read by admin
     try {
-      await db
-        .update(supportTickets)
-        .set({ unreadByAdmin: false })
-        .where(eq(sql`${supportTickets.id}::text`, id));
-    } catch (uErr) {
-      console.error("[Admin Ticket mark read error]", uErr);
-    }
+      await db.execute(sql`
+        UPDATE support_tickets
+        SET unread_by_admin = false
+        WHERE id::text = ${id}
+      `);
+    } catch { /* non-critical */ }
 
     // Fetch conversation messages
     let messages: any[] = [];
     try {
-      messages = await db
-        .select({
-          id: supportMessages.id,
-          senderType: supportMessages.senderType,
-          senderName: supportMessages.senderName,
-          message: supportMessages.message,
-          createdAt: supportMessages.createdAt,
-        })
-        .from(supportMessages)
-        .where(eq(sql`${supportMessages.ticketId}::text`, id))
-        .orderBy(asc(supportMessages.createdAt));
-    } catch (mErr) {
+      const msgsRes = await db.execute(sql`
+        SELECT
+          id::text as id,
+          sender_type as "senderType",
+          sender_name as "senderName",
+          message,
+          created_at as "createdAt"
+        FROM support_messages
+        WHERE ticket_id::text = ${id}
+        ORDER BY created_at ASC
+      `);
+      messages = (msgsRes as any).rows || (Array.isArray(msgsRes) ? msgsRes : []);
+    } catch (mErr: any) {
       console.error("[Admin Ticket messages fetch error]", mErr);
       messages = [];
     }
