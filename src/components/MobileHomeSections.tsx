@@ -37,7 +37,7 @@ interface Props {
 const CAT_TINTS: Record<string, string> = {
   sneakers: "bg-blue-50",
   running:  "bg-emerald-50",
-  formal:   "bg-amber-50",
+  formal: "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?q=80&w=800&auto=format&fit=crop",
   boots:    "bg-orange-50",
   sandals:  "bg-cyan-50",
   casual:   "bg-purple-50",

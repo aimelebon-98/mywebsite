@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.newdealzone.com";
 
 const CATEGORY_GPC: Record<string, string> = {
-  sneakers: "187", running: "187", formal: "187",
+  sneakers: "187", running: "187", formal: "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?q=80&w=800&auto=format&fit=crop",
   boots: "187", sandals: "187", casual: "187",
 };
 
