@@ -1,19 +1,19 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { supportTickets, supportMessages } from "@/db/schema";
-import { eq, asc } from "drizzle-orm";
+import { supportTickets } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { requireAdmin } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireAdmin();
+    const { id } = await props.params;
 
-    const { id } = params;
     if (!id) {
       return NextResponse.json({ error: "Ticket ID is required" }, { status: 400 });
     }
@@ -28,27 +28,37 @@ export async function GET(
       return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
     }
 
-    const ticket = ticketList[0];
+    const ticket = ticketList[0] as any;
+    const messages: any[] = [];
 
-    let messages: any[] = [];
-    try {
-      messages = await db
-        .select()
-        .from(supportMessages)
-        .where(eq(supportMessages.ticketId, id))
-        .orderBy(asc(supportMessages.createdAt));
-    } catch (msgErr) {
-      console.error("Failed to fetch ticket messages:", msgErr);
-      messages = [];
+    if (ticket.message) {
+      messages.push({
+        id: "msg-cust",
+        senderType: "customer",
+        senderName: ticket.customerName || "Customer",
+        message: ticket.message,
+        createdAt: ticket.createdAt,
+      });
+    }
+
+    const adminReplyText = ticket.reply || ticket.response || ticket.adminResponse || ticket.adminNote;
+    if (adminReplyText) {
+      messages.push({
+        id: "msg-admin",
+        senderType: "admin",
+        senderName: "Support Team",
+        message: adminReplyText,
+        createdAt: ticket.updatedAt || ticket.createdAt,
+      });
     }
 
     return NextResponse.json({
       success: true,
       ticket: {
         ...ticket,
-        messages: messages || [],
+        messages,
       },
-      messages: messages || [],
+      messages,
     });
   } catch (error: any) {
     console.error("Error fetching admin support ticket details:", error);
@@ -61,19 +71,17 @@ export async function GET(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireAdmin();
-
-    const { id } = params;
+    const { id } = await props.params;
     const body = await request.json();
-    const { status, priority, adminNote } = body;
+    const { status, priority } = body;
 
     const updates: Record<string, any> = { updatedAt: new Date() };
     if (status) updates.status = status;
     if (priority) updates.priority = priority;
-    if (adminNote !== undefined) updates.adminNote = adminNote;
 
     await db
       .update(supportTickets)
