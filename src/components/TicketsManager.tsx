@@ -90,7 +90,7 @@ export default function TicketsManager() {
         setDetail(data);
       } else {
         const errData = await res.json().catch(() => ({}));
-        setDetailError(errData.error || "Failed to load ticket details");
+        setDetailError(errData.error || `Error (${res.status}): Failed to load ticket details`);
       }
     } catch (e: any) {
       setDetailError(e?.message || "Error connecting to server");

@@ -28,7 +28,7 @@ async function ensureTables() {
       CREATE TABLE IF NOT EXISTS support_messages (
         id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
         ticket_id uuid NOT NULL,
-        sender_type text NOT NULL,
+        sender_type text NOT NULL DEFAULT 'customer',
         sender_name text NOT NULL DEFAULT '',
         message text NOT NULL,
         created_at timestamp DEFAULT now() NOT NULL
@@ -56,61 +56,64 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: "Invalid ticket ID" }, { status: 400 });
     }
 
+    // 1. Fetch ticket details safely with Drizzle query
     let ticketRow: any = null;
-
-    // Direct safe SQL query using text conversion (prevents PostgreSQL uuid cast crash)
     try {
-      const rawRes = await db.execute(sql`
-        SELECT
-          t.id,
-          t.customer_id as "customerId",
-          t.subject,
-          t.category,
-          t.status,
-          COALESCE(t.priority, 'normal') as priority,
-          COALESCE(t.last_message_at, t.created_at) as "lastMessageAt",
-          COALESCE(t.unread_by_admin, false) as "unreadByAdmin",
-          t.created_at as "createdAt",
-          c.name as "customerName",
-          c.email as "customerEmail",
-          c.phone as "customerPhone"
-        FROM support_tickets t
-        LEFT JOIN customers c ON t.customer_id = c.id
-        WHERE t.id::text = ${id}
-        LIMIT 1
-      `);
-      const rows = (rawRes as any).rows || rawRes;
-      if (Array.isArray(rows) && rows.length > 0) {
+      const rows = await db
+        .select({
+          id: supportTickets.id,
+          customerId: supportTickets.customerId,
+          subject: supportTickets.subject,
+          category: supportTickets.category,
+          status: supportTickets.status,
+          priority: supportTickets.priority,
+          lastMessageAt: supportTickets.lastMessageAt,
+          unreadByAdmin: supportTickets.unreadByAdmin,
+          createdAt: supportTickets.createdAt,
+          customerName: customers.name,
+          customerEmail: customers.email,
+          customerPhone: customers.phone,
+        })
+        .from(supportTickets)
+        .leftJoin(customers, eq(supportTickets.customerId, customers.id))
+        .where(sql`${supportTickets.id}::text = ${id}`)
+        .limit(1);
+
+      if (rows.length > 0) {
         ticketRow = rows[0];
       }
-    } catch (sqlErr) {
-      console.warn("[Admin Ticket GET raw query failed, trying Drizzle]", sqlErr);
-      try {
-        const rows = await db
-          .select({
-            id: supportTickets.id,
-            customerId: supportTickets.customerId,
-            subject: supportTickets.subject,
-            category: supportTickets.category,
-            status: supportTickets.status,
-            priority: supportTickets.priority,
-            lastMessageAt: supportTickets.lastMessageAt,
-            unreadByAdmin: supportTickets.unreadByAdmin,
-            createdAt: supportTickets.createdAt,
-            customerName: customers.name,
-            customerEmail: customers.email,
-            customerPhone: customers.phone,
-          })
-          .from(supportTickets)
-          .leftJoin(customers, eq(supportTickets.customerId, customers.id))
-          .where(eq(supportTickets.id, id))
-          .limit(1);
+    } catch (err) {
+      console.error("[Admin Ticket GET fetch error]", err);
+    }
 
-        if (rows.length > 0) {
-          ticketRow = rows[0];
+    // Direct SQL fallback if Drizzle query didn't yield
+    if (!ticketRow) {
+      try {
+        const rawRes = await db.execute(sql`
+          SELECT
+            t.id,
+            t.customer_id as "customerId",
+            t.subject,
+            t.category,
+            t.status,
+            COALESCE(t.priority, 'normal') as priority,
+            COALESCE(t.last_message_at, t.created_at) as "lastMessageAt",
+            COALESCE(t.unread_by_admin, false) as "unreadByAdmin",
+            t.created_at as "createdAt",
+            c.name as "customerName",
+            c.email as "customerEmail",
+            c.phone as "customerPhone"
+          FROM support_tickets t
+          LEFT JOIN customers c ON t.customer_id = c.id
+          WHERE t.id::text = ${id}
+          LIMIT 1
+        `);
+        const rawRows = (rawRes as any).rows || (Array.isArray(rawRes) ? rawRes : []);
+        if (rawRows.length > 0) {
+          ticketRow = rawRows[0];
         }
-      } catch (drizzleErr) {
-        console.error("[Admin Ticket GET Drizzle fallback failed]", drizzleErr);
+      } catch (rawErr) {
+        console.error("[Admin Ticket GET raw query fallback error]", rawErr);
       }
     }
 
@@ -118,7 +121,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
     }
 
-    // Mark as read for admin safely
+    // Mark as read by admin
     try {
       await db.execute(sql`
         UPDATE support_tickets
@@ -129,46 +132,36 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       console.error("[Admin Ticket mark read error]", uErr);
     }
 
-    // Fetch messages safely
-    let messages: Array<{
-      id: string;
-      senderType: string;
-      senderName: string;
-      message: string;
-      createdAt: Date | string;
-    }> = [];
-
+    // Fetch conversation messages safely
+    let messages: any[] = [];
     try {
-      const rawMsgs = await db.execute(sql`
-        SELECT
-          id,
-          sender_type as "senderType",
-          sender_name as "senderName",
-          message,
-          created_at as "createdAt"
-        FROM support_messages
-        WHERE ticket_id::text = ${id}
-        ORDER BY created_at ASC
-      `);
-      const rows = (rawMsgs as any).rows || rawMsgs;
-      if (Array.isArray(rows)) {
-        messages = rows as any[];
-      }
+      const msgRows = await db
+        .select({
+          id: supportMessages.id,
+          senderType: supportMessages.senderType,
+          senderName: supportMessages.senderName,
+          message: supportMessages.message,
+          createdAt: supportMessages.createdAt,
+        })
+        .from(supportMessages)
+        .where(sql`${supportMessages.ticketId}::text = ${id}`)
+        .orderBy(asc(supportMessages.createdAt));
+
+      messages = msgRows;
     } catch {
       try {
-        const msgRows = await db
-          .select({
-            id: supportMessages.id,
-            senderType: supportMessages.senderType,
-            senderName: supportMessages.senderName,
-            message: supportMessages.message,
-            createdAt: supportMessages.createdAt,
-          })
-          .from(supportMessages)
-          .where(eq(supportMessages.ticketId, id))
-          .orderBy(asc(supportMessages.createdAt));
-
-        messages = msgRows;
+        const rawMsgs = await db.execute(sql`
+          SELECT
+            id,
+            sender_type as "senderType",
+            sender_name as "senderName",
+            message,
+            created_at as "createdAt"
+          FROM support_messages
+          WHERE ticket_id::text = ${id}
+          ORDER BY created_at ASC
+        `);
+        messages = (rawMsgs as any).rows || (Array.isArray(rawMsgs) ? rawMsgs : []);
       } catch {
         messages = [];
       }
