@@ -1,40 +1,83 @@
-﻿import { db } from "@/db";
+﻿import { NextResponse } from "next/server";
+import { db } from "@/db";
 import { sql } from "drizzle-orm";
+import { Client } from "pg";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   const dbUrl = process.env.DATABASE_URL || "";
   let maskedUrl = "NOT SET";
+  let host = "";
+  let database = "";
+  let user = "";
+  
   if (dbUrl) {
     try {
       const u = new URL(dbUrl);
-      maskedUrl = `${u.protocol}//${u.username}:***@${u.host}${u.pathname}`;
+      host = u.host;
+      database = u.pathname.replace(/^\//, "");
+      user = u.username;
+      maskedUrl = `${u.protocol}//${u.username}:***@${u.host}/${database}`;
     } catch {
-      maskedUrl = "INVALID URL FORMAT (length " + dbUrl.length + ")";
+      maskedUrl = "INVALID URL FORMAT";
     }
   }
 
-  const diagnostics: Record<string, any> = {
+  const result: Record<string, any> = {
     timestamp: new Date().toISOString(),
-    nodeEnv: process.env.NODE_ENV,
-    hasDatabaseUrl: Boolean(process.env.DATABASE_URL),
     databaseUrlMasked: maskedUrl,
+    host,
+    database,
+    user,
   };
 
+  // Test 1: Drizzle Query
   try {
-    const startTime = Date.now();
-    const result = await db.execute(sql`SELECT current_database(), current_user, version()`);
-    diagnostics.ok = true;
-    diagnostics.latencyMs = Date.now() - startTime;
-    diagnostics.dbInfo = result.rows ? result.rows[0] : result;
-    return Response.json(diagnostics, { status: 200 });
-  } catch (error: any) {
-    diagnostics.ok = false;
-    diagnostics.error = error?.message || String(error);
-    diagnostics.code = error?.code;
-    diagnostics.routine = error?.routine;
-    diagnostics.detail = error?.detail;
-    return Response.json(diagnostics, { status: 200 });
+    const drizzleRes = await db.execute(sql`SELECT current_database(), current_user, version()`);
+    result.drizzle = {
+      ok: true,
+      data: drizzleRes.rows ? drizzleRes.rows[0] : drizzleRes,
+    };
+  } catch (err: any) {
+    result.drizzle = {
+      ok: false,
+      message: err?.message,
+      causeMessage: err?.cause?.message,
+      causeCode: err?.cause?.code,
+      causeDetail: err?.cause?.detail,
+      code: err?.code,
+    };
   }
+
+  // Test 2: Direct pg.Client connection test with SSL
+  if (dbUrl) {
+    const client = new Client({
+      connectionString: dbUrl,
+      ssl: { rejectUnauthorized: false },
+      connectionTimeoutMillis: 8000,
+    });
+
+    try {
+      await client.connect();
+      const rawRes = await client.query("SELECT 1 as connected, current_database() as db_name");
+      result.directPgClient = {
+        ok: true,
+        data: rawRes.rows[0],
+      };
+      await client.end();
+    } catch (pgErr: any) {
+      result.directPgClient = {
+        ok: false,
+        message: pgErr?.message,
+        code: pgErr?.code,
+        detail: pgErr?.detail,
+        hint: pgErr?.hint,
+        severity: pgErr?.severity,
+      };
+      try { await client.end(); } catch {}
+    }
+  }
+
+  return NextResponse.json(result, { status: 200 });
 }
