@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
 import { settings, categories, authors } from "@/db/schema";
@@ -171,17 +171,27 @@ export async function POST(req: NextRequest) {
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       name text NOT NULL,
       slug text NOT NULL UNIQUE,
-      avatar text DEFAULT '',
-      email text DEFAULT '',
-      bio text DEFAULT '',
-      bio_fr text DEFAULT '',
-      role text DEFAULT '',
-      role_fr text DEFAULT '',
-      socials text DEFAULT '{}',
+      avatar text NOT NULL DEFAULT '',
+      email text NOT NULL DEFAULT '',
+      bio text NOT NULL DEFAULT '',
+      bio_fr text,
+      role text NOT NULL DEFAULT '',
+      role_fr text,
+      twitter text NOT NULL DEFAULT '',
+      instagram text NOT NULL DEFAULT '',
+      linkedin text NOT NULL DEFAULT '',
+      website text NOT NULL DEFAULT '',
       active boolean NOT NULL DEFAULT true,
+      sort_order integer NOT NULL DEFAULT 100,
       created_at timestamp NOT NULL DEFAULT now()
     )
   `));
+
+  steps.push(await run("authors_twitter", sql`ALTER TABLE authors ADD COLUMN IF NOT EXISTS twitter text NOT NULL DEFAULT ''`));
+  steps.push(await run("authors_instagram", sql`ALTER TABLE authors ADD COLUMN IF NOT EXISTS instagram text NOT NULL DEFAULT ''`));
+  steps.push(await run("authors_linkedin", sql`ALTER TABLE authors ADD COLUMN IF NOT EXISTS linkedin text NOT NULL DEFAULT ''`));
+  steps.push(await run("authors_website", sql`ALTER TABLE authors ADD COLUMN IF NOT EXISTS website text NOT NULL DEFAULT ''`));
+  steps.push(await run("authors_sort_order", sql`ALTER TABLE authors ADD COLUMN IF NOT EXISTS sort_order integer NOT NULL DEFAULT 100`));
 
   steps.push(await run("blog_posts", sql`
     CREATE TABLE IF NOT EXISTS blog_posts (
