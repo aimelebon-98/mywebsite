@@ -1,4 +1,4 @@
-import { drizzle, NodePgDatabase } from "drizzle-orm/node-postgres";
+﻿import { drizzle, NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 
 const globalForDb = globalThis as typeof globalThis & {
@@ -16,7 +16,14 @@ function getPool(): Pool {
     throw new Error("DATABASE_URL is required");
   }
 
-  const pool = new Pool({ connectionString: databaseUrl });
+  const isLocal = databaseUrl.includes("localhost") || databaseUrl.includes("127.0.0.1");
+
+  const pool = new Pool({
+    connectionString: databaseUrl,
+    ssl: isLocal ? false : { rejectUnauthorized: false },
+    max: 10,
+    connectionTimeoutMillis: 10000,
+  });
 
   if (process.env.NODE_ENV !== "production") {
     globalForDb.__arenaNextJsPostgresqlPool = pool;
