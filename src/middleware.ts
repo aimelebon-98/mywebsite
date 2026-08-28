@@ -10,6 +10,7 @@ const LOCALES = ["en", "fr"];
 // API ACCESS CONTROL
 // ============================================================
 const PUBLIC_API_ROUTES = [
+  "/api/ping",
   "/api/track",
   "/api/newsletter",
   "/api/wishlist",
