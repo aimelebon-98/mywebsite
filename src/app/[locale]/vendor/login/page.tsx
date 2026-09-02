@@ -115,7 +115,17 @@ export default function VendorLoginPage() {
                   onChange={e => setPassword(e.target.value)}
                   className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none"
                 />
-                <button
+                <div className="flex justify-end -mt-1 mb-1">
+              <Link
+                href={`/${locale}/vendor/forgot-password`}
+                className="text-xs font-semibold hover:underline"
+                style={{ color: BRAND_RED }}
+              >
+                {isFr ? "Mot de passe oublié ?" : "Forgot password?"}
+              </Link>
+            </div>
+
+            <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"

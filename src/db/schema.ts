@@ -466,6 +466,8 @@ export const vendors = pgTable("vendors", {
   totalPaidOut: numeric("total_paid_out", { precision: 12, scale: 2 }).notNull().default("0"),
   adminNote: text("admin_note").notNull().default(""),
   mustChangePassword: boolean("must_change_password").notNull().default(true),
+  passwordResetToken: text("password_reset_token"),
+  passwordResetExpires: timestamp("password_reset_expires"),
   approvedAt: timestamp("approved_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

@@ -841,3 +841,73 @@ export async function sendAdminNewVendorApplicationEmail(
     return false;
   }
 }
+
+export async function sendVendorPasswordResetEmail(
+  to: string,
+  name: string,
+  token: string,
+  locale: "en" | "fr" = "en"
+): Promise<boolean> {
+  if (!resend) {
+    console.warn("[Email] RESEND_API_KEY not configured");
+    return false;
+  }
+
+  const isFr = locale === "fr";
+  const loc = isFr ? "fr" : "en";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.newdealzone.com";
+  const resetUrl = `${baseUrl}/${loc}/vendor/reset-password?token=${encodeURIComponent(token)}`;
+
+  const subject = isFr
+    ? "Reinitialiser votre mot de passe vendeur - New Deal Zone"
+    : "Reset your vendor password - New Deal Zone";
+
+  const heading = isFr ? "Reinitialisation du mot de passe" : "Password reset";
+  const greeting = isFr ? `Bonjour ${name},` : `Hi ${name},`;
+  const body = isFr
+    ? "Nous avons recu une demande de reinitialisation du mot de passe de votre compte vendeur New Deal Zone. Cliquez sur le bouton ci-dessous pour en choisir un nouveau. Ce lien expire dans <strong>1 heure</strong>."
+    : "We received a request to reset the password for your New Deal Zone vendor account. Click the button below to choose a new one. This link expires in <strong>1 hour</strong>.";
+  const btn = isFr ? "Reinitialiser mon mot de passe" : "Reset my password";
+  const ignore = isFr
+    ? "Si vous n avez pas fait cette demande, ignorez cet e-mail. Votre mot de passe restera inchange."
+    : "If you did not request this, you can ignore this email. Your password will stay the same.";
+  const expire = isFr
+    ? "Pour votre securite, ce lien expire dans 1 heure."
+    : "For your security, this link expires in 1 hour.";
+
+  const html = `
+  <!DOCTYPE html>
+  <html>
+  <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+  <body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 16px;">
+      <tr><td align="center">
+        <table width="100%" style="max-width:560px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+          ${brandHeader()}
+          <tr><td style="padding:36px 32px;">
+            <h2 style="margin:0 0 8px;font-size:22px;font-weight:800;color:#111827;">${heading}</h2>
+            <p style="margin:0 0 20px;font-size:15px;color:#6b7280;line-height:1.6;">${greeting}</p>
+            <p style="margin:0 0 28px;font-size:15px;color:#374151;line-height:1.7;">${body}</p>
+            <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:8px 0 28px;">
+              <a href="${resetUrl}" style="display:inline-block;background:#CA3F2E;color:#ffffff !important;font-size:15px;font-weight:700;text-decoration:none;padding:14px 36px;border-radius:10px;letter-spacing:0.01em;">
+                ${btn}
+              </a>
+            </td></tr></table>
+            <p style="margin:0 0 8px;font-size:13px;color:#9ca3af;line-height:1.6;">${ignore}</p>
+            <p style="margin:0;font-size:12px;color:#d1d5db;">${expire}</p>
+          </td></tr>
+          ${brandFooter(loc)}
+        </table>
+      </td></tr>
+    </table>
+  </body>
+  </html>`;
+
+  try {
+    await resend.emails.send({ from: FROM, to, subject, html });
+    return true;
+  } catch (err) {
+    console.error("[Email] Vendor password reset send failed:", err);
+    return false;
+  }
+}
