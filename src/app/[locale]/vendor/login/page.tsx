@@ -105,7 +105,16 @@ export default function VendorLoginPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.password}</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-sm font-semibold text-gray-700">{t.password}</label>
+                <Link
+                  href={`/${locale}/vendor/forgot-password`}
+                  className="text-xs font-semibold hover:underline"
+                  style={{ color: BRAND_RED }}
+                >
+                  {isFr ? "Mot de passe oublié ?" : "Forgot password?"}
+                </Link>
+              </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
@@ -115,17 +124,7 @@ export default function VendorLoginPage() {
                   onChange={e => setPassword(e.target.value)}
                   className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none"
                 />
-                <div className="flex justify-end -mt-1 mb-1">
-              <Link
-                href={`/${locale}/vendor/forgot-password`}
-                className="text-xs font-semibold hover:underline"
-                style={{ color: BRAND_RED }}
-              >
-                {isFr ? "Mot de passe oublié ?" : "Forgot password?"}
-              </Link>
-            </div>
-
-            <button
+                <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
