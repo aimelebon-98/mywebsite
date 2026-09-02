@@ -114,6 +114,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
   const [stickyIsFixed, setStickyIsFixed] = useState(false);
   const [stickyCardWidth, setStickyCardWidth] = useState<number | "auto">("auto");
   const [stickyCardHeight, setStickyCardHeight] = useState<number>(0);
+  const [stickyCardLeft, setStickyCardLeft] = useState<number>(0);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -142,6 +143,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
       // Should the card be visible? Only if tabs section end is still below the fixed card position
       const shouldShow = boundaryTop > OFFSET_TOP + cardHeight;
 
+      if (shouldBeFixed && placeholderRect.left > 0) setStickyCardLeft(placeholderRect.left);
       setStickyIsFixed(shouldBeFixed && shouldShow);
       setStickyVisible(shouldShow);
     };
@@ -903,7 +905,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               {/* Placeholder to reserve space in the aside so layout does not jump */}
               <div ref={stickyPlaceholderRef} className="hidden lg:block" style={{ height: stickyIsFixed ? stickyCardHeight : "auto" }}>
               {/* Sticky Add-to-Cart mini card - fixed positioning bounded to end of Description tabs */}
-              <div ref={stickyCardRef} className={`bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-md transition-opacity duration-200 ${stickyIsFixed ? "lg:fixed lg:top-32" : ""}`} style={{ opacity: stickyVisible ? 1 : 0, pointerEvents: stickyVisible ? "auto" : "none", width: stickyIsFixed ? stickyCardWidth : "auto", zIndex: stickyIsFixed ? 30 : "auto" }}>
+              <div ref={stickyCardRef} className={`bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-md transition-opacity duration-200 ${stickyIsFixed ? "lg:fixed lg:top-32" : ""}`} style={{ opacity: stickyVisible ? 1 : 0, pointerEvents: stickyVisible ? "auto" : "none", width: stickyIsFixed ? stickyCardWidth : "auto", left: stickyIsFixed && stickyCardLeft > 0 ? stickyCardLeft : undefined, zIndex: stickyIsFixed ? 30 : "auto" }}>
                 <div className="p-4">
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-14 h-14 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
@@ -1028,7 +1030,8 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
         </div>
       </div>
         {/* TABS */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ndz-tabs-with-sticky-gap">
         <div className="mt-12 bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="border-b border-gray-100 bg-gray-50/50">
             <div className="flex gap-0 overflow-x-auto scrollbar-hide">
@@ -1048,7 +1051,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                 <div className="relative min-w-0 w-full max-w-full">
                   <div
                     className={`overflow-hidden transition-all duration-500 min-w-0 w-full max-w-full space-y-6 ${
-                      showFullDesc || descCollapseLen <= 400 ? "max-h-[10000px]" : "max-h-[320px]"
+                      showFullDesc || descCollapseLen <= 1200 ? "max-h-[10000px]" : "max-h-[600px]"
                     }`}
                   >
                     {descParts.before ? (
@@ -1081,12 +1084,12 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                     ) : null}
                   </div>
 
-                  {!showFullDesc && descCollapseLen > 400 && (
+                  {!showFullDesc && descCollapseLen > 1200 && (
                     <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white via-white/90 to-transparent pointer-events-none" />
                   )}
                 </div>
 
-                {descCollapseLen > 400 && (
+                {descCollapseLen > 1200 && (
                   <button
                     type="button"
                     onClick={() => setShowFullDesc(!showFullDesc)}

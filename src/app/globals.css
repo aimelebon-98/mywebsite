@@ -1165,3 +1165,41 @@ html, body {
   width: 35%;
   color: #111827;
 }
+
+/* Reserve space on desktop so sticky buy-box never overlaps Description tab text */
+@media (min-width: 1024px) {
+  .ndz-tabs-with-sticky-gap {
+    padding-right: 340px !important;
+    box-sizing: border-box;
+  }
+}
+
+.product-long-desc {
+  color: #374151;
+  font-size: 0.95rem;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.product-long-desc h3,
+.product-long-desc h2 {
+  color: #111827;
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.product-long-desc ul {
+  list-style-type: disc !important;
+  padding-left: 1.25rem !important;
+  margin-top: 0.5rem !important;
+  margin-bottom: 1rem !important;
+}
+
+.product-long-desc li {
+  display: list-item !important;
+  margin-bottom: 0.35rem !important;
+}
