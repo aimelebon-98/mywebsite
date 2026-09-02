@@ -113,7 +113,7 @@ export default function TicketDetailPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-3 mb-4">
+                  <div className="space-y-3 mb-4 max-h-[min(55vh,520px)] overflow-y-auto pr-1 scroll-smooth">
                     {messages.map(m => (
                       <div key={m.id} className={"flex " + (m.senderType === "customer" ? "justify-end" : "justify-start")}>
                         <div className={"max-w-[85%] rounded-2xl p-4 " + (m.senderType === "customer" ? "bg-[#CA3F2E] text-white" : "bg-white border border-gray-200")}>
@@ -130,7 +130,7 @@ export default function TicketDetailPage() {
                   </div>
 
                   {ticket.status !== "closed" && (
-                    <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-3">
+                    <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-2xl p-4 space-y-3 sticky bottom-4 z-20 shadow-[0_-8px_24px_rgba(0,0,0,0.06)]">
                       <textarea value={reply} onChange={(e) => setReply(e.target.value)} rows={3}
                         placeholder={isFr ? "Votre r\u00e9ponse..." : "Your reply..."}
                         className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#CA3F2E] resize-none" />
