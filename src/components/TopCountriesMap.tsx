@@ -65,14 +65,21 @@ export default function TopCountriesMap({
     let t = 0;
     countries.forEach(d => {
       const num = ISO2_TO_NUM[d.code];
-      if (num) map[num] = d.visitors;
+      if (num) { map[num] = d.visitors; map[normalizeNumId(num)] = d.visitors; map[String(parseInt(num, 10))] = d.visitors; }
       if (d.visitors > m) m = d.visitors;
       t += d.visitors;
     });
     return { visitsByNumId: map, max: m, total: t };
   }, [countries]);
 
-  function getColor(numId: string): string {
+  function normalizeNumId(id: any): string {
+  const s = String(id || "").padStart(3, "0");
+  return s;
+}
+
+function getColor(numId: string): string {
+  const norm = normalizeNumId(numId);
+  const v = visitsByNumId[norm] || visitsByNumId[String(numId)] || visitsByNumId[String(parseInt(numId, 10))] || 0;
     const v = visitsByNumId[numId] || 0;
     if (v === 0) return "#f1f5f9";
     const intensity = Math.min(1, v / max);
