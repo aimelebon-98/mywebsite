@@ -1166,13 +1166,7 @@ html, body {
   color: #111827;
 }
 
-/* Reserve space on desktop so sticky buy-box never overlaps Description tab text */
-@media (min-width: 1024px) {
-  .ndz-tabs-with-sticky-gap {
-    padding-right: 340px !important;
-    box-sizing: border-box;
-  }
-}
+
 
 .product-long-desc {
   color: #374151;
@@ -1202,4 +1196,16 @@ html, body {
 .product-long-desc li {
   display: list-item !important;
   margin-bottom: 0.35rem !important;
+}
+
+/* Apply right margin/padding ONLY to the description text area on desktop so tab wrapper stays full-width */
+@media (min-width: 1024px) {
+  .ndz-description-content-gap,
+  .product-long-desc {
+    padding-right: 340px !important;
+    box-sizing: border-box;
+  }
+  .product-spec-table {
+    max-width: calc(100% - 340px) !important;
+  }
 }

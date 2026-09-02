@@ -1031,7 +1031,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
       </div>
         {/* TABS */}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ndz-tabs-with-sticky-gap">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ">
         <div className="mt-12 bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="border-b border-gray-100 bg-gray-50/50">
             <div className="flex gap-0 overflow-x-auto scrollbar-hide">
@@ -1056,7 +1056,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                   >
                     {descParts.before ? (
                       <div
-                        className="product-long-desc min-w-0 w-full max-w-full"
+                        className="product-long-desc ndz-description-content-gap min-w-0 w-full max-w-full"
                         dangerouslySetInnerHTML={{ __html: sanitizeHtml(descParts.before) }}
                       />
                     ) : null}
@@ -1078,7 +1078,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
 
                     {descParts.after ? (
                       <div
-                        className="product-long-desc min-w-0 w-full max-w-full"
+                        className="product-long-desc ndz-description-content-gap min-w-0 w-full max-w-full"
                         dangerouslySetInnerHTML={{ __html: sanitizeHtml(descParts.after) }}
                       />
                     ) : null}
