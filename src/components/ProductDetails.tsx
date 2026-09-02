@@ -1,4 +1,5 @@
-"use client";
+"use client";
+
 import { sanitizeHtml } from "@/lib/sanitize";
 import { useCustomer } from "@/lib/customer-context";
 import { useCurrency } from "@/lib/currency-context";
@@ -244,12 +245,12 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
         setReviewSuccess(true);
         setTimeout(() => setReviewSuccess(false), 12000);
       } else {
-        const errMsg = data?.error || (isFr ? "Échec de l'envoi de l'avis. Veuillez réessayer." : "Failed to submit review. Please try again.");
+        const errMsg = data?.error || (isFr ? "Ã‰chec de l'envoi de l'avis. Veuillez rÃ©essayer." : "Failed to submit review. Please try again.");
         setReviewError(errMsg);
         alert(errMsg);
       }
     } catch (err) {
-      const netErr = isFr ? "Erreur réseau. Veuillez réessayer." : "Network error. Please try again.";
+      const netErr = isFr ? "Erreur rÃ©seau. Veuillez rÃ©essayer." : "Network error. Please try again.";
       setReviewError(netErr);
       alert(netErr);
     } finally {
@@ -1062,6 +1063,21 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                     <ChevronDown className={`w-4 h-4 transition-transform ${showFullDesc ? "rotate-180" : ""}`} />
                   </button>
                 )}
+                {/* Specs table always shown in Description for every product */}
+                <div className="pt-2">
+                  <h3 className="font-bold text-lg mb-4">{t("specifications")}</h3>
+                  <table className="product-spec-table w-full max-w-full">
+                    <tbody>
+                      {specs.map((item) => (
+                        <tr key={`desc-spec-${item.label}`}>
+                          <td>{item.label}</td>
+                          <td className="capitalize">{item.value}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
                 {product.brand && (
                   <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
                     <Award className="w-5 h-5 text-gray-400" />
@@ -1167,7 +1183,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                 <Check className="w-6 h-6 text-green-600" />
               </div>
               <div className="flex-1">
-                <h4 className="font-bold text-green-900 text-lg">{isFr ? "Merci ! Votre avis a été soumis et est en attente de modération." : "Thank you! Your review has been submitted and is awaiting admin moderation."}</h4>
+                <h4 className="font-bold text-green-900 text-lg">{isFr ? "Merci ! Votre avis a Ã©tÃ© soumis et est en attente de modÃ©ration." : "Thank you! Your review has been submitted and is awaiting admin moderation."}</h4>
                 <p className="text-green-700 text-sm mt-1">{isFr ? "Votre avis a ete soumis avec succes." : "Your review has been submitted successfully."}</p>
               </div>
               <button onClick={() => setReviewSuccess(false)} className="text-green-500 hover:text-green-700 transition flex-shrink-0 mt-1">
