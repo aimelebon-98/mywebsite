@@ -1,6 +1,7 @@
 "use client";
 
 import { sanitizeHtml } from "@/lib/sanitize";
+import { formatProductDescription, splitDescriptionForSpecs } from "@/lib/format-description";
 import { useCustomer } from "@/lib/customer-context";
 import { useCurrency } from "@/lib/currency-context";
 import { parseColorVariants } from "@/lib/color-variants";
@@ -180,6 +181,9 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
   const shortDesc = getProductShortDescription(product, locale);
   const _unusedOldShortDesc = product.shortDescription || product.description || "";
   const longDesc = getProductLongDescription(product, locale);
+  const formattedLongDesc = formatProductDescription(longDesc);
+  const descParts = splitDescriptionForSpecs(formattedLongDesc);
+  const descCollapseLen = (descParts.before + descParts.after).length;
 
   useEffect(() => {
     setVisibleReviews(REVIEWS_PER_PAGE);
@@ -1039,15 +1043,23 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
 
           <div className="p-6 lg:p-10">
             {activeTab === "description" && (
-              <div className="max-w-3xl space-y-6">
-                {/* Specs + long description share one collapsible region */}
-                <div className="relative">
+              <div className="max-w-3xl space-y-6 min-w-0 w-full max-w-full">
+                {/* Intro + specs + rest share one Read more collapse */}
+                <div className="relative min-w-0 w-full max-w-full">
                   <div
-                    className={`overflow-hidden transition-all duration-500 min-w-0 w-full max-w-full ${
-                      showFullDesc || longDesc.length <= 400 ? "max-h-[10000px]" : "max-h-[280px]"
+                    className={`overflow-hidden transition-all duration-500 min-w-0 w-full max-w-full space-y-6 ${
+                      showFullDesc || descCollapseLen <= 400 ? "max-h-[10000px]" : "max-h-[320px]"
                     }`}
                   >
-                    <div className="mb-6">
+                    {descParts.before ? (
+                      <div
+                        className="product-long-desc min-w-0 w-full max-w-full"
+                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(descParts.before) }}
+                      />
+                    ) : null}
+
+                    {/* Specs sit in the middle of the description flow */}
+                    <div className="min-w-0 w-full max-w-full">
                       <h3 className="font-bold text-lg mb-4">{t("specifications")}</h3>
                       <table className="product-spec-table w-full max-w-full">
                         <tbody>
@@ -1060,17 +1072,23 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                         </tbody>
                       </table>
                     </div>
-                    <div
-                      className="product-long-desc min-w-0 w-full max-w-full"
-                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(longDesc) }}
-                    />
+
+                    {descParts.after ? (
+                      <div
+                        className="product-long-desc min-w-0 w-full max-w-full"
+                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(descParts.after) }}
+                      />
+                    ) : null}
                   </div>
-                  {!showFullDesc && longDesc.length > 400 && (
+
+                  {!showFullDesc && descCollapseLen > 400 && (
                     <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white via-white/90 to-transparent pointer-events-none" />
                   )}
                 </div>
-                {longDesc.length > 400 && (
+
+                {descCollapseLen > 400 && (
                   <button
+                    type="button"
                     onClick={() => setShowFullDesc(!showFullDesc)}
                     className="inline-flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-gray-900 text-gray-900 rounded-xl text-sm font-bold hover:bg-gray-900 hover:text-white transition group"
                   >
@@ -1078,6 +1096,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                     <ChevronDown className={`w-4 h-4 transition-transform ${showFullDesc ? "rotate-180" : ""}`} />
                   </button>
                 )}
+
                 {product.brand && (
                   <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
                     <Award className="w-5 h-5 text-gray-400" />
