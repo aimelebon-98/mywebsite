@@ -1209,3 +1209,15 @@ html, body {
     max-width: calc(100% - 340px) !important;
   }
 }
+
+/* Admin support ticket: sticky reply composer */
+.ndz-ticket-reply-box {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  background: rgba(255, 255, 255, 0.97);
+  border-top: 1px solid #e5e7eb;
+}
+.ndz-ticket-messages {
+  scroll-behavior: smooth;
+}

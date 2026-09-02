@@ -319,7 +319,7 @@ export default function TicketsManager() {
             </div>
 
             {t.status !== "closed" ? (
-              <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-3">
+              <div className="ndz-ticket-reply-box bg-white border border-gray-200 rounded-2xl p-4 space-y-3 sticky bottom-0 z-20 shadow-[0_-8px_24px_rgba(0,0,0,0.06)] backdrop-blur-sm">
                 <textarea
                   value={reply}
                   onChange={(e) => setReply(e.target.value)}
