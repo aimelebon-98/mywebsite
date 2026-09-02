@@ -1040,20 +1040,35 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
           <div className="p-6 lg:p-10">
             {activeTab === "description" && (
               <div className="max-w-3xl space-y-6">
-                {/* Collapsible long description - SEO safe (full text in DOM) */}
+                {/* Specs + long description share one collapsible region */}
                 <div className="relative">
                   <div
-                      className={`product-long-desc overflow-hidden transition-all duration-500 ${
-                        showFullDesc || longDesc.length <= 400 ? "max-h-[10000px]" : "max-h-[220px]"
-                      }`}
+                    className={`overflow-hidden transition-all duration-500 min-w-0 w-full max-w-full ${
+                      showFullDesc || longDesc.length <= 400 ? "max-h-[10000px]" : "max-h-[280px]"
+                    }`}
+                  >
+                    <div className="mb-6">
+                      <h3 className="font-bold text-lg mb-4">{t("specifications")}</h3>
+                      <table className="product-spec-table w-full max-w-full">
+                        <tbody>
+                          {specs.map((item) => (
+                            <tr key={`desc-spec-${item.label}`}>
+                              <td>{item.label}</td>
+                              <td className="capitalize">{item.value}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div
+                      className="product-long-desc min-w-0 w-full max-w-full"
                       dangerouslySetInnerHTML={{ __html: sanitizeHtml(longDesc) }}
                     />
-                  {/* Fade gradient - only when collapsed and long */}
+                  </div>
                   {!showFullDesc && longDesc.length > 400 && (
                     <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white via-white/90 to-transparent pointer-events-none" />
                   )}
                 </div>
-                {/* Read more / less button - only if content is long enough */}
                 {longDesc.length > 400 && (
                   <button
                     onClick={() => setShowFullDesc(!showFullDesc)}
@@ -1063,21 +1078,6 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                     <ChevronDown className={`w-4 h-4 transition-transform ${showFullDesc ? "rotate-180" : ""}`} />
                   </button>
                 )}
-                {/* Specs table always shown in Description for every product */}
-                <div className="pt-2">
-                  <h3 className="font-bold text-lg mb-4">{t("specifications")}</h3>
-                  <table className="product-spec-table w-full max-w-full">
-                    <tbody>
-                      {specs.map((item) => (
-                        <tr key={`desc-spec-${item.label}`}>
-                          <td>{item.label}</td>
-                          <td className="capitalize">{item.value}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
                 {product.brand && (
                   <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
                     <Award className="w-5 h-5 text-gray-400" />
