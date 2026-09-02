@@ -15,7 +15,7 @@ export function formatProductDescription(content: string | null | undefined): st
     return trimmed;
   }
 
-  // Handle plain text or flattened HTML strings
+  // Handle plain text or tag-stripped strings
   let text = trimmed;
 
   const headerKeywords = [
@@ -37,7 +37,7 @@ export function formatProductDescription(content: string | null | undefined): st
   ];
 
   headerKeywords.forEach((kw) => {
-    const regex = new RegExp(`(?:^|\\s)(${kw})(?:\\s|:|$)`, "gi");
+    const regex = new RegExp(`(?:^|\\s)(${kw})(?:\\s|:|$|(?=[A-Z]))`, "gi");
     text = text.replace(regex, (match, p1) => `\n\n<h3>${p1}</h3>\n`);
   });
 
@@ -77,4 +77,57 @@ export function formatProductDescription(content: string | null | undefined): st
   }
 
   return resultHtml;
+}
+
+export interface SplitDescriptionResult {
+  before: string;
+  after: string;
+  specsTableHtml: string;
+  specsHtml: string;
+  specs: string;
+  mainDesc: string;
+  main: string;
+}
+
+export function splitDescriptionForSpecs(content: string | null | undefined): SplitDescriptionResult {
+  if (!content || typeof content !== "string") {
+    return {
+      before: "",
+      after: "",
+      specsTableHtml: "",
+      specsHtml: "",
+      specs: "",
+      mainDesc: "",
+      main: ""
+    };
+  }
+
+  const formatted = formatProductDescription(content);
+
+  const tableMatch = formatted.match(/<table[\s\S]*?<\/table>/i);
+  if (tableMatch) {
+    const tableIndex = formatted.indexOf(tableMatch[0]);
+    const before = formatted.substring(0, tableIndex).trim();
+    const specsTableHtml = tableMatch[0];
+    const after = formatted.substring(tableIndex + tableMatch[0].length).trim();
+    return {
+      before,
+      after,
+      specsTableHtml,
+      specsHtml: specsTableHtml,
+      specs: specsTableHtml,
+      mainDesc: (before + " " + after).trim(),
+      main: (before + " " + after).trim()
+    };
+  }
+
+  return {
+    before: formatted,
+    after: "",
+    specsTableHtml: "",
+    specsHtml: "",
+    specs: "",
+    mainDesc: formatted,
+    main: formatted
+  };
 }
