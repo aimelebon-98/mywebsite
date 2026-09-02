@@ -8,13 +8,18 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.newdealzone.co
 // SHARED EMAIL HEADER - styled brand logo
 // ============================================================
 function brandHeader(): string {
-  const logoUrl = "https://www.newdealzone.com/apple-icon.png";
   return `
-    <div style="background:linear-gradient(135deg,#CA3F2E 0%,#8B2A1E 100%);padding:30px 24px;text-align:center;border-radius:16px 16px 0 0;">
+    <div style="background:linear-gradient(135deg,#CA3F2E 0%,#8B2A1E 100%);padding:28px 24px;text-align:center;border-radius:16px 16px 0 0;">
       <table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
         <tr>
           <td style="padding-right:12px;vertical-align:middle;">
-            <img src="${logoUrl}" alt="New Deal Zone" width="40" height="40" style="display:block;width:40px;height:40px;border-radius:10px;border:none;outline:none;text-decoration:none;" />
+            <table cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td align="center" valign="middle" style="width:38px;height:38px;background:#ffffff;border-radius:10px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-weight:900;font-size:15px;color:#CA3F2E;text-align:center;line-height:38px;box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+                  ND
+                </td>
+              </tr>
+            </table>
           </td>
           <td style="vertical-align:middle;">
             <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-weight:900;font-size:22px;letter-spacing:-0.02em;line-height:1;">
