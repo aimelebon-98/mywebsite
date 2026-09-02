@@ -1,10 +1,27 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { supportTickets } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { supportTickets, supportMessages } from "@/db/schema";
+import { eq, asc, sql } from "drizzle-orm";
 import { requireAdmin } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
+
+async function ensureTables() {
+  try {
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS support_messages (
+        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+        ticket_id uuid NOT NULL,
+        sender_type text NOT NULL,
+        sender_name text NOT NULL DEFAULT '',
+        message text NOT NULL,
+        created_at timestamp DEFAULT now() NOT NULL
+      )
+    `);
+  } catch (e) {
+    console.error("ensureTables support_messages error:", e);
+  }
+}
 
 export async function GET(
   request: Request,
@@ -12,6 +29,8 @@ export async function GET(
 ) {
   try {
     await requireAdmin();
+    await ensureTables();
+
     const { id } = await props.params;
 
     if (!id) {
@@ -28,37 +47,30 @@ export async function GET(
       return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
     }
 
-    const ticket = ticketList[0] as any;
-    const messages: any[] = [];
+    const ticket = ticketList[0];
 
-    if (ticket.message) {
-      messages.push({
-        id: "msg-cust",
-        senderType: "customer",
-        senderName: ticket.customerName || "Customer",
-        message: ticket.message,
-        createdAt: ticket.createdAt,
-      });
+    // Mark read by admin
+    if (ticket.unreadByAdmin) {
+      await db
+        .update(supportTickets)
+        .set({ unreadByAdmin: false })
+        .where(eq(supportTickets.id, id));
     }
 
-    const adminReplyText = ticket.reply || ticket.response || ticket.adminResponse || ticket.adminNote;
-    if (adminReplyText) {
-      messages.push({
-        id: "msg-admin",
-        senderType: "admin",
-        senderName: "Support Team",
-        message: adminReplyText,
-        createdAt: ticket.updatedAt || ticket.createdAt,
-      });
-    }
+    // Load threaded messages
+    const messagesList = await db
+      .select()
+      .from(supportMessages)
+      .where(eq(supportMessages.ticketId, id))
+      .orderBy(asc(supportMessages.createdAt));
 
     return NextResponse.json({
       success: true,
       ticket: {
         ...ticket,
-        messages,
+        messages: messagesList,
       },
-      messages,
+      messages: messagesList,
     });
   } catch (error: any) {
     console.error("Error fetching admin support ticket details:", error);
@@ -110,9 +122,9 @@ export async function DELETE(
       return NextResponse.json({ error: "Ticket ID is required" }, { status: 400 });
     }
 
-    await db
-      .delete(supportTickets)
-      .where(eq(supportTickets.id, id));
+    // Delete messages first, then ticket
+    await db.delete(supportMessages).where(eq(supportMessages.ticketId, id));
+    await db.delete(supportTickets).where(eq(supportTickets.id, id));
 
     return NextResponse.json({ success: true, message: "Ticket deleted successfully" });
   } catch (error: any) {
