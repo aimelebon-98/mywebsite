@@ -8,23 +8,19 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.newdealzone.co
 // SHARED EMAIL HEADER - styled brand logo
 // ============================================================
 function brandHeader(): string {
+  const logoUrl = "https://www.newdealzone.com/apple-icon.png";
   return `
-    <div style="background:linear-gradient(135deg,#CA3F2E 0%,#8B2A1E 100%);padding:32px 30px;text-align:center;border-radius:16px 16px 0 0;">
+    <div style="background:linear-gradient(135deg,#CA3F2E 0%,#8B2A1E 100%);padding:30px 24px;text-align:center;border-radius:16px 16px 0 0;">
       <table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
         <tr>
           <td style="padding-right:12px;vertical-align:middle;">
-            <div style="width:44px;height:44px;background:rgba(255,255,255,0.18);border-radius:12px;display:inline-block;text-align:center;line-height:44px;">
-              <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;">
-                <path d="M12.5 2H4a2 2 0 00-2 2v8.5a2 2 0 00.59 1.41l8.5 8.5a2 2 0 002.82 0l8.5-8.5a2 2 0 000-2.82L13.91 2.59A2 2 0 0012.5 2z" fill="white"/>
-                <circle cx="7.5" cy="7.5" r="1.6" fill="#CA3F2E"/>
-              </svg>
-            </div>
+            <img src="${logoUrl}" alt="New Deal Zone" width="40" height="40" style="display:block;width:40px;height:40px;border-radius:10px;border:none;outline:none;text-decoration:none;" />
           </td>
           <td style="vertical-align:middle;">
-            <div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;font-weight:900;font-size:22px;letter-spacing:-0.02em;line-height:1;">
-              <span style="color:white;">NewDeal</span>
+            <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-weight:900;font-size:22px;letter-spacing:-0.02em;line-height:1;">
+              <span style="color:#ffffff;">NewDeal</span>
               <span style="color:rgba(255,255,255,0.4);font-weight:300;margin:0 4px;">|</span>
-              <span style="color:white;letter-spacing:0.15em;font-size:18px;">ZONE</span>
+              <span style="color:#ffffff;letter-spacing:0.15em;font-size:18px;">ZONE</span>
             </div>
           </td>
         </tr>
