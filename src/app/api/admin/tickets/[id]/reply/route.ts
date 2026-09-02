@@ -28,35 +28,47 @@ export async function POST(
   props: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireAdmin();
+    const denied = await requireAdmin();
+    if (denied) return denied;
+
     await ensureTables();
 
     const { id } = await props.params;
-    const body = await request.json();
-    const { message } = body;
+    if (!id) {
+      return NextResponse.json({ error: "Ticket ID is required" }, { status: 400 });
+    }
 
-    if (!message || !message.trim()) {
+    const body = await request.json().catch(() => ({}));
+    const message = typeof body.message === "string" ? body.message.trim() : "";
+
+    if (!message) {
       return NextResponse.json({ error: "Message text is required" }, { status: 400 });
     }
 
-    const cleanMsg = message.trim();
+    const existing = await db
+      .select({ id: supportTickets.id })
+      .from(supportTickets)
+      .where(eq(supportTickets.id, id))
+      .limit(1);
 
-    // Insert admin reply message into supportMessages table
+    if (!existing.length) {
+      return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
+    }
+
     await db.insert(supportMessages).values({
       ticketId: id,
       senderType: "admin",
       senderName: "Support Team",
-      message: cleanMsg,
-      createdAt: new Date(),
+      message,
     });
 
-    // Update ticket metadata
     await db
       .update(supportTickets)
       .set({
         status: "in_progress",
         lastMessageAt: new Date(),
         unreadByCustomer: true,
+        unreadByAdmin: false,
         updatedAt: new Date(),
       })
       .where(eq(supportTickets.id, id));

@@ -24,15 +24,15 @@ async function ensureTables() {
 }
 
 export async function GET(
-  request: Request,
+  _request: Request,
   props: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireAdmin();
+    const denied = await requireAdmin();
+    if (denied) return denied;
     await ensureTables();
 
     const { id } = await props.params;
-
     if (!id) {
       return NextResponse.json({ error: "Ticket ID is required" }, { status: 400 });
     }
@@ -43,21 +43,19 @@ export async function GET(
       .where(eq(supportTickets.id, id))
       .limit(1);
 
-    if (!ticketList || ticketList.length === 0) {
+    if (!ticketList.length) {
       return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
     }
 
     const ticket = ticketList[0];
 
-    // Mark read by admin
     if (ticket.unreadByAdmin) {
       await db
         .update(supportTickets)
-        .set({ unreadByAdmin: false })
+        .set({ unreadByAdmin: false, updatedAt: new Date() })
         .where(eq(supportTickets.id, id));
     }
 
-    // Load threaded messages
     const messagesList = await db
       .select()
       .from(supportMessages)
@@ -66,10 +64,7 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      ticket: {
-        ...ticket,
-        messages: messagesList,
-      },
+      ticket: { ...ticket, messages: messagesList },
       messages: messagesList,
     });
   } catch (error: any) {
@@ -86,20 +81,16 @@ export async function PATCH(
   props: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireAdmin();
+    const denied = await requireAdmin();
+    if (denied) return denied;
+
     const { id } = await props.params;
     const body = await request.json();
-    const { status, priority } = body;
-
     const updates: Record<string, any> = { updatedAt: new Date() };
-    if (status) updates.status = status;
-    if (priority) updates.priority = priority;
+    if (body.status) updates.status = body.status;
+    if (body.priority) updates.priority = body.priority;
 
-    await db
-      .update(supportTickets)
-      .set(updates)
-      .where(eq(supportTickets.id, id));
-
+    await db.update(supportTickets).set(updates).where(eq(supportTickets.id, id));
     return NextResponse.json({ success: true, message: "Ticket updated" });
   } catch (error: any) {
     console.error("Error updating support ticket:", error);
@@ -111,18 +102,18 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  request: Request,
+  _request: Request,
   props: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireAdmin();
-    const { id } = await props.params;
+    const denied = await requireAdmin();
+    if (denied) return denied;
 
+    const { id } = await props.params;
     if (!id) {
       return NextResponse.json({ error: "Ticket ID is required" }, { status: 400 });
     }
 
-    // Delete messages first, then ticket
     await db.delete(supportMessages).where(eq(supportMessages.ticketId, id));
     await db.delete(supportTickets).where(eq(supportTickets.id, id));
 
