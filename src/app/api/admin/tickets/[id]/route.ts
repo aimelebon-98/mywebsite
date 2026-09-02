@@ -76,6 +76,64 @@ export async function GET(
   }
 }
 
+export async function POST(
+  request: Request,
+  props: { params: Promise<{ id: string }> }
+) {
+  try {
+    const denied = await requireAdmin();
+    if (denied) return denied;
+    await ensureTables();
+
+    const { id } = await props.params;
+    if (!id) {
+      return NextResponse.json({ error: "Ticket ID is required" }, { status: 400 });
+    }
+
+    const body = await request.json().catch(() => ({} as any));
+    const message = typeof body.message === "string" ? body.message.trim() : "";
+    if (!message) {
+      return NextResponse.json({ error: "Message text is required" }, { status: 400 });
+    }
+
+    const existing = await db
+      .select({ id: supportTickets.id })
+      .from(supportTickets)
+      .where(eq(supportTickets.id, id))
+      .limit(1);
+
+    if (!existing.length) {
+      return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
+    }
+
+    await db.insert(supportMessages).values({
+      ticketId: id,
+      senderType: "admin",
+      senderName: "Support Team",
+      message,
+    });
+
+    await db
+      .update(supportTickets)
+      .set({
+        status: "in_progress",
+        lastMessageAt: new Date(),
+        unreadByCustomer: true,
+        unreadByAdmin: false,
+        updatedAt: new Date(),
+      })
+      .where(eq(supportTickets.id, id));
+
+    return NextResponse.json({ success: true, message: "Reply sent successfully" });
+  } catch (error: any) {
+    console.error("Error posting ticket reply:", error);
+    return NextResponse.json(
+      { error: "Failed to post reply", message: error?.message || "Server error" },
+      { status: 500 }
+    );
+  }
+}
+
 export async function PATCH(
   request: Request,
   props: { params: Promise<{ id: string }> }

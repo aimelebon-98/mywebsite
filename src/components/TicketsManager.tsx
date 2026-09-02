@@ -109,7 +109,7 @@ export default function TicketsManager() {
     if (!reply.trim() || !selectedId) return;
     setSending(true);
     try {
-      const res = await fetch(`/api/admin/tickets/${selectedId}`, {
+      const res = await fetch(`/api/admin/tickets/${selectedId}/reply`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: reply }),
