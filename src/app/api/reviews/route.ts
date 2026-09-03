@@ -2,124 +2,98 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { reviews, products } from "@/db/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
-import { getCustomerFromRequest } from "@/lib/customer-auth";
-import { z } from "zod";
+import { isRateLimited } from "@/lib/rate-limit";
+import { verifyRequestOrigin } from "@/lib/csrf";
+import { stripHtml } from "@/lib/sanitize";
 
 export const dynamic = "force-dynamic";
 
-function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) {
-    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-  }
-  return (name.slice(0, 2) || "ND").toUpperCase();
-}
-
-function cleanText(str: string): string {
-  if (!str) return "";
-  return str
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#x27;")
-    .trim();
-}
-
-const createReviewSchema = z.object({
-  productId: z.string().min(1, "Product ID is required"),
-  customerName: z.string().trim().min(1, "Name required").max(100),
-  rating: z.coerce.number().int().min(1).max(5),
-  comment: z.string().trim().max(2000).optional().default(""),
-  commentFr: z.string().trim().max(2000).optional().default(""),
-});
-
-export async function GET(req: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
+    const { searchParams } = new URL(request.url);
     const productId = searchParams.get("productId");
+
     if (!productId) {
-      return NextResponse.json({ error: "Product ID required" }, { status: 400 });
+      return NextResponse.json({ error: "productId parameter is required" }, { status: 400 });
     }
-    
+
+    // Ensure approved column exists in DB if added recently
     try {
-      await db.execute(sql`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS customer_id uuid`);
-      await db.execute(sql`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS approved boolean NOT NULL DEFAULT true`);
+      await db.execute(sql`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS approved boolean DEFAULT true`);
     } catch { /* ignore */ }
 
-    const rows = await db.select().from(reviews)
-      .where(and(eq(reviews.productId, productId), eq(reviews.approved, true)))
+    // Public storefront ONLY sees approved reviews (approved = true or approved IS NOT FALSE)
+    const list = await db
+      .select()
+      .from(reviews)
+      .where(
+        and(
+          eq(reviews.productId, productId),
+          sql`(${reviews.approved} IS TRUE OR ${reviews.approved} IS NULL)`
+        )
+      )
       .orderBy(desc(reviews.createdAt));
-    return NextResponse.json(rows);
+
+    return NextResponse.json({ success: true, reviews: list });
   } catch (error) {
-    console.error("[Reviews GET]", error);
+    console.error("GET /api/reviews error:", error);
     return NextResponse.json({ error: "Failed to fetch reviews" }, { status: 500 });
   }
 }
 
-export async function POST(req: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    let body: unknown;
+    const ip = request.headers.get("cf-connecting-ip") || request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "127.0.0.1";
+    if (isRateLimited(ip, 5, 60000)) {
+      return NextResponse.json({ error: "Too many reviews submitted. Please wait a minute." }, { status: 429 });
+    }
+
+    if (!await verifyRequestOrigin(request)) {
+      return NextResponse.json({ error: "Invalid request origin" }, { status: 403 });
+    }
+
+    let body: any = {};
     try {
-      body = await req.json();
+      body = await request.json();
     } catch {
-      return NextResponse.json({ error: "Invalid JSON format" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
     }
 
-    const parsed = createReviewSchema.safeParse(body);
-    if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.issues[0]?.message || "Invalid input" }, { status: 400 });
+    const productId = typeof body.productId === "string" ? body.productId.trim() : "";
+    const customerName = typeof body.customerName === "string" ? stripHtml(body.customerName).trim().slice(0, 100) : "Anonymous";
+    const comment = typeof body.comment === "string" ? stripHtml(body.comment).trim().slice(0, 1000) : "";
+    const rating = Math.min(5, Math.max(1, parseInt(body.rating) || 5));
+
+    if (!productId || !comment) {
+      return NextResponse.json({ error: "Product ID and review comment are required" }, { status: 400 });
     }
 
-    const { productId, customerName, rating, comment, commentFr } = parsed.data;
+    // Get 2-letter initials ONLY for avatar rule
+    const parts = customerName.split(" ").filter(Boolean);
+    const avatar = parts.map(p => p[0]?.toUpperCase() || "").slice(0, 2).join("") || "ND";
 
-    // Check if customer is logged in
-    const customer = await getCustomerFromRequest(req);
-    const loggedInId = customer?.id || null;
-    const finalName = customer?.name?.trim() || customerName;
-
-    const sanitizedName = cleanText(finalName);
-    if (!sanitizedName) {
-      return NextResponse.json({ error: "Please enter a valid name" }, { status: 400 });
-    }
-
-    const rawComment = (comment || "").trim();
-    const rawCommentFr = (commentFr || "").trim();
-    const sanitizedComment = cleanText(rawComment || rawCommentFr);
-    const sanitizedCommentFr = cleanText(rawCommentFr || rawComment);
-    const avatar = getInitials(sanitizedName);
-
-    // Auto-ensure columns exist in Postgres
-    try {
-      await db.execute(sql`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS customer_id uuid`);
-      await db.execute(sql`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS approved boolean NOT NULL DEFAULT false`);
-    } catch { /* ignore */ }
-
-    // Build clean insert payload
-    const insertData: Record<string, unknown> = {
-      productId,
-      customerName: sanitizedName,
-      rating,
-      comment: sanitizedComment || "Verified Review",
-      commentFr: sanitizedCommentFr || "Avis Vérifié",
-      avatar,
-      verified: Boolean(loggedInId),
-      approved: false,
-    };
-
-    if (loggedInId) {
-      insertData.customerId = loggedInId;
-    }
-
-    const [newReview] = await db.insert(reviews).values(insertData as any).returning();
+    // New customer reviews are explicitly pending approval (approved = false)
+    const [inserted] = await db
+      .insert(reviews)
+      .values({
+        productId,
+        customerName,
+        rating,
+        comment,
+        avatar,
+        verified: false,
+        approved: false,
+        createdAt: new Date(),
+      } as typeof reviews.$inferInsert)
+      .returning();
 
     return NextResponse.json({
       success: true,
-      message: "Review submitted successfully! It will appear once approved by admin.",
-      review: newReview,
-    }, { status: 201 });
+      message: "Review submitted successfully and is pending approval.",
+      review: inserted,
+    });
   } catch (error) {
-    console.error("[Reviews POST]", error);
-    const msg = error instanceof Error ? error.message : "Failed to submit review";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    console.error("POST /api/reviews error:", error);
+    return NextResponse.json({ error: "Failed to submit review" }, { status: 500 });
   }
 }
