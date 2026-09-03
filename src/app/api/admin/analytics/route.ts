@@ -1,3 +1,31 @@
+const EDGE_DC_CITIES = new Set([
+  "johannesburg", "paris", "london", "frankfurt", "washington", "dublin",
+  "ashburn", "atlanta", "chicago", "dallas", "seattle", "amsterdam", "singapore",
+  "tokyo", "sydney", "sao paulo", "stockholm", "zurich"
+]);
+
+function sanitizeCityForCountry(city: string | null | undefined, country: string | null | undefined): string {
+  const cCode = String(country || "").toUpperCase().trim();
+  const cName = String(city || "").trim();
+  const cNameLower = cName.toLowerCase();
+
+  if (cCode === "TG") {
+    if (!cName || EDGE_DC_CITIES.has(cNameLower)) return "Lomé";
+  } else if (cCode === "NG") {
+    if (!cName || EDGE_DC_CITIES.has(cNameLower)) return "Abuja";
+  } else if (cCode === "GH") {
+    if (!cName || EDGE_DC_CITIES.has(cNameLower)) return "Accra";
+  } else if (cCode === "CI") {
+    if (!cName || EDGE_DC_CITIES.has(cNameLower)) return "Abidjan";
+  } else if (cCode === "SN") {
+    if (!cName || EDGE_DC_CITIES.has(cNameLower)) return "Dakar";
+  } else if (cCode === "BJ") {
+    if (!cName || EDGE_DC_CITIES.has(cNameLower)) return "Cotonou";
+  }
+
+  return cName || (cCode === "TG" ? "Lomé" : cCode === "NG" ? "Abuja" : "Main Region");
+}
+
 import { requireAdmin } from "@/lib/admin-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
@@ -23,6 +51,18 @@ function computeKpis(events: EventRow[]) {
 }
 
 export async function GET(req: NextRequest) {
+    try {
+      await db.execute(sql`
+        UPDATE analytics_events
+        SET city = 'Lomé'
+        WHERE UPPER(country) = 'TG' AND LOWER(city) IN ('johannesburg', 'paris', 'london', 'frankfurt', 'washington', 'dublin');
+      `);
+      await db.execute(sql`
+        UPDATE analytics_events
+        SET city = 'Abuja'
+        WHERE UPPER(country) = 'NG' AND LOWER(city) IN ('johannesburg', 'paris', 'london', 'frankfurt', 'washington', 'dublin');
+      `);
+    } catch { /* ignore */ }
   const { searchParams } = new URL(req.url);
   const days = parseInt(searchParams.get("days") || "7");
   const live = searchParams.get("live");

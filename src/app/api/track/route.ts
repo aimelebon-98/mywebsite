@@ -39,32 +39,31 @@ function isKnownBot(ua: string): boolean {
   return /bot|spider|crawl|slurp|facebookexternalhit|meta-externalagent|twitterbot|pinterest|bytespider|gptbot|claudebot|perplexitybot|headless|phantom|puppeteer/i.test(ua);
 }
 
-async function resolveGeoFromIp(ip: string, fallbackCountry: string, fallbackCity: string) {
-  let country = fallbackCountry ? fallbackCountry.toUpperCase().trim() : "";
-  let city = fallbackCity ? fallbackCity.trim() : "";
+const FOREIGN_DC_CITIES = new Set([
+  "johannesburg", "paris", "london", "frankfurt", "washington", "dublin",
+  "ashburn", "atlanta", "chicago", "dallas", "seattle", "amsterdam", "singapore"
+]);
 
-  // If city is missing or looks like an edge proxy DC (like Johannesburg for West Africa), lookup real IP
-  const isLocalIp = ip === "127.0.0.1" || ip === "::1" || ip.startsWith("192.168.") || ip.startsWith("10.");
-  if (!isLocalIp && (!city || !country || city.toLowerCase() === "johannesburg")) {
-    try {
-      const res = await fetch(`https://ipwho.is/${ip}`, { signal: AbortSignal.timeout(2500) });
-      if (res.ok) {
-        const geo = await res.json();
-        if (geo && geo.success) {
-          if (geo.country_code) country = String(geo.country_code).toUpperCase();
-          if (geo.city) city = String(geo.city);
-        }
-      }
-    } catch {
-      /* ignore lookup timeouts */
-    }
+function sanitizeCity(city: string, country: string): string {
+  const cCode = (country || "").toUpperCase().trim();
+  const cName = (city || "").trim();
+  const cLower = cName.toLowerCase();
+
+  if (cCode === "TG") {
+    if (!cName || FOREIGN_DC_CITIES.has(cLower)) return "Lomé";
+  } else if (cCode === "NG") {
+    if (!cName || FOREIGN_DC_CITIES.has(cLower)) return "Abuja";
+  } else if (cCode === "GH") {
+    if (!cName || FOREIGN_DC_CITIES.has(cLower)) return "Accra";
+  } else if (cCode === "CI") {
+    if (!cName || FOREIGN_DC_CITIES.has(cLower)) return "Abidjan";
+  } else if (cCode === "SN") {
+    if (!cName || FOREIGN_DC_CITIES.has(cLower)) return "Dakar";
+  } else if (cCode === "BJ") {
+    if (!cName || FOREIGN_DC_CITIES.has(cLower)) return "Cotonou";
   }
 
-  // Sensible default city fallbacks for Togo / Nigeria if city is still empty
-  if (country === "TG" && (!city || city.toLowerCase() === "johannesburg")) city = "Lomé";
-  if (country === "NG" && (!city || city.toLowerCase() === "johannesburg")) city = "Abuja";
-
-  return { country, city };
+  return cName || (cCode === "TG" ? "Lomé" : cCode === "NG" ? "Abuja" : "Main Region");
 }
 
 export async function POST(req: Request) {
@@ -96,10 +95,11 @@ export async function POST(req: Request) {
     const searchQuery = typeof body.searchQuery === "string" ? body.searchQuery.trim().slice(0, 200) : null;
     const referrer = typeof body.referrer === "string" ? body.referrer.trim().slice(0, 500) : (h.get("referer") || "");
 
-    const rawCountry = h.get("cf-ipcountry") || h.get("x-vercel-ip-country") || "";
+    const rawCountry = h.get("cf-ipcountry") || h.get("x-vercel-ip-country") || "TG";
     const rawCity = h.get("cf-ipcity") || h.get("x-vercel-ip-city") || "";
 
-    const { country, city } = await resolveGeoFromIp(ip, rawCountry, rawCity);
+    const country = rawCountry.toUpperCase().trim();
+    const city = sanitizeCity(rawCity, country);
 
     await ensureAnalyticsTable();
 
