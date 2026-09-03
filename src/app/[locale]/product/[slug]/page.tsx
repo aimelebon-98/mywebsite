@@ -28,7 +28,7 @@ async function getReviews(productId: string): Promise<Review[]> {
     return await db
       .select()
       .from(reviewsTable)
-      .where(eq(reviewsTable.productId, productId))
+      .where(and(eq(reviewsTable.productId, productId), eq(reviewsTable.approved, true)))
       .orderBy(desc(reviewsTable.createdAt));
   } catch {
     return [];

@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import { Globe, MapPin } from "lucide-react";
 
-const GEO_URL = "https://unpkg.com/world-atlas@2.0.2/countries-110m.json";
+const GEO_URL = "/world-110m.json";
 
 const COUNTRY_NAMES: Record<string, string> = {
   NG: "Nigeria", GH: "Ghana", KE: "Kenya", ZA: "South Africa", BJ: "Benin",
