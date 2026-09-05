@@ -4,6 +4,7 @@ import { orders, customers, products as productsTable, coupons } from "@/db/sche
 import { eq, desc, and, or, ilike, sql, inArray } from "drizzle-orm";
 import { requireAdmin } from "@/lib/admin-auth";
 import { sendOrderConfirmationEmail, sendAdminNewOrderEmail } from "@/lib/email";
+import { sendCapiEvents, generateEventId, extractUserDataFromHeaders } from "@/lib/fb-capi";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -325,6 +326,52 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("[Orders POST] Error creating order:", error);
     const message = error instanceof Error ? error.message : "Failed to create order";
+    // Server-side Meta CAPI Purchase (reliable even if browser pixel blocked)
+    try {
+      const contentIds = enrichedItems
+        .map((it) => String((it as any).productId || (it as any).id || ""))
+        .map((id) => (id.endsWith("_en") || id.endsWith("_fr") ? id.slice(0, -3) : id))
+        .filter(Boolean);
+      const contents = enrichedItems.map((it: any) => {
+        let id = String(it.productId || it.id || "");
+        if (id.endsWith("_en") || id.endsWith("_fr")) id = id.slice(0, -3);
+        return {
+          id,
+          quantity: Number(it.quantity || 1),
+          item_price: Number(it.price || it.serverPrice || 0),
+        };
+      }).filter((c: any) => !!c.id);
+
+      const headerUser = extractUserDataFromHeaders(request.headers);
+      const nameParts = customerName.trim().split(/\s+/);
+      const purchaseEventId = generateEventId();
+
+      sendCapiEvents([{
+        eventName: "Purchase",
+        eventId: purchaseEventId,
+        eventSourceUrl: `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.newdealzone.com"}/${locale || "en"}/checkout`,
+        userData: {
+          ...headerUser,
+          email: resolvedEmail || undefined,
+          phone: customerPhone || undefined,
+          firstName: nameParts[0] || undefined,
+          lastName: nameParts.length > 1 ? nameParts.slice(1).join(" ") : undefined,
+          externalId: customerId || undefined,
+        },
+        customData: {
+          content_type: "product",
+          content_ids: contentIds,
+          contents,
+          num_items: itemCount,
+          value: Number(total),
+          currency: (currency || "USD").toUpperCase() === "$" ? "USD" : (currency || "USD"),
+          order_id: insertedOrder.orderNumber,
+        },
+      }]).catch((err) => console.error("[Orders] CAPI Purchase failed:", err));
+    } catch (capiErr) {
+      console.error("[Orders] CAPI Purchase setup error:", capiErr);
+    }
+
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

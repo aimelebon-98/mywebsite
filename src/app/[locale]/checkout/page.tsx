@@ -385,17 +385,20 @@ export default function CheckoutPage() {
       });
     } catch { /* ignore */ }
 
-    // Meta Pixel: fire Purchase event with full order details
-    try {
-      fbTrackPurchase({
-        content_ids: items.map(i => String(i.id)),
-        contents: items.map(i => ({ id: String(i.id), quantity: i.quantity, item_price: i.price })),
-        num_items: items.reduce((s, i) => s + i.quantity, 0),
-        value: grandTotal,
-        currency: "USD",
-        order_id: orderNum || undefined,
-      });
-    } catch { /* ignore fb */ }
+    // Meta Pixel + browser CAPI: fire Purchase only when order was saved
+    // content_ids are bare product UUIDs to match catalog feed <g:id>
+    if (orderNum) {
+      try {
+        fbTrackPurchase({
+          content_ids: items.map(i => String(i.id)),
+          contents: items.map(i => ({ id: String(i.id), quantity: i.quantity, item_price: i.price })),
+          num_items: items.reduce((s, i) => s + i.quantity, 0),
+          value: Number(finalTotal) || Number(grandTotal) || 0,
+          currency: "USD",
+          order_id: orderNum,
+        });
+      } catch { /* ignore fb */ }
+    }
 
     const waPhone = whatsappNumber.replace(/\D/g, "");
     const url = "https://wa.me/" + waPhone + "?text=" + encodeURIComponent(message);
