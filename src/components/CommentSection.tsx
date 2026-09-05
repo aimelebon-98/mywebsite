@@ -1,9 +1,8 @@
-"use client";
-import Turnstile from "@/components/Turnstile";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { MessageSquare, Heart, Reply, Send, User } from "lucide-react";
+import { MessageSquare, Heart, Reply, Send } from "lucide-react";
 import type { BlogComment } from "@/db/schema";
 
 interface Props {
@@ -44,6 +43,7 @@ function timeAgo(date: string | Date, isFr: boolean) {
 export default function CommentSection({ postId }: Props) {
   const pathname = usePathname();
   const isFr = pathname?.startsWith("/fr");
+  const locale = isFr ? "fr" : "en";
 
   const t = isFr ? {
     heading: "Commentaires",
@@ -92,15 +92,13 @@ export default function CommentSection({ postId }: Props) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [content, setContent] = useState("");
-  
-  const [turnstileToken, setTurnstileToken] = useState("");
+
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
   const [replyTo, setReplyTo] = useState<BlogComment | null>(null);
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
 
-  // Load liked comments from localStorage
   useEffect(() => {
     try {
       const stored = localStorage.getItem("sv_liked_comments");
@@ -114,13 +112,13 @@ export default function CommentSection({ postId }: Props) {
 
   const fetchComments = async () => {
     try {
-      const res = await fetch(`/api/blog-comments?postId=${postId}`);
+      const res = await fetch(`/api/blog-comments?postId=${postId}&locale=${locale}`);
       if (res.ok) setComments(await res.json());
     } catch { /* ignore */ }
     setLoading(false);
   };
 
-  useEffect(() => { fetchComments(); }, [postId]);
+  useEffect(() => { fetchComments(); }, [postId, locale]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,10 +136,10 @@ export default function CommentSection({ postId }: Props) {
           authorName: name,
           authorEmail: email,
           content,
+          locale,
         }),
       });
       if (res.ok) {
-        // Remember commenter info for next time
         try {
           localStorage.setItem("sv_commenter_name", name);
           if (email) localStorage.setItem("sv_commenter_email", email);
@@ -167,7 +165,6 @@ export default function CommentSection({ postId }: Props) {
     else newLiked.add(comment.id);
     setLikedIds(newLiked);
 
-    // Optimistic update
     setComments(prev => prev.map(c =>
       c.id === comment.id ? { ...c, likes: Math.max(0, c.likes + (isLiked ? -1 : 1)) } : c
     ));
@@ -234,102 +231,100 @@ export default function CommentSection({ postId }: Props) {
       <div className="lg:grid lg:grid-cols-[1fr_320px] lg:gap-8">
         <div className="lg:pr-4">
           <div className="border-t border-gray-100 pt-8">
-        <div className="flex items-center gap-2 mb-6">
-          <MessageSquare className="w-5 h-5 text-gray-700" />
-          <h2 className="text-2xl font-bold">
-            {t.heading} {topLevel.length > 0 && <span className="text-gray-400 font-normal">({comments.length})</span>}
-          </h2>
-        </div>
+            <div className="flex items-center gap-2 mb-6">
+              <MessageSquare className="w-5 h-5 text-gray-700" />
+              <h2 className="text-2xl font-bold">
+                {t.heading} {topLevel.length > 0 && <span className="text-gray-400 font-normal">({comments.length})</span>}
+              </h2>
+            </div>
 
-        {/* Comment form */}
-        <form
-          id="comment-form"
-          onSubmit={handleSubmit}
-          className="rounded-2xl p-5 lg:p-6 mb-8 border border-gray-800 bg-gray-950 text-white"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-lg text-white">{t.formTitle}</h3>
-            {replyTo && (
-              <div className="flex items-center gap-2 text-xs">
-                <span className="text-gray-400">{t.replying}</span>
-                <span className="font-semibold">{replyTo.authorName}</span>
-                <button type="button" onClick={() => setReplyTo(null)} className="text-red-500 hover:underline">{t.cancel}</button>
+            <form
+              id="comment-form"
+              onSubmit={handleSubmit}
+              className="rounded-2xl p-5 lg:p-6 mb-8 border border-gray-800 bg-gray-950 text-white"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold text-lg text-white">{t.formTitle}</h3>
+                {replyTo && (
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-gray-400">{t.replying}</span>
+                    <span className="font-semibold">{replyTo.authorName}</span>
+                    <button type="button" onClick={() => setReplyTo(null)} className="text-red-500 hover:underline">{t.cancel}</button>
+                  </div>
+                )}
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-3 mb-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">{t.name} *</label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder={t.namePh}
+                    required
+                    maxLength={100}
+                    className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#CA3F2E] focus:border-[#CA3F2E] transition"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">{t.email}</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder={t.emailPh}
+                    maxLength={200}
+                    className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#CA3F2E] focus:border-[#CA3F2E] transition"
+                  />
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <label className="block text-xs font-semibold text-gray-300 mb-1">{t.content} *</label>
+                <textarea
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder={t.contentPh}
+                  required
+                  rows={4}
+                  maxLength={5000}
+                  className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#CA3F2E] focus:border-[#CA3F2E] transition resize-none"
+                />
+              </div>
+
+              {success && (
+                <div className="mb-3 px-4 py-2.5 bg-green-500/10 border border-green-500/30 text-green-300 rounded-xl text-sm">
+                  {t.thanks}
+                </div>
+              )}
+              {error && (
+                <div className="mb-3 px-4 py-2.5 bg-red-500/10 border border-red-500/30 text-red-300 rounded-xl text-sm">
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={submitting || !name.trim() || !content.trim()}
+                className="inline-flex items-center gap-2 px-6 py-3 text-white rounded-xl text-sm font-bold uppercase tracking-wide hover:brightness-110 hover:shadow-xl transition disabled:opacity-50 shadow-lg" style={{ backgroundColor: "#CA3F2E", boxShadow: "0 4px 14px rgba(202, 63, 46, 0.4)" }}
+              >
+                <Send className="w-4 h-4" /> {submitting ? t.submitting : t.submit}
+              </button>
+              <p className="text-xs text-gray-400 mt-3">{t.pending}.</p>
+            </form>
+
+            {loading ? (
+              <div className="text-center py-8 text-gray-400 text-sm">Loading...</div>
+            ) : topLevel.length === 0 ? (
+              <div className="text-center py-6 text-gray-400 text-sm">
+                {t.empty}
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-100">
+                {topLevel.map(c => <CommentItem key={c.id} c={c} />)}
               </div>
             )}
-          </div>
-
-          <div className="grid sm:grid-cols-2 gap-3 mb-3">
-            <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1">{t.name} *</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder={t.namePh}
-                required
-                maxLength={100}
-                className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#CA3F2E] focus:border-[#CA3F2E] transition"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1">{t.email}</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={t.emailPh}
-                maxLength={200}
-                className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#CA3F2E] focus:border-[#CA3F2E] transition"
-              />
-            </div>
-          </div>
-
-          <div className="mb-3">
-            <label className="block text-xs font-semibold text-gray-300 mb-1">{t.content} *</label>
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder={t.contentPh}
-              required
-              rows={4}
-              maxLength={5000}
-              className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#CA3F2E] focus:border-[#CA3F2E] transition resize-none"
-            />
-          </div>
-
-          {success && (
-            <div className="mb-3 px-4 py-2.5 bg-green-50 border border-green-200 text-green-700 rounded-xl text-sm">
-              {t.thanks}
-            </div>
-          )}
-          {error && (
-            <div className="mb-3 px-4 py-2.5 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">
-              {error}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={submitting || !name.trim() || !content.trim()}
-            className="inline-flex items-center gap-2 px-6 py-3 text-white rounded-xl text-sm font-bold uppercase tracking-wide hover:brightness-110 hover:shadow-xl transition disabled:opacity-50 shadow-lg" style={{ backgroundColor: "#CA3F2E", boxShadow: "0 4px 14px rgba(202, 63, 46, 0.4)" }}
-          >
-            <Send className="w-4 h-4" /> {submitting ? t.submitting : t.submit}
-          </button>
-          <p className="text-xs text-gray-400 mt-3">{t.pending}.</p>
-        </form>
-
-        {/* Comments list */}
-        {loading ? (
-          <div className="text-center py-8 text-gray-400 text-sm">Loading...</div>
-        ) : topLevel.length === 0 ? (
-          <div className="text-center py-6 text-gray-400 text-sm">
-            {t.empty}
-          </div>
-        ) : (
-          <div className="divide-y divide-gray-100">
-            {topLevel.map(c => <CommentItem key={c.id} c={c} />)}
-          </div>
-        )}
           </div>
         </div>
       </div>

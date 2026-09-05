@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { blogComments } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 import { z } from "zod";
+import { requireAdmin } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -22,19 +23,43 @@ const createCommentSchema = z.object({
   authorName: z.string().trim().min(1, "Please enter your name").max(100),
   authorEmail: z.string().trim().max(200).optional().default(""),
   content: z.string().trim().min(1, "Please write a comment").max(5000),
+  locale: z.enum(["en", "fr"]).optional().default("en"),
 });
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const postId = searchParams.get("postId");
+    const all = searchParams.get("all");
+
+    // Admin request for all comments
+    if (all === "true") {
+      const unauth = await requireAdmin();
+      if (unauth) return unauth;
+
+      const comments = await db.select().from(blogComments)
+        .orderBy(desc(blogComments.createdAt));
+
+      return NextResponse.json(comments);
+    }
 
     if (!postId) {
       return NextResponse.json({ error: "Post ID required" }, { status: 400 });
     }
 
+    const locale = searchParams.get("locale");
+
+    const conditions = [
+      eq(blogComments.postId, postId),
+      eq(blogComments.approved, true),
+    ];
+
+    if (locale && (locale === "en" || locale === "fr")) {
+      conditions.push(eq(blogComments.locale, locale));
+    }
+
     const comments = await db.select().from(blogComments)
-      .where(eq(blogComments.postId, postId))
+      .where(and(...conditions))
       .orderBy(desc(blogComments.createdAt));
 
     return NextResponse.json(comments);
@@ -58,7 +83,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: parsed.error.issues[0]?.message || "Invalid comment data" }, { status: 400 });
     }
 
-    const { postId, parentId, authorName, authorEmail, content } = parsed.data;
+    const { postId, parentId, authorName, authorEmail, content, locale } = parsed.data;
 
     const sanitizedAuthor = cleanText(authorName);
     const sanitizedContent = cleanText(content);
@@ -73,7 +98,8 @@ export async function POST(req: NextRequest) {
       authorName: sanitizedAuthor,
       authorEmail: cleanText(authorEmail || ""),
       content: sanitizedContent,
-      approved: true,
+      locale: locale || "en",
+      approved: false,
       likes: 0,
     }).returning();
 

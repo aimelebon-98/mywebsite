@@ -149,6 +149,11 @@ export default function CommentsManager({ onNotify }: Props) {
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <span className="font-semibold text-sm">{c.authorName}</span>
                       {c.authorEmail && <span className="text-xs text-gray-500">&lt;{c.authorEmail}&gt;</span>}
+                      {c.locale && (
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${c.locale === "fr" ? "bg-blue-100 text-blue-800" : "bg-purple-100 text-purple-800"}`}>
+                          {c.locale.toUpperCase()}
+                        </span>
+                      )}
                       {c.approved ? (
                         <span className="text-[10px] px-2 py-0.5 bg-green-50 text-green-600 rounded-full font-semibold">APPROVED</span>
                       ) : (
@@ -159,7 +164,7 @@ export default function CommentsManager({ onNotify }: Props) {
                     <p className="text-sm text-gray-800 whitespace-pre-wrap break-words mb-2">{c.content}</p>
                     <div className="text-xs text-gray-500 flex items-center gap-3 flex-wrap">
                       {post && (
-                        <a href={`/en/blog/${post.slug}`} target="_blank" rel="noopener noreferrer" className="hover:text-gray-900 underline">
+                        <a href={`/${c.locale || "en"}/blog/${post.slug}`} target="_blank" rel="noopener noreferrer" className="hover:text-gray-900 underline">
                           on: {post.title}
                         </a>
                       )}

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
 import { settings, categories, authors } from "@/db/schema";
@@ -192,6 +192,7 @@ export async function POST(req: NextRequest) {
   steps.push(await run("authors_linkedin", sql`ALTER TABLE authors ADD COLUMN IF NOT EXISTS linkedin text NOT NULL DEFAULT ''`));
   steps.push(await run("authors_website", sql`ALTER TABLE authors ADD COLUMN IF NOT EXISTS website text NOT NULL DEFAULT ''`));
   steps.push(await run("authors_sort_order", sql`ALTER TABLE authors ADD COLUMN IF NOT EXISTS sort_order integer NOT NULL DEFAULT 100`));
+  steps.push(await run("blog_comments_locale", sql`ALTER TABLE blog_comments ADD COLUMN IF NOT EXISTS locale text NOT NULL DEFAULT 'en'`));
 
   steps.push(await run("blog_posts", sql`
     CREATE TABLE IF NOT EXISTS blog_posts (
