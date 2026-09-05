@@ -3,7 +3,7 @@ import { db } from "@/db";
 import { orders, customers, products as productsTable, coupons } from "@/db/schema";
 import { eq, desc, and, or, ilike, sql, inArray } from "drizzle-orm";
 import { requireAdmin } from "@/lib/admin-auth";
-import { sendOrderConfirmationEmail } from "@/lib/email";
+import { sendOrderConfirmationEmail, sendAdminNewOrderEmail } from "@/lib/email";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -299,6 +299,24 @@ export async function POST(request: NextRequest) {
         locale === "fr" ? "fr" : "en"
       ).catch(err => console.error("[Order Confirmation Email]", err));
     }
+
+    // Send Admin Notification Email
+    sendAdminNewOrderEmail(
+      process.env.ADMIN_NOTIFICATION_EMAIL || "komlaimelebon@gmail.com",
+      {
+        orderNumber: insertedOrder.orderNumber,
+        customerName,
+        customerPhone,
+        customerAddress,
+        items: enrichedItems,
+        subtotal: Number(subtotal || total),
+        discountAmount: Number(finalDiscountAmountStr),
+        discountCode: finalDiscountCode,
+        total: Number(total),
+        currency: currency || "USD",
+        locale,
+      }
+    ).catch(err => console.error("[Admin Order Notification Email]", err));
 
     return NextResponse.json({
       success: true,

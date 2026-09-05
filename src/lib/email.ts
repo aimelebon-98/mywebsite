@@ -912,3 +912,88 @@ export async function sendVendorPasswordResetEmail(
     return false;
   }
 }
+
+export async function sendAdminNewOrderEmail(
+  adminEmail: string,
+  order: OrderEmailData & { customerName: string; locale?: string }
+): Promise<boolean> {
+  if (!resend) {
+    console.warn("[Email] Admin order notification skipped - RESEND_API_KEY not configured");
+    return false;
+  }
+
+  const targetEmail = adminEmail || process.env.ADMIN_NOTIFICATION_EMAIL || "komlaimelebon@gmail.com";
+  const subject = `NEW ORDER ALERT: #${order.orderNumber} (${order.currency} ${order.total.toFixed(2)})`;
+  const adminOrdersUrl = `${SITE_URL}/jevw#orders`;
+
+  const itemsListHtml = order.items.map((it: any) => `
+    <tr style="border-bottom:1px solid #eee;">
+      <td style="padding:10px 0;font-size:13px;color:#111;">
+        <strong>${it.name || "Item"}</strong>
+        ${it.size ? `<br/><span style="color:#6b7280;font-size:12px;">Size: ${it.size}</span>` : ""}
+        ${it.color ? `<span style="color:#6b7280;font-size:12px;"> | Color: ${it.color}</span>` : ""}
+      </td>
+      <td style="padding:10px 0;text-align:center;font-size:13px;color:#111;">x${it.quantity || 1}</td>
+      <td style="padding:10px 0;text-align:right;font-size:13px;font-weight:bold;color:#111;">${order.currency} ${(Number(it.price || 0) * Number(it.quantity || 1)).toFixed(2)}</td>
+    </tr>
+  `).join("");
+
+  const html = `
+    <div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;max-width:560px;margin:0 auto;padding:20px;background:#f9fafb;">
+      ${brandHeader()}
+      <div style="background:#fff;padding:30px;border:1px solid #eee;border-top:none;border-radius:0 0 12px 12px;">
+        <div style="text-align:center;margin-bottom:20px;">
+          <div style="display:inline-block;width:48px;height:48px;background:#dcfce7;border-radius:50%;line-height:48px;">
+            <span style="color:#16a34a;font-size:24px;">&#128722;</span>
+          </div>
+          <h1 style="color:#111827;margin:12px 0 4px 0;font-size:22px;">New Order Received!</h1>
+          <p style="color:#6b7280;font-size:13px;margin:0;">Order #${order.orderNumber} placed on NewDealZone</p>
+        </div>
+
+        <div style="background:linear-gradient(135deg,#CA3F2E 0%,#8B2A1E 100%);border-radius:12px;padding:20px;margin:20px 0;color:white;">
+          <div style="font-size:12px;text-transform:uppercase;letter-spacing:1px;opacity:0.8;">Order Total</div>
+          <div style="font-size:28px;font-weight:bold;margin:4px 0;">${order.currency} ${order.total.toFixed(2)}</div>
+          <div style="font-size:13px;opacity:0.9;">Customer: ${order.customerName}</div>
+        </div>
+
+        <div style="background:#f8fafc;border-radius:8px;padding:16px;margin-bottom:20px;font-size:13px;line-height:1.6;color:#334155;">
+          <strong style="color:#0f172a;">Customer Details:</strong><br/>
+          <strong>Name:</strong> ${order.customerName}<br/>
+          <strong>Phone:</strong> <a href="tel:${order.customerPhone}" style="color:#CA3F2E;text-decoration:none;">${order.customerPhone}</a><br/>
+          <strong>Address:</strong> ${order.customerAddress}
+        </div>
+
+        <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
+          <thead>
+            <tr style="border-bottom:2px solid #e2e8f0;text-align:left;font-size:12px;color:#64748b;">
+              <th style="padding-bottom:8px;">Item</th>
+              <th style="padding-bottom:8px;text-align:center;">Qty</th>
+              <th style="padding-bottom:8px;text-align:right;">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itemsListHtml}
+          </tbody>
+        </table>
+
+        <div style="text-align:center;margin-top:28px;">
+          <a href="${adminOrdersUrl}" style="display:inline-block;background:#CA3F2E;color:white;padding:12px 28px;border-radius:8px;font-weight:bold;font-size:14px;text-decoration:none;">View Order in Admin Panel</a>
+        </div>
+      </div>
+      ${brandFooter("en")}
+    </div>
+  `;
+
+  try {
+    await resend.emails.send({
+      from: FROM,
+      to: targetEmail,
+      subject,
+      html,
+    });
+    return true;
+  } catch (err) {
+    console.error("[Admin Order Email] Send error:", err);
+    return false;
+  }
+}
