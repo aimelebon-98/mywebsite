@@ -1,11 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { blogComments } from "@/db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, sql } from "drizzle-orm";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
+
+let columnChecked = false;
+async function ensureLocaleColumn() {
+  if (columnChecked) return;
+  try {
+    await db.execute(sql`ALTER TABLE blog_comments ADD COLUMN IF NOT EXISTS locale text NOT NULL DEFAULT 'en';`);
+    columnChecked = true;
+  } catch (e) {
+    console.error("[Blog Comments] Failed to add locale column:", e);
+  }
+}
 
 function cleanText(str: string): string {
   if (!str) return "";
@@ -28,6 +39,7 @@ const createCommentSchema = z.object({
 
 export async function GET(req: NextRequest) {
   try {
+    await ensureLocaleColumn();
     const { searchParams } = new URL(req.url);
     const postId = searchParams.get("postId");
     const all = searchParams.get("all");
@@ -71,6 +83,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    await ensureLocaleColumn();
     let body: unknown;
     try {
       body = await req.json();
