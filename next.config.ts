@@ -11,6 +11,8 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "*.public.blob.vercel-storage.com" },
       { protocol: "https", hostname: "i.ibb.co" },
       { protocol: "https", hostname: "images.unsplash.com" },
+      { protocol: "https", hostname: "plus.unsplash.com" },
+      { protocol: "https", hostname: "*.unsplash.com" },
       { protocol: "https", hostname: "lh3.googleusercontent.com" },
       { protocol: "https", hostname: "avatars.githubusercontent.com" },
       { protocol: "https", hostname: "newdealzone.com" },
@@ -18,7 +20,6 @@ const nextConfig: NextConfig = {
     ],
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 60 * 60 * 24 * 30,
-    // Tighter sizes for better mobile optimization
     deviceSizes: [360, 480, 640, 750, 828, 1080, 1200, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 150, 200, 256, 300, 384],
   },
@@ -59,11 +60,6 @@ const nextConfig: NextConfig = {
           { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
         ],
       },
-      // CACHE_HTML_PAGES_RULE - force CDN cache on dynamic HTML pages
-      // Cache-Control is respected by browsers
-      // CDN-Cache-Control is Vercel-specific (overrides dynamic no-store)
-      // Cloudflare-CDN-Cache-Control is CF-specific
-      // Excludes: cart, checkout, wishlist, account (personalized), api, admin
       {
         source: "/((?!_next|api|admin|cart|checkout|wishlist|account|.*\\.).*)",
         headers: [
@@ -73,7 +69,6 @@ const nextConfig: NextConfig = {
           { key: "Vary", value: "Cookie, Accept-Language, cf-ipcountry" },
         ],
       },
-
       {
         source: "/(.*)",
         headers: [

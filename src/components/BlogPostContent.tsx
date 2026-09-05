@@ -31,6 +31,7 @@ function d(s: string): string {
 }
 
 export default function BlogPostContent({ post, author, relatedPosts, locale }: Props) {
+  const [imgError, setImgError] = useState(false);
   const isFr = locale === "fr";
   const [toc, setToc] = useState<TocItem[]>([]);
   const [activeId, setActiveId] = useState<string>("");
@@ -250,14 +251,24 @@ export default function BlogPostContent({ post, author, relatedPosts, locale }: 
             {/* Cover image */}
             {post.coverImage && (
               <div className="relative aspect-[16/9] rounded-2xl overflow-hidden bg-gray-100 mb-10 shadow-xl group">
-                <Image
-                  src={post.coverImage}
-                  alt={(isFr ? post.coverImageAltFr : post.coverImageAlt) || post.title}
-                  fill
-                  className="object-cover group-hover:scale-[1.02] transition-transform duration-700"
-                  sizes="(max-width: 1024px) 100vw, 800px"
-                  priority
-                />
+                {imgError ? (
+                  /* Fallback standard img tag if Next/Image optimizer is blocked */
+                  <img
+                    src={post.coverImage}
+                    alt={(isFr ? post.coverImageAltFr : post.coverImageAlt) || post.title}
+                    className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-700"
+                  />
+                ) : (
+                  <Image
+                    src={post.coverImage}
+                    alt={(isFr ? post.coverImageAltFr : post.coverImageAlt) || post.title}
+                    fill
+                    className="object-cover group-hover:scale-[1.02] transition-transform duration-700"
+                    sizes="(max-width: 1024px) 100vw, 800px"
+                    priority
+                    onError={() => setImgError(true)}
+                  />
+                )}
                 <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
               </div>
             )}
