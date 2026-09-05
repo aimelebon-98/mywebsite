@@ -34,20 +34,6 @@ async function ensureOrderColumns() {
     await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_notes text NOT NULL DEFAULT ''`);
     await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS locale text NOT NULL DEFAULT 'en'`);
     await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS ip_address text NOT NULL DEFAULT ''`);
-    try {
-      await db.execute(sql`
-        UPDATE orders SET customer_address = shipping_address
-        WHERE (customer_address IS NULL OR customer_address = '')
-          AND shipping_address IS NOT NULL AND shipping_address <> ''
-      `);
-    } catch { /* shipping_address may not exist */ }
-    try {
-      await db.execute(sql`
-        UPDATE orders SET shipping_cost = shipping
-        WHERE (shipping_cost IS NULL OR shipping_cost = 0)
-          AND shipping IS NOT NULL AND shipping <> 0
-      `);
-    } catch { /* shipping may not exist */ }
     orderColsChecked = true;
   } catch (e) {
     console.error("[Orders] Failed to ensure order columns:", e);
@@ -89,15 +75,34 @@ const createOrderSchema = z.object({
   couponDiscount: z.union([z.number(), z.string()]).optional(),
 });
 
-async function generateOrderNumber(): Promise<string> {
+async function generateNextOrderNumber(offset = 0): Promise<string> {
   const year = new Date().getFullYear();
   const prefix = `SV-${year}-`;
-  const countResult = await db.execute(sql`
-    SELECT COUNT(*) as count FROM orders
-    WHERE order_number LIKE ${prefix + "%"}
-  `);
-  const count = parseInt((countResult.rows[0] as { count: string }).count) + 1;
-  return `${prefix}${String(count).padStart(4, "0")}`;
+  try {
+    const result = await db.execute(sql`
+      SELECT order_number FROM orders
+      WHERE order_number LIKE ${prefix + "%"}
+      ORDER BY created_at DESC, id DESC
+      LIMIT 100
+    `);
+
+    let maxNum = 0;
+    const rows = (result.rows || result) as Array<{ order_number?: string }>;
+    for (const row of rows) {
+      if (row?.order_number) {
+        const parts = row.order_number.split("-");
+        const num = parseInt(parts[parts.length - 1] || "0", 10);
+        if (!isNaN(num) && num > maxNum) {
+          maxNum = num;
+        }
+      }
+    }
+    const nextNum = maxNum + 1 + offset;
+    return `${prefix}${String(nextNum).padStart(4, "0")}`;
+  } catch (e) {
+    const rnd = Math.floor(1000 + Math.random() * 9000);
+    return `${prefix}${rnd}`;
+  }
 }
 
 export async function GET(request: NextRequest) {
@@ -221,7 +226,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const orderNumber = await generateOrderNumber();
     const ip = request.headers.get("cf-connecting-ip") ||
                request.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
                request.headers.get("x-real-ip") || "";
@@ -237,26 +241,45 @@ export async function POST(request: NextRequest) {
     const finalDiscountCode = activeCouponCode;
     const finalDiscountAmountStr = String(verifiedDiscountAmount >= 0 ? verifiedDiscountAmount : 0);
 
-    const [insertedOrder] = await db.insert(orders).values({
-      orderNumber,
-      customerName,
-      customerPhone,
-      customerEmail: resolvedEmail || "",
-      customerId: customerId || null,
-      customerAddress,
-      items: JSON.stringify(enrichedItems),
-      itemCount,
-      subtotal: String(subtotal || total),
-      discountAmount: finalDiscountAmountStr,
-      discountCode: finalDiscountCode,
-      shippingCost: String(shippingCost || 0),
-      total: String(total),
-      currency: currency || "USD",
-      status: "pending",
-      customerNotes: customerNotes || "",
-      locale: locale || "en",
-      ipAddress: ip,
-    }).returning();
+    // Attempt insertion with retry on order_number collision
+    let insertedOrder = null;
+    let attempt = 0;
+    while (!insertedOrder && attempt < 5) {
+      const orderNumber = await generateNextOrderNumber(attempt);
+      try {
+        const [row] = await db.insert(orders).values({
+          orderNumber,
+          customerName,
+          customerPhone,
+          customerEmail: resolvedEmail || "",
+          customerId: customerId || null,
+          customerAddress,
+          items: JSON.stringify(enrichedItems),
+          itemCount,
+          subtotal: String(subtotal || total),
+          discountAmount: finalDiscountAmountStr,
+          discountCode: finalDiscountCode,
+          shippingCost: String(shippingCost || 0),
+          total: String(total),
+          currency: currency || "USD",
+          status: "pending",
+          customerNotes: customerNotes || "",
+          locale: locale || "en",
+          ipAddress: ip,
+        }).returning();
+        insertedOrder = row;
+      } catch (insertErr: any) {
+        if (insertErr?.message?.includes("unique") || insertErr?.message?.includes("order_number")) {
+          attempt++;
+        } else {
+          throw insertErr;
+        }
+      }
+    }
+
+    if (!insertedOrder) {
+      return NextResponse.json({ error: "Failed to generate unique order number. Try again." }, { status: 500 });
+    }
 
     if (resolvedEmail) {
       sendOrderConfirmationEmail(
