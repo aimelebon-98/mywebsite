@@ -246,7 +246,7 @@ export default function CheckoutPage() {
       const res = await fetch("/api/orders", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          customerName: name, customerPhone: phone, customerAddress: address,
+          customerName: name, customerPhone: phone, customerEmail: customer?.email || "", customerAddress: address,
           items: items.map(it => ({
             id: it.id, name: it.name, size: it.size, color: it.color,
             quantity: it.quantity, price: it.price, imageUrl: it.imageUrl,

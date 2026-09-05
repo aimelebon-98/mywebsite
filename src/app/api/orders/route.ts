@@ -6,6 +6,54 @@ import { requireAdmin } from "@/lib/admin-auth";
 import { sendOrderConfirmationEmail } from "@/lib/email";
 import { z } from "zod";
 
+export const dynamic = "force-dynamic";
+
+let orderColsChecked = false;
+async function ensureOrderColumns() {
+  if (orderColsChecked) return;
+  try {
+    await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_id uuid`);
+    await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_name text NOT NULL DEFAULT ''`);
+    await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_email text NOT NULL DEFAULT ''`);
+    await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_phone text NOT NULL DEFAULT ''`);
+    await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_address text NOT NULL DEFAULT ''`);
+    await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS items text NOT NULL DEFAULT '[]'`);
+    await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS item_count integer NOT NULL DEFAULT 0`);
+    await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS subtotal numeric(10,2) NOT NULL DEFAULT 0`);
+    await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS discount_amount numeric(10,2) NOT NULL DEFAULT 0`);
+    await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS discount_code text NOT NULL DEFAULT ''`);
+    await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_cost numeric(10,2) NOT NULL DEFAULT 0`);
+    await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS total numeric(10,2) NOT NULL DEFAULT 0`);
+    await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS currency text NOT NULL DEFAULT '$'`);
+    await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS status text NOT NULL DEFAULT 'pending'`);
+    await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS tracking_number text NOT NULL DEFAULT ''`);
+    await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS tracking_carrier text NOT NULL DEFAULT ''`);
+    await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipped_at timestamp`);
+    await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivered_at timestamp`);
+    await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS admin_notes text NOT NULL DEFAULT ''`);
+    await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_notes text NOT NULL DEFAULT ''`);
+    await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS locale text NOT NULL DEFAULT 'en'`);
+    await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS ip_address text NOT NULL DEFAULT ''`);
+    try {
+      await db.execute(sql`
+        UPDATE orders SET customer_address = shipping_address
+        WHERE (customer_address IS NULL OR customer_address = '')
+          AND shipping_address IS NOT NULL AND shipping_address <> ''
+      `);
+    } catch { /* shipping_address may not exist */ }
+    try {
+      await db.execute(sql`
+        UPDATE orders SET shipping_cost = shipping
+        WHERE (shipping_cost IS NULL OR shipping_cost = 0)
+          AND shipping IS NOT NULL AND shipping <> 0
+      `);
+    } catch { /* shipping may not exist */ }
+    orderColsChecked = true;
+  } catch (e) {
+    console.error("[Orders] Failed to ensure order columns:", e);
+  }
+}
+
 const orderItemSchema = z.object({
   id: z.string().optional(),
   productId: z.string().optional(),
@@ -15,7 +63,9 @@ const orderItemSchema = z.object({
   size: z.string().max(20).optional(),
   color: z.string().max(50).optional(),
   image: z.string().optional(),
+  imageUrl: z.string().optional(),
   costPriceNgn: z.number().optional(),
+  subtotal: z.union([z.number(), z.string()]).optional(),
 });
 
 const createOrderSchema = z.object({
@@ -27,13 +77,16 @@ const createOrderSchema = z.object({
   items: z.array(orderItemSchema).min(1, "At least one item is required in the order"),
   subtotal: z.union([z.number(), z.string()]).optional(),
   discountAmount: z.union([z.number(), z.string()]).optional(),
-  discountCode: z.string().max(50).optional(),
-  couponCode: z.string().max(50).optional(),
+  discountCode: z.string().max(50).optional().nullable(),
+  couponCode: z.string().max(50).optional().nullable(),
   shippingCost: z.union([z.number(), z.string()]).optional(),
   total: z.union([z.number(), z.string()]),
   currency: z.string().max(10).optional(),
-  customerNotes: z.string().max(1000).optional(),
+  customerNotes: z.string().max(1000).optional().nullable(),
   locale: z.enum(["en", "fr"]).default("en"),
+  displayCurrency: z.string().optional(),
+  bundleName: z.string().optional().nullable(),
+  couponDiscount: z.union([z.number(), z.string()]).optional(),
 });
 
 async function generateOrderNumber(): Promise<string> {
@@ -52,6 +105,7 @@ export async function GET(request: NextRequest) {
   if (unauth) return unauth;
 
   try {
+    await ensureOrderColumns();
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
     const search = searchParams.get("search");
@@ -87,6 +141,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    await ensureOrderColumns();
     let rawBody: unknown;
     try {
       rawBody = await request.json();
@@ -110,11 +165,8 @@ export async function POST(request: NextRequest) {
       customerNotes, locale,
     } = parseResult.data;
 
-    const itemCount = items.reduce((sum, it) => sum + it.quantity, 0);
+    const itemCount = items.reduce((sum, it) => sum + (it.quantity || 1), 0);
 
-    // ============================================================
-    // SERVER-SIDE PRICE VERIFICATION & COST ENRICHMENT
-    // ============================================================
     const productIds = items
       .map(it => it.productId || it.id)
       .filter((id): id is string => typeof id === "string" && id.length > 0);
@@ -122,49 +174,47 @@ export async function POST(request: NextRequest) {
     const enrichedItems: Array<Record<string, unknown>> = [];
 
     if (productIds.length > 0) {
-      const dbProductRows = await db.select({
-        id: productsTable.id,
-        name: productsTable.name,
-        price: productsTable.price,
-        costPrice: productsTable.costPrice,
-        stock: productsTable.stock,
-      }).from(productsTable).where(inArray(productsTable.id, productIds));
+      try {
+        const dbProductRows = await db.select({
+          id: productsTable.id,
+          name: productsTable.name,
+          price: productsTable.price,
+          costPrice: productsTable.costPrice,
+          stock: productsTable.stock,
+        }).from(productsTable).where(inArray(productsTable.id, productIds));
 
-      const productMap = new Map(dbProductRows.map(p => [p.id, p]));
+        const productMap = new Map(dbProductRows.map(p => [p.id, p]));
 
-      for (const item of items) {
-        const pid = item.productId || item.id || "";
-        const dbProd = productMap.get(pid);
-
-        // Enrich with server-verified cost snapshot & price
-        enrichedItems.push({
-          ...item,
-          productId: pid,
-          serverPrice: dbProd ? dbProd.price : item.price,
-          costPriceNgn: dbProd ? parseFloat(dbProd.costPrice || "0") : (item.costPriceNgn || 0),
-        });
+        for (const item of items) {
+          const pid = item.productId || item.id || "";
+          const dbProd = productMap.get(pid);
+          enrichedItems.push({
+            ...item,
+            productId: pid,
+            image: item.image || item.imageUrl || "",
+            serverPrice: dbProd ? dbProd.price : item.price,
+            costPriceNgn: dbProd ? parseFloat(dbProd.costPrice || "0") : (item.costPriceNgn || 0),
+          });
+        }
+      } catch (enrichErr) {
+        console.warn("[Orders] Product enrichment skipped:", enrichErr);
+        enrichedItems.push(...items.map(it => ({ ...it, image: it.image || it.imageUrl || "" })));
       }
     } else {
-      enrichedItems.push(...items);
+      enrichedItems.push(...items.map(it => ({ ...it, image: it.image || it.imageUrl || "" })));
     }
 
-    // ============================================================
-    // COUPON VERIFICATION (IF APPLIED)
-    // ============================================================
-    const activeCouponCode = couponCode || discountCode || "";
+    const activeCouponCode = (couponCode || discountCode || "").toString();
     let verifiedDiscountAmount = parseFloat(String(discountAmount || 0));
+    if (isNaN(verifiedDiscountAmount)) verifiedDiscountAmount = 0;
 
     if (activeCouponCode) {
       try {
         const [coupon] = await db.select().from(coupons)
           .where(and(eq(coupons.code, activeCouponCode.toUpperCase().trim()), eq(coupons.active, true)))
           .limit(1);
-
-        if (coupon) {
-          // If coupon expired, invalidate discount
-          if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) {
-            verifiedDiscountAmount = 0;
-          }
+        if (coupon && coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) {
+          verifiedDiscountAmount = 0;
         }
       } catch (couponErr) {
         console.warn("[Orders] Coupon check skipped:", couponErr);
@@ -187,12 +237,12 @@ export async function POST(request: NextRequest) {
     const finalDiscountCode = activeCouponCode;
     const finalDiscountAmountStr = String(verifiedDiscountAmount >= 0 ? verifiedDiscountAmount : 0);
 
-    const result = await db.insert(orders).values({
+    const [insertedOrder] = await db.insert(orders).values({
       orderNumber,
       customerName,
       customerPhone,
       customerEmail: resolvedEmail || "",
-      customerId: customerId || undefined,
+      customerId: customerId || null,
       customerAddress,
       items: JSON.stringify(enrichedItems),
       itemCount,
@@ -201,7 +251,7 @@ export async function POST(request: NextRequest) {
       discountCode: finalDiscountCode,
       shippingCost: String(shippingCost || 0),
       total: String(total),
-      currency: currency || "$",
+      currency: currency || "USD",
       status: "pending",
       customerNotes: customerNotes || "",
       locale: locale || "en",
@@ -213,13 +263,13 @@ export async function POST(request: NextRequest) {
         resolvedEmail,
         customerName,
         {
-          orderNumber: result[0].orderNumber,
+          orderNumber: insertedOrder.orderNumber,
           items: enrichedItems,
           subtotal: Number(subtotal || total),
           discountAmount: Number(finalDiscountAmountStr),
           discountCode: finalDiscountCode,
           total: Number(total),
-          currency: currency || "$",
+          currency: currency || "USD",
           customerPhone,
           customerAddress,
         },
@@ -229,10 +279,11 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      order: { orderNumber: result[0].orderNumber, id: result[0].id },
+      order: { orderNumber: insertedOrder.orderNumber, id: insertedOrder.id },
     }, { status: 201 });
   } catch (error) {
     console.error("[Orders POST] Error creating order:", error);
-    return NextResponse.json({ error: "Failed to create order" }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Failed to create order";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
