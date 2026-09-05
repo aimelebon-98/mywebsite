@@ -100,7 +100,7 @@ async function generateNextOrderNumber(offset = 0): Promise<string> {
     }
     const nextNum = maxNum + 1 + offset;
     return `${prefix}${String(nextNum).padStart(4, "0")}`;
-  } catch (e) {
+  } catch {
     const rnd = Math.floor(1000 + Math.random() * 9000);
     return `${prefix}${rnd}`;
   }
@@ -242,7 +242,6 @@ export async function POST(request: NextRequest) {
     const finalDiscountCode = activeCouponCode;
     const finalDiscountAmountStr = String(verifiedDiscountAmount >= 0 ? verifiedDiscountAmount : 0);
 
-    // Attempt insertion with retry on order_number collision
     let insertedOrder = null;
     let attempt = 0;
     while (!insertedOrder && attempt < 5) {
@@ -282,6 +281,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to generate unique order number. Try again." }, { status: 500 });
     }
 
+    // Customer Confirmation Email
     if (resolvedEmail) {
       sendOrderConfirmationEmail(
         resolvedEmail,
@@ -301,7 +301,7 @@ export async function POST(request: NextRequest) {
       ).catch(err => console.error("[Order Confirmation Email]", err));
     }
 
-    // Send Admin Notification Email
+    // Admin Notification Email
     sendAdminNewOrderEmail(
       process.env.ADMIN_NOTIFICATION_EMAIL || "komlaimelebon@gmail.com",
       {
@@ -319,19 +319,13 @@ export async function POST(request: NextRequest) {
       }
     ).catch(err => console.error("[Admin Order Notification Email]", err));
 
-    return NextResponse.json({
-      success: true,
-      order: { orderNumber: insertedOrder.orderNumber, id: insertedOrder.id },
-    }, { status: 201 });
-  } catch (error) {
-    console.error("[Orders POST] Error creating order:", error);
-    const message = error instanceof Error ? error.message : "Failed to create order";
-    // Server-side Meta CAPI Purchase (reliable even if browser pixel blocked)
+    // Server-side Meta CAPI Purchase
     try {
       const contentIds = enrichedItems
-        .map((it) => String((it as any).productId || (it as any).id || ""))
-        .map((id) => (id.endsWith("_en") || id.endsWith("_fr") ? id.slice(0, -3) : id))
+        .map((it: any) => String(it.productId || it.id || ""))
+        .map((id: string) => (id.endsWith("_en") || id.endsWith("_fr") ? id.slice(0, -3) : id))
         .filter(Boolean);
+
       const contents = enrichedItems.map((it: any) => {
         let id = String(it.productId || it.id || "");
         if (id.endsWith("_en") || id.endsWith("_fr")) id = id.slice(0, -3);
@@ -372,6 +366,13 @@ export async function POST(request: NextRequest) {
       console.error("[Orders] CAPI Purchase setup error:", capiErr);
     }
 
+    return NextResponse.json({
+      success: true,
+      order: { orderNumber: insertedOrder.orderNumber, id: insertedOrder.id },
+    }, { status: 201 });
+  } catch (error) {
+    console.error("[Orders POST] Error creating order:", error);
+    const message = error instanceof Error ? error.message : "Failed to create order";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
