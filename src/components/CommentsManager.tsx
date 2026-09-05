@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import type { BlogComment, BlogPost } from "@/db/schema";
-import { Check, X, Trash2, MessageSquare, Clock, Heart } from "lucide-react";
+import { Check, X, Trash2, MessageSquare, Clock, Heart, CheckSquare, Square } from "lucide-react";
 
 interface Props {
   onNotify: (msg: string, type?: "success" | "error") => void;
@@ -31,6 +31,8 @@ export default function CommentsManager({ onNotify }: Props) {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "pending" | "approved">("pending");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [actionLoading, setActionLoading] = useState(false);
 
   const fetchAll = async () => {
     setLoading(true);
@@ -86,6 +88,34 @@ export default function CommentsManager({ onNotify }: Props) {
     }
   };
 
+  const handleBulkAction = async (action: "approve" | "unapprove" | "delete") => {
+    if (selectedIds.size === 0) return;
+    if (action === "delete" && !confirm(`Delete ${selectedIds.size} selected comment(s) permanently?`)) return;
+
+    setActionLoading(true);
+    try {
+      const res = await fetch("/api/blog-comments/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action,
+          ids: Array.from(selectedIds),
+        }),
+      });
+
+      if (res.ok) {
+        onNotify(`Bulk ${action} succeeded for ${selectedIds.size} comment(s)`);
+        setSelectedIds(new Set());
+        fetchAll();
+      } else {
+        onNotify(`Bulk ${action} failed`, "error");
+      }
+    } catch {
+      onNotify(`Failed to perform bulk ${action}`, "error");
+    }
+    setActionLoading(false);
+  };
+
   const postMap = new Map(posts.map(p => [p.id, p]));
   const commentMap = new Map(comments.map(c => [c.id, c]));
 
@@ -96,6 +126,21 @@ export default function CommentsManager({ onNotify }: Props) {
   });
 
   const pendingCount = comments.filter(c => !c.approved).length;
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filtered.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map(c => c.id)));
+    }
+  };
+
+  const toggleSelectOne = (id: string) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedIds(next);
+  };
 
   return (
     <div className="space-y-4">
@@ -116,7 +161,7 @@ export default function CommentsManager({ onNotify }: Props) {
           {(["pending", "approved", "all"] as const).map(s => (
             <button
               key={s}
-              onClick={() => setFilter(s)}
+              onClick={() => { setFilter(s); setSelectedIds(new Set()); }}
               className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition capitalize ${filter === s ? "bg-white text-gray-900 shadow-sm" : "text-gray-600 hover:text-gray-900"}`}
             >
               {s} {s === "pending" && pendingCount > 0 && `(${pendingCount})`}
@@ -124,6 +169,52 @@ export default function CommentsManager({ onNotify }: Props) {
           ))}
         </div>
       </div>
+
+      {/* Bulk action bar */}
+      {filtered.length > 0 && (
+        <div className="flex items-center justify-between bg-white border border-gray-100 rounded-xl p-3 shadow-sm flex-wrap gap-3">
+          <button
+            onClick={toggleSelectAll}
+            className="flex items-center gap-2 text-xs font-semibold text-gray-700 hover:text-gray-900 transition"
+          >
+            {selectedIds.size > 0 && selectedIds.size === filtered.length ? (
+              <CheckSquare className="w-4 h-4 text-[#CA3F2E]" />
+            ) : (
+              <Square className="w-4 h-4 text-gray-400" />
+            )}
+            Select All ({filtered.length})
+          </button>
+
+          {selectedIds.size > 0 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-medium text-gray-500 mr-1">
+                {selectedIds.size} selected:
+              </span>
+              <button
+                disabled={actionLoading}
+                onClick={() => handleBulkAction("approve")}
+                className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-semibold transition border border-emerald-200"
+              >
+                <Check className="w-3.5 h-3.5" /> Approve Selected
+              </button>
+              <button
+                disabled={actionLoading}
+                onClick={() => handleBulkAction("unapprove")}
+                className="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-lg text-xs font-semibold transition border border-amber-200"
+              >
+                <X className="w-3.5 h-3.5" /> Unpublish Selected
+              </button>
+              <button
+                disabled={actionLoading}
+                onClick={() => handleBulkAction("delete")}
+                className="inline-flex items-center gap-1 px-3 py-1.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-semibold transition border border-rose-200"
+              >
+                <Trash2 className="w-3.5 h-3.5" /> Delete Selected
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {loading ? (
         <div className="text-center py-12 text-gray-500">Loading...</div>
@@ -139,12 +230,29 @@ export default function CommentsManager({ onNotify }: Props) {
           {filtered.map(c => {
             const post = postMap.get(c.postId);
             const parent = c.parentId ? commentMap.get(c.parentId) : null;
+            const isSelected = selectedIds.has(c.id);
+
             return (
-              <div key={c.id} className={`bg-white rounded-2xl border p-4 ${c.approved ? "border-gray-100" : "border-orange-200 bg-orange-50/30"}`}>
+              <div
+                key={c.id}
+                className={`bg-white rounded-2xl border p-4 transition ${isSelected ? "border-[#CA3F2E] ring-1 ring-[#CA3F2E]" : c.approved ? "border-gray-100" : "border-orange-200 bg-orange-50/30"}`}
+              >
                 <div className="flex items-start gap-3">
-                  <div className={`w-11 h-11 rounded-full bg-gradient-to-br ${getAvatarColor(c.authorName)} flex items-center justify-center text-white font-bold text-sm flex-shrink-0`}>
+                  <button
+                    onClick={() => toggleSelectOne(c.id)}
+                    className="mt-1 text-gray-400 hover:text-[#CA3F2E] transition flex-shrink-0"
+                  >
+                    {isSelected ? (
+                      <CheckSquare className="w-4 h-4 text-[#CA3F2E]" />
+                    ) : (
+                      <Square className="w-4 h-4 text-gray-300" />
+                    )}
+                  </button>
+
+                  <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${getAvatarColor(c.authorName)} flex items-center justify-center text-white font-bold text-sm flex-shrink-0`}>
                     {getInitials(c.authorName)}
                   </div>
+
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <span className="font-semibold text-sm">{c.authorName}</span>
@@ -173,6 +281,7 @@ export default function CommentsManager({ onNotify }: Props) {
                       {c.ipAddress && <span className="text-gray-400">{c.ipAddress}</span>}
                     </div>
                   </div>
+
                   <div className="flex items-center gap-1 flex-shrink-0">
                     {c.approved ? (
                       <button onClick={() => unapprove(c.id)} title="Unpublish" className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:bg-gray-100 transition">
