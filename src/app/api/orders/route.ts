@@ -1,3 +1,4 @@
+import { processAffiliateAttribution } from "@/lib/affiliate-attribution";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { orders, customers, products as productsTable, coupons } from "@/db/schema";
@@ -366,6 +367,26 @@ export async function POST(request: NextRequest) {
       console.error("[Orders] CAPI Purchase setup error:", capiErr);
     }
 
+        // Affiliate attribution hook (non-blocking)
+    try {
+      const orderTotalRaw = (insertedOrder as any)?.total;
+      const orderTotalNum = typeof orderTotalRaw === "number" ? orderTotalRaw : parseFloat(String(orderTotalRaw || "0"));
+      const cEmail = (insertedOrder as any)?.customerEmail || null;
+      const cPhone = (insertedOrder as any)?.customerPhone || null;
+      const cCurrency = (insertedOrder as any)?.currency || "USD";
+
+      if (insertedOrder?.id) {
+        processAffiliateAttribution({
+          orderId: String(insertedOrder.id),
+          subtotalUsd: isNaN(orderTotalNum) ? 0 : orderTotalNum,
+          customerEmail: cEmail,
+          customerPhone: cPhone,
+          currency: cCurrency,
+        }).catch((err: unknown) => console.error("Affiliate hook execution error:", err));
+      }
+    } catch (e) {
+      console.error("Affiliate hook trigger error:", e);
+    }
     return NextResponse.json({
       success: true,
       order: { orderNumber: insertedOrder.orderNumber, id: insertedOrder.id },
