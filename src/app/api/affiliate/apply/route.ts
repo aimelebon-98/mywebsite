@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { affiliateApplications } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
+import {
+  sendAffiliateApplicationReceivedEmail,
+  sendAdminNewAffiliateApplicationEmail,
+} from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +22,7 @@ export async function POST(request: NextRequest) {
       websiteUrl,
       socialMediaUrl,
       marketingPlan,
+      locale = "en",
     } = body;
 
     if (!applicantName || !email) {
@@ -62,6 +67,26 @@ export async function POST(request: NextRequest) {
         status: "pending",
       })
       .returning();
+
+    // Send confirmation email to applicant (non-blocking)
+    sendAffiliateApplicationReceivedEmail(
+      emailLower,
+      applicantName.trim(),
+      locale
+    ).catch((err) => console.error("Applicant email error:", err));
+
+    // Send notification to admin (non-blocking)
+    const adminEmail =
+      process.env.ADMIN_NOTIFICATION_EMAIL || "komlaimelebon@gmail.com";
+    sendAdminNewAffiliateApplicationEmail(adminEmail, {
+      applicantName: applicantName.trim(),
+      email: emailLower,
+      phone: phone?.trim() || null,
+      country: country?.trim() || null,
+      websiteUrl: websiteUrl?.trim() || null,
+      socialMediaUrl: socialMediaUrl?.trim() || null,
+      marketingPlan: marketingPlan?.trim() || null,
+    }).catch((err) => console.error("Admin notification email error:", err));
 
     return NextResponse.json({
       success: true,

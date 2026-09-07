@@ -997,3 +997,312 @@ export async function sendAdminNewOrderEmail(
     return false;
   }
 }
+
+// ===== AFFILIATE EMAILS =====
+
+export async function sendAffiliateApplicationReceivedEmail(
+  to: string,
+  applicantName: string,
+  locale: string = "en"
+) {
+  const isFr = locale === "fr";
+  const subject = isFr
+    ? "Demande d'affiliation re\u00e7ue \u2014 New Deal Zone"
+    : "Affiliate Application Received \u2014 New Deal Zone";
+
+  const content = isFr
+    ? `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #eaeaea;">
+        <div style="background: linear-gradient(135deg, #CA3F2E 0%, #8B2A1E 100%); padding: 32px 24px; text-align: center; color: white;">
+          <h1 style="margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">New Deal Zone</h1>
+          <p style="margin: 8px 0 0; opacity: 0.9; font-size: 14px;">Programme d'Affiliation</p>
+        </div>
+        <div style="padding: 32px 24px; color: #1a1a1a;">
+          <h2 style="margin: 0 0 16px; font-size: 20px; font-weight: 600;">Bonjour ${applicantName},</h2>
+          <p style="margin: 0 0 16px; line-height: 1.6; color: #4a4a4a;">
+            Nous avons bien re\u00e7u votre candidature pour rejoindre le <strong>Programme d'Affiliation New Deal Zone</strong>.
+          </p>
+          <div style="background: #f8f9fa; border-left: 4px solid #CA3F2E; padding: 16px; border-radius: 4px; margin: 24px 0;">
+            <p style="margin: 0; font-size: 14px; color: #555;">
+              <strong>Prochaine \u00e9tape :</strong> Notre \u00e9quipe examine votre profil sous 24 \u00e0 48 heures. Vous recevrez un e-mail avec vos identifiants d\u00e8s validation.
+            </p>
+          </div>
+          <p style="margin: 0; line-height: 1.6; color: #666; font-size: 14px;">
+            En attendant, vous pouvez d\u00e9couvrir notre catalogue sur <a href="https://www.newdealzone.com" style="color: #CA3F2E; text-decoration: none; font-weight: 600;">newdealzone.com</a>.
+          </p>
+        </div>
+        <div style="background: #111111; padding: 20px 24px; text-align: center; color: #888888; font-size: 12px;">
+          \u00a9 ${new Date().getFullYear()} New Deal Zone. Tous droits r\u00e9serv\u00e9s.
+        </div>
+      </div>
+    `
+    : `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #eaeaea;">
+        <div style="background: linear-gradient(135deg, #CA3F2E 0%, #8B2A1E 100%); padding: 32px 24px; text-align: center; color: white;">
+          <h1 style="margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">New Deal Zone</h1>
+          <p style="margin: 8px 0 0; opacity: 0.9; font-size: 14px;">Affiliate Partner Program</p>
+        </div>
+        <div style="padding: 32px 24px; color: #1a1a1a;">
+          <h2 style="margin: 0 0 16px; font-size: 20px; font-weight: 600;">Hello ${applicantName},</h2>
+          <p style="margin: 0 0 16px; line-height: 1.6; color: #4a4a4a;">
+            Thank you for applying to the <strong>New Deal Zone Affiliate Program</strong>! We're excited about the possibility of partnering with you.
+          </p>
+          <div style="background: #f8f9fa; border-left: 4px solid #CA3F2E; padding: 16px; border-radius: 4px; margin: 24px 0;">
+            <p style="margin: 0; font-size: 14px; color: #555;">
+              <strong>What happens next?</strong> Our team reviews applications within 24-48 hours. Once approved, you will receive an email with your unique referral code and portal login.
+            </p>
+          </div>
+          <p style="margin: 0; line-height: 1.6; color: #666; font-size: 14px;">
+            In the meantime, feel free to explore our collection at <a href="https://www.newdealzone.com" style="color: #CA3F2E; text-decoration: none; font-weight: 600;">newdealzone.com</a>.
+          </p>
+        </div>
+        <div style="background: #111111; padding: 20px 24px; text-align: center; color: #888888; font-size: 12px;">
+          \u00a9 ${new Date().getFullYear()} New Deal Zone. All rights reserved.
+        </div>
+      </div>
+    `;
+
+  try {
+    const fromEmail = process.env.RESEND_FROM_EMAIL || "NewDealZone <support@newdealzone.com>";
+    if (!resend) return { success: false, error: "No RESEND_API_KEY" };
+    return await resend.emails.send({
+      from: fromEmail,
+      to,
+      subject,
+      html: content,
+    });
+  } catch (error) {
+    console.error("Failed to send affiliate application received email:", error);
+    return { success: false, error };
+  }
+}
+
+export async function sendAffiliateApprovedEmail(
+  to: string,
+  applicantName: string,
+  code: string,
+  tempPassword: string,
+  commissionRate: string = "5.00",
+  locale: string = "en"
+) {
+  const isFr = locale === "fr";
+  const subject = isFr
+    ? "F\u00e9licitations ! Votre compte affili\u00e9 est activ\u00e9 \u2014 New Deal Zone"
+    : "Congratulations! Your Affiliate Account is Approved \u2014 New Deal Zone";
+
+  const loginUrl = "https://www.newdealzone.com/en/affiliate/login";
+
+  const content = isFr
+    ? `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #eaeaea;">
+        <div style="background: linear-gradient(135deg, #CA3F2E 0%, #8B2A1E 100%); padding: 32px 24px; text-align: center; color: white;">
+          <h1 style="margin: 0; font-size: 24px; font-weight: 700;">Bienvenue dans l'\u00c9quipe !</h1>
+          <p style="margin: 8px 0 0; opacity: 0.9; font-size: 14px;">Votre compte affili\u00e9 est actif</p>
+        </div>
+        <div style="padding: 32px 24px; color: #1a1a1a;">
+          <h2 style="margin: 0 0 16px; font-size: 20px;">Bonjour ${applicantName},</h2>
+          <p style="margin: 0 0 16px; line-height: 1.6; color: #4a4a4a;">
+            Votre candidature d'affiliation New Deal Zone a \u00e9t\u00e9 approuv\u00e9e avec succ\u00e8s ! Vous pouvez d\u00e8s maintenant partager vos liens et gagner <strong>${commissionRate}% de commission</strong> sur chaque vente.
+          </p>
+
+          <div style="background: #fdf2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 20px; margin: 24px 0;">
+            <p style="margin: 0 0 8px; font-size: 13px; color: #991b1b; font-weight: 600; text-transform: uppercase;">Vos Acc\u00e8s</p>
+            <p style="margin: 4px 0; font-size: 14px; color: #333;"><strong>Code Affili\u00e9 :</strong> <code style="background: #ffffff; padding: 2px 8px; border-radius: 4px; color: #CA3F2E; font-size: 16px; font-weight: 700;">${code}</code></p>
+            <p style="margin: 4px 0; font-size: 14px; color: #333;"><strong>Email de connexion :</strong> ${to}</p>
+            <p style="margin: 4px 0; font-size: 14px; color: #333;"><strong>Mot de passe temporaire :</strong> <code style="background: #ffffff; padding: 2px 8px; border-radius: 4px; color: #111;">${tempPassword}</code></p>
+            <p style="margin: 4px 0; font-size: 14px; color: #333;"><strong>Taux de commission :</strong> ${commissionRate}%</p>
+            <p style="margin: 4px 0; font-size: 14px; color: #333;"><strong>Votre lien par d\u00e9faut :</strong> https://www.newdealzone.com?ref=${code}</p>
+          </div>
+
+          <div style="text-align: center; margin: 32px 0;">
+            <a href="${loginUrl}" style="background: #CA3F2E; color: #ffffff !important; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block; font-size: 15px;">
+              Acc\u00e9der \u00e0 mon Tableau de Bord
+            </a>
+          </div>
+
+          <p style="margin: 0; font-size: 13px; color: #777; line-height: 1.5;">
+            * Vous devrez modifier votre mot de passe d\u00e8s votre premi\u00e8re connexion pour s\u00e9curiser votre compte.
+          </p>
+        </div>
+        <div style="background: #111111; padding: 20px 24px; text-align: center; color: #888888; font-size: 12px;">
+          \u00a9 ${new Date().getFullYear()} New Deal Zone. Tous droits r\u00e9serv\u00e9s.
+        </div>
+      </div>
+    `
+    : `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #eaeaea;">
+        <div style="background: linear-gradient(135deg, #CA3F2E 0%, #8B2A1E 100%); padding: 32px 24px; text-align: center; color: white;">
+          <h1 style="margin: 0; font-size: 24px; font-weight: 700;">Welcome to the Team!</h1>
+          <p style="margin: 8px 0 0; opacity: 0.9; font-size: 14px;">Your affiliate account is ready</p>
+        </div>
+        <div style="padding: 32px 24px; color: #1a1a1a;">
+          <h2 style="margin: 0 0 16px; font-size: 20px;">Hello ${applicantName},</h2>
+          <p style="margin: 0 0 16px; line-height: 1.6; color: #4a4a4a;">
+            Great news! Your New Deal Zone affiliate application has been approved. You can now start promoting our premium footwear and earn <strong>${commissionRate}% commission</strong> on every order.
+          </p>
+
+          <div style="background: #fdf2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 20px; margin: 24px 0;">
+            <p style="margin: 0 0 8px; font-size: 13px; color: #991b1b; font-weight: 600; text-transform: uppercase;">Your Login Credentials</p>
+            <p style="margin: 4px 0; font-size: 14px; color: #333;"><strong>Affiliate Code:</strong> <code style="background: #ffffff; padding: 2px 8px; border-radius: 4px; color: #CA3F2E; font-size: 16px; font-weight: 700;">${code}</code></p>
+            <p style="margin: 4px 0; font-size: 14px; color: #333;"><strong>Login Email:</strong> ${to}</p>
+            <p style="margin: 4px 0; font-size: 14px; color: #333;"><strong>Temporary Password:</strong> <code style="background: #ffffff; padding: 2px 8px; border-radius: 4px; color: #111;">${tempPassword}</code></p>
+            <p style="margin: 4px 0; font-size: 14px; color: #333;"><strong>Commission Rate:</strong> ${commissionRate}%</p>
+            <p style="margin: 4px 0; font-size: 14px; color: #333;"><strong>Your Referral Link:</strong> https://www.newdealzone.com?ref=${code}</p>
+          </div>
+
+          <div style="text-align: center; margin: 32px 0;">
+            <a href="${loginUrl}" style="background: #CA3F2E; color: #ffffff !important; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block; font-size: 15px;">
+              Go to Affiliate Dashboard
+            </a>
+          </div>
+
+          <p style="margin: 0; font-size: 13px; color: #777; line-height: 1.5;">
+            * You will be prompted to change your temporary password upon your first login.
+          </p>
+        </div>
+        <div style="background: #111111; padding: 20px 24px; text-align: center; color: #888888; font-size: 12px;">
+          \u00a9 ${new Date().getFullYear()} New Deal Zone. All rights reserved.
+        </div>
+      </div>
+    `;
+
+  try {
+    const fromEmail = process.env.RESEND_FROM_EMAIL || "NewDealZone <support@newdealzone.com>";
+    if (!resend) return { success: false, error: "No RESEND_API_KEY" };
+    return await resend.emails.send({
+      from: fromEmail,
+      to,
+      subject,
+      html: content,
+    });
+  } catch (error) {
+    console.error("Failed to send affiliate approved email:", error);
+    return { success: false, error };
+  }
+}
+
+export async function sendAffiliateRejectedEmail(
+  to: string,
+  applicantName: string,
+  reason?: string,
+  locale: string = "en"
+) {
+  const isFr = locale === "fr";
+  const subject = isFr
+    ? "Mise \u00e0 jour de votre candidature d'affiliation \u2014 New Deal Zone"
+    : "Update on your affiliate application \u2014 New Deal Zone";
+
+  const content = isFr
+    ? `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #eaeaea;">
+        <div style="background: #1f2937; padding: 32px 24px; text-align: center; color: white;">
+          <h1 style="margin: 0; font-size: 24px; font-weight: 700;">New Deal Zone</h1>
+          <p style="margin: 8px 0 0; opacity: 0.9; font-size: 14px;">Programme d'Affiliation</p>
+        </div>
+        <div style="padding: 32px 24px; color: #1a1a1a;">
+          <h2 style="margin: 0 0 16px; font-size: 20px;">Bonjour ${applicantName},</h2>
+          <p style="margin: 0 0 16px; line-height: 1.6; color: #4a4a4a;">
+            Merci pour votre int\u00e9r\u00eat pour notre programme d'affiliation. Apr\u00e8s \u00e9tude attentive de votre dossier, nous ne sommes malheureusement pas en mesure d'approuver votre candidature \u00e0 ce stade.
+          </p>
+          ${
+            reason
+              ? `<div style="background: #f8f9fa; border-left: 4px solid #6b7280; padding: 16px; border-radius: 4px; margin: 24px 0;"><p style="margin: 0; font-size: 14px; color: #555;"><strong>Remarque :</strong> ${reason}</p></div>`
+              : ""
+          }
+          <p style="margin: 0; line-height: 1.6; color: #666; font-size: 14px;">
+            Vous \u00eates le bienvenu pour postuler \u00e0 nouveau dans le futur si votre audience ou vos canaux \u00e9voluent.
+          </p>
+        </div>
+        <div style="background: #111111; padding: 20px 24px; text-align: center; color: #888888; font-size: 12px;">
+          \u00a9 ${new Date().getFullYear()} New Deal Zone. Tous droits r\u00e9serv\u00e9s.
+        </div>
+      </div>
+    `
+    : `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #eaeaea;">
+        <div style="background: #1f2937; padding: 32px 24px; text-align: center; color: white;">
+          <h1 style="margin: 0; font-size: 24px; font-weight: 700;">New Deal Zone</h1>
+          <p style="margin: 8px 0 0; opacity: 0.9; font-size: 14px;">Affiliate Partner Program</p>
+        </div>
+        <div style="padding: 32px 24px; color: #1a1a1a;">
+          <h2 style="margin: 0 0 16px; font-size: 20px;">Hello ${applicantName},</h2>
+          <p style="margin: 0 0 16px; line-height: 1.6; color: #4a4a4a;">
+            Thank you for your interest in the New Deal Zone Affiliate Program. After careful review of your application, we regret to inform you that we cannot approve your account at this time.
+          </p>
+          ${
+            reason
+              ? `<div style="background: #f8f9fa; border-left: 4px solid #6b7280; padding: 16px; border-radius: 4px; margin: 24px 0;"><p style="margin: 0; font-size: 14px; color: #555;"><strong>Feedback:</strong> ${reason}</p></div>`
+              : ""
+          }
+          <p style="margin: 0; line-height: 1.6; color: #666; font-size: 14px;">
+            You are welcome to re-apply in the future as your channels or audience grow.
+          </p>
+        </div>
+        <div style="background: #111111; padding: 20px 24px; text-align: center; color: #888888; font-size: 12px;">
+          \u00a9 ${new Date().getFullYear()} New Deal Zone. All rights reserved.
+        </div>
+      </div>
+    `;
+
+  try {
+    const fromEmail = process.env.RESEND_FROM_EMAIL || "NewDealZone <support@newdealzone.com>";
+    if (!resend) return { success: false, error: "No RESEND_API_KEY" };
+    return await resend.emails.send({
+      from: fromEmail,
+      to,
+      subject,
+      html: content,
+    });
+  } catch (error) {
+    console.error("Failed to send affiliate rejected email:", error);
+    return { success: false, error };
+  }
+}
+
+export async function sendAdminNewAffiliateApplicationEmail(
+  adminEmail: string,
+  summary: {
+    applicantName: string;
+    email: string;
+    phone?: string | null;
+    country?: string | null;
+    websiteUrl?: string | null;
+    socialMediaUrl?: string | null;
+    marketingPlan?: string | null;
+  }
+) {
+  const subject = `[Admin] New Affiliate Application: ${summary.applicantName}`;
+  const content = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; border: 1px solid #eaeaea; padding: 24px;">
+      <h2 style="margin: 0 0 16px; color: #111;">New Affiliate Application Submitted</h2>
+      <p style="color: #555; margin: 0 0 16px;">A new affiliate has applied to join New Deal Zone:</p>
+      <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+        <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee; font-weight: 600; width: 140px;">Name:</td><td style="padding: 8px 0; border-bottom: 1px solid #eee;">${summary.applicantName}</td></tr>
+        <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee; font-weight: 600;">Email:</td><td style="padding: 8px 0; border-bottom: 1px solid #eee;">${summary.email}</td></tr>
+        <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee; font-weight: 600;">Phone:</td><td style="padding: 8px 0; border-bottom: 1px solid #eee;">${summary.phone || "N/A"}</td></tr>
+        <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee; font-weight: 600;">Country:</td><td style="padding: 8px 0; border-bottom: 1px solid #eee;">${summary.country || "N/A"}</td></tr>
+        <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee; font-weight: 600;">Social / Site:</td><td style="padding: 8px 0; border-bottom: 1px solid #eee;">${summary.socialMediaUrl || summary.websiteUrl || "N/A"}</td></tr>
+        <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee; font-weight: 600;">Plan:</td><td style="padding: 8px 0; border-bottom: 1px solid #eee;">${summary.marketingPlan || "N/A"}</td></tr>
+      </table>
+      <div style="margin-top: 24px; text-align: center;">
+        <a href="https://www.newdealzone.com/jevw" style="background: #CA3F2E; color: white !important; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 14px; display: inline-block;">
+          Open Admin Panel to Review
+        </a>
+      </div>
+    </div>
+  `;
+
+  try {
+    const fromEmail = process.env.RESEND_FROM_EMAIL || "NewDealZone <support@newdealzone.com>";
+    if (!resend) return { success: false, error: "No RESEND_API_KEY" };
+    return await resend.emails.send({
+      from: fromEmail,
+      to: adminEmail,
+      subject,
+      html: content,
+    });
+  } catch (error) {
+    console.error("Failed to send admin affiliate notification:", error);
+    return { success: false, error };
+  }
+}

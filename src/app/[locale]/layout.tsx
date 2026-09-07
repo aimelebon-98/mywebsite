@@ -15,6 +15,7 @@ import ThemeColorSwitcher from "@/components/ThemeColorSwitcher";
 import MetaPixel from "@/components/MetaPixel";
 import ScrollDepthTracker from "@/components/ScrollDepthTracker";
 import LanguageChangeTracker from "@/components/LanguageChangeTracker";
+import AffiliateTracker from "@/components/AffiliateTracker";
 const FloatingCartPill = dynamic(() => import("@/components/FloatingCartPill"));
 const PageViewTracker = dynamic(() => import("@/components/AnalyticsTracker"));
 
@@ -195,6 +196,7 @@ export default async function LocaleLayout({
         <MetaPixel />
         <ScrollDepthTracker />
         <LanguageChangeTracker />
+        <AffiliateTracker />
         <ThemeColorSwitcher />
       </body>
     </html>
