@@ -199,10 +199,8 @@ export default function Footer() {
             </h4>
             <ul className="space-y-3">
               <li>
-                <Link prefetch={false} href="/vendor/apply" className="text-sm text-[#CA3F2E] font-medium hover:underline transition flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#CA3F2E]" />
-                  {isFr ? "Devenir vendeur" : "Become a Seller"}
-                </Link>
+                
+              <Link href="/affiliate" className="hover:text-white transition-colors">{locale === "fr" ? "Programme d'Affiliation" : "Affiliate Program"}</Link>
               </li>
               <li>
                 <Link prefetch={false} href="/vendor/login" className="text-sm hover:text-white transition flex items-center gap-2">
