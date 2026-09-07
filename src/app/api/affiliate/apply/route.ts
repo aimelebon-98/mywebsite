@@ -2,15 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { affiliateApplications } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
-import {
-  sendAffiliateApplicationReceivedEmail,
-  sendAdminNewAffiliateApplicationEmail,
-} from "@/lib/email";
+import { ensureAffiliateTablesExist } from "@/lib/ensure-affiliate-tables";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   try {
+    // Auto-create affiliate tables if missing on Vercel production DB
+    await ensureAffiliateTablesExist();
+
     const body = await request.json();
     const {
       applicantName,
@@ -32,8 +32,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const emailLower = email.toLowerCase().trim();
+    const emailLower = String(email).toLowerCase().trim();
+    const nameTrim = String(applicantName).trim();
 
+    // Check duplicate pending application
     const existing = await db
       .select()
       .from(affiliateApplications)
@@ -47,7 +49,7 @@ export async function POST(request: NextRequest) {
 
     if (existing.length) {
       return NextResponse.json(
-        { error: "You already have a pending application" },
+        { error: "You already have a pending application under review." },
         { status: 409 }
       );
     }
@@ -55,7 +57,7 @@ export async function POST(request: NextRequest) {
     const [application] = await db
       .insert(affiliateApplications)
       .values({
-        applicantName: applicantName.trim(),
+        applicantName: nameTrim,
         email: emailLower,
         phone: phone?.trim() || null,
         whatsapp: whatsapp?.trim() || null,
@@ -68,37 +70,43 @@ export async function POST(request: NextRequest) {
       })
       .returning();
 
-    // Send confirmation email to applicant (non-blocking)
-    sendAffiliateApplicationReceivedEmail(
-      emailLower,
-      applicantName.trim(),
-      locale
-    ).catch((err) => console.error("Applicant email error:", err));
-
-    // Send notification to admin (non-blocking)
-    const adminEmail =
-      process.env.ADMIN_NOTIFICATION_EMAIL || "komlaimelebon@gmail.com";
-    sendAdminNewAffiliateApplicationEmail(adminEmail, {
-      applicantName: applicantName.trim(),
-      email: emailLower,
-      phone: phone?.trim() || null,
-      country: country?.trim() || null,
-      websiteUrl: websiteUrl?.trim() || null,
-      socialMediaUrl: socialMediaUrl?.trim() || null,
-      marketingPlan: marketingPlan?.trim() || null,
-    }).catch((err) => console.error("Admin notification email error:", err));
+    // Non-blocking email notifications
+    try {
+      const emailMod = await import("@/lib/email");
+      if (typeof emailMod.sendAffiliateApplicationReceivedEmail === "function") {
+        emailMod
+          .sendAffiliateApplicationReceivedEmail(emailLower, nameTrim, locale)
+          .catch((err: unknown) => console.error("Applicant email error:", err));
+      }
+      if (typeof emailMod.sendAdminNewAffiliateApplicationEmail === "function") {
+        const adminEmail =
+          process.env.ADMIN_NOTIFICATION_EMAIL || "komlaimelebon@gmail.com";
+        emailMod
+          .sendAdminNewAffiliateApplicationEmail(adminEmail, {
+            applicantName: nameTrim,
+            email: emailLower,
+            phone: phone?.trim() || null,
+            country: country?.trim() || null,
+            websiteUrl: websiteUrl?.trim() || null,
+            socialMediaUrl: socialMediaUrl?.trim() || null,
+            marketingPlan: marketingPlan?.trim() || null,
+          })
+          .catch((err: unknown) =>
+            console.error("Admin notification email error:", err)
+          );
+      }
+    } catch (e) {
+      console.error("Email notification error (non-fatal):", e);
+    }
 
     return NextResponse.json({
       success: true,
-      message:
-        "Application submitted! We will review it within 24-48 hours.",
+      message: "Application submitted! We will review it within 24-48 hours.",
       applicationId: application.id,
     });
   } catch (error) {
     console.error("Affiliate application error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    const msg = error instanceof Error ? error.message : "Internal server error";
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
