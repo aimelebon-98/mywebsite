@@ -70,7 +70,7 @@ export async function getCurrentAffiliate() {
   }
 }
 
-export async function requireAffiliate(request: NextRequest) {
+export async function requireAffiliate(_request?: NextRequest) {
   const affiliate = await getCurrentAffiliate();
   if (!affiliate) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
