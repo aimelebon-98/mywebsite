@@ -239,11 +239,11 @@ export default function AffiliateDashboardOverview() {
               {isFr ? "Générateur de Liens Produits" : "Product Deep Link Generator"}
             </div>
             <h3 className="text-lg font-bold">
-              {isFr ? "Créez un lien vers une chaussure précise" : "Link directly to any shoe"}
+              {isFr ? "Créez un lien vers un produit ou abonnement" : "Link directly to any product/subscription"}
             </h3>
             <p className="text-xs text-gray-400 mt-1">
               {isFr
-                ? "Collez l'URL d'une paire de chaussures pour générer votre lien affilié dédié."
+                ? "Collez l'URL d'une produit ou abonnement pour générer votre lien affilié dédié."
                 : "Paste any product URL from our shop to create your custom tracked link."}
             </p>
 

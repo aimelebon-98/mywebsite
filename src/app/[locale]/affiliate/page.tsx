@@ -39,7 +39,7 @@ export default async function AffiliateLandingPage({ params }: Props) {
               </>
             ) : (
               <>
-                Earn Cash Promoting Premium Footwear with{" "}
+                Earn Cash Promoting Products & Subscriptions with{" "}
                 <span className="text-[#CA3F2E]">New Deal Zone</span>
               </>
             )}
@@ -177,7 +177,7 @@ export default async function AffiliateLandingPage({ params }: Props) {
               <CheckCircle2 className="w-6 h-6 text-[#CA3F2E] flex-shrink-0 mt-1" />
               <div>
                 <h4 className="font-semibold text-lg text-white">
-                  {isFr ? "Chaussures Premium à Forte Conversion" : "High-Converting Premium Footwear"}
+                  {isFr ? "Produits & Abonnements à Forte Conversion" : "High-Converting Products & Subscriptions"}
                 </h4>
                 <p className="text-gray-400 text-sm mt-1">
                   {isFr
@@ -223,8 +223,8 @@ export default async function AffiliateLandingPage({ params }: Props) {
                 </h4>
                 <p className="text-gray-400 text-sm mt-1">
                   {isFr
-                    ? "Créez des liens d’affiliation pointant directement vers n’importe quelle paire de chaussures du site."
-                    : "Generate affiliate links pointing directly to any specific shoe or category on the store."}
+                    ? "Créez des liens d’affiliation pointant directement vers n’importe quelle produit ou abonnement du site."
+                    : "Generate affiliate links pointing directly to any product/subscription or category on the store."}
                 </p>
               </div>
             </div>
@@ -242,8 +242,8 @@ export default async function AffiliateLandingPage({ params }: Props) {
           </h2>
           <p className="mt-4 text-gray-300 text-base max-w-xl mx-auto">
             {isFr
-              ? "Rejoignez notre réseau de créateurs, influenceurs et passionnés de sneakers dès aujourd’hui."
-              : "Join our network of creators, influencers, and sneaker enthusiasts today."}
+              ? "Rejoignez notre réseau de créateurs, influenceurs et partenaires dès aujourd’hui."
+              : "Join our network of creators, influencers, and partners today."}
           </p>
           <div className="mt-8">
             <Link

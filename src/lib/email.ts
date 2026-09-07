@@ -36,7 +36,7 @@ function brandHeader(): string {
 
 function brandFooter(locale: "en" | "fr"): string {
   const site = SITE_URL.replace("https://","").replace("http://","");
-  const tagline = locale === "fr" ? "Chaussures premium pour toutes les occasions" : "Premium footwear for every occasion";
+  const tagline = locale === "fr" ? "Produits & Abonnements pour toutes les occasions" : "Products & Subscriptions for every occasion";
   return `
     <div style="background:#111827;padding:24px;text-align:center;border-radius:0 0 16px 16px;">
       <div style="font-family:-apple-system,sans-serif;font-weight:900;font-size:14px;letter-spacing:-0.02em;line-height:1;">
@@ -1138,7 +1138,7 @@ export async function sendAffiliateApprovedEmail(
         <div style="padding: 32px 24px; color: #1a1a1a;">
           <h2 style="margin: 0 0 16px; font-size: 20px;">Hello ${applicantName},</h2>
           <p style="margin: 0 0 16px; line-height: 1.6; color: #4a4a4a;">
-            Great news! Your New Deal Zone affiliate application has been approved. You can now start promoting our premium footwear and earn <strong>${commissionRate}% commission</strong> on every order.
+            Great news! Your New Deal Zone affiliate application has been approved. You can now start promoting our Products & Subscriptions and earn <strong>${commissionRate}% commission</strong> on every order.
           </p>
 
           <div style="background: #fdf2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 20px; margin: 24px 0;">
