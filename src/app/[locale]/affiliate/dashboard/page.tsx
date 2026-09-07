@@ -1,19 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter, usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
-  LayoutDashboard,
+  DollarSign,
+  Copy,
+  CheckCheck,
+  MousePointerClick,
   ShoppingBag,
-  Wallet,
-  Settings,
-  LogOut,
-  ExternalLink,
   Sparkles,
-  Loader2,
-  Menu,
-  X,
+  ArrowRight,
+  ExternalLink,
+  Wallet,
 } from "lucide-react";
 
 interface AffiliateData {
@@ -24,176 +23,329 @@ interface AffiliateData {
   commissionRate: string;
   totalEarnings: string;
   pendingPayout: string;
+  totalPaidOut: string;
   totalClicks: number;
   totalOrders: number;
 }
 
-export default function AffiliateDashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+interface OrderItem {
+  id: string;
+  orderId: string;
+  subtotal: string;
+  commissionAmount: string;
+  currency: string;
+  status: string;
+  createdAt: string;
+}
+
+export default function AffiliateDashboardOverview() {
   const params = useParams();
-  const router = useRouter();
-  const pathname = usePathname();
   const locale = (params?.locale as string) || "en";
   const isFr = locale === "fr";
 
   const [affiliate, setAffiliate] = useState<AffiliateData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [orders, setOrders] = useState<OrderItem[]>([]);
+  const [copiedGeneral, setCopiedGeneral] = useState(false);
+  const [deepLinkInput, setDeepLinkInput] = useState("");
+  const [generatedDeepLink, setGeneratedDeepLink] = useState("");
+  const [copiedDeep, setCopiedDeep] = useState(false);
 
   useEffect(() => {
     fetch("/api/affiliate/me")
-      .then((res) => {
-        if (!res.ok) {
-          router.push(`/${locale}/affiliate/login`);
-          return null;
-        }
-        return res.json();
-      })
-      .then((data) => {
-        if (data?.affiliate) {
-          setAffiliate(data.affiliate);
-        }
-      })
-      .finally(() => setLoading(false));
-  }, [locale, router]);
+      .then((r) => r.json())
+      .then((d) => d?.affiliate && setAffiliate(d.affiliate));
 
-  const handleLogout = async () => {
-    await fetch("/api/affiliate/logout", { method: "POST" });
-    router.push(`/${locale}/affiliate/login`);
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center text-white">
-        <Loader2 className="w-8 h-8 animate-spin text-[#CA3F2E]" />
-      </div>
-    );
-  }
+    fetch("/api/affiliate/orders")
+      .then((r) => r.json())
+      .then((d) => d?.orders && setOrders(d.orders.slice(0, 5)));
+  }, []);
 
   if (!affiliate) return null;
 
-  const navItems = [
-    {
-      label: isFr ? "Vue d'ensemble" : "Overview",
-      href: `/${locale}/affiliate/dashboard`,
-      icon: LayoutDashboard,
-      exact: true,
-    },
-    {
-      label: isFr ? "Commandes Liées" : "Referred Orders",
-      href: `/${locale}/affiliate/dashboard/orders`,
-      icon: ShoppingBag,
-    },
-    {
-      label: isFr ? "Paiements & Retraits" : "Payouts & Balances",
-      href: `/${locale}/affiliate/dashboard/payouts`,
-      icon: Wallet,
-    },
-    {
-      label: isFr ? "Paramètres & Banque" : "Settings & Bank",
-      href: `/${locale}/affiliate/dashboard/settings`,
-      icon: Settings,
-    },
-  ];
+  const defaultRefUrl = `https://www.newdealzone.com/${locale}?ref=${affiliate.code}`;
+
+  const copyToClipboard = (text: string, isDeep = false) => {
+    navigator.clipboard.writeText(text);
+    if (isDeep) {
+      setCopiedDeep(true);
+      setTimeout(() => setCopiedDeep(false), 2000);
+    } else {
+      setCopiedGeneral(true);
+      setTimeout(() => setCopiedGeneral(false), 2000);
+    }
+  };
+
+  const handleGenerateDeepLink = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!deepLinkInput.trim()) return;
+
+    try {
+      const url = new URL(deepLinkInput.trim());
+      url.searchParams.set("ref", affiliate.code);
+      setGeneratedDeepLink(url.toString());
+    } catch {
+      const cleanPath = deepLinkInput.trim().replace(/^\//, "");
+      const full = `https://www.newdealzone.com/${cleanPath}${cleanPath.includes("?") ? "&" : "?"}ref=${affiliate.code}`;
+      setGeneratedDeepLink(full);
+    }
+  };
+
+  const conversionRate =
+    affiliate.totalClicks > 0
+      ? ((affiliate.totalOrders / affiliate.totalClicks) * 100).toFixed(1)
+      : "0.0";
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d] text-white flex flex-col md:flex-row">
-      {/* MOBILE TOPBAR */}
-      <div className="md:hidden flex items-center justify-between p-4 border-b border-white/10 bg-[#121212]">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-[#CA3F2E] flex items-center justify-center text-white font-bold text-xs">
-            NDZ
-          </div>
-          <span className="font-semibold text-sm">Affiliate Portal</span>
+    <div className="space-y-8">
+      {/* WELCOME BANNER */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-white/[0.06] to-white/[0.02] border border-white/10">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold">
+            {isFr ? `Bonjour, ${affiliate.name} 👋` : `Welcome, ${affiliate.name} 👋`}
+          </h1>
+          <p className="text-gray-400 text-xs sm:text-sm mt-1">
+            {isFr
+              ? `Votre taux de commission actuel est de ${affiliate.commissionRate}%.`
+              : `Your active commission rate is ${affiliate.commissionRate}%.`}
+          </p>
         </div>
-        <button
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className="p-2 rounded-lg bg-white/5 border border-white/10 text-gray-300"
+        <Link
+          href={`/${locale}/affiliate/dashboard/payouts`}
+          className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#CA3F2E] hover:bg-[#8B2A1E] text-white font-semibold text-sm transition-all self-start sm:self-auto shadow-lg shadow-[#CA3F2E]/20"
         >
-          {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
+          <Wallet className="w-4 h-4" />
+          <span>{isFr ? "Demander un Retrait" : "Request Payout"}</span>
+        </Link>
       </div>
 
-      {/* SIDEBAR */}
-      <aside
-        className={`fixed md:sticky top-0 inset-x-0 bottom-0 md:inset-x-auto z-40 w-full md:w-64 bg-[#121212] border-r border-white/10 flex flex-col transition-transform ${
-          mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-        } md:h-screen`}
-      >
-        {/* Header */}
-        <div className="p-6 border-b border-white/10">
-          <Link
-            href={`/${locale}`}
-            className="flex items-center gap-2 text-white font-bold text-lg"
-          >
-            <div className="w-7 h-7 rounded-lg bg-[#CA3F2E] flex items-center justify-center text-xs">
-              ✓
+      {/* STATS CARDS */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Pending Payout */}
+        <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/10">
+          <div className="flex items-center justify-between text-gray-400 mb-2">
+            <span className="text-xs uppercase tracking-wider font-semibold">
+              {isFr ? "Solde Retirable" : "Pending Payout"}
+            </span>
+            <Wallet className="w-4 h-4 text-amber-400" />
+          </div>
+          <p className="text-2xl sm:text-3xl font-bold text-white">
+            ${parseFloat(affiliate.pendingPayout || "0").toFixed(2)}
+          </p>
+          <p className="text-[11px] text-gray-400 mt-1">
+            {isFr ? "Min. $20 pour retrait" : "Min. $20 to withdraw"}
+          </p>
+        </div>
+
+        {/* Lifetime Earnings */}
+        <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/10">
+          <div className="flex items-center justify-between text-gray-400 mb-2">
+            <span className="text-xs uppercase tracking-wider font-semibold">
+              {isFr ? "Gains Cumulés" : "Total Earnings"}
+            </span>
+            <DollarSign className="w-4 h-4 text-emerald-400" />
+          </div>
+          <p className="text-2xl sm:text-3xl font-bold text-white">
+            ${parseFloat(affiliate.totalEarnings || "0").toFixed(2)}
+          </p>
+          <p className="text-[11px] text-gray-400 mt-1">
+            {isFr ? "Depuis votre inscription" : "Lifetime affiliate revenue"}
+          </p>
+        </div>
+
+        {/* Total Orders */}
+        <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/10">
+          <div className="flex items-center justify-between text-gray-400 mb-2">
+            <span className="text-xs uppercase tracking-wider font-semibold">
+              {isFr ? "Ventes Générées" : "Total Orders"}
+            </span>
+            <ShoppingBag className="w-4 h-4 text-blue-400" />
+          </div>
+          <p className="text-2xl sm:text-3xl font-bold text-white">
+            {affiliate.totalOrders || 0}
+          </p>
+          <p className="text-[11px] text-gray-400 mt-1">
+            {isFr ? "Commandes validées" : "Completed purchases"}
+          </p>
+        </div>
+
+        {/* Clicks & CVR */}
+        <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/10">
+          <div className="flex items-center justify-between text-gray-400 mb-2">
+            <span className="text-xs uppercase tracking-wider font-semibold">
+              {isFr ? "Clics / Taux Conv." : "Clicks & CVR"}
+            </span>
+            <MousePointerClick className="w-4 h-4 text-purple-400" />
+          </div>
+          <p className="text-2xl sm:text-3xl font-bold text-white">
+            {affiliate.totalClicks || 0}
+            <span className="text-xs font-normal text-gray-400 ml-2">
+              ({conversionRate}%)
+            </span>
+          </p>
+          <p className="text-[11px] text-gray-400 mt-1">
+            {isFr ? "30 jours de suivi cookie" : "30-day tracking window"}
+          </p>
+        </div>
+      </div>
+
+      {/* REFERRAL LINK TOOLS */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Main Referral Link Card */}
+        <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/10 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-semibold text-[#CA3F2E] uppercase tracking-wider mb-2">
+              <Sparkles className="w-3.5 h-3.5" />
+              {isFr ? "Votre Lien Principal" : "Your Primary Referral Link"}
             </div>
-            <span>New Deal Zone</span>
-          </Link>
-          <div className="mt-4 p-3 rounded-xl bg-white/5 border border-white/10">
-            <p className="text-xs text-gray-400">{isFr ? "Partenaire" : "Partner"}</p>
-            <p className="text-sm font-semibold truncate text-white">{affiliate.name}</p>
-            <div className="mt-1 flex items-center gap-1.5 text-xs text-[#CA3F2E]">
-              <Sparkles className="w-3 h-3" />
-              <span className="font-mono font-bold">{affiliate.code}</span>
+            <h3 className="text-lg font-bold">
+              {isFr ? "Redirige vers l'accueil de la boutique" : "Points to the homepage"}
+            </h3>
+            <p className="text-xs text-gray-400 mt-1">
+              {isFr
+                ? "Partagez ce lien sur vos réseaux. Tout achat réalisé sous 30 jours vous rapporte une commission."
+                : "Share this link in your bios or messages. Any sale within 30 days earns you commission."}
+            </p>
+
+            <div className="mt-4 p-3 rounded-xl bg-black/60 border border-white/10 font-mono text-xs text-gray-300 break-all select-all">
+              {defaultRefUrl}
             </div>
+          </div>
+
+          <div className="mt-6">
+            <button
+              onClick={() => copyToClipboard(defaultRefUrl, false)}
+              className="w-full py-3 rounded-xl bg-[#CA3F2E] hover:bg-[#8B2A1E] text-white font-semibold text-sm transition-all flex items-center justify-center gap-2"
+            >
+              {copiedGeneral ? (
+                <>
+                  <CheckCheck className="w-4 h-4" />
+                  <span>{isFr ? "Copié dans le presse-papier !" : "Copied to clipboard!"}</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4" />
+                  <span>{isFr ? "Copier mon lien principal" : "Copy referral link"}</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          {navItems.map((item) => {
-            const isActive = item.exact
-              ? pathname === item.href
-              : pathname.startsWith(item.href);
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                  isActive
-                    ? "bg-[#CA3F2E] text-white shadow-lg shadow-[#CA3F2E]/20"
-                    : "text-gray-400 hover:text-white hover:bg-white/5"
-                }`}
+        {/* Deep Link Generator */}
+        <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/10 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-semibold text-blue-400 uppercase tracking-wider mb-2">
+              <ExternalLink className="w-3.5 h-3.5" />
+              {isFr ? "Générateur de Liens Produits" : "Product Deep Link Generator"}
+            </div>
+            <h3 className="text-lg font-bold">
+              {isFr ? "Créez un lien vers une chaussure précise" : "Link directly to any shoe"}
+            </h3>
+            <p className="text-xs text-gray-400 mt-1">
+              {isFr
+                ? "Collez l'URL d'une paire de chaussures pour générer votre lien affilié dédié."
+                : "Paste any product URL from our shop to create your custom tracked link."}
+            </p>
+
+            <form onSubmit={handleGenerateDeepLink} className="mt-4 space-y-3">
+              <input
+                type="text"
+                value={deepLinkInput}
+                onChange={(e) => setDeepLinkInput(e.target.value)}
+                placeholder="https://www.newdealzone.com/en/product/..."
+                className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-white placeholder-gray-500 text-xs focus:outline-none focus:border-blue-400"
+              />
+              <button
+                type="submit"
+                className="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-medium text-xs transition-all"
               >
-                <Icon className="w-4 h-4" />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
-        </nav>
+                {isFr ? "Générer le lien affilié" : "Generate Deep Link"}
+              </button>
+            </form>
 
-        {/* Footer actions */}
-        <div className="p-4 border-t border-white/10 space-y-2">
-          <Link
-            href={`/${locale}?ref=${affiliate.code}`}
-            target="_blank"
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs text-gray-300 transition-colors"
-          >
-            <ExternalLink className="w-3.5 h-3.5" />
-            <span>{isFr ? "Tester mon lien" : "Test my link"}</span>
-          </Link>
-
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-xs text-red-400 transition-colors"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            <span>{isFr ? "Déconnexion" : "Log out"}</span>
-          </button>
+            {generatedDeepLink && (
+              <div className="mt-4 p-3 rounded-xl bg-blue-950/40 border border-blue-500/30">
+                <p className="font-mono text-xs text-blue-200 break-all select-all">
+                  {generatedDeepLink}
+                </p>
+                <button
+                  onClick={() => copyToClipboard(generatedDeepLink, true)}
+                  className="mt-2 text-xs text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1"
+                >
+                  {copiedDeep ? (
+                    <>
+                      <CheckCheck className="w-3.5 h-3.5" />
+                      <span>{isFr ? "Lien copié !" : "Link copied!"}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>{isFr ? "Copier ce lien" : "Copy this deep link"}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-      </aside>
+      </div>
 
-      {/* MAIN CONTENT AREA */}
-      <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto max-w-7xl mx-auto w-full">
-        {children}
-      </main>
+      {/* RECENT REFERRED ORDERS TABLE */}
+      <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/10">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold">
+            {isFr ? "Dernières Ventes Référencées" : "Recent Referred Orders"}
+          </h3>
+          <Link
+            href={`/${locale}/affiliate/dashboard/orders`}
+            className="text-xs text-[#CA3F2E] hover:underline font-semibold flex items-center gap-1"
+          >
+            {isFr ? "Voir tout" : "View all"}
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        {orders.length === 0 ? (
+          <div className="text-center py-10 text-gray-400 text-xs">
+            {isFr
+              ? "Aucune commande pour le moment. Partagez votre lien pour commencer à encaisser des commissions !"
+              : "No referred orders yet. Share your link to start generating commissions!"}
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="border-b border-white/10 text-gray-400 uppercase tracking-wider">
+                <tr>
+                  <th className="py-3 px-2">Order ID</th>
+                  <th className="py-3 px-2">Date</th>
+                  <th className="py-3 px-2">Subtotal</th>
+                  <th className="py-3 px-2">Your Earning</th>
+                  <th className="py-3 px-2">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5 text-gray-300">
+                {orders.map((ord) => (
+                  <tr key={ord.id}>
+                    <td className="py-3 px-2 font-mono text-white">#{ord.orderId.slice(0, 8)}</td>
+                    <td className="py-3 px-2">
+                      {new Date(ord.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="py-3 px-2">${parseFloat(ord.subtotal).toFixed(2)}</td>
+                    <td className="py-3 px-2 font-semibold text-emerald-400">
+                      +${parseFloat(ord.commissionAmount).toFixed(2)}
+                    </td>
+                    <td className="py-3 px-2">
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] uppercase font-semibold">
+                        {ord.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
