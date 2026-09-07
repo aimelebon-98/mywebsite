@@ -6,6 +6,7 @@ let tablesEnsured = false;
 export async function ensureAffiliateTablesExist() {
   if (tablesEnsured) return;
   try {
+    // 1. Create tables if missing
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS "affiliates" (
         "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -99,6 +100,14 @@ export async function ensureAffiliateTablesExist() {
         "created_at" timestamp DEFAULT now()
       );
     `);
+
+    // 2. Add columns if tables existed previously without newer fields
+    await db.execute(sql`
+      ALTER TABLE "affiliate_applications" ADD COLUMN IF NOT EXISTS "password_hash" varchar(255);
+      ALTER TABLE "affiliates" ADD COLUMN IF NOT EXISTS "reset_token" varchar(255);
+      ALTER TABLE "affiliates" ADD COLUMN IF NOT EXISTS "reset_token_expires_at" timestamp;
+    `);
+
     tablesEnsured = true;
   } catch (e) {
     console.error("ensureAffiliateTablesExist error:", e);
