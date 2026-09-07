@@ -1,20 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { affiliateApplications } from "@/db/schema";
+import { affiliateApplications, affiliates } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { ensureAffiliateTablesExist } from "@/lib/ensure-affiliate-tables";
+import { hashAffiliatePassword } from "@/lib/affiliate-auth";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   try {
-    // Auto-create affiliate tables if missing on Vercel production DB
     await ensureAffiliateTablesExist();
 
     const body = await request.json();
     const {
       applicantName,
       email,
+      password,
       phone,
       whatsapp,
       country,
@@ -32,10 +33,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (!password || String(password).length < 6) {
+      return NextResponse.json(
+        { error: "Password must be at least 6 characters" },
+        { status: 400 }
+      );
+    }
+
     const emailLower = String(email).toLowerCase().trim();
     const nameTrim = String(applicantName).trim();
 
-    // Check duplicate pending application
+    const existingAff = await db
+      .select({ id: affiliates.id })
+      .from(affiliates)
+      .where(eq(affiliates.email, emailLower))
+      .limit(1);
+
+    if (existingAff.length) {
+      return NextResponse.json(
+        { error: "An affiliate account already exists for this email. Please log in." },
+        { status: 409 }
+      );
+    }
+
     const existing = await db
       .select()
       .from(affiliateApplications)
@@ -54,11 +74,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const passwordHash = await hashAffiliatePassword(String(password));
+
     const [application] = await db
       .insert(affiliateApplications)
       .values({
         applicantName: nameTrim,
         email: emailLower,
+        passwordHash,
         phone: phone?.trim() || null,
         whatsapp: whatsapp?.trim() || null,
         country: country?.trim() || null,
@@ -70,7 +93,6 @@ export async function POST(request: NextRequest) {
       })
       .returning();
 
-    // Non-blocking email notifications
     try {
       const emailMod = await import("@/lib/email");
       if (typeof emailMod.sendAffiliateApplicationReceivedEmail === "function") {

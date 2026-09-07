@@ -1306,3 +1306,59 @@ export async function sendAdminNewAffiliateApplicationEmail(
     return { success: false, error };
   }
 }
+
+
+export async function sendAffiliatePasswordResetEmail(
+  to: string,
+  name: string,
+  token: string,
+  locale: "en" | "fr" = "en"
+): Promise<boolean> {
+  if (!resend) {
+    console.warn("[Email] RESEND_API_KEY not configured");
+    return false;
+  }
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.newdealzone.com";
+  const resetUrl = `${siteUrl}/${locale}/affiliate/reset-password?token=${token}`;
+  const isFr = locale === "fr";
+  const subject = isFr
+    ? "Reinitialiser votre mot de passe affilie - New Deal Zone"
+    : "Reset your affiliate password - New Deal Zone";
+
+  const html = `
+    <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #eaeaea;">
+      <div style="background:linear-gradient(135deg,#CA3F2E 0%,#8B2A1E 100%);padding:28px 24px;text-align:center;color:#fff;">
+        <h1 style="margin:0;font-size:22px;">New Deal Zone</h1>
+        <p style="margin:8px 0 0;opacity:0.9;font-size:13px;">${isFr ? "Programme d'affiliation" : "Affiliate Program"}</p>
+      </div>
+      <div style="padding:28px 24px;color:#1a1a1a;">
+        <p style="margin:0 0 12px;font-size:16px;">${isFr ? `Bonjour ${name},` : `Hi ${name},`}</p>
+        <p style="margin:0 0 20px;color:#555;line-height:1.6;">
+          ${isFr
+            ? "Vous avez demande a reinitialiser le mot de passe de votre compte affilie. Cliquez sur le bouton ci-dessous (valable 1 heure) :"
+            : "You requested a password reset for your affiliate account. Click the button below (valid for 1 hour):"}
+        </p>
+        <div style="text-align:center;margin:28px 0;">
+          <a href="${resetUrl}" style="background:#CA3F2E;color:#ffffff !important;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block;">
+            ${isFr ? "Reinitialiser mon mot de passe" : "Reset my password"}
+          </a>
+        </div>
+        <p style="margin:0;font-size:12px;color:#888;line-height:1.5;">
+          ${isFr
+            ? "Si vous n'etes pas a l'origine de cette demande, ignorez cet e-mail."
+            : "If you did not request this, you can safely ignore this email."}
+        </p>
+      </div>
+    </div>
+  `;
+
+  try {
+    const fromEmail = process.env.RESEND_FROM_EMAIL || "NewDealZone <support@newdealzone.com>";
+    await resend.emails.send({ from: fromEmail, to, subject, html });
+    return true;
+  } catch (e) {
+    console.error("sendAffiliatePasswordResetEmail error:", e);
+    return false;
+  }
+}

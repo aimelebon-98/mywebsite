@@ -10,8 +10,9 @@ import {
   AlertCircle,
   Loader2,
   ArrowLeft,
-  DollarSign,
-  Share2,
+  Lock,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 export default function AffiliateApplyPage() {
@@ -22,10 +23,13 @@ export default function AffiliateApplyPage() {
   const [isPending, startTransition] = useTransition();
   const [submitted, setSubmitted] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [showPass, setShowPass] = useState(false);
 
   const [formData, setFormData] = useState({
     applicantName: "",
     email: "",
+    password: "",
+    confirmPassword: "",
     phone: "",
     whatsapp: "",
     country: "NG",
@@ -47,12 +51,30 @@ export default function AffiliateApplyPage() {
     e.preventDefault();
     setErrorMsg("");
 
+    if (formData.password.length < 6) {
+      setErrorMsg(
+        isFr
+          ? "Le mot de passe doit comporter au moins 6 caracteres"
+          : "Password must be at least 6 characters"
+      );
+      return;
+    }
+    if (formData.password !== formData.confirmPassword) {
+      setErrorMsg(
+        isFr
+          ? "Les mots de passe ne correspondent pas"
+          : "Passwords do not match"
+      );
+      return;
+    }
+
     startTransition(async () => {
       try {
+        const { confirmPassword: _c, ...payload } = formData;
         const res = await fetch("/api/affiliate/apply", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...formData, locale }),
+          body: JSON.stringify({ ...payload, locale }),
         });
 
         const data = await res.json();
@@ -76,7 +98,7 @@ export default function AffiliateApplyPage() {
           className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white mb-8 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          {isFr ? "Retour à la présentation" : "Back to program overview"}
+          {isFr ? "Retour a la presentation" : "Back to program overview"}
         </Link>
 
         {submitted ? (
@@ -85,19 +107,19 @@ export default function AffiliateApplyPage() {
               <CheckCircle2 className="w-8 h-8" />
             </div>
             <h2 className="text-2xl sm:text-3xl font-bold">
-              {isFr ? "Candidature Reçue !" : "Application Submitted!"}
+              {isFr ? "Candidature Recue !" : "Application Submitted!"}
             </h2>
             <p className="mt-4 text-gray-300 text-sm sm:text-base leading-relaxed max-w-lg mx-auto">
               {isFr
-                ? "Merci d'avoir postulé au Programme d'Affiliation New Deal Zone. Nous examinons votre dossier sous 24 à 48 heures. Vous recevrez un e-mail avec vos identifiants dès validation."
-                : "Thank you for applying to the New Deal Zone Affiliate Program! We will review your application within 24-48 hours and send your referral credentials to your email."}
+                ? "Merci d'avoir postule. Nous examinons votre dossier sous 24 a 48 heures. Une fois approuve, connectez-vous avec l'e-mail et le mot de passe que vous venez de choisir."
+                : "Thank you for applying. We review applications within 24-48 hours. Once approved, log in with the email and password you just chose."}
             </p>
             <div className="mt-8 flex justify-center gap-4">
               <Link
-                href={`/${locale}`}
+                href={`/${locale}/affiliate/login`}
                 className="px-6 py-3 rounded-xl bg-[#CA3F2E] hover:bg-[#8B2A1E] text-white font-semibold text-sm transition-all"
               >
-                {isFr ? "Retourner à la boutique" : "Return to Shop"}
+                {isFr ? "Aller a la connexion" : "Go to Login"}
               </Link>
             </div>
           </div>
@@ -106,7 +128,7 @@ export default function AffiliateApplyPage() {
             <div className="mb-8">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#CA3F2E]/10 border border-[#CA3F2E]/30 text-[#CA3F2E] text-xs font-semibold uppercase tracking-wider mb-3">
                 <Sparkles className="w-3.5 h-3.5" />
-                {isFr ? "Rejoindre le réseau" : "Join the Network"}
+                {isFr ? "Rejoindre le reseau" : "Join the Network"}
               </div>
               <h1 className="text-2xl sm:text-3xl font-bold">
                 {isFr
@@ -115,8 +137,8 @@ export default function AffiliateApplyPage() {
               </h1>
               <p className="mt-2 text-sm text-gray-400">
                 {isFr
-                  ? "Remplissez ce formulaire pour obtenir votre code de recommandation et commencer à toucher jusqu'à 50% de commission."
-                  : "Fill out the form below to get your unique referral code and start earning up to 50% commission on sales."}
+                  ? "Choisissez votre mot de passe maintenant. Apres approbation, vous l'utiliserez pour vous connecter et toucher jusqu'a 50% de commission."
+                  : "Choose your password now. After approval, use it to log in and earn up to 50% commission."}
               </p>
             </div>
 
@@ -128,7 +150,6 @@ export default function AffiliateApplyPage() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Full Name */}
               <div>
                 <label className="block text-xs font-medium text-gray-300 uppercase tracking-wider mb-2">
                   {isFr ? "Nom Complet *" : "Full Name *"}
@@ -139,12 +160,10 @@ export default function AffiliateApplyPage() {
                   required
                   value={formData.applicantName}
                   onChange={handleChange}
-                  placeholder={isFr ? "ex: Sarah Johnson" : "e.g. Sarah Johnson"}
                   className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm"
                 />
               </div>
 
-              {/* Email */}
               <div>
                 <label className="block text-xs font-medium text-gray-300 uppercase tracking-wider mb-2">
                   {isFr ? "Adresse E-mail *" : "Email Address *"}
@@ -155,23 +174,65 @@ export default function AffiliateApplyPage() {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder="name@example.com"
                   className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm"
                 />
               </div>
 
-              {/* Phone & WhatsApp */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-gray-300 uppercase tracking-wider mb-2">
-                    {isFr ? "Téléphone" : "Phone Number"}
+                    {isFr ? "Mot de passe *" : "Password *"}
+                  </label>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type={showPass ? "text" : "password"}
+                      name="password"
+                      required
+                      minLength={6}
+                      value={formData.password}
+                      onChange={handleChange}
+                      placeholder={isFr ? "Min. 6 caracteres" : "Min. 6 characters"}
+                      className="w-full pl-10 pr-10 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPass(!showPass)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                    >
+                      {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-300 uppercase tracking-wider mb-2">
+                    {isFr ? "Confirmer *" : "Confirm Password *"}
+                  </label>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type={showPass ? "text" : "password"}
+                      name="confirmPassword"
+                      required
+                      minLength={6}
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-300 uppercase tracking-wider mb-2">
+                    {isFr ? "Telephone" : "Phone Number"}
                   </label>
                   <input
                     type="tel"
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    placeholder="+234..."
                     className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm"
                   />
                 </div>
@@ -184,13 +245,11 @@ export default function AffiliateApplyPage() {
                     name="whatsapp"
                     value={formData.whatsapp}
                     onChange={handleChange}
-                    placeholder="+228..."
                     className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm"
                   />
                 </div>
               </div>
 
-              {/* Country & City */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-gray-300 uppercase tracking-wider mb-2">
@@ -205,9 +264,9 @@ export default function AffiliateApplyPage() {
                     <option value="NG">Nigeria</option>
                     <option value="TG">Togo</option>
                     <option value="GH">Ghana</option>
-                    <option value="CI">Côte d'Ivoire</option>
-                    <option value="BJ">Bénin</option>
-                    <option value="SN">Sénégal</option>
+                    <option value="CI">Cote d&apos;Ivoire</option>
+                    <option value="BJ">Benin</option>
+                    <option value="SN">Senegal</option>
                     <option value="CM">Cameroun</option>
                     <option value="FR">France</option>
                     <option value="US">United States</option>
@@ -224,17 +283,15 @@ export default function AffiliateApplyPage() {
                     name="city"
                     value={formData.city}
                     onChange={handleChange}
-                    placeholder={isFr ? "ex: Lomé, Abuja, Lagos..." : "e.g. Lagos, Abuja, Lome..."}
                     className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm"
                   />
                 </div>
               </div>
 
-              {/* Social Media / Website */}
               <div>
                 <label className="block text-xs font-medium text-gray-300 uppercase tracking-wider mb-2">
                   {isFr
-                    ? "Lien Réseaux Sociaux (Instagram, TikTok, YouTube...)"
+                    ? "Lien Reseaux Sociaux (Instagram, TikTok, YouTube...)"
                     : "Primary Social Media Profile or Website"}
                 </label>
                 <input
@@ -242,16 +299,14 @@ export default function AffiliateApplyPage() {
                   name="socialMediaUrl"
                   value={formData.socialMediaUrl}
                   onChange={handleChange}
-                  placeholder="https://instagram.com/yourhandle or tiktok.com/@you"
                   className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm"
                 />
               </div>
 
-              {/* Marketing Strategy */}
               <div>
                 <label className="block text-xs font-medium text-gray-300 uppercase tracking-wider mb-2">
                   {isFr
-                    ? "Comment prévoyez-vous de promouvoir nos produits ?"
+                    ? "Comment prevoyez-vous de promouvoir nos produits ?"
                     : "How do you plan to promote New Deal Zone products?"}
                 </label>
                 <textarea
@@ -259,11 +314,6 @@ export default function AffiliateApplyPage() {
                   rows={3}
                   value={formData.marketingPlan}
                   onChange={handleChange}
-                  placeholder={
-                    isFr
-                      ? "ex: Vidéos unboxing TikTok, recommandations WhatsApp, blog de mode..."
-                      : "e.g. TikTok unboxing reviews, WhatsApp status recommendations, fashion blog..."
-                  }
                   className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm resize-none"
                 />
               </div>

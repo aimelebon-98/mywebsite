@@ -15,7 +15,6 @@ import crypto from "crypto";
 
 export const dynamic = "force-dynamic";
 
-// GET: List all affiliate applications
 export async function GET() {
   const adminCheck = await requireAdmin();
   if (adminCheck instanceof NextResponse) return adminCheck;
@@ -36,14 +35,19 @@ export async function GET() {
   }
 }
 
-// POST: Approve or Reject an application
 export async function POST(request: NextRequest) {
   const adminCheck = await requireAdmin();
   if (adminCheck instanceof NextResponse) return adminCheck;
 
   try {
     const body = await request.json();
-    const { applicationId, action, adminNote, commissionRate = "5.00", locale = "en" } = body;
+    const {
+      applicationId,
+      action,
+      adminNote,
+      commissionRate = "5.00",
+      locale = "en",
+    } = body;
 
     if (!applicationId || !["approve", "reject"].includes(action)) {
       return NextResponse.json(
@@ -66,11 +70,16 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === "approve") {
-      // Generate temporary password (8 chars)
-      const tempPassword = crypto.randomBytes(4).toString("hex");
-      const passwordHash = await hashAffiliatePassword(tempPassword);
+      let passwordHash = (app as { passwordHash?: string | null }).passwordHash || null;
+      let tempPassword: string | null = null;
+      let mustChange = false;
 
-      // Generate unique referral code
+      if (!passwordHash) {
+        tempPassword = crypto.randomBytes(4).toString("hex");
+        passwordHash = await hashAffiliatePassword(tempPassword);
+        mustChange = true;
+      }
+
       let code = generateAffiliateCode(app.applicantName);
       let attempts = 0;
       while (attempts < 5) {
@@ -84,7 +93,6 @@ export async function POST(request: NextRequest) {
         attempts++;
       }
 
-      // Create affiliate account
       const [newAffiliate] = await db
         .insert(affiliates)
         .values({
@@ -98,13 +106,12 @@ export async function POST(request: NextRequest) {
           city: app.city,
           phone: app.phone,
           whatsapp: app.whatsapp,
-          mustChangePassword: true,
+          mustChangePassword: mustChange,
           adminNote: adminNote || null,
           approvedAt: new Date(),
         })
         .returning();
 
-      // Update application status
       await db
         .update(affiliateApplications)
         .set({
@@ -114,12 +121,11 @@ export async function POST(request: NextRequest) {
         })
         .where(eq(affiliateApplications.id, applicationId));
 
-      // Send approval email with login credentials
       sendAffiliateApprovedEmail(
         app.email,
         app.applicantName,
         code,
-        tempPassword,
+        tempPassword || "(the password you chose when applying)",
         String(commissionRate),
         locale
       ).catch((err) => console.error("Affiliate approved email error:", err));
@@ -135,7 +141,6 @@ export async function POST(request: NextRequest) {
         },
       });
     } else {
-      // Reject application
       await db
         .update(affiliateApplications)
         .set({
@@ -145,7 +150,6 @@ export async function POST(request: NextRequest) {
         })
         .where(eq(affiliateApplications.id, applicationId));
 
-      // Send rejection email
       sendAffiliateRejectedEmail(
         app.email,
         app.applicantName,

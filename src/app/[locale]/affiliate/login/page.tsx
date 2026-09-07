@@ -62,7 +62,7 @@ export default function AffiliateLoginPage() {
             className="inline-flex items-center gap-2 text-xs text-gray-400 hover:text-white mb-6 transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            {isFr ? "Retour à la présentation" : "Back to affiliate page"}
+            {isFr ? "Retour a la presentation" : "Back to affiliate page"}
           </Link>
 
           <div className="w-12 h-12 rounded-2xl bg-[#CA3F2E]/20 text-[#CA3F2E] flex items-center justify-center mx-auto mb-4 border border-[#CA3F2E]/30">
@@ -70,7 +70,7 @@ export default function AffiliateLoginPage() {
           </div>
 
           <h1 className="text-2xl font-bold tracking-tight">
-            {isFr ? "Portail Partenaire Affilié" : "Affiliate Partner Portal"}
+            {isFr ? "Portail Partenaire Affilie" : "Affiliate Partner Portal"}
           </h1>
           <p className="mt-2 text-xs text-gray-400">
             {isFr
@@ -106,9 +106,17 @@ export default function AffiliateLoginPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-300 uppercase tracking-wider mb-2">
-                {isFr ? "Mot de Passe" : "Password"}
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  {isFr ? "Mot de Passe" : "Password"}
+                </label>
+                <Link
+                  href={`/${locale}/affiliate/forgot-password`}
+                  className="text-xs text-[#CA3F2E] hover:underline font-medium"
+                >
+                  {isFr ? "Mot de passe oublie ?" : "Forgot password?"}
+                </Link>
+              </div>
               <div className="relative">
                 <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
@@ -116,7 +124,7 @@ export default function AffiliateLoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder="********"
                   className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm"
                 />
               </div>
@@ -142,7 +150,7 @@ export default function AffiliateLoginPage() {
           </form>
 
           <div className="mt-6 pt-6 border-t border-white/10 text-center text-xs text-gray-400">
-            {isFr ? "Pas encore affilié ?" : "Not an affiliate yet?"}{" "}
+            {isFr ? "Pas encore affilie ?" : "Not an affiliate yet?"}{" "}
             <Link
               href={`/${locale}/affiliate/apply`}
               className="text-[#CA3F2E] hover:underline font-medium"
