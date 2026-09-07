@@ -6,8 +6,6 @@ import {
   RefreshCw,
   Search,
   Save,
-  Ban,
-  CheckCircle2,
   Sparkles,
 } from "lucide-react";
 
@@ -37,6 +35,7 @@ export default function AffiliatesManager() {
     totalAffiliates: 0,
     totalEarningsAll: "0.00",
     totalPendingPayoutAll: "0.00",
+    totalPaidOutAll: "0.00",
   });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -50,7 +49,7 @@ export default function AffiliatesManager() {
     const url = q
       ? `/api/admin/affiliates?search=${encodeURIComponent(q)}`
       : "/api/admin/affiliates";
-    fetch(url)
+    fetch(url, { credentials: "include" })
       .then((r) => r.json())
       .then((d) => {
         if (d?.affiliates) {
@@ -77,6 +76,7 @@ export default function AffiliatesManager() {
     setMsg(null);
     startTransition(async () => {
       const res = await fetch("/api/admin/affiliates", {
+        credentials: "include",
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -112,22 +112,32 @@ export default function AffiliatesManager() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-2xl border border-gray-100 p-5">
           <p className="text-xs uppercase text-gray-400 font-semibold">Affiliates</p>
           <p className="text-2xl font-bold mt-1">{stats.totalAffiliates}</p>
+          <p className="text-[11px] text-gray-400 mt-1">Approved accounts</p>
         </div>
         <div className="bg-white rounded-2xl border border-gray-100 p-5">
-          <p className="text-xs uppercase text-gray-400 font-semibold">Total paid commissions</p>
-          <p className="text-2xl font-bold mt-1 text-emerald-600">
+          <p className="text-xs uppercase text-gray-400 font-semibold">Lifetime earnings</p>
+          <p className="text-2xl font-bold mt-1 text-gray-900">
             ${stats.totalEarningsAll}
           </p>
+          <p className="text-[11px] text-gray-400 mt-1">All commissions ever earned</p>
         </div>
         <div className="bg-white rounded-2xl border border-gray-100 p-5">
           <p className="text-xs uppercase text-gray-400 font-semibold">Pending payouts</p>
           <p className="text-2xl font-bold mt-1 text-amber-600">
             ${stats.totalPendingPayoutAll}
           </p>
+          <p className="text-[11px] text-gray-400 mt-1">Available for withdraw</p>
+        </div>
+        <div className="bg-white rounded-2xl border border-gray-100 p-5">
+          <p className="text-xs uppercase text-gray-400 font-semibold">Total paid out</p>
+          <p className="text-2xl font-bold mt-1 text-emerald-600">
+            ${stats.totalPaidOutAll}
+          </p>
+          <p className="text-[11px] text-gray-400 mt-1">Admin confirmed paid</p>
         </div>
       </div>
 
@@ -168,6 +178,7 @@ export default function AffiliatesManager() {
                 <th className="px-4 py-3">Orders</th>
                 <th className="px-4 py-3">Earnings</th>
                 <th className="px-4 py-3">Pending</th>
+                <th className="px-4 py-3">Paid</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Save</th>
               </tr>
@@ -205,6 +216,9 @@ export default function AffiliatesManager() {
                   </td>
                   <td className="px-4 py-3 text-amber-600 font-medium">
                     ${parseFloat(a.pendingPayout || "0").toFixed(2)}
+                  </td>
+                  <td className="px-4 py-3 text-emerald-600 font-medium">
+                    ${parseFloat(a.totalPaidOut || "0").toFixed(2)}
                   </td>
                   <td className="px-4 py-3">
                     <select

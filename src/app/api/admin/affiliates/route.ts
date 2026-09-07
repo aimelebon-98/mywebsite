@@ -1,23 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { affiliates } from "@/db/schema";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { requireAdmin } from "@/lib/admin-auth";
+import { ensureAffiliateTablesExist } from "@/lib/ensure-affiliate-tables";
 
 export const dynamic = "force-dynamic";
 
-// GET: List all affiliates with optional search
 export async function GET(request: NextRequest) {
-  const adminCheck = await requireAdmin();
-  if (adminCheck instanceof NextResponse) return adminCheck;
-
   try {
+    await requireAdmin();
+    await ensureAffiliateTablesExist();
+
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search")?.toLowerCase().trim();
 
-    let query = db.select().from(affiliates).orderBy(desc(affiliates.createdAt));
+    const list = await db
+      .select()
+      .from(affiliates)
+      .orderBy(desc(affiliates.createdAt));
 
-    const list = await query;
     const filtered = search
       ? list.filter(
           (a) =>
@@ -27,8 +29,6 @@ export async function GET(request: NextRequest) {
         )
       : list;
 
-    // Aggregates
-    const totalAffiliates = filtered.length;
     const totalEarningsAll = filtered.reduce(
       (acc, a) => acc + parseFloat(a.totalEarnings || "0"),
       0
@@ -37,31 +37,36 @@ export async function GET(request: NextRequest) {
       (acc, a) => acc + parseFloat(a.pendingPayout || "0"),
       0
     );
+    const totalPaidOutAll = filtered.reduce(
+      (acc, a) => acc + parseFloat(a.totalPaidOut || "0"),
+      0
+    );
 
     return NextResponse.json({
       success: true,
       affiliates: filtered,
       stats: {
-        totalAffiliates,
+        totalAffiliates: filtered.length,
         totalEarningsAll: totalEarningsAll.toFixed(2),
         totalPendingPayoutAll: totalPendingPayoutAll.toFixed(2),
+        totalPaidOutAll: totalPaidOutAll.toFixed(2),
       },
     });
   } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
     console.error("Admin fetch affiliates error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    if (msg === "UNAUTHORIZED") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
 
-// PUT: Update affiliate (status, commission rate, admin notes)
 export async function PUT(request: NextRequest) {
-  const adminCheck = await requireAdmin();
-  if (adminCheck instanceof NextResponse) return adminCheck;
-
   try {
+    await requireAdmin();
+    await ensureAffiliateTablesExist();
+
     const body = await request.json();
     const { affiliateId, commissionRate, status, adminNote } = body;
 
@@ -89,7 +94,16 @@ export async function PUT(request: NextRequest) {
       updatedAt: new Date(),
     };
 
-    if (commissionRate !== undefined) updates.commissionRate = String(commissionRate);
+    if (commissionRate !== undefined) {
+      const rate = parseFloat(String(commissionRate));
+      if (isNaN(rate) || rate < 0 || rate > 50) {
+        return NextResponse.json(
+          { error: "Commission rate must be between 0 and 50" },
+          { status: 400 }
+        );
+      }
+      updates.commissionRate = String(commissionRate);
+    }
     if (status !== undefined) updates.status = status;
     if (adminNote !== undefined) updates.adminNote = adminNote;
 
@@ -105,10 +119,11 @@ export async function PUT(request: NextRequest) {
       affiliate: updated,
     });
   } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
     console.error("Admin update affiliate error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    if (msg === "UNAUTHORIZED") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
