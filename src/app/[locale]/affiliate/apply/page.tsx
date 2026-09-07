@@ -76,7 +76,7 @@ export default function AffiliateApplyPage() {
           className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white mb-8 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          {isFr ? "Retour \u00e0 la pr\u00e9sentation" : "Back to program overview"}
+          {isFr ? "Retour à la présentation" : "Back to program overview"}
         </Link>
 
         {submitted ? (
@@ -85,11 +85,11 @@ export default function AffiliateApplyPage() {
               <CheckCircle2 className="w-8 h-8" />
             </div>
             <h2 className="text-2xl sm:text-3xl font-bold">
-              {isFr ? "Candidature Re\u00e7ue !" : "Application Submitted!"}
+              {isFr ? "Candidature Reçue !" : "Application Submitted!"}
             </h2>
             <p className="mt-4 text-gray-300 text-sm sm:text-base leading-relaxed max-w-lg mx-auto">
               {isFr
-                ? "Merci d'avoir postul\u00e9 au Programme d'Affiliation New Deal Zone. Nous examinons votre dossier sous 24 \u00e0 48 heures. Vous recevrez un e-mail avec vos identifiants d\u00e8s validation."
+                ? "Merci d'avoir postulé au Programme d'Affiliation New Deal Zone. Nous examinons votre dossier sous 24 à 48 heures. Vous recevrez un e-mail avec vos identifiants dès validation."
                 : "Thank you for applying to the New Deal Zone Affiliate Program! We will review your application within 24-48 hours and send your referral credentials to your email."}
             </p>
             <div className="mt-8 flex justify-center gap-4">
@@ -97,7 +97,7 @@ export default function AffiliateApplyPage() {
                 href={`/${locale}`}
                 className="px-6 py-3 rounded-xl bg-[#CA3F2E] hover:bg-[#8B2A1E] text-white font-semibold text-sm transition-all"
               >
-                {isFr ? "Retourner \u00e0 la boutique" : "Return to Shop"}
+                {isFr ? "Retourner à la boutique" : "Return to Shop"}
               </Link>
             </div>
           </div>
@@ -106,7 +106,7 @@ export default function AffiliateApplyPage() {
             <div className="mb-8">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#CA3F2E]/10 border border-[#CA3F2E]/30 text-[#CA3F2E] text-xs font-semibold uppercase tracking-wider mb-3">
                 <Sparkles className="w-3.5 h-3.5" />
-                {isFr ? "Rejoindre le r\u00e9seau" : "Join the Network"}
+                {isFr ? "Rejoindre le réseau" : "Join the Network"}
               </div>
               <h1 className="text-2xl sm:text-3xl font-bold">
                 {isFr
@@ -115,8 +115,8 @@ export default function AffiliateApplyPage() {
               </h1>
               <p className="mt-2 text-sm text-gray-400">
                 {isFr
-                  ? "Remplissez ce formulaire pour obtenir votre code de recommandation et commencer \u00e0 toucher 5% de commission."
-                  : "Fill out the form below to get your unique referral code and start earning 5% commission on sales."}
+                  ? "Remplissez ce formulaire pour obtenir votre code de recommandation et commencer à toucher jusqu'à 50% de commission."
+                  : "Fill out the form below to get your unique referral code and start earning up to 50% commission on sales."}
               </p>
             </div>
 
@@ -164,7 +164,7 @@ export default function AffiliateApplyPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-gray-300 uppercase tracking-wider mb-2">
-                    {isFr ? "T\u00e9l\u00e9phone" : "Phone Number"}
+                    {isFr ? "Téléphone" : "Phone Number"}
                   </label>
                   <input
                     type="tel"
@@ -205,9 +205,9 @@ export default function AffiliateApplyPage() {
                     <option value="NG">Nigeria</option>
                     <option value="TG">Togo</option>
                     <option value="GH">Ghana</option>
-                    <option value="CI">C\u00f4te d'Ivoire</option>
-                    <option value="BJ">B\u00e9nin</option>
-                    <option value="SN">S\u00e9n\u00e9gal</option>
+                    <option value="CI">Côte d'Ivoire</option>
+                    <option value="BJ">Bénin</option>
+                    <option value="SN">Sénégal</option>
                     <option value="CM">Cameroun</option>
                     <option value="FR">France</option>
                     <option value="US">United States</option>
@@ -224,7 +224,7 @@ export default function AffiliateApplyPage() {
                     name="city"
                     value={formData.city}
                     onChange={handleChange}
-                    placeholder={isFr ? "ex: Lom\u00e9, Abuja, Lagos..." : "e.g. Lagos, Abuja, Lome..."}
+                    placeholder={isFr ? "ex: Lomé, Abuja, Lagos..." : "e.g. Lagos, Abuja, Lome..."}
                     className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm"
                   />
                 </div>
@@ -234,7 +234,7 @@ export default function AffiliateApplyPage() {
               <div>
                 <label className="block text-xs font-medium text-gray-300 uppercase tracking-wider mb-2">
                   {isFr
-                    ? "Lien R\u00e9seaux Sociaux (Instagram, TikTok, YouTube...)"
+                    ? "Lien Réseaux Sociaux (Instagram, TikTok, YouTube...)"
                     : "Primary Social Media Profile or Website"}
                 </label>
                 <input
@@ -251,7 +251,7 @@ export default function AffiliateApplyPage() {
               <div>
                 <label className="block text-xs font-medium text-gray-300 uppercase tracking-wider mb-2">
                   {isFr
-                    ? "Comment pr\u00e9voyez-vous de promouvoir nos produits ?"
+                    ? "Comment prévoyez-vous de promouvoir nos produits ?"
                     : "How do you plan to promote New Deal Zone products?"}
                 </label>
                 <textarea
@@ -261,7 +261,7 @@ export default function AffiliateApplyPage() {
                   onChange={handleChange}
                   placeholder={
                     isFr
-                      ? "ex: Vid\u00e9os unboxing TikTok, recommandations WhatsApp, blog de mode..."
+                      ? "ex: Vidéos unboxing TikTok, recommandations WhatsApp, blog de mode..."
                       : "e.g. TikTok unboxing reviews, WhatsApp status recommendations, fashion blog..."
                   }
                   className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm resize-none"

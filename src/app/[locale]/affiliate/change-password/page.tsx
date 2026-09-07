@@ -31,7 +31,7 @@ export default function AffiliateChangePasswordPage() {
     if (newPassword.length < 6) {
       setErrorMsg(
         isFr
-          ? "Le mot de passe doit comporter au moins 6 caract\u00e8res"
+          ? "Le mot de passe doit comporter au moins 6 caractères"
           : "Password must be at least 6 characters"
       );
       return;
@@ -67,11 +67,11 @@ export default function AffiliateChangePasswordPage() {
           </div>
 
           <h1 className="text-2xl font-bold tracking-tight">
-            {isFr ? "S\u00e9curisez votre Compte" : "Secure Your Account"}
+            {isFr ? "Sécurisez votre Compte" : "Secure Your Account"}
           </h1>
           <p className="mt-2 text-xs text-gray-400">
             {isFr
-              ? "Veuillez d\u00e9finir un nouveau mot de passe personnel pour continuer."
+              ? "Veuillez définir un nouveau mot de passe personnel pour continuer."
               : "Please create a new password to activate your affiliate dashboard."}
           </p>
         </div>
@@ -96,7 +96,7 @@ export default function AffiliateChangePasswordPage() {
                   required
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder={isFr ? "Min. 6 caract\u00e8res" : "Min. 6 characters"}
+                  placeholder={isFr ? "Min. 6 caractères" : "Min. 6 characters"}
                   className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm"
                 />
               </div>
@@ -127,11 +127,11 @@ export default function AffiliateChangePasswordPage() {
               {isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  {isFr ? "Mise \u00e0 jour..." : "Updating..."}
+                  {isFr ? "Mise à jour..." : "Updating..."}
                 </>
               ) : (
                 <>
-                  {isFr ? "Enregistrer et Acc\u00e9der" : "Save and Continue"}
+                  {isFr ? "Enregistrer et Accéder" : "Save and Continue"}
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}

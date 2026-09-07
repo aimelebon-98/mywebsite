@@ -62,7 +62,7 @@ export default function AffiliateLoginPage() {
             className="inline-flex items-center gap-2 text-xs text-gray-400 hover:text-white mb-6 transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            {isFr ? "Retour \u00e0 la pr\u00e9sentation" : "Back to affiliate page"}
+            {isFr ? "Retour à la présentation" : "Back to affiliate page"}
           </Link>
 
           <div className="w-12 h-12 rounded-2xl bg-[#CA3F2E]/20 text-[#CA3F2E] flex items-center justify-center mx-auto mb-4 border border-[#CA3F2E]/30">
@@ -70,7 +70,7 @@ export default function AffiliateLoginPage() {
           </div>
 
           <h1 className="text-2xl font-bold tracking-tight">
-            {isFr ? "Portail Partenaire Affili\u00e9" : "Affiliate Partner Portal"}
+            {isFr ? "Portail Partenaire Affilié" : "Affiliate Partner Portal"}
           </h1>
           <p className="mt-2 text-xs text-gray-400">
             {isFr
@@ -116,7 +116,7 @@ export default function AffiliateLoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
+                  placeholder="••••••••"
                   className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm"
                 />
               </div>
@@ -142,7 +142,7 @@ export default function AffiliateLoginPage() {
           </form>
 
           <div className="mt-6 pt-6 border-t border-white/10 text-center text-xs text-gray-400">
-            {isFr ? "Pas encore affili\u00e9 ?" : "Not an affiliate yet?"}{" "}
+            {isFr ? "Pas encore affilié ?" : "Not an affiliate yet?"}{" "}
             <Link
               href={`/${locale}/affiliate/apply`}
               className="text-[#CA3F2E] hover:underline font-medium"

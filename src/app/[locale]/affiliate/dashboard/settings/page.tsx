@@ -80,7 +80,7 @@ export default function AffiliateSettingsPage() {
 
         setMsg({
           type: "success",
-          text: isFr ? "Param\u00e8tres enregistr\u00e9s avec succ\u00e8s !" : "Settings saved successfully!",
+          text: isFr ? "Paramètres enregistrés avec succès !" : "Settings saved successfully!",
         });
       } catch {
         setMsg({ type: "error", text: "Network error" });
@@ -108,7 +108,7 @@ export default function AffiliateSettingsPage() {
 
         setPassMsg({
           type: "success",
-          text: isFr ? "Mot de passe mis \u00e0 jour avec succ\u00e8s !" : "Password updated successfully!",
+          text: isFr ? "Mot de passe mis à jour avec succès !" : "Password updated successfully!",
         });
         setPassData({ currentPassword: "", newPassword: "" });
       } catch {
@@ -128,11 +128,11 @@ export default function AffiliateSettingsPage() {
           {isFr ? "Retour au tableau de bord" : "Back to dashboard"}
         </Link>
         <h1 className="text-2xl font-bold">
-          {isFr ? "Param\u00e8tres du Compte" : "Account Settings"}
+          {isFr ? "Paramètres du Compte" : "Account Settings"}
         </h1>
         <p className="text-xs text-gray-400 mt-1">
           {isFr
-            ? "Mettez \u00e0 jour vos coordonn\u00e9es, vos informations bancaires de virement et votre mot de passe."
+            ? "Mettez à jour vos coordonnées, vos informations bancaires de virement et votre mot de passe."
             : "Update your profile, payout bank credentials, and security password."}
         </p>
       </div>
@@ -202,7 +202,7 @@ export default function AffiliateSettingsPage() {
             </div>
             <div>
               <label className="block text-xs text-gray-400 uppercase font-semibold mb-1.5">
-                {isFr ? "Devise de Retrait Pr\u00e9f\u00e9r\u00e9e" : "Preferred Payout Currency"}
+                {isFr ? "Devise de Retrait Préférée" : "Preferred Payout Currency"}
               </label>
               <select
                 value={formData.preferredCurrency}
@@ -210,17 +210,17 @@ export default function AffiliateSettingsPage() {
                 className="w-full px-3.5 py-2.5 rounded-xl bg-[#181818] border border-white/10 text-white text-xs focus:outline-none focus:border-[#CA3F2E]"
               >
                 <option value="USD">USD ($)</option>
-                <option value="NGN">NGN (\u20a6)</option>
+                <option value="NGN">NGN (₦)</option>
                 <option value="XOF">FCFA (XOF)</option>
-                <option value="EUR">EUR (\u20ac)</option>
-                <option value="GHS">GHS (GH\u20b5)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="GHS">GHS (GH₵)</option>
               </select>
             </div>
           </div>
 
           <div className="pt-4 border-t border-white/10 space-y-4">
             <h3 className="text-xs uppercase font-bold text-gray-400 tracking-wider">
-              {isFr ? "Coordonn\u00e9es Bancaires (Pour Virement)" : "Bank Details (For Wire Transfer)"}
+              {isFr ? "Coordonnées Bancaires (Pour Virement)" : "Bank Details (For Wire Transfer)"}
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -239,7 +239,7 @@ export default function AffiliateSettingsPage() {
 
               <div>
                 <label className="block text-xs text-gray-400 uppercase font-semibold mb-1.5">
-                  {isFr ? "Num\u00e9ro de Compte / IBAN" : "Account Number / IBAN"}
+                  {isFr ? "Numéro de Compte / IBAN" : "Account Number / IBAN"}
                 </label>
                 <input
                   type="text"
@@ -331,7 +331,7 @@ export default function AffiliateSettingsPage() {
             className="py-3 px-6 rounded-xl bg-white/10 hover:bg-white/15 text-white font-semibold text-xs transition-all disabled:opacity-50 flex items-center gap-2"
           >
             {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
-            <span>{isFr ? "Mettre \u00e0 jour le mot de passe" : "Update Password"}</span>
+            <span>{isFr ? "Mettre à jour le mot de passe" : "Update Password"}</span>
           </button>
         </form>
       </div>

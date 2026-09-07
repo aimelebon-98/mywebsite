@@ -45,11 +45,11 @@ export default function AffiliateOrdersPage() {
             {isFr ? "Retour au tableau de bord" : "Back to dashboard"}
           </Link>
           <h1 className="text-2xl font-bold">
-            {isFr ? "Commandes R\u00e9f\u00e9renc\u00e9es" : "Referred Orders"}
+            {isFr ? "Commandes Référencées" : "Referred Orders"}
           </h1>
           <p className="text-xs text-gray-400 mt-1">
             {isFr
-              ? "Historique de toutes les commandes pass\u00e9es avec votre lien affili\u00e9."
+              ? "Historique de toutes les commandes passées avec votre lien affilié."
               : "Complete history of customer orders attributed to your referral links."}
           </p>
         </div>
@@ -64,7 +64,7 @@ export default function AffiliateOrdersPage() {
           <div className="text-center py-12 text-gray-400 text-xs">
             <ShoppingBag className="w-8 h-8 mx-auto mb-2 opacity-30" />
             {isFr
-              ? "Aucune commande enregistr\u00e9e pour le moment."
+              ? "Aucune commande enregistrée pour le moment."
               : "No orders have been referred yet."}
           </div>
         ) : (

@@ -83,7 +83,7 @@ export default function AffiliateDashboardLayout({
       exact: true,
     },
     {
-      label: isFr ? "Commandes Li\u00e9es" : "Referred Orders",
+      label: isFr ? "Commandes Liées" : "Referred Orders",
       href: `/${locale}/affiliate/dashboard/orders`,
       icon: ShoppingBag,
     },
@@ -93,7 +93,7 @@ export default function AffiliateDashboardLayout({
       icon: Wallet,
     },
     {
-      label: isFr ? "Param\u00e8tres & Banque" : "Settings & Bank",
+      label: isFr ? "Paramètres & Banque" : "Settings & Bank",
       href: `/${locale}/affiliate/dashboard/settings`,
       icon: Settings,
     },
@@ -130,7 +130,7 @@ export default function AffiliateDashboardLayout({
             className="flex items-center gap-2 text-white font-bold text-lg"
           >
             <div className="w-7 h-7 rounded-lg bg-[#CA3F2E] flex items-center justify-center text-xs">
-              \u2713
+              ✓
             </div>
             <span>New Deal Zone</span>
           </Link>
@@ -185,7 +185,7 @@ export default function AffiliateDashboardLayout({
             className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-xs text-red-400 transition-colors"
           >
             <LogOut className="w-3.5 h-3.5" />
-            <span>{isFr ? "D\u00e9connexion" : "Log out"}</span>
+            <span>{isFr ? "Déconnexion" : "Log out"}</span>
           </button>
         </div>
       </aside>

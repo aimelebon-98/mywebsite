@@ -1,10 +1,7 @@
 import Link from "next/link";
 import {
-  DollarSign,
-  TrendingUp,
   Percent,
   Sparkles,
-  Award,
   Globe,
   CheckCircle2,
   ArrowRight,
@@ -37,7 +34,7 @@ export default async function AffiliateLandingPage({ params }: Props) {
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight">
             {isFr ? (
               <>
-                Mon\u00e9tisez votre audience avec{" "}
+                Mon{"é"}tisez votre audience avec{" "}
                 <span className="text-[#CA3F2E]">New Deal Zone</span>
               </>
             ) : (
@@ -50,8 +47,8 @@ export default async function AffiliateLandingPage({ params }: Props) {
 
           <p className="mt-6 text-lg sm:text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
             {isFr
-              ? "Gagnez 5% de commission sur chaque commande valid\u00e9e. Cookie de 30 jours, paiements directs sur votre compte bancaire et suivi en temps r\u00e9el."
-              : "Earn 5% commission on every verified order. 30-day tracking cookie, direct bank payouts in your local currency, and real-time analytics."}
+              ? "Gagnez jusqu’à 50% de commission sur chaque commande validée. Cookie de 30 jours, paiements directs sur votre compte bancaire et suivi en temps réel."
+              : "Earn up to 50% commission on every verified order. 30-day tracking cookie, direct bank payouts in your local currency, and real-time analytics."}
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -66,7 +63,7 @@ export default async function AffiliateLandingPage({ params }: Props) {
               href={`/${locale}/affiliate/login`}
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-white/5 hover:bg-white/10 text-white font-semibold border border-white/15 transition-all text-base"
             >
-              {isFr ? "Espace Affili\u00e9 (Connexion)" : "Affiliate Login"}
+              {isFr ? "Espace Affilié (Connexion)" : "Affiliate Login"}
             </Link>
           </div>
 
@@ -74,10 +71,10 @@ export default async function AffiliateLandingPage({ params }: Props) {
           <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto text-left">
             <div className="p-5 rounded-xl bg-white/5 border border-white/10">
               <div className="flex items-center gap-2 text-[#CA3F2E] font-bold text-2xl">
-                <Percent className="w-5 h-5" /> 5.0%
+                <Percent className="w-5 h-5" /> 50%
               </div>
               <p className="text-xs text-gray-400 mt-1">
-                {isFr ? "Commission par vente" : "Commission per sale"}
+                {isFr ? "Commission max par vente" : "Max commission per sale"}
               </p>
             </div>
             <div className="p-5 rounded-xl bg-white/5 border border-white/10">
@@ -85,7 +82,7 @@ export default async function AffiliateLandingPage({ params }: Props) {
                 <Zap className="w-5 h-5" /> 30 {isFr ? "Jours" : "Days"}
               </div>
               <p className="text-xs text-gray-400 mt-1">
-                {isFr ? "Fen\u00eatre d'attribution cookie" : "Cookie tracking window"}
+                {isFr ? "Fenêtre d’attribution cookie" : "Cookie tracking window"}
               </p>
             </div>
             <div className="p-5 rounded-xl bg-white/5 border border-white/10">
@@ -93,7 +90,7 @@ export default async function AffiliateLandingPage({ params }: Props) {
                 <Globe className="w-5 h-5" /> 8+
               </div>
               <p className="text-xs text-gray-400 mt-1">
-                {isFr ? "Devises support\u00e9es (FCFA, NGN...)" : "Currencies (NGN, FCFA, USD...)"}
+                {isFr ? "Devises supportées (FCFA, NGN...)" : "Currencies (NGN, FCFA, USD...)"}
               </p>
             </div>
             <div className="p-5 rounded-xl bg-white/5 border border-white/10">
@@ -112,11 +109,11 @@ export default async function AffiliateLandingPage({ params }: Props) {
       <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
         <div className="text-center max-w-2xl mx-auto mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
-            {isFr ? "Comment \u00e7a marche ?" : "How It Works"}
+            {isFr ? "Comment ça marche ?" : "How It Works"}
           </h2>
           <p className="mt-3 text-gray-400 text-sm sm:text-base">
             {isFr
-              ? "Trois \u00e9tapes simples pour commencer \u00e0 g\u00e9n\u00e9rer des revenus r\u00e9guliers."
+              ? "Trois étapes simples pour commencer à générer des revenus réguliers."
               : "Three simple steps to start earning consistent commission."}
           </p>
         </div>
@@ -131,7 +128,7 @@ export default async function AffiliateLandingPage({ params }: Props) {
             </h3>
             <p className="text-gray-400 text-sm leading-relaxed">
               {isFr
-                ? "Remplissez le formulaire en 2 minutes. Notre \u00e9quipe valide votre compte sous 24-48h."
+                ? "Remplissez le formulaire en 2 minutes. Notre équipe valide votre compte sous 24-48h."
                 : "Fill out the application form in 2 minutes. Our team reviews and approves your account within 24-48 hours."}
             </p>
           </div>
@@ -159,7 +156,7 @@ export default async function AffiliateLandingPage({ params }: Props) {
             </h3>
             <p className="text-gray-400 text-sm leading-relaxed">
               {isFr
-                ? "D\u00e8s qu'une commande est livr\u00e9e, votre commission est cr\u00e9dit\u00e9e. Demandez un virement bancaire d\u00e8s $20."
+                ? "Dès qu’une commande est livrée, votre commission est créditée. Demandez un virement bancaire dès $20."
                 : "Once an order is completed, your commission is credited. Request a bank transfer straight to your account whenever you hit $20."}
             </p>
           </div>
@@ -180,11 +177,11 @@ export default async function AffiliateLandingPage({ params }: Props) {
               <CheckCircle2 className="w-6 h-6 text-[#CA3F2E] flex-shrink-0 mt-1" />
               <div>
                 <h4 className="font-semibold text-lg text-white">
-                  {isFr ? "Chaussures Premium \u00e0 Forte Conversion" : "High-Converting Premium Footwear"}
+                  {isFr ? "Chaussures Premium à Forte Conversion" : "High-Converting Premium Footwear"}
                 </h4>
                 <p className="text-gray-400 text-sm mt-1">
                   {isFr
-                    ? "Nos sneakers, mocassins et bottes b\u00e9n\u00e9ficient de visuels soign\u00e9s et d'avis clients authentiques."
+                    ? "Nos sneakers, mocassins et bottes bénéficient de visuels soignés et d’avis clients authentiques."
                     : "Curated collection with studio photography, verified customer reviews, and fast delivery."}
                 </p>
               </div>
@@ -208,11 +205,11 @@ export default async function AffiliateLandingPage({ params }: Props) {
               <CheckCircle2 className="w-6 h-6 text-[#CA3F2E] flex-shrink-0 mt-1" />
               <div>
                 <h4 className="font-semibold text-lg text-white">
-                  {isFr ? "Tableau de Bord D\u00e9di\u00e9" : "Dedicated Affiliate Dashboard"}
+                  {isFr ? "Tableau de Bord Dédié" : "Dedicated Affiliate Dashboard"}
                 </h4>
                 <p className="text-gray-400 text-sm mt-1">
                   {isFr
-                    ? "Suivez vos clics, commandes, revenus en attente et historique de retraits en temps r\u00e9el."
+                    ? "Suivez vos clics, commandes, revenus en attente et historique de retraits en temps réel."
                     : "Track clicks, orders, pending earnings, and payout history with transparent analytics."}
                 </p>
               </div>
@@ -222,11 +219,11 @@ export default async function AffiliateLandingPage({ params }: Props) {
               <CheckCircle2 className="w-6 h-6 text-[#CA3F2E] flex-shrink-0 mt-1" />
               <div>
                 <h4 className="font-semibold text-lg text-white">
-                  {isFr ? "G\u00e9n\u00e9rateur de Liens Produits" : "Deep Link Generator"}
+                  {isFr ? "Générateur de Liens Produits" : "Deep Link Generator"}
                 </h4>
                 <p className="text-gray-400 text-sm mt-1">
                   {isFr
-                    ? "Cr\u00e9ez des liens d'affiliation pointant directement vers n'importe quelle paire de chaussures du site."
+                    ? "Créez des liens d’affiliation pointant directement vers n’importe quelle paire de chaussures du site."
                     : "Generate affiliate links pointing directly to any specific shoe or category on the store."}
                 </p>
               </div>
@@ -240,12 +237,12 @@ export default async function AffiliateLandingPage({ params }: Props) {
         <div className="max-w-3xl mx-auto p-12 rounded-3xl bg-gradient-to-b from-[#CA3F2E]/20 to-transparent border border-[#CA3F2E]/30">
           <h2 className="text-3xl sm:text-4xl font-extrabold">
             {isFr
-              ? "Pr\u00eat \u00e0 commencer \u00e0 gagner ?"
+              ? "Prêt à commencer à gagner ?"
               : "Ready to Start Earning?"}
           </h2>
           <p className="mt-4 text-gray-300 text-base max-w-xl mx-auto">
             {isFr
-              ? "Rejoignez notre r\u00e9seau de cr\u00e9ateurs, influenceurs et passionn\u00e9s de sneakers d\u00e8s aujourd'hui."
+              ? "Rejoignez notre réseau de créateurs, influenceurs et passionnés de sneakers dès aujourd’hui."
               : "Join our network of creators, influencers, and sneaker enthusiasts today."}
           </p>
           <div className="mt-8">

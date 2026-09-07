@@ -77,7 +77,7 @@ export default function AffiliatePayoutsPage() {
         setMsg({
           type: "success",
           text: isFr
-            ? "Demande de retrait enregistr\u00e9e avec succ\u00e8s !"
+            ? "Demande de retrait enregistrée avec succès !"
             : "Payout request submitted successfully!",
         });
         setAmount("");
@@ -104,7 +104,7 @@ export default function AffiliatePayoutsPage() {
         </h1>
         <p className="text-xs text-gray-400 mt-1">
           {isFr
-            ? "G\u00e9rez vos demandes de virement bancaire et consultez vos historiques de versement."
+            ? "Gérez vos demandes de virement bancaire et consultez vos historiques de versement."
             : "Request bank transfer withdrawals and review your payout history."}
         </p>
       </div>
@@ -247,7 +247,7 @@ export default function AffiliatePayoutsPage() {
                         </span>
                       </td>
                       <td className="py-3.5 px-3 font-mono text-[11px] text-gray-400">
-                        {p.reference || "\u2014"}
+                        {p.reference || "—"}
                       </td>
                     </tr>
                   ))}
