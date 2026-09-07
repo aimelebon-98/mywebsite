@@ -578,3 +578,97 @@ export const conciergeRequests = pgTable("concierge_requests", {
 });
 
 export type ConciergeRequest = typeof conciergeRequests.$inferSelect;
+
+// ===== AFFILIATE PROGRAM TABLES =====
+
+export const affiliates = pgTable("affiliates", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  email: varchar("email", { length: 255 }).notNull().unique(),
+  passwordHash: varchar("password_hash", { length: 255 }).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  code: varchar("code", { length: 50 }).notNull().unique(),
+  commissionRate: varchar("commission_rate", { length: 10 }).default("5.00"),
+  status: varchar("status", { length: 20 }).default("pending"),
+  totalClicks: integer("total_clicks").default(0),
+  totalOrders: integer("total_orders").default(0),
+  totalEarnings: varchar("total_earnings", { length: 20 }).default("0.00"),
+  pendingPayout: varchar("pending_payout", { length: 20 }).default("0.00"),
+  totalPaidOut: varchar("total_paid_out", { length: 20 }).default("0.00"),
+  bankName: varchar("bank_name", { length: 255 }),
+  bankAccount: varchar("bank_account", { length: 100 }),
+  bankAccountName: varchar("bank_account_name", { length: 255 }),
+  country: varchar("country", { length: 10 }),
+  city: varchar("city", { length: 100 }),
+  phone: varchar("phone", { length: 50 }),
+  whatsapp: varchar("whatsapp", { length: 50 }),
+  preferredCurrency: varchar("preferred_currency", { length: 10 }).default("USD"),
+  mustChangePassword: boolean("must_change_password").default(true),
+  adminNote: text("admin_note"),
+  approvedAt: timestamp("approved_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const affiliateSessions = pgTable("affiliate_sessions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  token: varchar("token", { length: 255 }).notNull().unique(),
+  affiliateId: uuid("affiliate_id").notNull().references(() => affiliates.id, { onDelete: "cascade" }),
+  ipAddress: varchar("ip_address", { length: 100 }),
+  userAgent: text("user_agent"),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const affiliateApplications = pgTable("affiliate_applications", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  applicantName: varchar("applicant_name", { length: 255 }).notNull(),
+  email: varchar("email", { length: 255 }).notNull(),
+  phone: varchar("phone", { length: 50 }),
+  whatsapp: varchar("whatsapp", { length: 50 }),
+  country: varchar("country", { length: 10 }),
+  city: varchar("city", { length: 100 }),
+  websiteUrl: varchar("website_url", { length: 500 }),
+  socialMediaUrl: varchar("social_media_url", { length: 500 }),
+  marketingPlan: text("marketing_plan"),
+  status: varchar("status", { length: 20 }).default("pending"),
+  adminNote: text("admin_note"),
+  reviewedAt: timestamp("reviewed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const affiliateOrders = pgTable("affiliate_orders", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  orderId: varchar("order_id", { length: 255 }).notNull(),
+  affiliateId: uuid("affiliate_id").notNull().references(() => affiliates.id, { onDelete: "cascade" }),
+  subtotal: varchar("subtotal", { length: 20 }).notNull(),
+  commissionRate: varchar("commission_rate", { length: 10 }).notNull(),
+  commissionAmount: varchar("commission_amount", { length: 20 }).notNull(),
+  currency: varchar("currency", { length: 10 }).default("USD"),
+  status: varchar("status", { length: 20 }).default("pending"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const affiliatePayouts = pgTable("affiliate_payouts", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  affiliateId: uuid("affiliate_id").notNull().references(() => affiliates.id, { onDelete: "cascade" }),
+  amount: varchar("amount", { length: 20 }).notNull(),
+  currency: varchar("currency", { length: 10 }).default("USD"),
+  method: varchar("method", { length: 50 }).default("bank_transfer"),
+  reference: varchar("reference", { length: 255 }),
+  note: text("note"),
+  status: varchar("status", { length: 20 }).default("pending"),
+  requestedAt: timestamp("requested_at").defaultNow(),
+  paidAt: timestamp("paid_at"),
+  processedBy: varchar("processed_by", { length: 255 }),
+});
+
+export const affiliateClicks = pgTable("affiliate_clicks", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  affiliateId: uuid("affiliate_id").notNull().references(() => affiliates.id, { onDelete: "cascade" }),
+  ipAddress: varchar("ip_address", { length: 100 }),
+  userAgent: text("user_agent"),
+  refererUrl: text("referer_url"),
+  landingUrl: text("landing_url"),
+  country: varchar("country", { length: 10 }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
