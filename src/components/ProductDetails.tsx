@@ -2,7 +2,6 @@
 
 import { ProductSubscriptionButton } from "./subscription/ProductSubscriptionButton";
 import { isSubscriptionProduct } from "@/lib/subscription-pricing";
-
 import { sanitizeHtml } from "@/lib/sanitize";
 import { formatProductDescription, splitDescriptionForSpecs } from "@/lib/format-description";
 import { useCustomer } from "@/lib/customer-context";
@@ -747,6 +746,9 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               </div>
 
               {/* Action Buttons */}
+              {isSubscriptionProduct(product) ? (
+                <ProductSubscriptionButton product={product} locale={locale} />
+              ) : (
               <div className="space-y-3">
                 <div className="flex gap-3">
                   <button onClick={handleBuyNow} className="flex-1 min-w-0 flex items-center justify-center gap-2 px-3 sm:px-5 py-3.5 sm:py-4 bg-gradient-to-r from-brand-600 to-brand-700 text-white rounded-2xl font-bold text-sm sm:text-base whitespace-nowrap hover:from-brand-700 hover:to-brand-800 transition-all shadow-xl shadow-brand-600/25 active:scale-[0.98]">
@@ -778,6 +780,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                   )}
                 </div>
               </div>
+              )}
 
               {/* Stock + SKU */}
               <div className="flex items-center gap-4 mt-5 text-sm text-gray-500 flex-wrap">

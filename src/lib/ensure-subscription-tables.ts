@@ -10,7 +10,6 @@ export async function ensureSubscriptionTablesExist() {
       ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "product_type" text NOT NULL DEFAULT 'physical';
       ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "subscription_config" text DEFAULT '';
     `);
-
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS "subscriptions" (
         "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -37,7 +36,6 @@ export async function ensureSubscriptionTablesExist() {
         "created_at" timestamp DEFAULT now() NOT NULL,
         "updated_at" timestamp DEFAULT now() NOT NULL
       );
-
       CREATE TABLE IF NOT EXISTS "crypto_payments" (
         "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
         "subscription_id" uuid,
@@ -60,7 +58,6 @@ export async function ensureSubscriptionTablesExist() {
         "updated_at" timestamp DEFAULT now() NOT NULL
       );
     `);
-
     ensured = true;
   } catch (e) {
     console.error("ensureSubscriptionTablesExist error:", e);

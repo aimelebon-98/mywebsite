@@ -32,12 +32,30 @@ export function calculateSubscriptionPrice(
   const total = round2(Math.max(0, subtotal - percentOff - discountFlat));
   const savings = round2(subtotal - total);
   const effectiveMonthly = months > 0 ? round2(total / months) : total;
-  return { monthlyPrice: round2(monthlyPrice), months, subtotal, discountPercent, discountFlat: round2(discountFlat), percentOff, total, savings, effectiveMonthly };
+  return {
+    monthlyPrice: round2(monthlyPrice),
+    months,
+    subtotal,
+    discountPercent,
+    discountFlat: round2(discountFlat),
+    percentOff,
+    total,
+    savings,
+    effectiveMonthly,
+  };
 }
 
 export function getTierQuote(monthlyPrice: number, months: SubscriptionTierMonths) {
   const tier = SUBSCRIPTION_TIERS.find((t) => t.months === months) || SUBSCRIPTION_TIERS[0];
-  return { tier, ...calculateSubscriptionPrice(monthlyPrice, tier.months, tier.discountPercent, tier.discountFlat) };
+  return {
+    tier,
+    ...calculateSubscriptionPrice(
+      monthlyPrice,
+      tier.months,
+      tier.discountPercent,
+      tier.discountFlat
+    ),
+  };
 }
 
 export function addMonths(date: Date, months: number): Date {
@@ -49,11 +67,23 @@ export function addMonths(date: Date, months: number): Date {
 }
 
 export function formatExpiry(date: Date, locale = "en"): string {
-  return date.toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US", { year: "numeric", month: "long", day: "numeric" });
+  return date.toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 }
 
-export function parseSubscriptionConfig(raw?: string | null): { monthlyPrice: number; cryptoOnly: boolean; allowedCryptos: string[] } {
-  const fallback = { monthlyPrice: DEFAULT_MONTHLY_PRICE, cryptoOnly: true, allowedCryptos: ["btc", "usdttrc20"] };
+export function parseSubscriptionConfig(raw?: string | null): {
+  monthlyPrice: number;
+  cryptoOnly: boolean;
+  allowedCryptos: string[];
+} {
+  const fallback = {
+    monthlyPrice: DEFAULT_MONTHLY_PRICE,
+    cryptoOnly: true,
+    allowedCryptos: ["btc", "usdttrc20"],
+  };
   if (!raw) return fallback;
   try {
     const p = JSON.parse(raw);
@@ -62,14 +92,22 @@ export function parseSubscriptionConfig(raw?: string | null): { monthlyPrice: nu
       cryptoOnly: p.cryptoOnly !== false,
       allowedCryptos: Array.isArray(p.allowedCryptos) ? p.allowedCryptos : fallback.allowedCryptos,
     };
-  } catch { return fallback; }
+  } catch {
+    return fallback;
+  }
 }
 
-export function isSubscriptionProduct(product: { productType?: string | null; category?: string | null; tags?: string | null }): boolean {
+export function isSubscriptionProduct(product: {
+  productType?: string | null;
+  category?: string | null;
+  tags?: string | null;
+}): boolean {
   if (product.productType === "subscription") return true;
   if ((product.category || "").toLowerCase() === "subscription") return true;
   try {
     const tags = JSON.parse(product.tags || "[]");
     return Array.isArray(tags) && tags.map(String).some((t) => t.toLowerCase() === "subscription");
-  } catch { return false; }
+  } catch {
+    return false;
+  }
 }
