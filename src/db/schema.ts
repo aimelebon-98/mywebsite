@@ -60,8 +60,6 @@ export const categories = pgTable("categories", {
   nameFr: text("name_fr"),
   imageProductId: uuid("image_product_id"),
   active: boolean("active").notNull().default(true),
-  productType: text("product_type").notNull().default("physical"),
-  subscriptionConfig: text("subscription_config").default(""),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -141,8 +139,6 @@ export const authors = pgTable("authors", {
   linkedin: text("linkedin").notNull().default(""),
   website: text("website").notNull().default(""),
   active: boolean("active").notNull().default(true),
-  productType: text("product_type").notNull().default("physical"),
-  subscriptionConfig: text("subscription_config").default(""),
   sortOrder: integer("sort_order").notNull().default(100),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -306,8 +302,6 @@ export const bundles = pgTable("bundles", {
   discountPercent: integer("discount_percent").notNull().default(10),
   category: text("category").default(""),
   active: boolean("active").notNull().default(true),
-  productType: text("product_type").notNull().default("physical"),
-  subscriptionConfig: text("subscription_config").default(""),
   priority: integer("priority").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
@@ -323,8 +317,6 @@ export const blogCategories = pgTable("blog_categories", {
   color: text("color").notNull().default("bg-gray-100 text-gray-700"),
   sortOrder: integer("sort_order").notNull().default(0),
   active: boolean("active").notNull().default(true),
-  productType: text("product_type").notNull().default("physical"),
-  subscriptionConfig: text("subscription_config").default(""),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -382,7 +374,6 @@ export type Customer = typeof customers.$inferSelect;
 export type NewCustomer = typeof customers.$inferInsert;
 export type CustomerAddress = typeof customerAddresses.$inferSelect;
 
-
 // ============================================
 // SUPPORT TICKETS
 // ============================================
@@ -411,6 +402,7 @@ export const supportMessages = pgTable("support_messages", {
 
 export type SupportTicket = typeof supportTickets.$inferSelect;
 export type SupportMessage = typeof supportMessages.$inferSelect;
+
 // ============================================
 // COUPONS & REWARDS
 // ============================================
@@ -424,8 +416,6 @@ export const coupons = pgTable("coupons", {
   usedCount: integer("used_count").notNull().default(0),
   expiresAt: timestamp("expires_at"),
   active: boolean("active").notNull().default(true),
-  productType: text("product_type").notNull().default("physical"),
-  subscriptionConfig: text("subscription_config").default(""),
   description: text("description").notNull().default(""),
   descriptionFr: text("description_fr"),
   isWelcome: boolean("is_welcome").notNull().default(false),
@@ -444,11 +434,9 @@ export type Coupon = typeof coupons.$inferSelect;
 export type NewCoupon = typeof coupons.$inferInsert;
 export type CustomerCoupon = typeof customerCoupons.$inferSelect;
 
-
 // ============================================================
 // MULTI-VENDOR SYSTEM
 // ============================================================
-
 export const vendors = pgTable("vendors", {
   id: uuid("id").defaultRandom().primaryKey(),
   email: text("email").notNull().unique(),
@@ -592,7 +580,6 @@ export const conciergeRequests = pgTable("concierge_requests", {
 export type ConciergeRequest = typeof conciergeRequests.$inferSelect;
 
 // ===== AFFILIATE PROGRAM TABLES =====
-
 export const affiliates = pgTable("affiliates", {
   id: uuid("id").defaultRandom().primaryKey(),
   email: varchar("email", { length: 255 }).notNull().unique(),
