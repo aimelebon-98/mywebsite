@@ -2,6 +2,7 @@
 
 import { ProductSubscriptionButton } from "./subscription/ProductSubscriptionButton";
 import { isSubscriptionProduct } from "@/lib/subscription-pricing";
+
 import { sanitizeHtml } from "@/lib/sanitize";
 import { formatProductDescription, splitDescriptionForSpecs } from "@/lib/format-description";
 import { useCustomer } from "@/lib/customer-context";
@@ -592,16 +593,31 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               </div>
 
               {/* Stock urgency badge */}
-              {typeof product.stock === "number" && product.stock > 0 && product.stock <= 10 && (
+              {!isSubscriptionProduct(product) && typeof product.stock === "number" && product.stock > 0 && product.stock <= 10 && (
                 <div className="mb-4">
                   <StockBadge stock={product.stock} variant="large" />
                 </div>
               )}
 
               {/* Short Description */}
-              <p className="text-gray-500 leading-relaxed mb-8">{shortDesc}</p>
+              <p className={`text-gray-500 leading-relaxed ${isSubscriptionProduct(product) ? "mb-4" : "mb-8"}`}>{shortDesc}</p>
 
-              <div className="border-t border-gray-100 mb-6" />
+              {!isSubscriptionProduct(product) && <div className="border-t border-gray-100 mb-6" />}
+
+              {isSubscriptionProduct(product) && (
+                <div className="mb-4 flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-200">
+                    <Zap className="w-3.5 h-3.5" />
+                    {isFr ? "Licence digitale" : "Digital license"}
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-50 text-gray-600 text-xs font-medium border border-gray-200">
+                    {isFr ? "Acces instantane" : "Instant access"}
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-50 text-gray-600 text-xs font-medium border border-gray-200">
+                    BTC / USDT
+                  </span>
+                </div>
+              )}
 
               {/* Size */}
               {!isSubscriptionProduct(product) && sizes.length > 0 && (
@@ -788,7 +804,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               )}
 
               {/* Stock + SKU */}
-              <div className="flex items-center gap-4 mt-5 text-sm text-gray-500 flex-wrap">
+              <div className={`flex items-center gap-4 text-sm text-gray-500 flex-wrap ${isSubscriptionProduct(product) ? "mt-3" : "mt-5"}`}>
                 <div className="flex items-center gap-2">
                   <div className={`w-2.5 h-2.5 rounded-full ${product.stock > 10 ? "bg-green-500" : product.stock > 0 ? "bg-amber-500 animate-pulse" : "bg-red-500"}`} />
                   <span className={product.stock <= 10 && product.stock > 0 ? "text-amber-600 font-semibold" : ""}>
@@ -933,6 +949,21 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                     </div>
                   </div>
                   <div className="flex flex-col gap-2">
+                    {isSubscriptionProduct(product) ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const trigger = document.querySelector<HTMLButtonElement>("button[data-subscribe-trigger='true']");
+                          if (trigger) trigger.click();
+                          else window.scrollTo({ top: 0, behavior: "smooth" });
+                        }}
+                        className="w-full py-2.5 text-white rounded-xl text-sm font-bold hover:brightness-110 transition-all"
+                        style={{ backgroundColor: "#059669", boxShadow: "0 4px 14px rgba(5, 150, 105, 0.35)" }}
+                      >
+                        {isFr ? "S'abonner" : "Subscribe"}
+                      </button>
+                    ) : (
+                      <>
                     <button
                       onClick={handleAddToCart}
                       disabled={added}
@@ -947,6 +978,8 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                     >
                       {isFr ? "Acheter maintenant" : "Buy Now"}
                     </button>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
