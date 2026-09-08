@@ -153,19 +153,33 @@ export default async function ShopPage({ params, searchParams }: Props) {
       })),
     ];
 
+    // Ensure digital/subscription filter appears even if not in categories table
+    if (!categoryOptions.some((c) => c.slug === "subscription")) {
+      categoryOptions.push({
+        name: isFr ? "Abonnements" : "Subscriptions",
+        slug: "subscription",
+      });
+    }
+
     const conditions = [eq(products.active, true)];
-    if (isFr) conditions.push(isNotNull(products.nameFr));
     if (category && category !== "all") conditions.push(eq(products.category, category));
     if (search) {
       if (isFr) {
         conditions.push(
           or(
             ilike(products.nameFr, `%${search}%`),
-            ilike(products.descriptionFr, `%${search}%`)
+            ilike(products.name, `%${search}%`),
+            ilike(products.descriptionFr, `%${search}%`),
+            ilike(products.description, `%${search}%`)
           )!
         );
       } else {
-        conditions.push(ilike(products.name, `%${search}%`));
+        conditions.push(
+          or(
+            ilike(products.name, `%${search}%`),
+            ilike(products.description, `%${search}%`)
+          )!
+        );
       }
     }
     if (minPrice) conditions.push(gte(products.price, minPrice));
@@ -179,8 +193,8 @@ export default async function ShopPage({ params, searchParams }: Props) {
       case "price-low":  orderBy = asc(products.price);       break;
       case "price-high": orderBy = desc(products.price);      break;
       case "rating":     orderBy = desc(products.rating);     break;
-      case "name-az":    orderBy = isFr ? asc(products.nameFr) : asc(products.name); break;
-      case "name-za":    orderBy = isFr ? desc(products.nameFr) : desc(products.name); break;
+      case "name-az":    orderBy = asc(products.name); break;
+      case "name-za":    orderBy = desc(products.name); break;
       default:           orderBy = desc(products.createdAt);
     }
 
@@ -203,14 +217,12 @@ export default async function ShopPage({ params, searchParams }: Props) {
       canonicalUrl: null,
     }));
 
-    const brandCond = isFr
-      ? and(eq(products.active, true), isNotNull(products.nameFr))
-      : eq(products.active, true);
+    const brandCond = eq(products.active, true);
     const allProducts = await db.select({ brand: products.brand })
       .from(products).where(brandCond);
     allBrands = [...new Set(allProducts.map(p => p.brand).filter(Boolean))].sort();
-  } catch {
-    // Tables might not exist yet
+  } catch (err) {
+    console.error('[shop] product query failed:', err);
   }
 
   const visitorCountry = await getServerCountry();

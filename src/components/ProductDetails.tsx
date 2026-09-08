@@ -507,7 +507,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               {product?.id && <SellerInfoCard productId={product.id} />}
 
               Complete the Look */}
-              {relatedProducts.length > 0 && (
+              {!isSubscriptionProduct(product) && relatedProducts.length > 0 && (
                 <div className="mt-8">
                   <h3 className="text-sm font-bold uppercase tracking-wider text-gray-700 mb-3">{isFr ? "Completez le look" : "Complete the Look"}</h3>
                   <div className="grid grid-cols-3 gap-3">

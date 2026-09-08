@@ -108,7 +108,7 @@ export default async function ProductPage({ params }: Props) {
   const isSub = isSubscriptionProduct(product);
 
   const [related, initialReviews] = await Promise.all([
-    isSub ? Promise.resolve([]) : getRelated(product.id, product.category),
+    isSub ? Promise.resolve([]) : isSubscriptionProduct(product) ? Promise.resolve([] as Product[]) : getRelated(product.id, product.category),
     getReviews(product.id),
   ]);
 
