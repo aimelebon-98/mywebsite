@@ -28,6 +28,8 @@ export const products = pgTable("products", {
   metaExclusionReason: text("meta_exclusion_reason").default(""),
   saleEndsAt: timestamp("sale_ends_at"),
   active: boolean("active").notNull().default(true),
+  productType: text("product_type").notNull().default("physical"),
+  subscriptionConfig: text("subscription_config").default(""),
   rating: numeric("rating", { precision: 2, scale: 1 }).notNull().default("0"),
   reviewCount: integer("review_count").notNull().default(0),
   tags: text("tags").notNull().default("[]"),
@@ -58,6 +60,8 @@ export const categories = pgTable("categories", {
   nameFr: text("name_fr"),
   imageProductId: uuid("image_product_id"),
   active: boolean("active").notNull().default(true),
+  productType: text("product_type").notNull().default("physical"),
+  subscriptionConfig: text("subscription_config").default(""),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -137,6 +141,8 @@ export const authors = pgTable("authors", {
   linkedin: text("linkedin").notNull().default(""),
   website: text("website").notNull().default(""),
   active: boolean("active").notNull().default(true),
+  productType: text("product_type").notNull().default("physical"),
+  subscriptionConfig: text("subscription_config").default(""),
   sortOrder: integer("sort_order").notNull().default(100),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -261,6 +267,8 @@ export const productFaqs = pgTable("product_faqs", {
   answerFr: text("answer_fr"),
   sortOrder: integer("sort_order").notNull().default(0),
   active: boolean("active").notNull().default(true),
+  productType: text("product_type").notNull().default("physical"),
+  subscriptionConfig: text("subscription_config").default(""),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -300,6 +308,8 @@ export const bundles = pgTable("bundles", {
   discountPercent: integer("discount_percent").notNull().default(10),
   category: text("category").default(""),
   active: boolean("active").notNull().default(true),
+  productType: text("product_type").notNull().default("physical"),
+  subscriptionConfig: text("subscription_config").default(""),
   priority: integer("priority").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
@@ -315,6 +325,8 @@ export const blogCategories = pgTable("blog_categories", {
   color: text("color").notNull().default("bg-gray-100 text-gray-700"),
   sortOrder: integer("sort_order").notNull().default(0),
   active: boolean("active").notNull().default(true),
+  productType: text("product_type").notNull().default("physical"),
+  subscriptionConfig: text("subscription_config").default(""),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -414,6 +426,8 @@ export const coupons = pgTable("coupons", {
   usedCount: integer("used_count").notNull().default(0),
   expiresAt: timestamp("expires_at"),
   active: boolean("active").notNull().default(true),
+  productType: text("product_type").notNull().default("physical"),
+  subscriptionConfig: text("subscription_config").default(""),
   description: text("description").notNull().default(""),
   descriptionFr: text("description_fr"),
   isWelcome: boolean("is_welcome").notNull().default(false),
@@ -675,3 +689,54 @@ export const affiliateClicks = pgTable("affiliate_clicks", {
   country: varchar("country", { length: 10 }),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+export const subscriptions = pgTable("subscriptions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  orderId: uuid("order_id"),
+  orderNumber: text("order_number").notNull().default(""),
+  productId: uuid("product_id").notNull(),
+  productName: text("product_name").notNull().default(""),
+  customerEmail: text("customer_email").notNull(),
+  customerName: text("customer_name").notNull().default(""),
+  customerPhone: text("customer_phone").notNull().default(""),
+  months: integer("months").notNull().default(1),
+  monthlyPrice: numeric("monthly_price", { precision: 10, scale: 2 }).notNull().default("19.99"),
+  discountPercent: numeric("discount_percent", { precision: 5, scale: 2 }).notNull().default("0"),
+  discountFlat: numeric("discount_flat", { precision: 10, scale: 2 }).notNull().default("0"),
+  totalPaid: numeric("total_paid", { precision: 10, scale: 2 }).notNull(),
+  currency: text("currency").notNull().default("USD"),
+  cryptoCurrency: text("crypto_currency").notNull().default(""),
+  status: text("status").notNull().default("pending"),
+  startsAt: timestamp("starts_at"),
+  expiresAt: timestamp("expires_at"),
+  paymentId: text("payment_id").notNull().default(""),
+  paymentProvider: text("payment_provider").notNull().default("nowpayments"),
+  metadata: text("metadata").notNull().default("{}"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const cryptoPayments = pgTable("crypto_payments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  subscriptionId: uuid("subscription_id"),
+  orderNumber: text("order_number").notNull().default(""),
+  provider: text("provider").notNull().default("nowpayments"),
+  providerPaymentId: text("provider_payment_id").notNull().default(""),
+  providerInvoiceId: text("provider_invoice_id").notNull().default(""),
+  payAddress: text("pay_address").notNull().default(""),
+  payCurrency: text("pay_currency").notNull().default(""),
+  payAmount: text("pay_amount").notNull().default(""),
+  priceAmount: numeric("price_amount", { precision: 10, scale: 2 }).notNull().default("0"),
+  priceCurrency: text("price_currency").notNull().default("USD"),
+  status: text("status").notNull().default("waiting"),
+  actuallyPaid: text("actually_paid").notNull().default(""),
+  outcomeAmount: text("outcome_amount").notNull().default(""),
+  rawIpn: text("raw_ipn").notNull().default(""),
+  expiresAt: timestamp("expires_at"),
+  confirmedAt: timestamp("confirmed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type Subscription = typeof subscriptions.$inferSelect;
+export type CryptoPayment = typeof cryptoPayments.$inferSelect;

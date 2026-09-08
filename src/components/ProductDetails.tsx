@@ -1,6 +1,7 @@
+"use client";
+
 import { ProductSubscriptionButton } from "./subscription/ProductSubscriptionButton";
 import { isSubscriptionProduct } from "@/lib/subscription-pricing";
-"use client";
 
 import { sanitizeHtml } from "@/lib/sanitize";
 import { formatProductDescription, splitDescriptionForSpecs } from "@/lib/format-description";
