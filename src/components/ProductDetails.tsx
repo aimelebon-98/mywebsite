@@ -1,3 +1,5 @@
+import { ProductSubscriptionButton } from "./subscription/ProductSubscriptionButton";
+import { isSubscriptionProduct } from "@/lib/subscription-pricing";
 "use client";
 
 import { sanitizeHtml } from "@/lib/sanitize";
