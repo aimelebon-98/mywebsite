@@ -604,7 +604,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               <div className="border-t border-gray-100 mb-6" />
 
               {/* Size */}
-              {sizes.length > 0 && (
+              {!isSubscriptionProduct(product) && sizes.length > 0 && (
                 <div className="mb-5">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-sm font-bold uppercase tracking-wider text-gray-700">{t("selectSize")}</h3>
@@ -621,6 +621,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               )}
 
               {/* Color + Quantity row */}
+              {!isSubscriptionProduct(product) && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
                 <div>
               {/* Color */}
@@ -672,10 +673,10 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               </div>
                 </div>
               </div>
-
+              )}
 
                 {/* Delivery info (Abuja - only shown when currency is NGN) */}
-                {currency === "NGN" && (
+                {!isSubscriptionProduct(product) && currency === "NGN" && (
                 <div className="mb-6 p-3 bg-amber-50 border border-amber-200 rounded-xl">
                   <div className="flex items-start gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 mt-0.5 text-amber-700 flex-shrink-0"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
@@ -699,6 +700,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                 )}
 
               {/* Trust Row - free shipping, secure, returns, authentic */}
+              {!isSubscriptionProduct(product) && (
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-5">
                 <div className="flex items-center gap-2 px-2.5 py-2 bg-gray-50 rounded-xl">
                   <Truck className="w-4 h-4 flex-shrink-0" style={{ color: "#CA3F2E" }} />
@@ -729,8 +731,10 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                   </div>
                 </div>
               </div>
+              )}
 
               {/* Delivery estimate */}
+              {!isSubscriptionProduct(product) && (
               <div className="flex items-center gap-2 mb-5 px-4 py-3 rounded-xl border border-gray-200 bg-gradient-to-r from-white to-gray-50">
                 <Truck className="w-5 h-5 flex-shrink-0" style={{ color: "#CA3F2E" }} />
                 <div className="flex-1 min-w-0">
@@ -744,6 +748,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                   <div className="text-[11px] text-gray-500">{isFr ? "Commandez dans les 24h pour une livraison garantie" : "Order in the next 24h for guaranteed delivery"}</div>
                 </div>
               </div>
+              )}
 
               {/* Action Buttons */}
               {isSubscriptionProduct(product) ? (
@@ -1025,14 +1030,29 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               )}
             </div>
           </div>
-          <button
-            onClick={handleAddToCart}
-            disabled={added}
-            className={`px-3.5 py-2.5 rounded-xl text-white font-bold text-[11px] uppercase tracking-wide transition-all active:scale-95 flex-shrink-0 flex items-center gap-1.5 ${added ? "bg-green-500" : ""}`}
-            style={!added ? { backgroundColor: "#CA3F2E", boxShadow: "0 4px 14px rgba(202, 63, 46, 0.35)" } : undefined}
-          >
-            {added ? <><Check className="w-3.5 h-3.5" /> {isFr ? "Ajout\u00e9" : "Added"}</> : <><ShoppingBag className="w-3.5 h-3.5" /> {isFr ? "Ajouter au panier" : "Add to Cart"}</>}
-          </button>
+          {isSubscriptionProduct(product) ? (
+            <button
+              type="button"
+              onClick={() => {
+                const trigger = document.querySelector<HTMLButtonElement>("button[data-subscribe-trigger='true']");
+                if (trigger) trigger.click();
+                else window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              className="px-3.5 py-2.5 rounded-xl text-white font-bold text-[11px] uppercase tracking-wide transition-all active:scale-95 flex-shrink-0 flex items-center gap-1.5"
+              style={{ backgroundColor: "#059669", boxShadow: "0 4px 14px rgba(5, 150, 105, 0.35)" }}
+            >
+              <Zap className="w-3.5 h-3.5" /> {isFr ? "S'abonner" : "Subscribe"}
+            </button>
+          ) : (
+            <button
+              onClick={handleAddToCart}
+              disabled={added}
+              className={`px-3.5 py-2.5 rounded-xl text-white font-bold text-[11px] uppercase tracking-wide transition-all active:scale-95 flex-shrink-0 flex items-center gap-1.5 ${added ? "bg-green-500" : ""}`}
+              style={!added ? { backgroundColor: "#CA3F2E", boxShadow: "0 4px 14px rgba(202, 63, 46, 0.35)" } : undefined}
+            >
+              {added ? <><Check className="w-3.5 h-3.5" /> {isFr ? "Ajout\u00e9" : "Added"}</> : <><ShoppingBag className="w-3.5 h-3.5" /> {isFr ? "Ajouter au panier" : "Add to Cart"}</>}
+            </button>
+          )}
         </div>
       </div>
         {/* TABS */}
