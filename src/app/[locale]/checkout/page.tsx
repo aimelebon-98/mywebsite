@@ -13,9 +13,10 @@ import { trackEvent } from "@/components/AnalyticsTracker";
 import { trackInitiateCheckout as fbTrackInitiateCheckout, trackPurchase as fbTrackPurchase, trackCompleteRegistration as fbTrackCompleteRegistration, trackCustom as fbTrackCustom } from "@/lib/fbpixel";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { SubscriptionCheckoutModal } from "@/components/subscription/SubscriptionCheckoutModal";
 import {
   ArrowLeft, MessageCircle, AlertCircle, User, Mail, Lock, Phone, MapPin,
-  Loader2, Eye, EyeOff, Sparkles, CheckCircle, Ticket, ShoppingBag, LogIn, UserPlus, ArrowRight
+  Loader2, Eye, EyeOff, Sparkles, CheckCircle, Ticket, ShoppingBag, LogIn, UserPlus, ArrowRight, Wallet, ShieldCheck, Clock
 } from "lucide-react";
 
 function d(s: string): string {
@@ -29,6 +30,7 @@ interface AppliedCoupon {
 
 type Mode = "guest" | "signup" | "login";
 type Stage = "auth" | "details" | "success";
+type PaymentMethod = "whatsapp" | "crypto";
 
 export default function CheckoutPage() {
   const t = useTranslations("cart");
@@ -42,6 +44,7 @@ export default function CheckoutPage() {
 
   const [mode, setMode] = useState<Mode>("guest");
   const [stage, setStage] = useState<Stage>("auth");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("whatsapp");
   const [orderNumber, setOrderNumber] = useState("");
   const [wasGuest, setWasGuest] = useState(true);
 
@@ -64,6 +67,10 @@ export default function CheckoutPage() {
   const [couponError, setCouponError] = useState("");
   const [couponLoading, setCouponLoading] = useState(false);
 
+  // Crypto modal state
+  const [cryptoModalOpen, setCryptoModalOpen] = useState(false);
+  const [cryptoProductPayload, setCryptoProductPayload] = useState<any>(null);
+
   const appliedBundle = findApplicableBundle(items.map(i => ({ quantity: i.quantity })), bundles);
   const bundleDiscount = calcDiscount(totalPrice, appliedBundle);
   const couponDiscount = appliedCoupon ? appliedCoupon.discount : 0;
@@ -77,7 +84,6 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     setMounted(true);
-    // Meta Pixel: fire InitiateCheckout when checkout page loads with items
     try {
       if (items.length > 0) {
         fbTrackInitiateCheckout({
@@ -88,51 +94,41 @@ export default function CheckoutPage() {
           currency: "USD",
         });
       }
-    } catch { /* ignore fb */ }
+    } catch { /* ignore */ }
     fetch("/api/settings").then(r => r.json()).then(data => {
       if (data.whatsappNumber) setWhatsappNumber(data.whatsappNumber);
       fetch("/api/bundles").then(r => r.json()).then(setBundles).catch(() => {});
     }).catch(() => {});
   }, []);
 
-  // If already logged in, skip auth stage and prefill from account
   useEffect(() => {
     if (!customer) return;
-
-    // Set name + phone from customer profile
     setName(prev => prev || customer.name || "");
     setPhone(prev => prev || customer.phone || "");
     setWasGuest(false);
     if (stage === "auth") setStage("details");
 
-    // Fetch default address for prefill
     fetch("/api/customer/addresses")
       .then(r => r.ok ? r.json() : null)
       .then(data => {
         if (!data?.addresses?.length) return;
-        // Prefer default address, else the most recent
         const list = data.addresses as Array<{ isDefault?: boolean; fullName?: string; phone?: string; street?: string; city?: string; state?: string; country?: string; postalCode?: string; }>;
         const def = list.find(a => a.isDefault) || list[0];
         if (!def) return;
-
-        // Only fill blanks - do not overwrite what user already typed
         setName(prev => prev || def.fullName || customer.name || "");
         setPhone(prev => prev || def.phone || customer.phone || "");
         const addrParts = [def.street, def.city, def.state, def.postalCode, def.country].filter(Boolean).join(", ");
         setAddress(prev => prev || addrParts);
       })
-      .catch(() => { /* ignore - user can still type manually */ });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      .catch(() => {});
   }, [customer]);
 
-  // Redirect to shop if cart empty (unless on success stage)
   useEffect(() => {
     if (mounted && items.length === 0 && stage !== "success") {
       router.push(`/${locale}/cart`);
     }
   }, [mounted, items.length, stage, locale, router]);
 
-  // Scroll to top when success stage renders (prevent navbar cutoff)
   useEffect(() => {
     if (stage === "success" && typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
@@ -184,7 +180,6 @@ export default function CheckoutPage() {
     if (mode === "login" && !password) { setAuthError(isFr ? "Mot de passe requis" : "Password required"); return; }
 
     setLoading(true);
-
 
     try {
       const url = mode === "signup" ? "/api/customer/register" : "/api/customer/login";
@@ -240,13 +235,12 @@ export default function CheckoutPage() {
     if (!validateDetails()) return;
     setLoading(true);
 
-    // Save order
     let orderNum = "";
     try {
       const res = await fetch("/api/orders", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          customerName: name, customerPhone: phone, customerEmail: customer?.email || "", customerAddress: address,
+          customerName: name, customerPhone: phone, customerEmail: customer?.email || email || "", customerAddress: address,
           items: items.map(it => ({
             id: it.id, name: it.name, size: it.size, color: it.color,
             quantity: it.quantity, price: it.price, imageUrl: it.imageUrl,
@@ -259,8 +253,6 @@ export default function CheckoutPage() {
           couponDiscount: couponDiscount,
           total: finalTotal,
           customerId: customer?.id || null,
-          // Order amounts are stored in USD (our base currency).
-          // userCurrency is only for display - store as USD so dashboard math works.
           currency: "USD",
           displayCurrency: userCurrency,
           locale,
@@ -274,56 +266,22 @@ export default function CheckoutPage() {
 
     setOrderNumber(orderNum);
 
-    // Auto-save address + phone to customer account (only for logged-in users, first order or new address)
-    if (customer && orderNum) {
-      try {
-        // Update phone on profile if empty
-        if (!customer.phone && phone.trim()) {
-          await fetch("/api/customer/profile", {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ phone: phone.trim() }),
-          }).catch(() => {});
-        }
-
-        // Fetch existing addresses to decide whether to save
-        const addrRes = await fetch("/api/customer/addresses");
-        if (addrRes.ok) {
-          const addrData = await addrRes.json();
-          const existing = (addrData.addresses || []) as Array<{ street?: string; city?: string; phone?: string }>;
-          const normalizedNew = address.trim().toLowerCase().replace(/\s+/g, " ");
-          const isDuplicate = existing.some(a => {
-            const combined = ((a.street || "") + " " + (a.city || "")).toLowerCase().replace(/\s+/g, " ").trim();
-            return combined && normalizedNew.includes(combined.split(" ")[0] || "");
-          });
-
-          // Save as new address if not duplicate (best-effort - use whole address string as street)
-          if (!isDuplicate && address.trim()) {
-            const parts = address.split(",").map(s => s.trim()).filter(Boolean);
-            const street = parts[0] || address.trim();
-            const city = parts[1] || "Unknown";
-            const country = parts[parts.length - 1] || "Nigeria";
-            const isFirst = existing.length === 0;
-
-            await fetch("/api/customer/addresses", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                label: isFirst ? "Home" : "Address " + (existing.length + 1),
-                fullName: name.trim() || customer.name,
-                phone: phone.trim(),
-                street,
-                city,
-                country,
-                isDefault: isFirst,
-              }),
-            }).catch(() => {});
-          }
-        }
-      } catch { /* non-blocking */ }
+    if (paymentMethod === "crypto") {
+      // Instant Crypto Mode
+      setCryptoProductPayload({
+        id: items[0]?.id || "cart-order",
+        name: items.length === 1 ? items[0].name : `Cart Order (${items.length} items)`,
+        slug: "cart-order",
+        subscriptionConfig: JSON.stringify({ monthlyPrice: grandTotal, cryptoOnly: true, allowedCryptos: ["btc", "usdttrc20"] }),
+      });
+      setCryptoModalOpen(true);
+      clearCart();
+      setStage("success");
+      setLoading(false);
+      return;
     }
 
-    // Build WhatsApp message
+    // WhatsApp Pay on Delivery Mode
     let message = "*New Order from NewDealZone*\n\n";
     if (orderNum) message += "*Order:* " + orderNum + "\n";
     message += "*Customer:* " + name + "\n";
@@ -355,7 +313,6 @@ export default function CheckoutPage() {
     }
     message += "*Items: " + totalQuantity + "*\n";
 
-    // Guest incentive message
     if (wasGuest && !customer) {
       const siteUrl = window.location.origin;
       message += "\n-----------------------------\n";
@@ -385,8 +342,6 @@ export default function CheckoutPage() {
       });
     } catch { /* ignore */ }
 
-    // Meta Pixel + browser CAPI: fire Purchase only when order was saved
-    // content_ids are bare product UUIDs to match catalog feed <g:id>
     if (orderNum) {
       try {
         fbTrackPurchase({
@@ -404,10 +359,7 @@ export default function CheckoutPage() {
     const url = "https://wa.me/" + waPhone + "?text=" + encodeURIComponent(message);
     window.open(url, "_blank");
 
-    // Clear cart immediately after successful submission
-    // (order is saved server-side, WhatsApp is opened - no reason to keep items)
     clearCart();
-
     setStage("success");
     setLoading(false);
   };
@@ -440,37 +392,15 @@ export default function CheckoutPage() {
                   {isFr ? d("N\u00b0 de commande") : "Order"}: <span className="font-mono font-bold text-gray-900">{orderNumber}</span>
                 </p>
               )}
-              <p className="text-gray-600 mt-4 mb-6 leading-relaxed">
-                {isFr
-                  ? d("Votre commande a \u00e9t\u00e9 envoy\u00e9e sur WhatsApp. Notre \u00e9quipe vous contactera pour confirmer les d\u00e9tails et le paiement.")
-                  : "Your order has been sent to WhatsApp. Our team will contact you to confirm details and payment."}
+              <p className="text-gray-600 mt-4 mb-6 leading-relaxed text-sm">
+                {paymentMethod === "crypto"
+                  ? (isFr
+                      ? "Votre commande a \u00e9t\u00e9 enregistr\u00e9e. Compl\u00e9tez le d\u00e9p\u00f4t crypto pour une activation instantan\u00e9e."
+                      : "Your order is saved. Complete the crypto transfer for instant processing.")
+                  : (isFr
+                      ? d("Votre commande a \u00e9t\u00e9 envoy\u00e9e sur WhatsApp. Notre \u00e9quipe vous contactera pour confirmer les d\u00e9tails et le paiement.")
+                      : "Your order has been sent to WhatsApp. Our team will contact you to confirm details and payment.")}
               </p>
-
-              {wasGuest && !customer && (
-                <div className="bg-gradient-to-br from-[#CA3F2E] to-[#8B2A1E] rounded-2xl p-5 text-left mb-6">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Sparkles className="w-4 h-4 text-white" />
-                    <span className="text-[10px] font-bold text-white uppercase tracking-widest">
-                      {isFr ? d("Cr\u00e9ez votre compte") : "Create your account"}
-                    </span>
-                  </div>
-                  <p className="text-white font-bold mb-2">
-                    {isFr ? d("Gagnez un coupon de bienvenue !") : "Get a welcome coupon!"}
-                  </p>
-                  <p className="text-white/85 text-xs mb-4">
-                    {isFr
-                      ? d("Suivez vos commandes, sauvegardez vos adresses et acc\u00e9dez aux offres membres.")
-                      : "Track orders, save addresses, and unlock member offers."}
-                  </p>
-                  <Link
-                    href={`/${locale}/account/register`}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-white text-[#CA3F2E] rounded-xl font-bold text-sm hover:bg-gray-100 transition w-full justify-center"
-                  >
-                    {isFr ? d("Cr\u00e9er mon compte") : "Create my account"}
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-                </div>
-              )}
 
               <button
                 onClick={() => router.push(`/${locale}/shop`)}
@@ -479,42 +409,19 @@ export default function CheckoutPage() {
                 <ShoppingBag className="w-4 h-4" />
                 {isFr ? "Continuer les achats" : "Continue Shopping"}
               </button>
-
-              {customer && (
-                <Link
-                  href={`/${locale}/account/orders`}
-                  className="block mt-3 text-sm text-gray-500 hover:text-[#CA3F2E] transition"
-                >
-                  {isFr ? "Voir mes commandes" : "View my orders"} {String.fromCharCode(0x2192)}
-                </Link>
-              )}
             </div>
           </div>
         </div>
+
+        {cryptoProductPayload && (
+          <SubscriptionCheckoutModal
+            product={cryptoProductPayload}
+            isOpen={cryptoModalOpen}
+            onClose={() => setCryptoModalOpen(false)}
+            locale={locale}
+          />
+        )}
         <Footer />
-      </main>
-    );
-  }
-
-  // ==================== WELCOME CODE FLASH ====================
-  if (welcomeCode) {
-    return (
-      <main className="min-h-screen bg-gray-50">
-        <Navbar />
-        <div className="pt-10 pb-16 flex items-center justify-center">
-          <div className="bg-white rounded-3xl shadow-xl p-8 text-center max-w-sm">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center">
-              <CheckCircle className="w-8 h-8 text-white" />
-            </div>
-            <h2 className="text-2xl font-black text-gray-900 mb-2">{isFr ? "Bienvenue !" : "Welcome!"}</h2>
-            <p className="text-sm text-gray-500 mb-4">
-              {isFr ? d("Votre coupon de bienvenue :") : "Your welcome coupon:"}
-            </p>
-            <div className="bg-gradient-to-br from-[#CA3F2E] to-[#8B2A1E] rounded-2xl p-4">
-              <div className="font-mono text-3xl font-black text-white tracking-widest">{welcomeCode}</div>
-            </div>
-          </div>
-        </div>
       </main>
     );
   }
@@ -536,15 +443,10 @@ export default function CheckoutPage() {
           <h1 className="text-3xl lg:text-4xl font-black text-gray-900 mb-8">{isFr ? "Paiement" : "Checkout"}</h1>
 
           <div className="grid lg:grid-cols-[1fr_380px] gap-8">
-
             {/* LEFT: Auth / Details */}
             <div>
               {stage === "auth" && (
                 <div className="bg-white rounded-2xl border border-gray-200 p-6 lg:p-8">
-
-
-
-                  {/* Mode tabs */}
                   <div className="grid grid-cols-3 gap-1 p-1 bg-gray-100 rounded-xl mb-6">
                     <button onClick={() => { setMode("guest"); setAuthError(""); }}
                       className={"flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-bold transition " +
@@ -609,12 +511,6 @@ export default function CheckoutPage() {
                         {isFr ? "Continuer" : "Continue"}
                         <ArrowRight className="w-4 h-4" />
                       </button>
-
-                      <p className="text-[10px] text-center text-gray-400 mt-3">
-                        {isFr
-                          ? d("Astuce : cr\u00e9ez un compte pour recevoir un coupon de bienvenue et suivre vos commandes.")
-                          : "Tip: create an account to get a welcome coupon and track your orders."}
-                      </p>
                     </div>
                   )}
 
@@ -631,9 +527,7 @@ export default function CheckoutPage() {
                         {isFr ? d("Cr\u00e9ez votre compte") : "Create your account"}
                       </h2>
                       <p className="text-xs text-gray-500 mb-5">
-                        {isFr
-                          ? d("30 secondes. Nous vous demanderons le t\u00e9l\u00e9phone et l\u0027adresse ensuite.")
-                          : "30 seconds. We will ask for phone and address next."}
+                        {isFr ? d("30 secondes. Nous vous demanderons le t\u00e9l\u00e9phone et l\u0027adresse ensuite.") : "30 seconds. We will ask for phone and address next."}
                       </p>
 
                       <div className="space-y-3">
@@ -661,7 +555,7 @@ export default function CheckoutPage() {
 
                         <div>
                           <label className="block text-[11px] font-bold text-gray-700 mb-1.5 uppercase tracking-wide">
-                            {isFr ? "Mot de passe" : "Password"} * <span className="text-gray-400 font-normal normal-case">(8+ {isFr ? "car." : "chars"})</span>
+                            {isFr ? "Mot de passe" : "Password"} *
                           </label>
                           <div className="relative">
                             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -687,28 +581,6 @@ export default function CheckoutPage() {
                         className="w-full mt-5 flex items-center justify-center gap-2 py-3.5 bg-[#CA3F2E] hover:bg-[#8B2A1E] text-white rounded-xl font-bold text-sm transition disabled:opacity-50">
                         {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                         {isFr ? d("Cr\u00e9er mon compte") : "Create my account"}
-                      </button>
-
-                      <div className="relative my-5">
-                        <div className="absolute inset-0 flex items-center">
-                          <div className="w-full h-px bg-gray-200" />
-                        </div>
-                        <div className="relative flex justify-center">
-                          <span className="bg-white px-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                            {isFr ? "ou" : "or"}
-                          </span>
-                        </div>
-                      </div>
-
-                      <button type="button" disabled
-                        className="w-full flex items-center justify-center gap-2 py-3 border-2 border-gray-200 text-gray-400 rounded-xl font-bold text-sm cursor-not-allowed">
-                        <svg className="w-4 h-4" viewBox="0 0 24 24">
-                          <path fill="#EA4335" d="M12 5.4c1.6 0 3 .6 4.1 1.6l3-3C17.2 2.4 14.8 1.5 12 1.5 7.4 1.5 3.5 4.1 1.7 8l3.5 2.7c.9-2.5 3.3-4.3 6.8-4.3z"/>
-                          <path fill="#4285F4" d="M23 12c0-.7-.1-1.4-.2-2H12v4h6.2c-.3 1.5-1.1 2.7-2.4 3.5l3.5 2.7c2.1-1.9 3.7-4.7 3.7-8.2z"/>
-                          <path fill="#FBBC05" d="M5.2 14.3c-.2-.7-.4-1.5-.4-2.3s.1-1.6.4-2.3L1.7 7C.9 8.5.5 10.2.5 12s.4 3.5 1.2 5l3.5-2.7z"/>
-                          <path fill="#34A853" d="M12 22.5c2.8 0 5.2-.9 6.9-2.5l-3.5-2.7c-1 .7-2.2 1.1-3.5 1.1-3.5 0-6-2-6.8-4.6L1.7 16C3.5 19.9 7.4 22.5 12 22.5z"/>
-                        </svg>
-                        {isFr ? "Google (bient\u00f4t)" : "Google (coming soon)"}
                       </button>
                     </div>
                   )}
@@ -761,22 +633,16 @@ export default function CheckoutPage() {
                         {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                         {isFr ? "Se connecter" : "Sign in"}
                       </button>
-
-                      <Link href={`/${locale}/account/forgot-password`}
-                        className="block text-center text-xs text-gray-500 hover:text-[#CA3F2E] transition mt-3">
-                        {isFr ? d("Mot de passe oubli\u00e9 ?") : "Forgot password?"}
-                      </Link>
                     </div>
                   )}
-
                 </div>
               )}
 
               {/* DETAILS STAGE */}
               {stage === "details" && (
-                <div className="bg-white rounded-2xl border border-gray-200 p-6 lg:p-8">
+                <div className="bg-white rounded-2xl border border-gray-200 p-6 lg:p-8 space-y-6">
                   {customer && (
-                    <div className="flex items-center gap-3 mb-5 pb-5 border-b border-gray-100">
+                    <div className="flex items-center gap-3 pb-5 border-b border-gray-100">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#CA3F2E] to-[#8B2A1E] flex items-center justify-center text-white font-bold text-sm">
                         {customer.name.slice(0,1).toUpperCase()}
                       </div>
@@ -788,74 +654,127 @@ export default function CheckoutPage() {
                     </div>
                   )}
 
-                  <h2 className="text-xl font-black text-gray-900 mb-1">
-                    {isFr ? d("D\u00e9tails de livraison") : "Delivery details"}
-                  </h2>
-                  <p className="text-xs text-gray-500 mb-5">
-                    {isFr ? d("O\u00f9 devons-nous livrer votre commande ?") : "Where should we deliver your order?"}
-                  </p>
+                  <div>
+                    <h2 className="text-xl font-black text-gray-900 mb-1">
+                      {isFr ? d("D\u00e9tails de livraison") : "Delivery details"}
+                    </h2>
+                    <p className="text-xs text-gray-500 mb-4">
+                      {isFr ? d("O\u00f9 devons-nous livrer votre commande ?") : "Where should we deliver your order?"}
+                    </p>
 
-                  <div className="space-y-3">
-                    {!customer && (
+                    <div className="space-y-3">
+                      {!customer && (
+                        <div>
+                          <label className="block text-[11px] font-bold text-gray-700 mb-1.5 uppercase tracking-wide">
+                            {isFr ? "Nom complet" : "Full name"} *
+                          </label>
+                          <div className="relative">
+                            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <input type="text" value={name} onChange={e => { setName(e.target.value); if (errors.name) setErrors(p => ({ ...p, name: "" })); }}
+                              placeholder={isFr ? "Jean Dupont" : "John Doe"}
+                              className={"pl-10 " + inputBase + " " + (errors.name ? inputErr : inputOk)} />
+                          </div>
+                          {errors.name && <p className="mt-1 flex items-center gap-1 text-xs text-red-500"><AlertCircle className="w-3 h-3" /> {errors.name}</p>}
+                        </div>
+                      )}
+
                       <div>
                         <label className="block text-[11px] font-bold text-gray-700 mb-1.5 uppercase tracking-wide">
-                          {isFr ? "Nom complet" : "Full name"} *
+                          {isFr ? d("T\u00e9l\u00e9phone") : "Phone number"} *
                         </label>
                         <div className="relative">
-                          <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                          <input type="text" value={name} onChange={e => { setName(e.target.value); if (errors.name) setErrors(p => ({ ...p, name: "" })); }}
-                            placeholder={isFr ? "Jean Dupont" : "John Doe"}
-                            className={"pl-10 " + inputBase + " " + (errors.name ? inputErr : inputOk)} />
+                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <input type="tel" value={phone} onChange={e => { setPhone(e.target.value); if (errors.phone) setErrors(p => ({ ...p, phone: "" })); }}
+                            placeholder="+1 234 567 8900" autoComplete="tel"
+                            className={"pl-10 " + inputBase + " " + (errors.phone ? inputErr : inputOk)} />
                         </div>
-                        {errors.name && <p className="mt-1 flex items-center gap-1 text-xs text-red-500"><AlertCircle className="w-3 h-3" /> {errors.name}</p>}
+                        {errors.phone && <p className="mt-1 flex items-center gap-1 text-xs text-red-500"><AlertCircle className="w-3 h-3" /> {errors.phone}</p>}
                       </div>
-                    )}
 
-                    <div>
-                      <label className="block text-[11px] font-bold text-gray-700 mb-1.5 uppercase tracking-wide">
-                        {isFr ? d("T\u00e9l\u00e9phone") : "Phone number"} *
-                      </label>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <input type="tel" value={phone} onChange={e => { setPhone(e.target.value); if (errors.phone) setErrors(p => ({ ...p, phone: "" })); }}
-                          placeholder="+1 234 567 8900" autoComplete="tel"
-                          className={"pl-10 " + inputBase + " " + (errors.phone ? inputErr : inputOk)} />
+                      <div>
+                        <label className="block text-[11px] font-bold text-gray-700 mb-1.5 uppercase tracking-wide">
+                          {isFr ? "Adresse de livraison" : "Delivery address"} *
+                        </label>
+                        <div className="relative">
+                          <MapPin className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                          <textarea value={address} onChange={e => { setAddress(e.target.value); if (errors.address) setErrors(p => ({ ...p, address: "" })); }}
+                            placeholder={isFr ? "Rue, Ville, Pays" : "Street, City, Country"}
+                            rows={3} autoComplete="street-address"
+                            className={"pl-10 " + inputBase + " resize-none " + (errors.address ? inputErr : inputOk)} />
+                        </div>
+                        {errors.address && <p className="mt-1 flex items-center gap-1 text-xs text-red-500"><AlertCircle className="w-3 h-3" /> {errors.address}</p>}
                       </div>
-                      {errors.phone && <p className="mt-1 flex items-center gap-1 text-xs text-red-500"><AlertCircle className="w-3 h-3" /> {errors.phone}</p>}
                     </div>
+                  </div>
 
-                    <div>
-                      <label className="block text-[11px] font-bold text-gray-700 mb-1.5 uppercase tracking-wide">
-                        {isFr ? "Adresse de livraison" : "Delivery address"} *
-                      </label>
-                      <div className="relative">
-                        <MapPin className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-                        <textarea value={address} onChange={e => { setAddress(e.target.value); if (errors.address) setErrors(p => ({ ...p, address: "" })); }}
-                          placeholder={isFr ? "Rue, Ville, Pays" : "Street, City, Country"}
-                          rows={3} autoComplete="street-address"
-                          className={"pl-10 " + inputBase + " resize-none " + (errors.address ? inputErr : inputOk)} />
-                      </div>
-                      {errors.address && <p className="mt-1 flex items-center gap-1 text-xs text-red-500"><AlertCircle className="w-3 h-3" /> {errors.address}</p>}
+                  {/* PAYMENT METHOD SELECTOR */}
+                  <div className="pt-4 border-t border-gray-100">
+                    <label className="block text-[11px] font-bold text-gray-700 mb-2 uppercase tracking-wide">
+                      {isFr ? "Mode de paiement" : "Payment Method"}
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod("whatsapp")}
+                        className={`p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between ${
+                          paymentMethod === "whatsapp"
+                            ? "border-green-500 bg-green-50/50 ring-2 ring-green-500/20 text-gray-900"
+                            : "border-gray-200 text-gray-600 hover:border-gray-300"
+                        }`}
+                      >
+                        <div className="flex items-center gap-1.5 font-bold text-xs">
+                          <MessageCircle className="w-4 h-4 text-green-600" />
+                          {isFr ? "WhatsApp / \u00c0 la livraison" : "WhatsApp / On Delivery"}
+                        </div>
+                        <div className="text-[10px] text-gray-500 mt-1">
+                          {isFr ? "Confirmation manuelle" : "Manual verification"}
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod("crypto")}
+                        className={`p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between ${
+                          paymentMethod === "crypto"
+                            ? "border-emerald-500 bg-emerald-50/50 ring-2 ring-emerald-500/20 text-gray-900"
+                            : "border-gray-200 text-gray-600 hover:border-gray-300"
+                        }`}
+                      >
+                        <div className="flex items-center gap-1.5 font-bold text-xs">
+                          <Wallet className="w-4 h-4 text-emerald-600" />
+                          {isFr ? "Instant Crypto (USDT/BTC)" : "Instant Crypto (USDT/BTC)"}
+                        </div>
+                        <div className="text-[10px] text-gray-500 mt-1">
+                          {isFr ? "Activation automatique" : "Instant order processing"}
+                        </div>
+                      </button>
                     </div>
                   </div>
 
                   <button onClick={performCheckout} disabled={loading}
-                    className="w-full mt-6 flex items-center justify-center gap-2 py-4 bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold text-base transition disabled:opacity-50">
-                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <MessageCircle className="w-5 h-5" />}
-                    {isFr ? "Envoyer via WhatsApp" : "Send via WhatsApp"}
+                    className={`w-full flex items-center justify-center gap-2 py-4 text-white rounded-xl font-bold text-base transition disabled:opacity-50 ${
+                      paymentMethod === "crypto" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-green-500 hover:bg-green-600"
+                    }`}>
+                    {loading ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : paymentMethod === "crypto" ? (
+                      <>
+                        <Wallet className="w-5 h-5" />
+                        {isFr ? `Payer $${grandTotal.toFixed(2)} en Crypto` : `Pay $${grandTotal.toFixed(2)} in Crypto`}
+                      </>
+                    ) : (
+                      <>
+                        <MessageCircle className="w-5 h-5" />
+                        {isFr ? "Envoyer via WhatsApp" : "Send via WhatsApp"}
+                      </>
+                    )}
                   </button>
 
                   {customer && (
-                    <button onClick={() => setStage("auth")} className="w-full mt-3 py-2 text-xs text-gray-500 hover:text-gray-800 transition">
+                    <button onClick={() => setStage("auth")} className="w-full text-xs text-gray-500 hover:text-gray-800 transition">
                       {isFr ? "Utiliser un autre compte" : "Use a different account"}
                     </button>
                   )}
-
-                  <p className="text-[10px] text-center text-gray-400 mt-3">
-                    {isFr
-                      ? d("Vous serez redirig\u00e9 vers WhatsApp pour finaliser votre commande.")
-                      : "You will be redirected to WhatsApp to finalize your order."}
-                  </p>
                 </div>
               )}
             </div>
@@ -865,7 +784,6 @@ export default function CheckoutPage() {
               <div className="bg-white rounded-2xl border border-gray-200 p-6 sticky top-28">
                 <h3 className="text-lg font-black text-gray-900 mb-4">{isFr ? "Votre commande" : "Your order"}</h3>
 
-                {/* Items compact */}
                 <div className="space-y-3 mb-4 max-h-64 overflow-y-auto pr-2">
                   {items.map(item => (
                     <div key={`${item.id}-${item.size}-${item.color}`} className="flex gap-3">
@@ -884,7 +802,6 @@ export default function CheckoutPage() {
                   ))}
                 </div>
 
-                {/* Coupon */}
                 <div className="mb-4 pb-4 border-b border-gray-100">
                   {appliedCoupon ? (
                     <div className="flex items-center gap-2 p-2.5 bg-green-50 border border-green-200 rounded-lg">
@@ -922,7 +839,6 @@ export default function CheckoutPage() {
                   )}
                 </div>
 
-                {/* Totals */}
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between text-gray-600">
                     <span>{isFr ? "Sous-total" : "Subtotal"}</span>
@@ -954,16 +870,11 @@ export default function CheckoutPage() {
                     <span className="font-black text-base text-gray-900">{isFr ? "Total" : "Total"}</span>
                     <div className="text-right">
                       <span className="font-black text-lg text-gray-900">{formatPrice(grandTotal)}</span>
-                      {!shippingInfo.hasLocalRate && (
-                        <div className="text-[10px] text-gray-400 font-normal">+ {isFr ? "livraison" : "shipping"}</div>
-                      )}
                     </div>
                   </div>
                 </div>
-
               </div>
             </div>
-
           </div>
         </div>
       </div>
