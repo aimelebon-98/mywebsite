@@ -11,7 +11,12 @@ export function ProductSubscriptionButton({ product, locale = "en" }: Props) {
   return (
     <>
       <div className="space-y-3">
-        <button type="button" onClick={() => setOpen(true)} className="w-full bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-extrabold text-base py-4 rounded-xl shadow-lg shadow-emerald-600/25 transition-all transform hover:-translate-y-0.5 flex items-center justify-center">
+        <button
+          type="button"
+          data-subscribe-trigger="true"
+          onClick={() => setOpen(true)}
+          className="w-full bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-extrabold text-base py-4 rounded-xl shadow-lg shadow-emerald-600/25 transition-all transform hover:-translate-y-0.5 flex items-center justify-center"
+        >
           <Sparkles className="w-5 h-5 mr-2" />{isFr ? "S'abonner en Crypto (BTC / USDT)" : "Subscribe with Crypto (BTC / USDT)"}
         </button>
         <div className="flex items-center justify-center gap-4 text-xs text-gray-500 dark:text-gray-400">
