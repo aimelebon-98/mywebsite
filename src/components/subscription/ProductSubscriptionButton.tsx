@@ -30,7 +30,7 @@ export function ProductSubscriptionButton({ product, locale = "en" }: Props) {
           <Sparkles className="w-5 h-5 mr-2" />
           {isFr ? "S'abonner" : "Subscribe"}
         </button>
-        <div className="flex items-center justify-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+        <div className="flex items-center justify-center gap-3 text-xs text-gray-500">
           <span className="flex items-center gap-1">
             <DollarSign className="w-3.5 h-3.5 text-emerald-500" />
             {isFr ? "1, 3, 5 ou 12 mois" : "1, 3, 5 or 12 mos"}

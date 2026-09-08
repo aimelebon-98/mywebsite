@@ -3,6 +3,8 @@
 import { ProductSubscriptionButton } from "./subscription/ProductSubscriptionButton";
 import { isSubscriptionProduct } from "@/lib/subscription-pricing";
 
+
+
 import { sanitizeHtml } from "@/lib/sanitize";
 import { formatProductDescription, splitDescriptionForSpecs } from "@/lib/format-description";
 import { useCustomer } from "@/lib/customer-context";
@@ -391,7 +393,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
             <div className="sm:hidden pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent" />
           </nav>
 
-          <div className="grid lg:grid-cols-[1fr_1fr_320px] gap-8 lg:gap-10">
+          <div className="grid lg:grid-cols-[1fr_1fr_320px] items-start gap-8 lg:gap-10">
             {/* IMAGE GALLERY */}
             <div className="space-y-4 w-full">
               <div className="relative w-full">
@@ -823,6 +825,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
             {/* RIGHT SIDEBAR - Delivery / Seller / Sales */}
             <aside className="space-y-4 lg:self-start">
               {/* Delivery & Returns card */}
+              {!isSubscriptionProduct(product) && (
               <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div className="px-5 py-3 border-b border-gray-100">
                   <h3 className="font-bold text-base">{isFr ? "Livraison & Retours" : "Delivery & Returns"}</h3>
@@ -873,6 +876,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                   </div>
                 </div>
               </div>
+              )}
 
               {/* Seller Information card */}
               <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
@@ -924,13 +928,13 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
 
                   <div className="flex items-center gap-2 mt-4 text-xs text-gray-500">
                     <Award className="w-3.5 h-3.5" style={{ color: "#CA3F2E" }} />
-                    <span>{isFr ? "2+ annees de vente de chaussures premium" : "2+ years selling premium footwear"}</span>
+                    <span>{isSubscriptionProduct(product) ? (isFr ? "Licence digitale \u2022 Activation crypto" : "Digital license \u2022 Crypto activation") : (isFr ? "2+ annees de vente de chaussures premium" : "2+ years selling premium footwear")}</span>
                   </div>
                 </div>
               </div>
 
               {/* Placeholder to reserve space in the aside so layout does not jump */}
-              <div ref={stickyPlaceholderRef} className="hidden lg:block" style={{ height: stickyIsFixed ? stickyCardHeight : "auto" }}>
+              <div ref={stickyPlaceholderRef} className="hidden lg:block" style={{ height: isSubscriptionProduct(product) ? 0 : (stickyIsFixed ? stickyCardHeight : "auto") }}>
               {/* Sticky Add-to-Cart mini card - fixed positioning bounded to end of Description tabs */}
               <div ref={stickyCardRef} className={`bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-md transition-opacity duration-200 ${stickyIsFixed ? "lg:fixed lg:top-32" : ""}`} style={{ opacity: stickyVisible ? 1 : 0, pointerEvents: stickyVisible ? "auto" : "none", width: stickyIsFixed ? stickyCardWidth : "auto", left: stickyIsFixed && stickyCardLeft > 0 ? stickyCardLeft : undefined, zIndex: stickyIsFixed ? 30 : "auto" }}>
                 <div className="p-4">
@@ -1091,7 +1095,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
         {/* TABS */}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ">
-        <div className="mt-12 bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className={`${isSubscriptionProduct(product) ? "mt-4" : "mt-12"} bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden`}>
           <div className="border-b border-gray-100 bg-gray-50/50">
             <div className="flex gap-0 overflow-x-auto scrollbar-hide">
               {tabs.map((tab) => (

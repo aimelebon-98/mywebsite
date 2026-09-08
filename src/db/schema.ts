@@ -267,8 +267,6 @@ export const productFaqs = pgTable("product_faqs", {
   answerFr: text("answer_fr"),
   sortOrder: integer("sort_order").notNull().default(0),
   active: boolean("active").notNull().default(true),
-  productType: text("product_type").notNull().default("physical"),
-  subscriptionConfig: text("subscription_config").default(""),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
