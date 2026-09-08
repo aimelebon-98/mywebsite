@@ -9,6 +9,7 @@ import Footer from "@/components/Footer";
 import ProductDetails from "@/components/ProductDetails";
 import YouMayAlsoLike from "@/components/YouMayAlsoLike";
 import RecentlyViewed from "@/components/RecentlyViewed";
+import { isSubscriptionProduct } from "@/lib/subscription-pricing";
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>;
@@ -64,11 +65,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         index: false,
         follow: false,
         nocache: true,
-        googleBot: {
-          index: false,
-          follow: false,
-          noimageindex: true,
-        },
       },
     };
   }
@@ -109,8 +105,10 @@ export default async function ProductPage({ params }: Props) {
     notFound();
   }
 
+  const isSub = isSubscriptionProduct(product);
+
   const [related, initialReviews] = await Promise.all([
-    getRelated(product.id, product.category),
+    isSub ? Promise.resolve([]) : getRelated(product.id, product.category),
     getReviews(product.id),
   ]);
 
@@ -124,12 +122,16 @@ export default async function ProductPage({ params }: Props) {
           relatedProducts={related}
           initialReviews={initialReviews}
         />
-        <YouMayAlsoLike
-          currentProductId={product.id}
-          category={product.category}
-          locale={locale}
-        />
-        <RecentlyViewed excludeId={product.id} />
+        {!isSub && (
+          <>
+            <YouMayAlsoLike
+              currentProductId={product.id}
+              category={product.category}
+              locale={locale}
+            />
+            <RecentlyViewed excludeId={product.id} />
+          </>
+        )}
       </main>
       <BackToTop />
       <Footer />
