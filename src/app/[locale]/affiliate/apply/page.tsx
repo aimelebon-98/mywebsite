@@ -24,6 +24,7 @@ function AffiliateApplyForm() {
   const isFr = locale === "fr";
 
   const prefillEmail = searchParams.get("email") || "";
+  const oauthPrefill = Boolean(searchParams.get("oauth") || prefillEmail);
   const prefillName = searchParams.get("name") || "";
 
   const [isPending, startTransition] = useTransition();
