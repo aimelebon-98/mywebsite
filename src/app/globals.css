@@ -991,7 +991,7 @@ html, body {
 }
 
 /* ============================================================
-   Product Long Description ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Editorial & Grid Safety
+   Product Long Description ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Editorial & Grid Safety
    ============================================================ */
 .product-long-desc {
   color: #4b5563;
@@ -1111,11 +1111,9 @@ html, body {
 .product-long-desc li {
   display: list-item !important;
   margin-bottom: 0.35rem !important;
-}
 
 /* Apply right margin/padding ONLY to the description text area on desktop so tab wrapper stays full-width */
 
-}
 
 /* Admin support ticket: sticky reply composer */
 .ndz-ticket-reply-box {
@@ -1181,12 +1179,4 @@ html, body {
   font-weight: 600 !important;
   word-break: break-word !important;
   overflow-wrap: anywhere !important;
-}
-/* Desktop right-gap constraint for product description text (stops text before right sticky card) */
-@media (min-width: 1024px) {
-  .ndz-description-content-gap,
-  .product-long-desc {
-    padding-right: 340px !important;
-    box-sizing: border-box !important;
-  }
 }

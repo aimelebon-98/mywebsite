@@ -1133,7 +1133,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                   >
                     {descParts.before ? (
                       <div
-                        className="product-long-desc ndz-description-content-gap min-w-0 w-full max-w-full"
+                        className="product-long-desc ndz-description-content-gap min-w-0 w-full max-w-full lg:pr-[340px]"
                         dangerouslySetInnerHTML={{ __html: sanitizeHtml(descParts.before) }}
                       />
                     ) : null}
@@ -1155,7 +1155,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
 
                     {descParts.after ? (
                       <div
-                        className="product-long-desc ndz-description-content-gap min-w-0 w-full max-w-full"
+                        className="product-long-desc ndz-description-content-gap min-w-0 w-full max-w-full lg:pr-[340px]"
                         dangerouslySetInnerHTML={{ __html: sanitizeHtml(descParts.after) }}
                       />
                     ) : null}
