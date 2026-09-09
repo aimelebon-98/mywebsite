@@ -35,7 +35,7 @@ const PUBLIC_API_ROUTES = [
   "/api/catalog",
   "/api/indexnow",
   "/api/vendor",
-  "/api/store", "/api/subscriptions", "/api/affiliate",
+  "/api/store", "/api/subscriptions", "/api/affiliate", "/api/auth",
 ];
 
 const ADMIN_API_PREFIX = "/api/admin";
