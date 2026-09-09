@@ -581,6 +581,7 @@ export type ConciergeRequest = typeof conciergeRequests.$inferSelect;
 
 // ===== AFFILIATE PROGRAM TABLES =====
 export const affiliates = pgTable("affiliates", {
+  parentAffiliateId: uuid("parent_affiliate_id"),
   id: uuid("id").defaultRandom().primaryKey(),
   email: varchar("email", { length: 255 }).notNull().unique(),
   passwordHash: varchar("password_hash", { length: 255 }).notNull(),
