@@ -7,6 +7,8 @@ import {
   Search,
   Save,
   Sparkles,
+  CheckSquare,
+  Square,
 } from "lucide-react";
 
 interface Affiliate {
@@ -43,6 +45,9 @@ export default function AffiliatesManager() {
   const [msg, setMsg] = useState<string | null>(null);
   const [editRates, setEditRates] = useState<Record<string, string>>({});
   const [editStatus, setEditStatus] = useState<Record<string, string>>({});
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkRate, setBulkRate] = useState("5");
+  const [bulkMsg, setBulkMsg] = useState<string | null>(null);
 
   const load = (q?: string) => {
     setLoading(true);
@@ -54,6 +59,7 @@ export default function AffiliatesManager() {
       .then((d) => {
         if (d?.affiliates) {
           setList(d.affiliates);
+          setSelectedIds([]);
           const rates: Record<string, string> = {};
           const statuses: Record<string, string> = {};
           d.affiliates.forEach((a: Affiliate) => {
@@ -95,6 +101,47 @@ export default function AffiliatesManager() {
     });
   };
 
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  }
+
+  function toggleSelectAll() {
+    if (selectedIds.length === list.length) setSelectedIds([]);
+    else setSelectedIds(list.map((a) => a.id));
+  }
+
+  const bulkUpdate = (payload: Record<string, unknown>, confirmLabel: string) => {
+    if (selectedIds.length === 0) return;
+    if (
+      !confirm(
+        `${confirmLabel} ${selectedIds.length} affiliate${
+          selectedIds.length === 1 ? "" : "s"
+        }?`
+      )
+    ) {
+      return;
+    }
+    setBulkMsg(null);
+    startTransition(async () => {
+      const res = await fetch("/api/admin/affiliates", {
+        credentials: "include",
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ affiliateIds: selectedIds, ...payload }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setBulkMsg(data.error || "Bulk update failed");
+        return;
+      }
+      setBulkMsg(data.message || "Bulk update done");
+      setSelectedIds([]);
+      load(search || undefined);
+    });
+  };
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -158,6 +205,82 @@ export default function AffiliatesManager() {
         />
       </div>
 
+      {/* Bulk actions */}
+      {list.length > 0 && (
+        <div className="flex flex-wrap items-center gap-3 bg-white border border-gray-100 rounded-2xl p-3">
+          <button
+            type="button"
+            onClick={toggleSelectAll}
+            className="inline-flex items-center gap-2 text-sm font-medium text-gray-700"
+          >
+            {selectedIds.length === list.length && list.length > 0 ? (
+              <CheckSquare className="w-4 h-4 text-[#CA3F2E]" />
+            ) : (
+              <Square className="w-4 h-4" />
+            )}
+            {selectedIds.length === list.length && list.length > 0
+              ? "Deselect all"
+              : "Select all"}
+          </button>
+          <span className="text-xs text-gray-500">{selectedIds.length} selected</span>
+          <div className="flex-1" />
+          <button
+            type="button"
+            disabled={isPending || selectedIds.length === 0}
+            onClick={() => bulkUpdate({ action: "approve" }, "Approve")}
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-100 text-green-800 hover:bg-green-200 disabled:opacity-40"
+          >
+            Approve
+          </button>
+          <button
+            type="button"
+            disabled={isPending || selectedIds.length === 0}
+            onClick={() => bulkUpdate({ action: "suspend" }, "Suspend")}
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-100 text-amber-800 hover:bg-amber-200 disabled:opacity-40"
+          >
+            Suspend
+          </button>
+          <button
+            type="button"
+            disabled={isPending || selectedIds.length === 0}
+            onClick={() => bulkUpdate({ action: "reject" }, "Reject")}
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-100 text-red-800 hover:bg-red-200 disabled:opacity-40"
+          >
+            Reject
+          </button>
+          <div className="flex items-center gap-1.5">
+            <input
+              type="number"
+              min={1}
+              max={50}
+              step="0.5"
+              value={bulkRate}
+              onChange={(e) => setBulkRate(e.target.value)}
+              className="w-16 px-2 py-1.5 border border-gray-200 rounded-lg text-xs"
+            />
+            <button
+              type="button"
+              disabled={isPending || selectedIds.length === 0}
+              onClick={() =>
+                bulkUpdate(
+                  { commissionRate: bulkRate },
+                  `Set commission to ${bulkRate}% for`
+                )
+              }
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-40"
+            >
+              Set rate
+            </button>
+          </div>
+        </div>
+      )}
+
+      {bulkMsg && (
+        <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm">
+          {bulkMsg}
+        </div>
+      )}
+
       {loading ? (
         <div className="flex justify-center py-16">
           <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
@@ -171,6 +294,15 @@ export default function AffiliatesManager() {
           <table className="w-full text-left text-sm">
             <thead className="bg-gray-50 text-xs uppercase text-gray-500">
               <tr>
+                <th className="px-3 py-3 w-10">
+                  <button type="button" onClick={toggleSelectAll} className="text-gray-400 hover:text-[#CA3F2E]">
+                    {selectedIds.length === list.length && list.length > 0 ? (
+                      <CheckSquare className="w-4 h-4 text-[#CA3F2E]" />
+                    ) : (
+                      <Square className="w-4 h-4" />
+                    )}
+                  </button>
+                </th>
                 <th className="px-4 py-3">Affiliate</th>
                 <th className="px-4 py-3">Code</th>
                 <th className="px-4 py-3">Rate %</th>
@@ -185,7 +317,16 @@ export default function AffiliatesManager() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {list.map((a) => (
-                <tr key={a.id} className="hover:bg-gray-50/80">
+                <tr key={a.id} className={`hover:bg-gray-50/80 ${selectedIds.includes(a.id) ? "bg-red-50/40" : ""}`}>
+                  <td className="px-3 py-3">
+                    <button type="button" onClick={() => toggleSelect(a.id)} className="text-gray-400 hover:text-[#CA3F2E]">
+                      {selectedIds.includes(a.id) ? (
+                        <CheckSquare className="w-4 h-4 text-[#CA3F2E]" />
+                      ) : (
+                        <Square className="w-4 h-4" />
+                      )}
+                    </button>
+                  </td>
                   <td className="px-4 py-3">
                     <div className="font-semibold text-gray-900">{a.name}</div>
                     <div className="text-xs text-gray-400">{a.email}</div>

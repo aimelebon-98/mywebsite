@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Store, Loader2, Mail, Phone, MapPin, Ban, Play, Edit2, DollarSign, X, Percent, CheckCircle2, AlertCircle, ExternalLink, Wallet, Package } from "lucide-react";
+import { Store, Loader2, Mail, Phone, MapPin, Ban, Play, Edit2, DollarSign, X, Percent, CheckCircle2, AlertCircle, ExternalLink, Wallet, Package, CheckSquare, Square } from "lucide-react";
 
 const BRAND_RED = "#CA3F2E";
 
@@ -41,6 +41,9 @@ export default function VendorsManager() {
   const [settleAmount, setSettleAmount] = useState("");
   const [processing, setProcessing] = useState(false);
   const [notif, setNotif] = useState<{ type: "success" | "error"; msg: string } | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkProcessing, setBulkProcessing] = useState(false);
+  const [bulkCommission, setBulkCommission] = useState("10");
 
   async function load() {
     setLoading(true);
@@ -49,6 +52,7 @@ export default function VendorsManager() {
       const res = await fetch(url);
       const data = await res.json();
       setVendors(data.vendors || []);
+      setSelectedIds([]);
     } catch (err) {
       console.error(err);
     } finally {
@@ -62,6 +66,60 @@ export default function VendorsManager() {
     setNotif({ type, msg });
     setTimeout(() => setNotif(null), 3500);
   }
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  }
+
+  function toggleSelectAll() {
+    if (selectedIds.length === vendors.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(vendors.map((v) => v.id));
+    }
+  }
+
+  async function bulkAction(action: string, payload: Record<string, unknown> = {}) {
+    if (selectedIds.length === 0) return;
+    const label =
+      action === "suspend"
+        ? "suspend"
+        : action === "reactivate" || action === "approve"
+        ? "approve/reactivate"
+        : action === "reject"
+        ? "reject"
+        : action === "update_commission"
+        ? "update commission for"
+        : action;
+    if (
+      !confirm(
+        `Are you sure you want to ${label} ${selectedIds.length} vendor${
+          selectedIds.length === 1 ? "" : "s"
+        }?`
+      )
+    ) {
+      return;
+    }
+    setBulkProcessing(true);
+    try {
+      const res = await fetch("/api/admin/vendors", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ vendorIds: selectedIds, action, ...payload }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Bulk action failed");
+      showNotif("success", data.message || "Bulk update done");
+      setSelectedIds([]);
+      await load();
+    } catch (err) {
+      showNotif("error", err instanceof Error ? err.message : "Bulk action failed");
+    } finally {
+      setBulkProcessing(false);
+    }
+  }
+
 
   async function doAction(action: string, payload: Record<string, unknown> = {}) {
     if (!selected) return;
@@ -106,6 +164,76 @@ export default function VendorsManager() {
         })}
       </div>
 
+      {/* Bulk actions bar */}
+      {vendors.length > 0 && (
+        <div className="mb-4 flex flex-wrap items-center gap-3 bg-white border border-gray-200 rounded-xl p-3">
+          <button
+            type="button"
+            onClick={toggleSelectAll}
+            className="inline-flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+          >
+            {selectedIds.length === vendors.length && vendors.length > 0 ? (
+              <CheckSquare className="w-4 h-4 text-[#CA3F2E]" />
+            ) : (
+              <Square className="w-4 h-4" />
+            )}
+            {selectedIds.length === vendors.length && vendors.length > 0
+              ? "Deselect all"
+              : "Select all"}
+          </button>
+          <span className="text-xs text-gray-500">
+            {selectedIds.length} selected
+          </span>
+          <div className="flex-1" />
+          <button
+            type="button"
+            disabled={bulkProcessing || selectedIds.length === 0}
+            onClick={() => bulkAction("approve")}
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-100 text-green-800 hover:bg-green-200 disabled:opacity-40"
+          >
+            Approve / Reactivate
+          </button>
+          <button
+            type="button"
+            disabled={bulkProcessing || selectedIds.length === 0}
+            onClick={() => bulkAction("suspend")}
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-100 text-amber-800 hover:bg-amber-200 disabled:opacity-40"
+          >
+            Suspend
+          </button>
+          <button
+            type="button"
+            disabled={bulkProcessing || selectedIds.length === 0}
+            onClick={() => bulkAction("reject")}
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-100 text-red-800 hover:bg-red-200 disabled:opacity-40"
+          >
+            Reject
+          </button>
+          <div className="flex items-center gap-1.5">
+            <input
+              type="number"
+              min={0}
+              max={100}
+              step="0.5"
+              value={bulkCommission}
+              onChange={(e) => setBulkCommission(e.target.value)}
+              className="w-16 px-2 py-1.5 border border-gray-200 rounded-lg text-xs"
+              title="Commission %"
+            />
+            <button
+              type="button"
+              disabled={bulkProcessing || selectedIds.length === 0}
+              onClick={() =>
+                bulkAction("update_commission", { commissionRate: bulkCommission })
+              }
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-40"
+            >
+              Set rate
+            </button>
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <div className="flex items-center justify-center py-12"><Loader2 className="w-8 h-8 animate-spin" style={{ color: BRAND_RED }} /></div>
       ) : vendors.length === 0 ? (
@@ -116,7 +244,19 @@ export default function VendorsManager() {
       ) : (
         <div className="grid gap-3">
           {vendors.map(v => (
-            <div key={v.id} className="bg-white rounded-xl border border-gray-200 p-4 flex items-start justify-between flex-wrap gap-3 hover:shadow-md transition-shadow">
+            <div key={v.id} className={`bg-white rounded-xl border p-4 flex items-start justify-between flex-wrap gap-3 hover:shadow-md transition-shadow ${selectedIds.includes(v.id) ? "border-[#CA3F2E] ring-1 ring-[#CA3F2E]/30" : "border-gray-200"}`}>
+              <button
+                type="button"
+                onClick={() => toggleSelect(v.id)}
+                className="mt-1 mr-2 flex-shrink-0 text-gray-400 hover:text-[#CA3F2E]"
+                aria-label="Select vendor"
+              >
+                {selectedIds.includes(v.id) ? (
+                  <CheckSquare className="w-5 h-5 text-[#CA3F2E]" />
+                ) : (
+                  <Square className="w-5 h-5" />
+                )}
+              </button>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap mb-1">
                   <h3 className="text-lg font-bold text-gray-900">{v.storeName}</h3>

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { affiliates } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, inArray } from "drizzle-orm";
 import { requireAdmin } from "@/lib/admin-auth";
 import { ensureAffiliateTablesExist } from "@/lib/ensure-affiliate-tables";
 
@@ -68,33 +68,40 @@ export async function PUT(request: NextRequest) {
     await ensureAffiliateTablesExist();
 
     const body = await request.json();
-    const { affiliateId, commissionRate, status, adminNote } = body;
+    const {
+      affiliateId,
+      affiliateIds,
+      commissionRate,
+      status,
+      adminNote,
+      action,
+    } = body;
 
-    if (!affiliateId) {
+    const ids: string[] = Array.isArray(affiliateIds)
+      ? affiliateIds.filter((id: unknown) => typeof id === "string" && id.length > 0)
+      : affiliateId
+      ? [String(affiliateId)]
+      : [];
+
+    if (ids.length === 0) {
       return NextResponse.json(
-        { error: "affiliateId is required" },
+        { error: "affiliateId or affiliateIds is required" },
         { status: 400 }
       );
     }
 
-    const [existing] = await db
-      .select()
-      .from(affiliates)
-      .where(eq(affiliates.id, affiliateId))
-      .limit(1);
-
-    if (!existing) {
-      return NextResponse.json(
-        { error: "Affiliate not found" },
-        { status: 404 }
-      );
-    }
+    // Bulk status shortcut via action
+    let targetStatus = status;
+    if (action === "approve") targetStatus = "approved";
+    if (action === "suspend") targetStatus = "suspended";
+    if (action === "reject") targetStatus = "rejected";
+    if (action === "pending") targetStatus = "pending";
 
     const updates: Record<string, unknown> = {
       updatedAt: new Date(),
     };
 
-    if (commissionRate !== undefined) {
+    if (commissionRate !== undefined && commissionRate !== null && commissionRate !== "") {
       const rate = parseFloat(String(commissionRate));
       if (isNaN(rate) || rate < 0 || rate > 50) {
         return NextResponse.json(
@@ -102,21 +109,41 @@ export async function PUT(request: NextRequest) {
           { status: 400 }
         );
       }
-      updates.commissionRate = String(commissionRate);
+      updates.commissionRate = String(rate);
     }
-    if (status !== undefined) updates.status = status;
+
+    if (targetStatus !== undefined && targetStatus !== null && targetStatus !== "") {
+      const allowed = ["approved", "suspended", "pending", "rejected"];
+      if (!allowed.includes(String(targetStatus))) {
+        return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+      }
+      updates.status = String(targetStatus);
+      if (String(targetStatus) === "approved") {
+        updates.approvedAt = new Date();
+      }
+    }
+
     if (adminNote !== undefined) updates.adminNote = adminNote;
 
-    const [updated] = await db
+    if (Object.keys(updates).length <= 1) {
+      return NextResponse.json(
+        { error: "Nothing to update (provide status, action, or commissionRate)" },
+        { status: 400 }
+      );
+    }
+
+    await db
       .update(affiliates)
       .set(updates)
-      .where(eq(affiliates.id, affiliateId))
-      .returning();
+      .where(inArray(affiliates.id, ids));
 
     return NextResponse.json({
       success: true,
-      message: "Affiliate updated successfully",
-      affiliate: updated,
+      message:
+        ids.length > 1
+          ? `Updated ${ids.length} affiliate${ids.length === 1 ? "" : "s"}`
+          : "Affiliate updated successfully",
+      updated: ids.length,
     });
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
