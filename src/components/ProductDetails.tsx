@@ -256,12 +256,12 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
         setReviewSuccess(true);
         setTimeout(() => setReviewSuccess(false), 12000);
       } else {
-        const errMsg = data?.error || (isFr ? "Ã‰chec de l'envoi de l'avis. Veuillez rÃ©essayer." : "Failed to submit review. Please try again.");
+        const errMsg = data?.error || (isFr ? "ÃƒÆ’Ã¢â‚¬Â°chec de l'envoi de l'avis. Veuillez rÃƒÆ’Ã‚Â©essayer." : "Failed to submit review. Please try again.");
         setReviewError(errMsg);
         alert(errMsg);
       }
     } catch (err) {
-      const netErr = isFr ? "Erreur rÃ©seau. Veuillez rÃ©essayer." : "Network error. Please try again.";
+      const netErr = isFr ? "Erreur rÃƒÆ’Ã‚Â©seau. Veuillez rÃƒÆ’Ã‚Â©essayer." : "Network error. Please try again.";
       setReviewError(netErr);
       alert(netErr);
     } finally {
@@ -327,7 +327,14 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
     { label: t("specSku"),      value: product.sku || `SV-${product.id.slice(0, 8).toUpperCase()}` },
   ];
 
-  const features = [
+  const features = isSubscriptionProduct(product) ? [
+    isFr ? "Signaux de trading IA \u00e0 haute pr\u00e9cision" : "High-accuracy AI trading signals",
+    isFr ? "Int\u00e9gration automatique MT4 / MT5 & Telegram" : "Automated MT4 / MT5 & Telegram integration",
+    isFr ? "Gestion des risques et stop-loss en temps r\u00e9el" : "Real-time risk management & stop-loss algorithms",
+    isFr ? "Compatible Forex, Crypto et Options Binaires" : "Supports Forex, Crypto & Binary options",
+    isFr ? "Acc\u00e8s instantan\u00e9 et mises \u00e0 jour incluses" : "Instant access & lifetime updates included",
+    isFr ? "Support VIP 24/7 et communaut\u00e9 de signaux" : "24/7 VIP support & signal community access",
+  ] : [
     t("feature1"), t("feature2"), t("feature3"),
     t("feature4"), t("feature5"), t("feature6"),
   ];
@@ -1131,8 +1138,8 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                         <tbody>
                           {specs.map((item) => (
                             <tr key={`desc-spec-${item.label}`}>
-                              <td>{item.label}</td>
-                              <td className="capitalize">{item.value}</td>
+                              <td className="whitespace-nowrap pr-4 font-semibold text-gray-700">{item.label}</td>
+                              <td className="capitalize text-gray-600 break-words">{item.value}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -1183,8 +1190,8 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                     <tbody>
                       {specs.map((item) => (
                         <tr key={item.label}>
-                          <td>{item.label}</td>
-                          <td className="capitalize">{item.value}</td>
+                              <td className="whitespace-nowrap pr-4 font-semibold text-gray-700">{item.label}</td>
+                              <td className="capitalize text-gray-600 break-words">{item.value}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1268,7 +1275,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                 <Check className="w-6 h-6 text-green-600" />
               </div>
               <div className="flex-1">
-                <h4 className="font-bold text-green-900 text-lg">{isFr ? "Merci ! Votre avis a Ã©tÃ© soumis et est en attente de modÃ©ration." : "Thank you! Your review has been submitted and is awaiting admin moderation."}</h4>
+                <h4 className="font-bold text-green-900 text-lg">{isFr ? "Merci ! Votre avis a ÃƒÆ’Ã‚Â©tÃƒÆ’Ã‚Â© soumis et est en attente de modÃƒÆ’Ã‚Â©ration." : "Thank you! Your review has been submitted and is awaiting admin moderation."}</h4>
                 <p className="text-green-700 text-sm mt-1">{isFr ? "Votre avis a ete soumis avec succes." : "Your review has been submitted successfully."}</p>
               </div>
               <button onClick={() => setReviewSuccess(false)} className="text-green-500 hover:text-green-700 transition flex-shrink-0 mt-1">
