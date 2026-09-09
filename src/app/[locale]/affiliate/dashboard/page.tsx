@@ -1,5 +1,7 @@
 "use client";
 
+import PendingApprovalBanner from "@/components/PendingApprovalBanner";
+
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -17,6 +19,7 @@ import {
 
 interface AffiliateData {
   id: string;
+  status?: string;
   name: string;
   email: string;
   code: string;
@@ -62,6 +65,8 @@ export default function AffiliateDashboardOverview() {
 
   if (!affiliate) return null;
 
+  const isPending = affiliate.status === "pending";
+
   const defaultRefUrl = `https://www.newdealzone.com/${locale}?ref=${affiliate.code}`;
 
   const copyToClipboard = (text: string, isDeep = false) => {
@@ -97,6 +102,7 @@ export default function AffiliateDashboardOverview() {
 
   return (
     <div className="space-y-8">
+      {isPending && <PendingApprovalBanner isFr={isFr} type="affiliate" />}
       {/* WELCOME BANNER */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-white/[0.06] to-white/[0.02] border border-white/10">
         <div>

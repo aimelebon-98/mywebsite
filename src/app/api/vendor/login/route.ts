@@ -45,15 +45,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
-    if (vendor.status === "pending") {
-      return NextResponse.json({ error: "Your application is still being reviewed" }, { status: 403 });
-    }
     if (vendor.status === "rejected") {
       return NextResponse.json({ error: "Your application was not approved" }, { status: 403 });
     }
     if (vendor.status === "suspended") {
       return NextResponse.json({ error: "Your account is suspended. Contact support." }, { status: 403 });
     }
+    // pending + approved can log in (pending sees dashboard banner)
 
     await createVendorSession(vendor.id, ip, ua);
 
@@ -65,6 +63,7 @@ export async function POST(req: Request) {
         email: vendor.email,
         storeName: vendor.storeName,
         storeSlug: vendor.storeSlug,
+        status: vendor.status,
         mustChangePassword: vendorAny.mustChangePassword ?? false,
       },
     });

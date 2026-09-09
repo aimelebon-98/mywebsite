@@ -1,5 +1,7 @@
 "use client";
 
+import PendingApprovalBanner from "@/components/PendingApprovalBanner";
+
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -11,6 +13,7 @@ import {
 const BRAND_RED = "#CA3F2E";
 
 interface VendorInfo {
+  status?: string;
   storeName: string;
   storeSlug: string;
   totalSales: number;
@@ -81,6 +84,10 @@ export default function VendorDashboardPage() {
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">Welcome back!</h1>
         <p className="text-gray-500 text-sm">Here is what is happening with your store</p>
       </div>
+
+      {vendor.status === "pending" && (
+        <PendingApprovalBanner isFr={locale === "fr"} type="vendor" />
+      )}
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-8">

@@ -57,6 +57,8 @@ function VendorApplyForm() {
     instagramUrl: "",
     websiteUrl: "",
     additionalInfo: "",
+    password: "",
+    confirmPassword: "",
   });
 
   useEffect(() => {
@@ -160,6 +162,14 @@ function VendorApplyForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (!form.password || form.password.length < 6) {
+      setError(isFr ? "Le mot de passe doit comporter au moins 6 caracteres" : "Password must be at least 6 characters");
+      return;
+    }
+    if (form.password !== form.confirmPassword) {
+      setError(isFr ? "Les mots de passe ne correspondent pas" : "Passwords do not match");
+      return;
+    }
     setSubmitting(true);
     try {
       const res = await fetch("/api/vendor/apply", {
@@ -169,6 +179,10 @@ function VendorApplyForm() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed");
+      if (data.redirectTo === "dashboard") {
+        window.location.href = `/${locale}/vendor/dashboard`;
+        return;
+      }
       setSuccess(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
@@ -413,6 +427,36 @@ function VendorApplyForm() {
               </section>
 
               <div>
+                
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                    {isFr ? "Mot de passe *" : "Password *"}
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    minLength={6}
+                    value={form.password}
+                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm"
+                    placeholder={isFr ? "Min. 6 caracteres" : "Min. 6 characters"}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                    {isFr ? "Confirmer le mot de passe *" : "Confirm password *"}
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    minLength={6}
+                    value={form.confirmPassword}
+                    onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm"
+                  />
+                </div>
+              </div>
                 <p className="text-xs text-gray-500 mb-4 leading-relaxed">{t.terms}</p>
                 <button
                   type="submit"

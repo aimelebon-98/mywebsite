@@ -100,6 +100,10 @@ function AffiliateApplyForm() {
           return;
         }
 
+        if (data.redirectTo === "dashboard") {
+          window.location.href = `/${locale}/affiliate/dashboard`;
+          return;
+        }
         setSubmitted(true);
       } catch {
         setErrorMsg("Network error. Please try again.");

@@ -86,11 +86,12 @@ export async function GET(req: NextRequest) {
         .limit(1);
 
       if (aff) {
-        if (aff.status !== "approved") {
+        if (aff.status === "rejected" || aff.status === "suspended") {
           return NextResponse.redirect(
-            new URL(`/${locale}/affiliate/login?error=pending_review`, req.nextUrl.origin)
+            new URL(`/${locale}/affiliate/login?error=account_inactive`, req.nextUrl.origin)
           );
         }
+        // pending + approved → dashboard
         const sessionToken = crypto.randomBytes(64).toString("hex");
         await db.insert(affiliateSessions).values({
           token: sessionToken,
@@ -128,11 +129,12 @@ export async function GET(req: NextRequest) {
         .limit(1);
 
       if (vend) {
-        if (vend.status !== "approved") {
+        if (vend.status === "rejected" || vend.status === "suspended") {
           return NextResponse.redirect(
-            new URL(`/${locale}/vendor/login?error=pending_review`, req.nextUrl.origin)
+            new URL(`/${locale}/vendor/login?error=account_inactive`, req.nextUrl.origin)
           );
         }
+        // pending + approved → dashboard
         const sessionToken = crypto.randomBytes(48).toString("hex");
         await db.insert(vendorSessions).values({
           token: sessionToken,

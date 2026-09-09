@@ -36,17 +36,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (affiliate.status !== "approved") {
+    if (affiliate.status === "rejected" || affiliate.status === "suspended") {
       return NextResponse.json(
-        {
-          error:
-            affiliate.status === "pending"
-              ? "Your application is still under review."
-              : "Your affiliate account is inactive or suspended.",
-        },
+        { error: "Your affiliate account is inactive or suspended." },
         { status: 403 }
       );
     }
+    // pending + approved can log in
 
     const isValid = await verifyAffiliatePassword(
       password,

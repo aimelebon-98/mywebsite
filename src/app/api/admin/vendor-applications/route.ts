@@ -3,7 +3,11 @@ import { db } from "@/db";
 import { vendorApplications, vendors } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { requireAdmin } from "@/lib/admin-auth";
-import { hashVendorPassword, generateRandomPassword, generateUniqueStoreSlug } from "@/lib/vendor-auth";
+import {
+  hashVendorPassword,
+  generateRandomPassword,
+  generateUniqueStoreSlug,
+} from "@/lib/vendor-auth";
 import { defaultCurrencyForCountry } from "@/lib/vendor-currency";
 import { sendVendorApprovedEmail, sendVendorRejectedEmail } from "@/lib/email";
 
@@ -17,15 +21,19 @@ export async function GET(req: Request) {
 
     let apps;
     if (statusFilter && ["pending", "approved", "rejected"].includes(statusFilter)) {
-      apps = await db.select().from(vendorApplications)
+      apps = await db
+        .select()
+        .from(vendorApplications)
         .where(eq(vendorApplications.status, statusFilter))
         .orderBy(desc(vendorApplications.createdAt));
     } else {
-      apps = await db.select().from(vendorApplications)
+      apps = await db
+        .select()
+        .from(vendorApplications)
         .orderBy(desc(vendorApplications.createdAt));
     }
 
-    const pendingCount = apps.filter(a => a.status === "pending").length;
+    const pendingCount = apps.filter((a) => a.status === "pending").length;
     return NextResponse.json({ applications: apps, pendingCount });
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
@@ -46,7 +54,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
 
-    const [app] = await db.select().from(vendorApplications)
+    const [app] = await db
+      .select()
+      .from(vendorApplications)
       .where(eq(vendorApplications.id, applicationId))
       .limit(1);
 
@@ -55,72 +65,142 @@ export async function POST(req: Request) {
     }
 
     if (app.status !== "pending") {
-      return NextResponse.json({ error: "Application already reviewed" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Application already reviewed" },
+        { status: 400 }
+      );
     }
 
     const lang: "en" | "fr" = locale === "fr" ? "fr" : "en";
     const note = String(adminNote || "").slice(0, 1000);
 
     if (action === "approve") {
-      // Check if vendor with this email exists already (should not, but safe check)
-      const [existingVendor] = await db.select().from(vendors).where(eq(vendors.email, app.email)).limit(1);
+      const commission =
+        commissionRate && !isNaN(parseFloat(commissionRate))
+          ? parseFloat(commissionRate).toFixed(2)
+          : "10.00";
+
+      const [existingVendor] = await db
+        .select()
+        .from(vendors)
+        .where(eq(vendors.email, app.email))
+        .limit(1);
+
+      let vendorId: string;
+      let tempPassword: string | null = null;
+      let storeSlug: string;
+
       if (existingVendor) {
-        return NextResponse.json({ error: "Vendor with this email already exists" }, { status: 409 });
+        // Instant-dashboard flow: vendor already exists as pending
+        await db
+          .update(vendors)
+          .set({
+            status: "approved",
+            commissionRate: commission,
+            approvedAt: new Date(),
+            adminNote: note,
+            contactName: app.applicantName || existingVendor.contactName,
+            phone: app.phone || existingVendor.phone,
+            whatsapp: app.whatsapp || existingVendor.whatsapp,
+            city: app.city || existingVendor.city,
+            storeDescription:
+              app.storeDescription || existingVendor.storeDescription,
+            updatedAt: new Date(),
+          })
+          .where(eq(vendors.id, existingVendor.id));
+        vendorId = existingVendor.id;
+        storeSlug = existingVendor.storeSlug;
+      } else {
+        // Legacy flow: create vendor on approve
+        tempPassword = generateRandomPassword(12);
+        const passwordHash = await hashVendorPassword(tempPassword);
+        storeSlug = await generateUniqueStoreSlug(app.storeName);
+
+        const [newVendor] = await db
+          .insert(vendors)
+          .values({
+            email: app.email,
+            passwordHash,
+            storeName: app.storeName,
+            storeSlug,
+            contactName: app.applicantName,
+            phone: app.phone,
+            whatsapp: app.whatsapp,
+            country: app.country,
+            city: app.city,
+            commissionRate: commission,
+            preferredCurrency: defaultCurrencyForCountry(app.country),
+            status: "approved",
+            approvedAt: new Date(),
+            mustChangePassword: true,
+          })
+          .returning();
+        vendorId = newVendor.id;
       }
 
-      const tempPassword = generateRandomPassword(12);
-      const passwordHash = await hashVendorPassword(tempPassword);
-      const storeSlug = await generateUniqueStoreSlug(app.storeName);
-      const commission = commissionRate && !isNaN(parseFloat(commissionRate))
-        ? parseFloat(commissionRate).toFixed(2)
-        : "10.00";
+      await db
+        .update(vendorApplications)
+        .set({
+          status: "approved",
+          adminNote: note,
+          reviewedAt: new Date(),
+        })
+        .where(eq(vendorApplications.id, applicationId));
 
-      const [newVendor] = await db.insert(vendors).values({
-        email: app.email,
-        passwordHash,
-        storeName: app.storeName,
-        storeSlug,
-        contactName: app.applicantName,
-        phone: app.phone,
-        whatsapp: app.whatsapp,
-        country: app.country,
-        city: app.city,
-        commissionRate: commission,
-        preferredCurrency: defaultCurrencyForCountry(app.country),
-        status: "approved",
-        approvedAt: new Date(),
-      }).returning();
-
-      await db.update(vendorApplications).set({
-        status: "approved",
-        adminNote: note,
-        reviewedAt: new Date(),
-      }).where(eq(vendorApplications.id, applicationId));
-
-      // Send credentials email (non-blocking)
-      sendVendorApprovedEmail(app.email, app.applicantName, app.storeName, tempPassword, lang).catch(() => {});
+      if (tempPassword) {
+        sendVendorApprovedEmail(
+          app.email,
+          app.applicantName,
+          app.storeName,
+          tempPassword,
+          lang
+        ).catch(() => {});
+      } else {
+        // Existing pending vendor — notify approval without new password
+        sendVendorApprovedEmail(
+          app.email,
+          app.applicantName,
+          app.storeName,
+          "(your existing password)",
+          lang
+        ).catch(() => {});
+      }
 
       return NextResponse.json({
         success: true,
-        message: "Vendor approved and credentials emailed",
+        message: "Vendor approved",
         vendor: {
-          id: newVendor.id,
-          email: newVendor.email,
-          storeName: newVendor.storeName,
-          storeSlug: newVendor.storeSlug,
+          id: vendorId,
+          email: app.email,
+          storeName: app.storeName,
+          storeSlug,
           tempPassword,
         },
       });
     } else {
-      await db.update(vendorApplications).set({
-        status: "rejected",
-        adminNote: note,
-        reviewedAt: new Date(),
-      }).where(eq(vendorApplications.id, applicationId));
+      await db
+        .update(vendorApplications)
+        .set({
+          status: "rejected",
+          adminNote: note,
+          reviewedAt: new Date(),
+        })
+        .where(eq(vendorApplications.id, applicationId));
 
-      sendVendorRejectedEmail(app.email, app.applicantName, note, lang).catch(() => {});
+      // Also reject the vendor account if it exists
+      await db
+        .update(vendors)
+        .set({ status: "rejected", adminNote: note, updatedAt: new Date() })
+        .where(eq(vendors.email, app.email));
 
-      return NextResponse.json({ success: true, message: "Application rejected" });
+      sendVendorRejectedEmail(app.email, app.applicantName, note, lang).catch(
+        () => {}
+      );
+
+      return NextResponse.json({
+        success: true,
+        message: "Application rejected",
+      });
     }
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);

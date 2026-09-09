@@ -65,6 +65,16 @@ export async function getCurrentVendor(): Promise<Vendor | null> {
 export async function requireVendor(): Promise<Vendor> {
   const vendor = await getCurrentVendor();
   if (!vendor) throw new Error("UNAUTHORIZED");
+  if (vendor.status === "rejected" || vendor.status === "suspended") {
+    throw new Error("NOT_APPROVED");
+  }
+  // pending and approved can access dashboard
+  return vendor;
+}
+
+export async function requireApprovedVendor(): Promise<Vendor> {
+  const vendor = await getCurrentVendor();
+  if (!vendor) throw new Error("UNAUTHORIZED");
   if (vendor.status !== "approved") throw new Error("NOT_APPROVED");
   return vendor;
 }

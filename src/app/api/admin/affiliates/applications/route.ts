@@ -51,7 +51,10 @@ export async function POST(request: NextRequest) {
 
     if (!applicationId || !["approve", "reject"].includes(action)) {
       return NextResponse.json(
-        { error: "applicationId and valid action (approve/reject) are required" },
+        {
+          error:
+            "applicationId and valid action (approve/reject) are required",
+        },
         { status: 400 }
       );
     }
@@ -70,47 +73,79 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === "approve") {
-      let passwordHash = (app as { passwordHash?: string | null }).passwordHash || null;
+      const [existingAff] = await db
+        .select()
+        .from(affiliates)
+        .where(eq(affiliates.email, app.email))
+        .limit(1);
+
+      let affiliateId: string;
+      let code: string;
       let tempPassword: string | null = null;
-      let mustChange = false;
 
-      if (!passwordHash) {
-        tempPassword = crypto.randomBytes(4).toString("hex");
-        passwordHash = await hashAffiliatePassword(tempPassword);
-        mustChange = true;
-      }
+      if (existingAff) {
+        // Instant-dashboard flow
+        await db
+          .update(affiliates)
+          .set({
+            status: "approved",
+            commissionRate: String(commissionRate),
+            approvedAt: new Date(),
+            adminNote: adminNote || null,
+            name: app.applicantName || existingAff.name,
+            phone: app.phone || existingAff.phone,
+            whatsapp: app.whatsapp || existingAff.whatsapp,
+            country: app.country || existingAff.country,
+            city: app.city || existingAff.city,
+            updatedAt: new Date(),
+          })
+          .where(eq(affiliates.id, existingAff.id));
+        affiliateId = existingAff.id;
+        code = existingAff.code;
+      } else {
+        let passwordHash =
+          (app as { passwordHash?: string | null }).passwordHash || null;
+        let mustChange = false;
 
-      let code = generateAffiliateCode(app.applicantName);
-      let attempts = 0;
-      while (attempts < 5) {
-        const existing = await db
-          .select({ id: affiliates.id })
-          .from(affiliates)
-          .where(eq(affiliates.code, code))
-          .limit(1);
-        if (!existing.length) break;
+        if (!passwordHash) {
+          tempPassword = crypto.randomBytes(4).toString("hex");
+          passwordHash = await hashAffiliatePassword(tempPassword);
+          mustChange = true;
+        }
+
         code = generateAffiliateCode(app.applicantName);
-        attempts++;
-      }
+        let attempts = 0;
+        while (attempts < 5) {
+          const existing = await db
+            .select({ id: affiliates.id })
+            .from(affiliates)
+            .where(eq(affiliates.code, code))
+            .limit(1);
+          if (!existing.length) break;
+          code = generateAffiliateCode(app.applicantName);
+          attempts++;
+        }
 
-      const [newAffiliate] = await db
-        .insert(affiliates)
-        .values({
-          email: app.email,
-          passwordHash,
-          name: app.applicantName,
-          code,
-          commissionRate: String(commissionRate),
-          status: "approved",
-          country: app.country,
-          city: app.city,
-          phone: app.phone,
-          whatsapp: app.whatsapp,
-          mustChangePassword: mustChange,
-          adminNote: adminNote || null,
-          approvedAt: new Date(),
-        })
-        .returning();
+        const [newAffiliate] = await db
+          .insert(affiliates)
+          .values({
+            email: app.email,
+            passwordHash,
+            name: app.applicantName,
+            code,
+            commissionRate: String(commissionRate),
+            status: "approved",
+            country: app.country,
+            city: app.city,
+            phone: app.phone,
+            whatsapp: app.whatsapp,
+            mustChangePassword: mustChange,
+            adminNote: adminNote || null,
+            approvedAt: new Date(),
+          })
+          .returning();
+        affiliateId = newAffiliate.id;
+      }
 
       await db
         .update(affiliateApplications)
@@ -132,12 +167,12 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message: "Affiliate approved and credentials sent",
+        message: "Affiliate approved",
         affiliate: {
-          id: newAffiliate.id,
-          name: newAffiliate.name,
-          email: newAffiliate.email,
-          code: newAffiliate.code,
+          id: affiliateId,
+          name: app.applicantName,
+          email: app.email,
+          code,
         },
       });
     } else {
@@ -149,6 +184,15 @@ export async function POST(request: NextRequest) {
           adminNote: adminNote || null,
         })
         .where(eq(affiliateApplications.id, applicationId));
+
+      await db
+        .update(affiliates)
+        .set({
+          status: "rejected",
+          adminNote: adminNote || null,
+          updatedAt: new Date(),
+        })
+        .where(eq(affiliates.email, app.email));
 
       sendAffiliateRejectedEmail(
         app.email,

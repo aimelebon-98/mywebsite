@@ -61,7 +61,9 @@ export async function getCurrentAffiliate() {
       .limit(1);
 
     if (!session.length) return null;
-    if (session[0].affiliate.status !== "approved") return null;
+    // Allow pending + approved; block rejected/suspended
+    const status = session[0].affiliate.status;
+    if (status === "rejected" || status === "suspended") return null;
     if (new Date() > session[0].expiresAt) return null;
 
     return session[0].affiliate;
@@ -74,6 +76,20 @@ export async function requireAffiliate(_request?: NextRequest) {
   const affiliate = await getCurrentAffiliate();
   if (!affiliate) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  return affiliate;
+}
+
+export async function requireApprovedAffiliate(_request?: NextRequest) {
+  const affiliate = await getCurrentAffiliate();
+  if (!affiliate) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (affiliate.status !== "approved") {
+    return NextResponse.json(
+      { error: "Affiliate account pending admin approval" },
+      { status: 403 }
+    );
   }
   return affiliate;
 }

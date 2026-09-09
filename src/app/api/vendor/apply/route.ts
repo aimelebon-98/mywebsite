@@ -2,29 +2,51 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { vendorApplications, vendors } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { sendVendorApplicationReceivedEmail, sendAdminNewVendorApplicationEmail } from "@/lib/email";
+import {
+  sendVendorApplicationReceivedEmail,
+  sendAdminNewVendorApplicationEmail,
+} from "@/lib/email";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { isRateLimited } from "@/lib/rate-limit";
 import { headers } from "next/headers";
+import {
+  hashVendorPassword,
+  generateRandomPassword,
+  generateUniqueStoreSlug,
+  createVendorSession,
+} from "@/lib/vendor-auth";
+import { defaultCurrencyForCountry } from "@/lib/vendor-currency";
 
 export const dynamic = "force-dynamic";
 
-const ADMIN_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL || "komlaimelebon@gmail.com";
+const ADMIN_EMAIL =
+  process.env.ADMIN_NOTIFICATION_EMAIL || "komlaimelebon@gmail.com";
 
 export async function POST(req: Request) {
   try {
     const h = await headers();
-    const ip = h.get("cf-connecting-ip") || h.get("x-forwarded-for")?.split(",")[0] || h.get("x-real-ip") || "";
+    const ip =
+      h.get("cf-connecting-ip") ||
+      h.get("x-forwarded-for")?.split(",")[0] ||
+      h.get("x-real-ip") ||
+      "";
+    const ua = h.get("user-agent") || "";
 
-    // Rate Limit: Max 3 application submissions per hour per IP
     if (isRateLimited(ip, 3, 3600000)) {
-      return NextResponse.json({ error: "Too many application submissions from this IP. Please try again later." }, { status: 429 });
+      return NextResponse.json(
+        {
+          error:
+            "Too many application submissions from this IP. Please try again later.",
+        },
+        { status: 429 }
+      );
     }
 
     const body = await req.json();
     const {
       applicantName,
       email,
+      password,
       phone,
       whatsapp,
       storeName,
@@ -40,16 +62,31 @@ export async function POST(req: Request) {
     } = body;
 
     if (!applicantName || !email || !storeName) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
     }
 
     if (process.env.TURNSTILE_SECRET_KEY) {
       if (!turnstileToken) {
-        return NextResponse.json({ error: "Security verification required. Please refresh and try again." }, { status: 403 });
+        return NextResponse.json(
+          {
+            error:
+              "Security verification required. Please refresh and try again.",
+          },
+          { status: 403 }
+        );
       }
       const captchaOk = await verifyTurnstile(turnstileToken, ip);
       if (!captchaOk) {
-        return NextResponse.json({ error: "Security verification failed. Please refresh and try again." }, { status: 403 });
+        return NextResponse.json(
+          {
+            error:
+              "Security verification failed. Please refresh and try again.",
+          },
+          { status: 403 }
+        );
       }
     }
 
@@ -58,21 +95,83 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid email" }, { status: 400 });
     }
 
-    const [existingVendor] = await db.select().from(vendors).where(eq(vendors.email, emailNorm)).limit(1);
+    const [existingVendor] = await db
+      .select()
+      .from(vendors)
+      .where(eq(vendors.email, emailNorm))
+      .limit(1);
+
     if (existingVendor) {
-      return NextResponse.json({ error: "You are already registered as a vendor with this email." }, { status: 409 });
+      if (existingVendor.status === "pending") {
+        // Re-login pending vendor
+        await createVendorSession(existingVendor.id, ip, ua);
+        return NextResponse.json({
+          success: true,
+          pending: true,
+          message: "Application already pending. Logging you into your dashboard.",
+          redirectTo: "dashboard",
+        });
+      }
+      return NextResponse.json(
+        {
+          error:
+            "You are already registered as a vendor with this email. Please log in.",
+        },
+        { status: 409 }
+      );
     }
 
-    const [existingApp] = await db.select().from(vendorApplications)
+    const [existingApp] = await db
+      .select()
+      .from(vendorApplications)
       .where(eq(vendorApplications.email, emailNorm))
       .limit(1);
 
     if (existingApp && existingApp.status === "pending") {
-      return NextResponse.json({ error: "You already have a pending application. We'll review it soon." }, { status: 409 });
+      return NextResponse.json(
+        {
+          error:
+            "You already have a pending application. We will review it soon.",
+        },
+        { status: 409 }
+      );
     }
 
-    const cats: string[] = Array.isArray(productCategories) ? productCategories : [];
+    const cats: string[] = Array.isArray(productCategories)
+      ? productCategories
+      : [];
     const categoriesJson = JSON.stringify(cats);
+    const countryCode = String(country || "NG").slice(0, 5);
+
+    // Password: user-chosen or random (social-assisted apply)
+    let mustChange = false;
+    let plainPassword = typeof password === "string" ? password : "";
+    if (!plainPassword || plainPassword.length < 6) {
+      plainPassword = generateRandomPassword(12);
+      mustChange = true;
+    }
+    const passwordHash = await hashVendorPassword(plainPassword);
+    const storeSlug = await generateUniqueStoreSlug(String(storeName));
+
+    const [newVendor] = await db
+      .insert(vendors)
+      .values({
+        email: emailNorm,
+        passwordHash,
+        storeName: String(storeName).slice(0, 100),
+        storeSlug,
+        storeDescription: String(storeDescription || "").slice(0, 2000),
+        contactName: String(applicantName).slice(0, 100),
+        phone: String(phone || "").slice(0, 30),
+        whatsapp: String(whatsapp || "").slice(0, 30),
+        country: countryCode,
+        city: String(city || "").slice(0, 60),
+        commissionRate: "10.00",
+        preferredCurrency: defaultCurrencyForCountry(countryCode),
+        status: "pending",
+        mustChangePassword: mustChange,
+      })
+      .returning();
 
     await db.insert(vendorApplications).values({
       applicantName: String(applicantName).slice(0, 100),
@@ -82,32 +181,53 @@ export async function POST(req: Request) {
       storeName: String(storeName).slice(0, 100),
       storeDescription: String(storeDescription || "").slice(0, 2000),
       productCategories: categoriesJson,
-      country: String(country || "NG").slice(0, 5),
+      country: countryCode,
       city: String(city || "").slice(0, 60),
       instagramUrl: String(instagramUrl || "").slice(0, 200),
       websiteUrl: String(websiteUrl || "").slice(0, 200),
       additionalInfo: String(additionalInfo || "").slice(0, 2000),
+      status: "pending",
     });
 
-    const lang = locale === "fr" ? "fr" : "en";
+    await createVendorSession(newVendor.id, ip, ua);
 
-    sendVendorApplicationReceivedEmail(emailNorm, applicantName, storeName, lang).catch(() => {});
+    const lang = locale === "fr" ? "fr" : "en";
+    sendVendorApplicationReceivedEmail(
+      emailNorm,
+      applicantName,
+      storeName,
+      lang
+    ).catch(() => {});
     sendAdminNewVendorApplicationEmail(ADMIN_EMAIL, {
       applicantName,
       email: emailNorm,
       phone: phone || "",
       storeName,
       storeDescription: storeDescription || "",
-      country: country || "NG",
+      country: countryCode,
       city: city || "",
       categories: cats,
       instagramUrl: instagramUrl || "",
       websiteUrl: websiteUrl || "",
     }).catch(() => {});
 
-    return NextResponse.json({ success: true, message: "Application submitted" });
+    return NextResponse.json({
+      success: true,
+      pending: true,
+      message: "Application submitted. Welcome to your pending dashboard.",
+      redirectTo: "dashboard",
+      vendor: {
+        id: newVendor.id,
+        email: newVendor.email,
+        storeName: newVendor.storeName,
+        status: "pending",
+      },
+    });
   } catch (error) {
-    const msg = "Application submission failed";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    console.error("Vendor apply error:", error);
+    return NextResponse.json(
+      { error: "Application submission failed" },
+      { status: 500 }
+    );
   }
 }
