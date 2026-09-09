@@ -833,8 +833,10 @@ html, body {
 
 .product-spec-table td:first-child {
   color: #4B5563;
-  font-weight: 500;
-  width: 40%;
+  font-weight: 600;
+  width: auto;
+  white-space: nowrap;
+  padding-right: 20px;
   border-right: 1px solid #E5E7EB;
   background: #FAFAFA;
 }

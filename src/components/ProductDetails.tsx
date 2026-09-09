@@ -256,12 +256,12 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
         setReviewSuccess(true);
         setTimeout(() => setReviewSuccess(false), 12000);
       } else {
-        const errMsg = data?.error || (isFr ? "ÃƒÆ’Ã¢â‚¬Â°chec de l'envoi de l'avis. Veuillez rÃƒÆ’Ã‚Â©essayer." : "Failed to submit review. Please try again.");
+        const errMsg = data?.error || (isFr ? "ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â°chec de l'envoi de l'avis. Veuillez rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©essayer." : "Failed to submit review. Please try again.");
         setReviewError(errMsg);
         alert(errMsg);
       }
     } catch (err) {
-      const netErr = isFr ? "Erreur rÃƒÆ’Ã‚Â©seau. Veuillez rÃƒÆ’Ã‚Â©essayer." : "Network error. Please try again.";
+      const netErr = isFr ? "Erreur rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©seau. Veuillez rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©essayer." : "Network error. Please try again.";
       setReviewError(netErr);
       alert(netErr);
     } finally {
@@ -318,7 +318,14 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
     { icon: RotateCcw, label: t("returns"),      sub: t("returnsDesc")      },
   ];
 
-  const specs = [
+  const specs = isSubscriptionProduct(product) ? [
+    { label: isFr ? "Cat\u00e9gorie" : "Category", value: product.category },
+    { label: isFr ? "Marque" : "Brand", value: product.brand || "SMZ" },
+    { label: isFr ? "Type de produit" : "Product Type", value: isFr ? "Licence digitale" : "Digital License" },
+    { label: isFr ? "Livraison" : "Delivery", value: isFr ? "Acc\u00e8s instantan\u00e9" : "Instant Access" },
+    { label: isFr ? "Support" : "Support", value: "Telegram VIP 24/7" },
+    { label: "SKU", value: product.sku || `NDZ-${product.id.slice(0, 8).toUpperCase()}` },
+  ] : [
     { label: t("specCategory"), value: product.category },
     { label: t("specBrand"),    value: product.brand || "NewDealZone" },
     { label: t("specSizes"),    value: sizes.join(", ") || t("specOneSize") },
@@ -329,9 +336,9 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
 
   const features = isSubscriptionProduct(product) ? [
     isFr ? "Signaux de trading IA \u00e0 haute pr\u00e9cision" : "High-accuracy AI trading signals",
-    isFr ? "Int\u00e9gration automatique MT4 / MT5 & Telegram" : "Automated MT4 / MT5 & Telegram integration",
-    isFr ? "Gestion des risques et stop-loss en temps r\u00e9el" : "Real-time risk management & stop-loss algorithms",
-    isFr ? "Compatible Forex, Crypto et Options Binaires" : "Supports Forex, Crypto & Binary options",
+    isFr ? "Con\u00e7u exclusivement pour les Options Binaires" : "Exclusively designed for Binary Options",
+    isFr ? "Int\u00e9gration Telegram & alertes instantan\u00e9es" : "Automated Telegram integration & instant alerts",
+    isFr ? "Gestion des risques et des mises en temps r\u00e9el" : "Real-time risk & money management algorithms",
     isFr ? "Acc\u00e8s instantan\u00e9 et mises \u00e0 jour incluses" : "Instant access & lifetime updates included",
     isFr ? "Support VIP 24/7 et communaut\u00e9 de signaux" : "24/7 VIP support & signal community access",
   ] : [
@@ -1275,7 +1282,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                 <Check className="w-6 h-6 text-green-600" />
               </div>
               <div className="flex-1">
-                <h4 className="font-bold text-green-900 text-lg">{isFr ? "Merci ! Votre avis a ÃƒÆ’Ã‚Â©tÃƒÆ’Ã‚Â© soumis et est en attente de modÃƒÆ’Ã‚Â©ration." : "Thank you! Your review has been submitted and is awaiting admin moderation."}</h4>
+                <h4 className="font-bold text-green-900 text-lg">{isFr ? "Merci ! Votre avis a ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© soumis et est en attente de modÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©ration." : "Thank you! Your review has been submitted and is awaiting admin moderation."}</h4>
                 <p className="text-green-700 text-sm mt-1">{isFr ? "Votre avis a ete soumis avec succes." : "Your review has been submitted successfully."}</p>
               </div>
               <button onClick={() => setReviewSuccess(false)} className="text-green-500 hover:text-green-700 transition flex-shrink-0 mt-1">
