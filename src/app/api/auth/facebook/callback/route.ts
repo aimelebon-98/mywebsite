@@ -10,6 +10,7 @@ import {
 } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { hashPassword } from "@/lib/customer-auth";
+import { hashVendorPassword, generateUniqueStoreSlug } from "@/lib/vendor-auth";
 import crypto from "crypto";
 
 export const dynamic = "force-dynamic";
@@ -122,45 +123,53 @@ export async function GET(req: NextRequest) {
 
     // --- VENDOR ROLE ---
     if (role === "vendor") {
-      const [vend] = await db
+      let [vend] = await db
         .select()
         .from(vendors)
         .where(eq(vendors.email, email))
         .limit(1);
 
-      if (vend) {
-        if (vend.status === "rejected" || vend.status === "suspended") {
-          return NextResponse.redirect(
-            new URL(`/${locale}/vendor/login?error=account_inactive`, req.nextUrl.origin)
-          );
-        }
-        // pending + approved → dashboard
-        const sessionToken = crypto.randomBytes(48).toString("hex");
-        await db.insert(vendorSessions).values({
-          token: sessionToken,
-          vendorId: vend.id,
-          ipAddress: ip.slice(0, 50),
-          userAgent: ua.slice(0, 500),
-          expiresAt,
-        });
+      if (!vend) {
+        const storeName = `${name.split(" ")[0]}'s Store`;
+        const storeSlug = await generateUniqueStoreSlug(storeName);
+        const dummyHash = await hashVendorPassword(crypto.randomBytes(32).toString("hex"));
 
-        const res = NextResponse.redirect(
-          new URL(`/${locale}/vendor/dashboard`, req.nextUrl.origin)
+        const [newVend] = await db.insert(vendors).values({
+          email,
+          passwordHash: dummyHash,
+          storeName: storeName.slice(0, 100),
+          storeSlug,
+          contactName: name,
+          status: "incomplete",
+          mustChangePassword: false,
+        }).returning();
+        vend = newVend;
+      } else if (vend.status === "rejected" || vend.status === "suspended") {
+        return NextResponse.redirect(
+          new URL(`/${locale}/vendor/login?error=account_inactive`, req.nextUrl.origin)
         );
-        res.cookies.set("ndz_vendor_session", sessionToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
-          path: "/",
-          maxAge: 7 * 24 * 60 * 60,
-        });
-        return res;
-      } else {
-        const applyUrl = new URL(`/${locale}/vendor/apply`, req.nextUrl.origin);
-        applyUrl.searchParams.set("email", email);
-        applyUrl.searchParams.set("name", name);
-        return NextResponse.redirect(applyUrl);
       }
+
+      const sessionToken = crypto.randomBytes(48).toString("hex");
+      await db.insert(vendorSessions).values({
+        token: sessionToken,
+        vendorId: vend.id,
+        ipAddress: ip.slice(0, 50),
+        userAgent: ua.slice(0, 500),
+        expiresAt,
+      });
+
+      const res = NextResponse.redirect(
+        new URL(`/${locale}/vendor/dashboard`, req.nextUrl.origin)
+      );
+      res.cookies.set("ndz_vendor_session", sessionToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: 7 * 24 * 60 * 60,
+      });
+      return res;
     }
 
     // --- DEFAULT CUSTOMER ROLE ---

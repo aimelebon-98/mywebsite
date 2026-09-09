@@ -1,6 +1,7 @@
 "use client";
 
 import PendingApprovalBanner from "@/components/PendingApprovalBanner";
+import VendorOnboardingModal from "@/components/VendorOnboardingModal";
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
@@ -48,6 +49,7 @@ export default function VendorDashboardPage() {
   const [vendor, setVendor] = useState<VendorInfo | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showWizard, setShowWizard] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -59,6 +61,7 @@ export default function VendorDashboardPage() {
         const meData = await meRes.json();
         const statsData = await statsRes.json();
         setVendor(meData.vendor);
+        if (meData.vendor?.status === "incomplete") setShowWizard(true);
         setStats(statsData);
       } catch (err) {
         console.error(err);
@@ -84,6 +87,27 @@ export default function VendorDashboardPage() {
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">Welcome back!</h1>
         <p className="text-gray-500 text-sm">Here is what is happening with your store</p>
       </div>
+
+            {showWizard && (
+        <VendorOnboardingModal 
+          vendor={vendor} 
+          onClose={() => setShowWizard(false)} 
+          onComplete={() => {
+            setShowWizard(false);
+            setVendor(v => v ? { ...v, status: "pending" } : null);
+          }} 
+        />
+      )}
+      
+      {vendor.status === "incomplete" && (
+        <div className="mb-6 rounded-xl border border-blue-300 bg-blue-50 px-4 py-3 flex justify-between items-center">
+          <div>
+            <p className="text-sm font-bold text-blue-900">Application not submitted</p>
+            <p className="text-xs text-blue-800">Please complete your store profile to submit your application for review.</p>
+          </div>
+          <button onClick={() => setShowWizard(true)} className="bg-blue-600 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-blue-700">Complete Profile</button>
+        </div>
+      )}
 
       {vendor.status === "pending" && (
         <PendingApprovalBanner isFr={locale === "fr"} type="vendor" />

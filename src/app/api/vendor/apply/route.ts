@@ -1,26 +1,17 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { vendorApplications, vendors } from "@/db/schema";
+import { vendors } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import {
-  sendVendorApplicationReceivedEmail,
-  sendAdminNewVendorApplicationEmail,
-} from "@/lib/email";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { isRateLimited } from "@/lib/rate-limit";
 import { headers } from "next/headers";
 import {
   hashVendorPassword,
-  generateRandomPassword,
   generateUniqueStoreSlug,
   createVendorSession,
 } from "@/lib/vendor-auth";
-import { defaultCurrencyForCountry } from "@/lib/vendor-currency";
 
 export const dynamic = "force-dynamic";
-
-const ADMIN_EMAIL =
-  process.env.ADMIN_NOTIFICATION_EMAIL || "komlaimelebon@gmail.com";
 
 export async function POST(req: Request) {
   try {
@@ -32,59 +23,28 @@ export async function POST(req: Request) {
       "";
     const ua = h.get("user-agent") || "";
 
-    if (isRateLimited(ip, 3, 3600000)) {
+    if (isRateLimited(ip, 5, 3600000)) {
       return NextResponse.json(
-        {
-          error:
-            "Too many application submissions from this IP. Please try again later.",
-        },
+        { error: "Too many signups from this IP. Please try again later." },
         { status: 429 }
       );
     }
 
     const body = await req.json();
-    const {
-      applicantName,
-      email,
-      password,
-      phone,
-      whatsapp,
-      storeName,
-      storeDescription,
-      productCategories,
-      country,
-      city,
-      instagramUrl,
-      websiteUrl,
-      additionalInfo,
-      locale,
-      turnstileToken,
-    } = body;
+    const { applicantName, email, password, turnstileToken } = body;
 
-    if (!applicantName || !email || !storeName) {
+    if (!applicantName || !email || !password || password.length < 6) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "Name, email, and a password (min 6 chars) are required" },
         { status: 400 }
       );
     }
 
-    if (process.env.TURNSTILE_SECRET_KEY) {
-      if (!turnstileToken) {
-        return NextResponse.json(
-          {
-            error:
-              "Security verification required. Please refresh and try again.",
-          },
-          { status: 403 }
-        );
-      }
+    if (process.env.TURNSTILE_SECRET_KEY && turnstileToken) {
       const captchaOk = await verifyTurnstile(turnstileToken, ip);
       if (!captchaOk) {
         return NextResponse.json(
-          {
-            error:
-              "Security verification failed. Please refresh and try again.",
-          },
+          { error: "Security verification failed." },
           { status: 403 }
         );
       }
@@ -102,131 +62,39 @@ export async function POST(req: Request) {
       .limit(1);
 
     if (existingVendor) {
-      if (existingVendor.status === "pending") {
-        // Re-login pending vendor
-        await createVendorSession(existingVendor.id, ip, ua);
-        return NextResponse.json({
-          success: true,
-          pending: true,
-          message: "Application already pending. Logging you into your dashboard.",
-          redirectTo: "dashboard",
-        });
-      }
       return NextResponse.json(
-        {
-          error:
-            "You are already registered as a vendor with this email. Please log in.",
-        },
+        { error: "An account with this email already exists. Please log in." },
         { status: 409 }
       );
     }
 
-    const [existingApp] = await db
-      .select()
-      .from(vendorApplications)
-      .where(eq(vendorApplications.email, emailNorm))
-      .limit(1);
-
-    if (existingApp && existingApp.status === "pending") {
-      return NextResponse.json(
-        {
-          error:
-            "You already have a pending application. We will review it soon.",
-        },
-        { status: 409 }
-      );
-    }
-
-    const cats: string[] = Array.isArray(productCategories)
-      ? productCategories
-      : [];
-    const categoriesJson = JSON.stringify(cats);
-    const countryCode = String(country || "NG").slice(0, 5);
-
-    // Password: user-chosen or random (social-assisted apply)
-    let mustChange = false;
-    let plainPassword = typeof password === "string" ? password : "";
-    if (!plainPassword || plainPassword.length < 6) {
-      plainPassword = generateRandomPassword(12);
-      mustChange = true;
-    }
-    const passwordHash = await hashVendorPassword(plainPassword);
-    const storeSlug = await generateUniqueStoreSlug(String(storeName));
+    const storeName = `${String(applicantName).split(" ")[0]}'s Store`;
+    const storeSlug = await generateUniqueStoreSlug(storeName);
+    const passwordHash = await hashVendorPassword(password);
 
     const [newVendor] = await db
       .insert(vendors)
       .values({
         email: emailNorm,
         passwordHash,
-        storeName: String(storeName).slice(0, 100),
+        storeName: storeName.slice(0, 100),
         storeSlug,
-        storeDescription: String(storeDescription || "").slice(0, 2000),
         contactName: String(applicantName).slice(0, 100),
-        phone: String(phone || "").slice(0, 30),
-        whatsapp: String(whatsapp || "").slice(0, 30),
-        country: countryCode,
-        city: String(city || "").slice(0, 60),
-        commissionRate: "10.00",
-        preferredCurrency: defaultCurrencyForCountry(countryCode),
-        status: "pending",
-        mustChangePassword: mustChange,
+        status: "incomplete",
+        mustChangePassword: false,
       })
       .returning();
 
-    await db.insert(vendorApplications).values({
-      applicantName: String(applicantName).slice(0, 100),
-      email: emailNorm.slice(0, 100),
-      phone: String(phone || "").slice(0, 30),
-      whatsapp: String(whatsapp || "").slice(0, 30),
-      storeName: String(storeName).slice(0, 100),
-      storeDescription: String(storeDescription || "").slice(0, 2000),
-      productCategories: categoriesJson,
-      country: countryCode,
-      city: String(city || "").slice(0, 60),
-      instagramUrl: String(instagramUrl || "").slice(0, 200),
-      websiteUrl: String(websiteUrl || "").slice(0, 200),
-      additionalInfo: String(additionalInfo || "").slice(0, 2000),
-      status: "pending",
-    });
-
     await createVendorSession(newVendor.id, ip, ua);
-
-    const lang = locale === "fr" ? "fr" : "en";
-    sendVendorApplicationReceivedEmail(
-      emailNorm,
-      applicantName,
-      storeName,
-      lang
-    ).catch(() => {});
-    sendAdminNewVendorApplicationEmail(ADMIN_EMAIL, {
-      applicantName,
-      email: emailNorm,
-      phone: phone || "",
-      storeName,
-      storeDescription: storeDescription || "",
-      country: countryCode,
-      city: city || "",
-      categories: cats,
-      instagramUrl: instagramUrl || "",
-      websiteUrl: websiteUrl || "",
-    }).catch(() => {});
 
     return NextResponse.json({
       success: true,
-      pending: true,
-      message: "Application submitted. Welcome to your pending dashboard.",
       redirectTo: "dashboard",
-      vendor: {
-        id: newVendor.id,
-        email: newVendor.email,
-        storeName: newVendor.storeName,
-        status: "pending",
-      },
     });
   } catch (error) {
-    console.error("Vendor apply error:", error);
+    console.error("Vendor simple signup error:", error);
     return NextResponse.json(
-      { error: "Application submission failed" },
+      { error: "Registration failed" },
       { status: 500 }
     );
   }
