@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useParams } from "next/navigation";
+import { useState, useEffect, Suspense, useTransition } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import TurnstileGate from "@/components/TurnstileGate";
 import SocialLoginButtons from "@/components/SocialLoginButtons";
@@ -17,10 +17,14 @@ import {
   EyeOff,
 } from "lucide-react";
 
-export default function AffiliateApplyPage() {
+function AffiliateApplyForm() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const locale = (params?.locale as string) || "en";
   const isFr = locale === "fr";
+
+  const prefillEmail = searchParams.get("email") || "";
+  const prefillName = searchParams.get("name") || "";
 
   const [isPending, startTransition] = useTransition();
   const [submitted, setSubmitted] = useState(false);
@@ -29,8 +33,8 @@ export default function AffiliateApplyPage() {
   const [turnstileToken, setTurnstileToken] = useState("");
 
   const [formData, setFormData] = useState({
-    applicantName: "",
-    email: "",
+    applicantName: prefillName,
+    email: prefillEmail,
     password: "",
     confirmPassword: "",
     phone: "",
@@ -41,6 +45,16 @@ export default function AffiliateApplyPage() {
     socialMediaUrl: "",
     marketingPlan: "",
   });
+
+  useEffect(() => {
+    if (prefillEmail || prefillName) {
+      setFormData((f) => ({
+        ...f,
+        applicantName: f.applicantName || prefillName,
+        email: f.email || prefillEmail,
+      }));
+    }
+  }, [prefillEmail, prefillName]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -347,5 +361,19 @@ export default function AffiliateApplyPage() {
         </div>
       </div>
     </TurnstileGate>
+  );
+}
+
+export default function AffiliateApplyPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center text-white">
+          <Loader2 className="w-8 h-8 animate-spin text-[#CA3F2E]" />
+        </div>
+      }
+    >
+      <AffiliateApplyForm />
+    </Suspense>
   );
 }
