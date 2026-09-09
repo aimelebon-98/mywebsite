@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { X, Heart, ShoppingBag, Zap, Star, Check, ArrowRight } from "lucide-react";
 import type { Product } from "@/db/schema";
+import { isSubscriptionProduct } from "@/lib/subscription-pricing";
 import { useCart } from "@/lib/cart-context";
 import { useWishlist } from "@/lib/wishlist-context";
 import ProductImage from "./ProductImage";
@@ -229,43 +230,67 @@ export default function QuickViewModal({ product, open, onClose }: QuickViewModa
           )}
 
           <div className="mt-auto space-y-2">
-            <div className="flex gap-2">
-              <button
-                onClick={handleBuyNow}
-                className="flex-1 flex items-center justify-center gap-1.5 py-3 bg-brand-600 text-white rounded-xl text-sm font-bold hover:bg-brand-700 active:scale-95 transition"
-              >
-                <Zap className="w-4 h-4" /> {t("buyNow")}
-              </button>
-              <button
-                onClick={handleAddToCart}
-                className={`px-4 py-3 flex items-center justify-center gap-1.5 rounded-xl text-sm font-bold transition ${
-                  added
-                    ? "bg-green-500 text-white"
-                    : "bg-gray-900 text-white hover:bg-gray-800 active:scale-95"
-                }`}
-              >
-                {added ? (
-                  <>
-                    <Check className="w-4 h-4" /> {t("added") || "Added"}
-                  </>
-                ) : (
-                  <>
-                    <ShoppingBag className="w-4 h-4" />{isFr ? null : <span className="ml-2">{t("addToCart")}</span>}
-                  </>
-                )}
-              </button>
-              <button
-                onClick={() => toggle(product.id)}
-                aria-label={wished ? t("removeFromWishlist") : t("addToWishlist")}
-                className={`w-11 h-11 flex items-center justify-center rounded-xl border transition ${
-                  wished
-                    ? "bg-red-500 text-white border-red-500"
-                    : "bg-white text-gray-700 border-gray-200 hover:border-red-500 hover:text-red-500"
-                }`}
-              >
-                <Heart className={`w-4 h-4 ${wished ? "fill-current" : ""}`} />
-              </button>
-            </div>
+            {isSubscriptionProduct(product) ? (
+              <div className="flex gap-2">
+                <Link
+                  href={`/${locale}/product/${locale === "fr" && product.slugFr ? product.slugFr : (product.slug || product.id)}`}
+                  onClick={onClose}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-extrabold uppercase tracking-wider active:scale-95 transition shadow-sm"
+                >
+                  <Zap className="w-4 h-4" />
+                  <span>{isFr ? "S'ABONNER" : "SUBSCRIBE"}</span>
+                </Link>
+                <button
+                  onClick={() => toggle(product.id, { name: product.name, priceUsd: parseFloat(product.price || "0") || undefined, brand: product.brand || undefined, category: product.category || undefined })}
+                  aria-label={wished ? t("removeFromWishlist") : t("addToWishlist")}
+                  className={`w-11 h-11 flex items-center justify-center rounded-xl border transition ${
+                    wished
+                      ? "bg-red-500 text-white border-red-500"
+                      : "bg-white text-gray-700 border-gray-200 hover:border-red-500 hover:text-red-500"
+                  }`}
+                >
+                  <Heart className={`w-4 h-4 ${wished ? "fill-current" : ""}`} />
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <button
+                  onClick={handleBuyNow}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-3 bg-brand-600 text-white rounded-xl text-sm font-bold hover:bg-brand-700 active:scale-95 transition"
+                >
+                  <Zap className="w-4 h-4" /> {t("buyNow")}
+                </button>
+                <button
+                  onClick={handleAddToCart}
+                  className={`px-4 py-3 flex items-center justify-center gap-1.5 rounded-xl text-sm font-bold transition ${
+                    added
+                      ? "bg-green-500 text-white"
+                      : "bg-gray-900 text-white hover:bg-gray-800 active:scale-95"
+                  }`}
+                >
+                  {added ? (
+                    <>
+                      <Check className="w-4 h-4" /> {t("added") || "Added"}
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingBag className="w-4 h-4" />{isFr ? null : <span className="ml-2">{t("addToCart")}</span>}
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => toggle(product.id, { name: product.name, priceUsd: parseFloat(product.price || "0") || undefined, brand: product.brand || undefined, category: product.category || undefined })}
+                  aria-label={wished ? t("removeFromWishlist") : t("addToWishlist")}
+                  className={`w-11 h-11 flex items-center justify-center rounded-xl border transition ${
+                    wished
+                      ? "bg-red-500 text-white border-red-500"
+                      : "bg-white text-gray-700 border-gray-200 hover:border-red-500 hover:text-red-500"
+                  }`}
+                >
+                  <Heart className={`w-4 h-4 ${wished ? "fill-current" : ""}`} />
+                </button>
+              </div>
+            )}
 
             <Link
               href={`/${locale}/product/${product.slug || product.id}`}
