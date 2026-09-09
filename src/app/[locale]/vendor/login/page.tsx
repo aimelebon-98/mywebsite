@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Store, Mail, Lock, Loader2, ArrowRight, Eye, EyeOff } from "lucide-react";
 import TurnstileGate from "@/components/TurnstileGate";
+import TurnstileWidget from "@/components/TurnstileWidget";
 
 const BRAND_RED = "#CA3F2E";
 const BRAND_RED_DARK = "#8B2A1E";
@@ -16,6 +17,7 @@ export default function VendorLoginPage() {
   const isFr = locale === "fr";
 
   const [email, setEmail] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -52,7 +54,7 @@ export default function VendorLoginPage() {
       const res = await fetch("/api/vendor/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, turnstileToken }),
+        body: JSON.stringify({ turnstileToken, email, password, turnstileToken }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Login failed");
@@ -135,6 +137,7 @@ export default function VendorLoginPage() {
             </div>
 
             <button
+              <TurnstileWidget onVerify={setTurnstileToken} />
               type="submit"
               disabled={submitting}
               className="w-full flex items-center justify-center gap-2 px-6 py-3.5 text-white font-bold text-base rounded-xl transition-colors disabled:opacity-50"

@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Store, Send, CheckCircle2, ArrowLeft, Loader2 } from "lucide-react";
 import TurnstileGate from "@/components/TurnstileGate";
+import TurnstileWidget from "@/components/TurnstileWidget";
 
 const BRAND_RED = "#CA3F2E";
 const BRAND_RED_DARK = "#8B2A1E";
@@ -40,6 +41,7 @@ export default function VendorApplyPage() {
   const isFr = locale === "fr";
 
   const [form, setForm] = useState({
+  const [turnstileToken, setTurnstileToken] = useState("");
     applicantName: "",
     email: "",
     phone: "",
@@ -135,7 +137,7 @@ export default function VendorApplyPage() {
       const res = await fetch("/api/vendor/apply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, locale, turnstileToken }),
+        body: JSON.stringify({ turnstileToken, ...form, locale, turnstileToken }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed");
@@ -276,6 +278,7 @@ export default function VendorApplyPage() {
               <div>
                 <p className="text-xs text-gray-500 mb-4 leading-relaxed">{t.terms}</p>
                 <button
+              <TurnstileWidget onVerify={setTurnstileToken} />
                   type="submit"
                   disabled={submitting}
                   className="w-full flex items-center justify-center gap-2 px-6 py-4 text-white font-bold text-base rounded-xl transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
