@@ -133,7 +133,8 @@ export async function POST(request: NextRequest) {
         name: nameTrim,
         code,
         commissionRate: "5.00",
-        status: "pending",
+        status: "approved",
+        approvedAt: new Date(),
         country: country?.trim() || null,
         city: city?.trim() || null,
         phone: phone?.trim() || null,
@@ -155,7 +156,9 @@ export async function POST(request: NextRequest) {
         websiteUrl: websiteUrl?.trim() || null,
         socialMediaUrl: socialMediaUrl?.trim() || null,
         marketingPlan: marketingPlan?.trim() || null,
-        status: "pending",
+        status: "approved",
+        reviewedAt: new Date(),
+        adminNote: "Auto-approved at signup",
       })
       .returning();
 
@@ -195,14 +198,14 @@ export async function POST(request: NextRequest) {
 
     const res = NextResponse.json({
       success: true,
-      pending: true,
-      message: "Application submitted! Your pending dashboard is ready.",
+      pending: false,
+      message: "Welcome to your Affiliate Dashboard!",
       redirectTo: "dashboard",
       applicationId: application.id,
       affiliate: {
         id: newAffiliate.id,
         code: newAffiliate.code,
-        status: "pending",
+        status: "approved",
       },
     });
 

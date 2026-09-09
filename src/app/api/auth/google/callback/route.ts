@@ -91,7 +91,10 @@ export async function GET(req: NextRequest) {
             new URL(`/${locale}/affiliate/login?error=account_inactive`, req.nextUrl.origin)
           );
         }
-        // pending + approved → dashboard
+        // If they were pending, auto-approve them now
+        if (aff.status === "pending") {
+          await db.update(affiliates).set({ status: "approved", approvedAt: new Date() }).where(eq(affiliates.id, aff.id));
+        }
         const sessionToken = crypto.randomBytes(64).toString("hex");
         await db.insert(affiliateSessions).values({
           token: sessionToken,
