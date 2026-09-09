@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Store, Send, CheckCircle2, ArrowLeft, Loader2 } from "lucide-react";
 import TurnstileGate from "@/components/TurnstileGate";
+import SocialLoginButtons from "@/components/SocialLoginButtons";
 
 const BRAND_RED = "#CA3F2E";
 const BRAND_RED_DARK = "#8B2A1E";
@@ -296,6 +297,8 @@ export default function VendorApplyPage() {
                   )}
                 </button>
               </div>
+            `n              <SocialLoginButtons mode="register" role="vendor" theme="light" />
+
             </form>
           </div>
         </div>
