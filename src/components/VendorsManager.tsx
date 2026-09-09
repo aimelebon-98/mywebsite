@@ -168,81 +168,98 @@ export default function VendorsManager() {
         })}
       </div>
 
-      {/* Bulk actions bar */}
+      {/* SELECT ALL BAR */}
       {vendors.length > 0 && (
-        <div className="mb-4 flex flex-wrap items-center gap-3 bg-white border border-gray-200 rounded-xl p-3">
-          <button
-            type="button"
-            onClick={toggleSelectAll}
-            className="inline-flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900"
-          >
-            {selectedIds.length === vendors.length && vendors.length > 0 ? (
-              <CheckSquare className="w-4 h-4 text-[#CA3F2E]" />
-            ) : (
-              <Square className="w-4 h-4" />
-            )}
-            {selectedIds.length === vendors.length && vendors.length > 0
-              ? "Deselect all"
-              : "Select all"}
-          </button>
-          <span className="text-xs text-gray-500">
-            {selectedIds.length} selected
-          </span>
-          <div className="flex-1" />
-          <button
-            type="button"
-            disabled={bulkProcessing || selectedIds.length === 0}
-            onClick={() => bulkAction("approve")}
-            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-100 text-green-800 hover:bg-green-200 disabled:opacity-40"
-          >
-            Approve / Reactivate
-          </button>
-          <button
-            type="button"
-            disabled={bulkProcessing || selectedIds.length === 0}
-            onClick={() => bulkAction("suspend")}
-            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-100 text-amber-800 hover:bg-amber-200 disabled:opacity-40"
-          >
-            Suspend
-          </button>
-          <button
-            type="button"
-            disabled={bulkProcessing || selectedIds.length === 0}
-            onClick={() => bulkAction("reject")}
-            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-100 text-red-800 hover:bg-red-200 disabled:opacity-40"
-          >
-            Reject
-          </button>
-          <button
-            type="button"
-            disabled={bulkProcessing || selectedIds.length === 0}
-            onClick={() => bulkAction("delete")}
-            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-600 text-white hover:bg-red-700 disabled:opacity-40"
-          >
-            Delete
-          </button>
-          <div className="flex items-center gap-1.5">
-            <input
-              type="number"
-              min={0}
-              max={100}
-              step="0.5"
-              value={bulkCommission}
-              onChange={(e) => setBulkCommission(e.target.value)}
-              className="w-16 px-2 py-1.5 border border-gray-200 rounded-lg text-xs"
-              title="Commission %"
-            />
+        <div className="mb-4 flex items-center justify-between gap-3 px-4 py-2.5 bg-gray-50 rounded-xl border border-gray-100">
+          <div className="flex items-center gap-2">
             <button
               type="button"
-              disabled={bulkProcessing || selectedIds.length === 0}
-              onClick={() =>
-                bulkAction("update_commission", { commissionRate: bulkCommission })
-              }
-              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-40"
+              onClick={toggleSelectAll}
+              className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition"
             >
-              Set rate
+              {selectedIds.length === vendors.length && vendors.length > 0 ? (
+                <CheckSquare className="w-4 h-4 text-gray-900" />
+              ) : selectedIds.length > 0 ? (
+                <div className="w-4 h-4 rounded border-2 border-gray-900 bg-gray-900 flex items-center justify-center">
+                  <div className="w-2 h-0.5 bg-white"></div>
+                </div>
+              ) : (
+                <Square className="w-4 h-4 text-gray-400" />
+              )}
+              <span className="font-semibold text-gray-900">
+                {selectedIds.length === vendors.length && vendors.length > 0
+                  ? "Deselect all"
+                  : "Select all"}
+              </span>
             </button>
+            <span className="text-xs text-gray-500 ml-2">
+              {vendors.length} visible
+            </span>
           </div>
+
+          {selectedIds.length > 0 && (
+            <div className="flex items-center gap-2 animate-in fade-in duration-200">
+              <span className="text-xs font-bold text-gray-700 mr-2">
+                {selectedIds.length} selected:
+              </span>
+              <button
+                type="button"
+                disabled={bulkProcessing}
+                onClick={() => bulkAction("approve")}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-100 text-green-800 hover:bg-green-200 disabled:opacity-40"
+              >
+                Approve / Reactivate
+              </button>
+              <button
+                type="button"
+                disabled={bulkProcessing}
+                onClick={() => bulkAction("suspend")}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-100 text-amber-800 hover:bg-amber-200 disabled:opacity-40"
+              >
+                Suspend
+              </button>
+              <button
+                type="button"
+                disabled={bulkProcessing}
+                onClick={() => bulkAction("reject")}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-100 text-red-800 hover:bg-red-200 disabled:opacity-40"
+              >
+                Reject
+              </button>
+              <button
+                type="button"
+                disabled={bulkProcessing}
+                onClick={() => bulkAction("delete")}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-600 text-white hover:bg-red-700 disabled:opacity-40"
+              >
+                Delete
+              </button>
+              <div className="flex items-center gap-1 border-l border-gray-200 pl-2">
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  step="0.5"
+                  value={bulkCommission}
+                  onChange={(e) => setBulkCommission(e.target.value)}
+                  className="w-16 px-2 py-1 border border-gray-200 rounded-lg text-xs bg-white"
+                  title="Commission %"
+                />
+                <button
+                  type="button"
+                  disabled={bulkProcessing}
+                  onClick={() =>
+                    bulkAction("update_commission", {
+                      commissionRate: bulkCommission,
+                    })
+                  }
+                  className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-40"
+                >
+                  Set rate
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
