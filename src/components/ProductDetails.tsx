@@ -1123,7 +1123,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
 
           <div className="p-6 lg:p-10">
             {activeTab === "description" && (
-              <div className="max-w-3xl space-y-6 min-w-0 w-full max-w-full">
+              <div className="space-y-6 min-w-0 w-full max-w-full">
                 {/* Intro + specs + rest share one Read more collapse */}
                 <div className="relative min-w-0 w-full max-w-full">
                   <div
