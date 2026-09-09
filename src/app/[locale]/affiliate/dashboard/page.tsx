@@ -106,7 +106,7 @@ export default function AffiliateDashboardOverview() {
           <p className="text-gray-400 text-xs sm:text-sm mt-1">
             {isFr
               ? `Votre taux de commission actuel est de ${affiliate.commissionRate}%.`
-              : isFr ? "Gagnez jusqu\u00e0 50% de commission sur le Bot SMZ IA (5% sur les chaussures)." : "Earn up to 50% commission on SMZ AI Bot subscriptions (5% on physical footwear)."}
+              : isFr ? "Gagnez jusqu\u00e0 50% de commission sur le Bot SMZ IA (5% sur les produits physiques)." : "Earn up to 50% commission on SMZ AI Bot subscriptions (5% on physical products)."}
           </p>
         </div>
         <Link
