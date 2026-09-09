@@ -1117,7 +1117,7 @@ html, body {
 @media (min-width: 1024px) {
   .ndz-description-content-gap,
   .product-long-desc {
-    padding-right: 340px !important;
+    padding-right: 0 !important;
     box-sizing: border-box;
   }
 }
