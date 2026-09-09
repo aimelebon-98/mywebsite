@@ -992,7 +992,7 @@ html, body {
 }
 
 /* ============================================================
-   Product Long Description â€” Editorial & Grid Safety
+   Product Long Description Ã¢â‚¬â€ Editorial & Grid Safety
    ============================================================ */
 .product-long-desc {
   color: #4b5563;
@@ -1134,6 +1134,13 @@ html, body {
 .ndz-ticket-messages {
   scroll-behavior: smooth;
 }
+
+/* Unified Product Spec Table Styling */
+
+
+
+
+
 
 /* Unified Product Spec Table Styling */
 .product-spec-table {
