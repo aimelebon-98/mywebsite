@@ -106,6 +106,7 @@ export async function ensureAffiliateTablesExist() {
       ALTER TABLE "affiliate_applications" ADD COLUMN IF NOT EXISTS "password_hash" varchar(255);
       ALTER TABLE "affiliates" ADD COLUMN IF NOT EXISTS "reset_token" varchar(255);
       ALTER TABLE "affiliates" ADD COLUMN IF NOT EXISTS "reset_token_expires_at" timestamp;
+      ALTER TABLE "affiliates" ADD COLUMN IF NOT EXISTS "parent_affiliate_id" uuid;
     `);
 
     tablesEnsured = true;

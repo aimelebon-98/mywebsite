@@ -6,11 +6,14 @@ import {
   verifyAffiliatePassword,
   createAffiliateSession,
 } from "@/lib/affiliate-auth";
+import { ensureAffiliateTablesExist } from "@/lib/ensure-affiliate-tables";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   try {
+    await ensureAffiliateTablesExist();
+
     const { email, password } = await request.json();
 
     if (!email || !password) {
@@ -87,8 +90,9 @@ export async function POST(request: NextRequest) {
     return response;
   } catch (error) {
     console.error("Affiliate login error:", error);
+    const msg = error instanceof Error ? error.message : "Internal error";
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: msg },
       { status: 500 }
     );
   }
