@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import TurnstileGate from "@/components/TurnstileGate";
+import SocialLoginButtons from "@/components/SocialLoginButtons";
 import {
   Sparkles,
   ArrowRight,
@@ -339,6 +340,8 @@ export default function AffiliateApplyPage() {
                   )}
                 </button>
               </form>
+
+              <SocialLoginButtons mode="register" role="affiliate" theme="dark" />
             </div>
           )}
         </div>

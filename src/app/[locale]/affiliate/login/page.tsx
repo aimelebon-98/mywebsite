@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import TurnstileGate from "@/components/TurnstileGate";
+import SocialLoginButtons from "@/components/SocialLoginButtons";
 import {
   Lock,
   Mail,
@@ -151,6 +152,8 @@ export default function AffiliateLoginPage() {
                 )}
               </button>
             </form>
+
+            <SocialLoginButtons mode="login" role="affiliate" theme="dark" />
 
             <div className="mt-6 pt-6 border-t border-white/10 text-center text-xs text-gray-400">
               {isFr ? "Pas encore affilie ?" : "Not an affiliate yet?"}{" "}

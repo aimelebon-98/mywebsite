@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   const locale = req.nextUrl.searchParams.get("locale") || "en";
+  const role = req.nextUrl.searchParams.get("role") || "customer";
   const appId =
     process.env.FACEBOOK_CLIENT_ID ||
     process.env.FACEBOOK_APP_ID ||
@@ -16,7 +17,7 @@ export async function GET(req: NextRequest) {
   }
 
   const redirectUri = `${req.nextUrl.origin}/api/auth/facebook/callback`;
-  const state = Buffer.from(JSON.stringify({ locale })).toString("base64url");
+  const state = Buffer.from(JSON.stringify({ locale, role })).toString("base64url");
 
   const url = new URL("https://www.facebook.com/v19.0/dialog/oauth");
   url.searchParams.set("client_id", appId);
