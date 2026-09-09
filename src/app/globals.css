@@ -815,7 +815,6 @@ html, body {
 
 
 
-@media (max-width: 640px) {
 /* Tables inside product long description (spec summary tables) */
 .product-long-desc table {
   width: 100% !important;
@@ -992,7 +991,7 @@ html, body {
 }
 
 /* ============================================================
-   Product Long Description Ã¢â‚¬â€ Editorial & Grid Safety
+   Product Long Description ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Editorial & Grid Safety
    ============================================================ */
 .product-long-desc {
   color: #4b5563;
@@ -1135,51 +1134,54 @@ html, body {
   scroll-behavior: smooth;
 }
 
-/* Unified Product Spec Table Styling */
-
-
-
-
-
 
 /* Unified Product Spec Table Styling */
-.product-spec-table {
+.product-spec-table,
+.product-long-desc table {
   width: 100% !important;
   max-width: 100% !important;
   border-collapse: collapse !important;
-  table-layout: auto !important;
-  border: 1px solid #E5E7EB;
-  border-radius: 12px;
-  overflow: hidden;
-  margin-top: 1rem;
-  margin-bottom: 1rem;
-  font-size: 14px;
+  border: 1px solid #E5E7EB !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  margin-top: 1rem !important;
+  margin-bottom: 1rem !important;
+  font-size: 14px !important;
 }
 
-.product-spec-table tr {
-  border-bottom: 1px solid #E5E7EB;
+.product-spec-table tr,
+.product-long-desc table tr {
+  border-bottom: 1px solid #E5E7EB !important;
 }
 
-.product-spec-table tr:last-child {
-  border-bottom: none;
+.product-spec-table tr:last-child,
+.product-long-desc table tr:last-child {
+  border-bottom: none !important;
 }
 
-.product-spec-table td {
+.product-spec-table td,
+.product-long-desc table td,
+.product-long-desc table th {
   padding: 12px 16px !important;
   vertical-align: top !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
 }
 
-.product-spec-table td:first-child {
+.product-spec-table td:first-child,
+.product-long-desc table td:first-child,
+.product-long-desc table th:first-child {
   color: #374151 !important;
   font-weight: 600 !important;
   white-space: nowrap !important;
   width: 1% !important;
   padding-right: 24px !important;
-  border-right: 1px solid #E5E7EB;
-  background: #FAFAFA;
+  border-right: 1px solid #E5E7EB !important;
+  background: #FAFAFA !important;
 }
 
-.product-spec-table td:last-child {
+.product-spec-table td:last-child,
+.product-long-desc table td:last-child {
   color: #111827 !important;
   font-weight: 600 !important;
   word-break: break-word !important;
