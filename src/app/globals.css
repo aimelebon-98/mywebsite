@@ -1114,12 +1114,7 @@ html, body {
 }
 
 /* Apply right margin/padding ONLY to the description text area on desktop so tab wrapper stays full-width */
-@media (min-width: 1024px) {
-  .ndz-description-content-gap,
-  .product-long-desc {
-    padding-right: 0 !important;
-    box-sizing: border-box;
-  }
+
 }
 
 /* Admin support ticket: sticky reply composer */
@@ -1186,4 +1181,12 @@ html, body {
   font-weight: 600 !important;
   word-break: break-word !important;
   overflow-wrap: anywhere !important;
+}
+/* Desktop right-gap constraint for product description text (stops text before right sticky card) */
+@media (min-width: 1024px) {
+  .ndz-description-content-gap,
+  .product-long-desc {
+    padding-right: 340px !important;
+    box-sizing: border-box !important;
+  }
 }
