@@ -89,16 +89,20 @@ export default function VendorsManager() {
         ? "approve/reactivate"
         : action === "reject"
         ? "reject"
+        : action === "delete"
+        ? "PERMANENTLY DELETE"
         : action === "update_commission"
         ? "update commission for"
         : action;
-    if (
-      !confirm(
-        `Are you sure you want to ${label} ${selectedIds.length} vendor${
-          selectedIds.length === 1 ? "" : "s"
-        }?`
-      )
-    ) {
+    const confirmMsg =
+      action === "delete"
+        ? `PERMANENTLY DELETE ${selectedIds.length} vendor${
+            selectedIds.length === 1 ? "" : "s"
+          }? This cannot be undone. Their products will be hidden and account data removed.`
+        : `Are you sure you want to ${label} ${selectedIds.length} vendor${
+            selectedIds.length === 1 ? "" : "s"
+          }?`;
+    if (!confirm(confirmMsg)) {
       return;
     }
     setBulkProcessing(true);
@@ -208,6 +212,14 @@ export default function VendorsManager() {
             className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-100 text-red-800 hover:bg-red-200 disabled:opacity-40"
           >
             Reject
+          </button>
+          <button
+            type="button"
+            disabled={bulkProcessing || selectedIds.length === 0}
+            onClick={() => bulkAction("delete")}
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-600 text-white hover:bg-red-700 disabled:opacity-40"
+          >
+            Delete
           </button>
           <div className="flex items-center gap-1.5">
             <input
@@ -384,8 +396,23 @@ export default function VendorsManager() {
                     <Play className="w-4 h-4" />Reactivate vendor + restore products
                   </button>
                 ) : (
-                  <div className="text-xs text-gray-500 italic">No actions for {selected.status} vendor</div>
+                  <div className="text-xs text-gray-500 italic mb-2">Status: {selected.status}</div>
                 )}
+                <button
+                  onClick={() => {
+                    if (
+                      confirm(
+                        "PERMANENTLY DELETE this vendor? This cannot be undone. Products will be hidden and account data removed."
+                      )
+                    ) {
+                      doAction("delete").then(() => setSelected(null));
+                    }
+                  }}
+                  disabled={processing}
+                  className="w-full mt-2 flex items-center justify-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg text-sm disabled:opacity-50"
+                >
+                  Delete vendor permanently
+                </button>
               </div>
             </div>
           </div>

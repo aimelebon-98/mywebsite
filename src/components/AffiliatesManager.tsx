@@ -115,13 +115,15 @@ export default function AffiliatesManager() {
 
   const bulkUpdate = (payload: Record<string, unknown>, confirmLabel: string) => {
     if (selectedIds.length === 0) return;
-    if (
-      !confirm(
-        `${confirmLabel} ${selectedIds.length} affiliate${
+    const isDelete = payload.action === "delete";
+    const confirmMsg = isDelete
+      ? `PERMANENTLY DELETE ${selectedIds.length} affiliate${
           selectedIds.length === 1 ? "" : "s"
-        }?`
-      )
-    ) {
+        }? This cannot be undone.`
+      : `${confirmLabel} ${selectedIds.length} affiliate${
+          selectedIds.length === 1 ? "" : "s"
+        }?`;
+    if (!confirm(confirmMsg)) {
       return;
     }
     setBulkMsg(null);
@@ -247,6 +249,19 @@ export default function AffiliatesManager() {
             className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-100 text-red-800 hover:bg-red-200 disabled:opacity-40"
           >
             Reject
+          </button>
+          <button
+            type="button"
+            disabled={isPending || selectedIds.length === 0}
+            onClick={() =>
+              bulkUpdate(
+                { action: "delete" },
+                "PERMANENTLY DELETE"
+              )
+            }
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-600 text-white hover:bg-red-700 disabled:opacity-40"
+          >
+            Delete
           </button>
           <div className="flex items-center gap-1.5">
             <input

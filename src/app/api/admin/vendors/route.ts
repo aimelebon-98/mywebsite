@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { vendors, vendorProducts, products } from "@/db/schema";
+import { vendors, vendorProducts, products, vendorSessions, vendorOrders, vendorPayouts, vendorApplications, conciergeRequests } from "@/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { requireAdmin } from "@/lib/admin-auth";
 
@@ -100,6 +100,7 @@ export async function PUT(req: Request) {
         "update_commission",
         "update_note",
         "settle_concierge_debt",
+        "delete",
       ].includes(action)
     ) {
       return NextResponse.json({ error: "Invalid action" }, { status: 400 });
@@ -141,6 +142,58 @@ export async function PUT(req: Request) {
         update.status = "rejected";
         if (typeof adminNote === "string") update.adminNote = adminNote.slice(0, 1000);
         await hideVendorProducts(id);
+            } else if (action === "delete") {
+        // Soft-hide products, then remove vendor links and the vendor row
+        const myVps = await db
+          .select()
+          .from(vendorProducts)
+          .where(eq(vendorProducts.vendorId, id));
+        const pids = myVps.map((v) => v.productId);
+        if (pids.length > 0) {
+          try {
+            await db
+              .update(products)
+              .set({ active: false, updatedAt: new Date() })
+              .where(inArray(products.id, pids));
+          } catch (e) {
+            console.error("Hide products on vendor delete:", e);
+          }
+        }
+        try {
+          await db.delete(vendorProducts).where(eq(vendorProducts.vendorId, id));
+        } catch (e) {
+          console.error("Delete vendorProducts:", e);
+        }
+        try {
+          await db.delete(vendorSessions).where(eq(vendorSessions.vendorId, id));
+        } catch (e) {
+          console.error("Delete vendorSessions:", e);
+        }
+        try {
+          await db.delete(vendorOrders).where(eq(vendorOrders.vendorId, id));
+        } catch (e) {
+          console.error("Delete vendorOrders:", e);
+        }
+        try {
+          await db.delete(vendorPayouts).where(eq(vendorPayouts.vendorId, id));
+        } catch (e) {
+          console.error("Delete vendorPayouts:", e);
+        }
+        try {
+          await db.delete(conciergeRequests).where(eq(conciergeRequests.vendorId, id));
+        } catch (e) {
+          console.error("Delete conciergeRequests:", e);
+        }
+        try {
+          await db
+            .delete(vendorApplications)
+            .where(eq(vendorApplications.email, vendor.email));
+        } catch (e) {
+          console.error("Delete vendorApplications:", e);
+        }
+        await db.delete(vendors).where(eq(vendors.id, id));
+        updated++;
+        continue;
       } else if (action === "update_commission") {
         const rate = parseFloat(String(commissionRate || "0"));
         if (isNaN(rate) || rate < 0 || rate > 100) {
