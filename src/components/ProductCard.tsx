@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Heart, Star, ShoppingBag, Zap, Eye, Plane } from "lucide-react";
 import type { Product } from "@/db/schema";
+import { isSubscriptionProduct } from "@/lib/subscription-pricing";
 import { useCart } from "@/lib/cart-context";
 import { useCurrency } from "@/lib/currency-context";
 import { useWishlist } from "@/lib/wishlist-context";
@@ -224,29 +225,41 @@ export default function ProductCard({ product, badge, visitorCountry }: ProductC
         </div>
 
         <div className="flex gap-1.5 mt-2.5 w-full">
-          <button
-            onClick={handleBuyNow}
-            className="flex-1 basis-0 min-w-0 flex items-center justify-center gap-1 py-2 bg-brand-600 text-white rounded-xl text-[10px] sm:text-xs font-bold hover:bg-brand-700 active:scale-95 transition whitespace-nowrap"
-          >
-            <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" /> <span className="truncate">{t("buyNow")}</span>
-          </button>
-          <button
-            onClick={handleAddToCart}
-            className={`w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl transition flex-shrink-0 ${
-              addedToCart
-                ? "bg-green-500 text-white scale-95"
-                : "bg-gray-900 text-white hover:bg-gray-800 active:scale-95"
-            }`}
-            aria-label={t("addToCart")}
-          >
-            {addedToCart ? (
-              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-            ) : (
-              <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            )}
-          </button>
+          {isSubscriptionProduct(product) ? (
+            <Link
+              href={`/${locale}/product/${locale === "fr" && product.slugFr ? product.slugFr : (product.slug || product.id)}`}
+              className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold active:scale-95 transition shadow-sm uppercase tracking-wider"
+            >
+              <Zap className="w-3.5 h-3.5 flex-shrink-0" />
+              <span>{locale === "fr" ? "S'ABONNER" : "SUBSCRIBE"}</span>
+            </Link>
+          ) : (
+            <>
+              <button
+                onClick={handleBuyNow}
+                className="flex-1 basis-0 min-w-0 flex items-center justify-center gap-1 py-2 bg-brand-600 text-white rounded-xl text-[10px] sm:text-xs font-bold hover:bg-brand-700 active:scale-95 transition whitespace-nowrap"
+              >
+                <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" /> <span className="truncate">{t("buyNow")}</span>
+              </button>
+              <button
+                onClick={handleAddToCart}
+                className={`w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl transition flex-shrink-0 ${
+                  addedToCart
+                    ? "bg-green-500 text-white scale-95"
+                    : "bg-gray-900 text-white hover:bg-gray-800 active:scale-95"
+                }`}
+                aria-label={t("addToCart")}
+              >
+                {addedToCart ? (
+                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                )}
+              </button>
+            </>
+          )}
         </div>
       </Link>
 
