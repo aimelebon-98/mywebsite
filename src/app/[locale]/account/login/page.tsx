@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import { useCustomer } from "@/lib/customer-context";
 import TurnstileGate from "@/components/TurnstileGate";
+import SocialLoginButtons from "@/components/SocialLoginButtons";
 import { Mail, Lock, LogIn, Loader2, ArrowLeft } from "lucide-react";
 
 export default function LoginPage() {
@@ -53,8 +54,6 @@ export default function LoginPage() {
     setLoading(false);
   };
 
-  // Only show loader if a logged-in customer is being redirected (very brief)
-  // Guests go straight to the Turnstile gate + login form
   if (customer) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -112,7 +111,9 @@ export default function LoginPage() {
               </button>
             </form>
 
-            <div className="mt-4 text-center space-y-2">
+            <SocialLoginButtons mode="login" />
+
+            <div className="mt-6 text-center space-y-2 border-t border-gray-100 pt-4">
               <Link href={`/${locale}/account/forgot-password`} className="text-xs text-gray-500 hover:text-[#CA3F2E] transition block">
                 {isFr ? "Mot de passe oublie ?" : "Forgot password?"}
               </Link>

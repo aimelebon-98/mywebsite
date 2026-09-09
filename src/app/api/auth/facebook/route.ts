@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
   const locale = req.nextUrl.searchParams.get("locale") || "en";
   const appId = process.env.FACEBOOK_CLIENT_ID;
   if (!appId) {
-    return NextResponse.redirect(new URL(`/${locale}/login?error=oauth_not_configured`, req.nextUrl.origin));
+    return NextResponse.redirect(new URL(`/${locale}/account/login?error=oauth_not_configured`, req.nextUrl.origin));
   }
   const redirectUri = `${req.nextUrl.origin}/api/auth/facebook/callback`;
   const state = Buffer.from(JSON.stringify({ locale })).toString("base64url");

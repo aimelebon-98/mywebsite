@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import { useCustomer } from "@/lib/customer-context";
 import TurnstileGate from "@/components/TurnstileGate";
+import SocialLoginButtons from "@/components/SocialLoginButtons";
 import { Mail, Lock, User, Phone, UserPlus, Loader2, ArrowLeft } from "lucide-react";
 import { trackCompleteRegistration as fbTrackCompleteRegistration } from "@/lib/fbpixel";
 
@@ -135,7 +136,9 @@ export default function RegisterPage() {
               </button>
             </form>
 
-            <p className="mt-4 text-center text-sm text-gray-500">
+            <SocialLoginButtons mode="register" />
+
+            <p className="mt-6 text-center text-sm text-gray-500 border-t border-gray-100 pt-4">
               {isFr ? "Deja un compte ?" : "Already have an account?"}{" "}
               <Link href={`/${locale}/account/login`} className="text-[#CA3F2E] font-semibold hover:underline">
                 {isFr ? "Se connecter" : "Log in"}

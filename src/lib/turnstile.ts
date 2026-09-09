@@ -1,4 +1,4 @@
-export async function verifyTurnstile(token: string): Promise<boolean> {
+export async function verifyTurnstile(token: string, remoteip?: string): Promise<boolean> {
   if (!token) return false;
   const secret = process.env.TURNSTILE_SECRET_KEY;
   if (!secret) {
@@ -6,10 +6,12 @@ export async function verifyTurnstile(token: string): Promise<boolean> {
     return true;
   }
   try {
+    const payload: Record<string, string> = { secret, response: token };
+    if (remoteip) payload.remoteip = remoteip;
     const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ secret, response: token }),
+      body: JSON.stringify(payload),
     });
     const data = await res.json();
     return data.success === true;
