@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { affiliates, affiliateApplications } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireAffiliate } from "@/lib/affiliate-auth";
+import crypto from "crypto";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +28,7 @@ export async function POST(req: Request) {
 
     const now = new Date();
 
+    // AFFILIATE IS INSTANTLY APPROVED UPON COMPLETING WIZARD
     const [updated] = await db
       .update(affiliates)
       .set({
@@ -37,7 +39,8 @@ export async function POST(req: Request) {
         bankName: bankName ? String(bankName).trim() : affiliate.bankName,
         bankAccount: bankAccount ? String(bankAccount).trim() : affiliate.bankAccount,
         bankAccountName: bankAccountName ? String(bankAccountName).trim() : affiliate.bankAccountName,
-        status: affiliate.status === "approved" ? "approved" : "pending",
+        status: "approved",
+        approvedAt: affiliate.approvedAt || now,
         updatedAt: now,
       })
       .where(eq(affiliates.id, affiliate.id))
@@ -53,6 +56,8 @@ export async function POST(req: Request) {
       await db
         .update(affiliateApplications)
         .set({
+          applicantName: affiliate.name,
+          email: affiliate.email,
           phone: phone ? String(phone).trim() : null,
           whatsapp: whatsapp ? String(whatsapp).trim() : null,
           country: country ? String(country).trim() : null,
@@ -60,9 +65,28 @@ export async function POST(req: Request) {
           websiteUrl: websiteUrl ? String(websiteUrl).trim() : null,
           socialMediaUrl: socialMediaUrl ? String(socialMediaUrl).trim() : null,
           marketingPlan: marketingPlan ? String(marketingPlan).trim() : null,
-          status: "pending",
+          status: "approved",
+          reviewedAt: now,
+          adminNote: "Auto-approved upon completing wizard",
         })
         .where(eq(affiliateApplications.id, existingApp.id));
+    } else {
+      await db.insert(affiliateApplications).values({
+        id: crypto.randomUUID(),
+        applicantName: affiliate.name,
+        email: affiliate.email,
+        phone: phone ? String(phone).trim() : null,
+        whatsapp: whatsapp ? String(whatsapp).trim() : null,
+        country: country ? String(country).trim() : null,
+        city: city ? String(city).trim() : null,
+        websiteUrl: websiteUrl ? String(websiteUrl).trim() : null,
+        socialMediaUrl: socialMediaUrl ? String(socialMediaUrl).trim() : null,
+        marketingPlan: marketingPlan ? String(marketingPlan).trim() : null,
+        status: "approved",
+        reviewedAt: now,
+        adminNote: "Auto-approved upon completing wizard",
+        createdAt: now,
+      });
     }
 
     try {
