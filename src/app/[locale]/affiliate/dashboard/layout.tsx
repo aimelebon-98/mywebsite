@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter, usePathname } from "next/navigation";
@@ -16,6 +16,7 @@ import {
   X,
   Globe,
   ChevronDown,
+  Users,
 } from "lucide-react";
 
 interface AffiliateData {
@@ -107,7 +108,12 @@ export default function AffiliateDashboardLayout({
       exact: true,
     },
     {
-      label: isFr ? "Commandes Liées" : "Referred Orders",
+      label: isFr ? "Mon \u00c9quipe" : "Team",
+      href: `/${locale}/affiliate/dashboard/team`,
+      icon: Users,
+    },
+    {
+      label: isFr ? "Commandes Li\u00e9es" : "Referred Orders",
       href: `/${locale}/affiliate/dashboard/orders`,
       icon: ShoppingBag,
     },
@@ -117,7 +123,7 @@ export default function AffiliateDashboardLayout({
       icon: Wallet,
     },
     {
-      label: isFr ? "Paramètres & Banque" : "Settings & Bank",
+      label: isFr ? "Param\u00e8tres" : "Settings",
       href: `/${locale}/affiliate/dashboard/settings`,
       icon: Settings,
     },
@@ -154,7 +160,7 @@ export default function AffiliateDashboardLayout({
               locale === "fr" ? "text-white font-bold bg-white/5" : "text-gray-300"
             }`}
           >
-            <span>Français</span>
+            <span>Fran\u00e7ais</span>
             <span className="font-mono text-[10px] text-gray-500">FR</span>
           </button>
         </div>
@@ -164,7 +170,6 @@ export default function AffiliateDashboardLayout({
 
   return (
     <div className="min-h-screen bg-[#0d0d0d] text-white flex flex-col md:flex-row">
-      {/* MOBILE TOPBAR */}
       <div className="md:hidden flex items-center justify-between p-4 border-b border-white/10 bg-[#121212] gap-3">
         <div className="flex items-center gap-2 min-w-0">
           <div className="w-8 h-8 rounded-lg bg-[#CA3F2E] flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
@@ -183,7 +188,6 @@ export default function AffiliateDashboardLayout({
         </div>
       </div>
 
-      {/* SIDEBAR */}
       <aside
         className={`fixed md:sticky top-0 inset-x-0 bottom-0 md:inset-x-auto z-40 w-full md:w-64 bg-[#121212] border-r border-white/10 flex flex-col transition-transform ${
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
@@ -195,7 +199,7 @@ export default function AffiliateDashboardLayout({
             className="flex items-center gap-2 text-white font-bold text-lg"
           >
             <div className="w-7 h-7 rounded-lg bg-[#CA3F2E] flex items-center justify-center text-xs">
-              ✓
+              NDZ
             </div>
             <span>New Deal Zone</span>
           </Link>
@@ -248,14 +252,12 @@ export default function AffiliateDashboardLayout({
             className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-xs text-red-400 transition-colors"
           >
             <LogOut className="w-3.5 h-3.5" />
-            <span>{isFr ? "Déconnexion" : "Log out"}</span>
+            <span>{isFr ? "D\u00e9connexion" : "Log out"}</span>
           </button>
         </div>
       </aside>
 
-      {/* MAIN CONTENT AREA */}
       <div className="flex-1 flex flex-col min-w-0 max-w-7xl mx-auto w-full">
-        {/* Desktop top bar with language switcher top-right */}
         <div className="hidden md:flex items-center justify-end px-6 lg:px-8 pt-4 pb-1">
           {LangSwitcher}
         </div>
