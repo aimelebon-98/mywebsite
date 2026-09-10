@@ -1,281 +1,288 @@
 "use client";
 
-import PendingApprovalBanner from "@/components/PendingApprovalBanner";
-import VendorOnboardingModal from "@/components/VendorOnboardingModal";
-
-import { useEffect, useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
-import Link from "next/link";
-import {
-  Loader2, Package, ShoppingBag, DollarSign, TrendingUp, Plus, ExternalLink,
-  Clock, CheckCircle, XCircle, AlertCircle
-} from "lucide-react";
+import dynamic from "next/dynamic";
+import VendorSetupGuard from "@/components/VendorSetupGuard";
 
-const BRAND_RED = "#CA3F2E";
+const VendorOnboardingModal = dynamic(
+  () => import("@/components/VendorOnboardingModal"),
+  { ssr: false }
+);
 
-interface VendorInfo {
-  status?: string;
+interface VendorData {
+  id: string;
+  email: string;
+  contactName: string;
   storeName: string;
   storeSlug: string;
+  status: string;
   totalSales: number;
-  totalEarnings: string;
-  pendingPayout: string;
-  fulfillmentRate: string;
-  commissionRate: string;
+  totalEarnings: number;
+  pendingPayout: number;
+  fulfillmentRate: number;
+  conciergeDebt: number;
+  preferredCurrency: string;
+  mustChangePassword: boolean;
 }
 
-interface Stats {
-  productCounts: {
-    total: number;
-    pending: number;
-    approved: number;
-    rejected: number;
-    live: number;
-  };
-  recentOrders: Array<{
-    id: string;
-    subtotal: string;
-    commissionAmount: string;
-    vendorEarning: string;
-    currency: string;
-    status: string;
-    createdAt: string;
-  }>;
+interface StatsData {
+  productCount: number;
+  orderCount: number;
+  totalRevenue: number;
+  pendingOrders: number;
+  totalSales: number;
+  totalEarnings: number;
+  pendingPayout: number;
+  fulfillmentRate: number;
 }
 
 export default function VendorDashboardPage() {
   const params = useParams();
   const locale = (params?.locale as string) || "en";
-  const [vendor, setVendor] = useState<VendorInfo | null>(null);
-  const [stats, setStats] = useState<Stats | null>(null);
+  const isFr = locale === "fr";
+
+  const [mounted, setMounted] = useState(false);
+  const [vendor, setVendor] = useState<VendorData | null>(null);
+  const [stats, setStats] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [showWizard, setShowWizard] = useState(false);
+  const [wizardDismissed, setWizardDismissed] = useState(false);
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const meRes = await fetch("/api/vendor/me");
-        if (meRes.ok) {
-          const meData = await meRes.json();
-          if (meData?.vendor) {
-            setVendor(meData.vendor);
-            if (meData.vendor.status === "incomplete") {
-              setShowWizard(true);
-            }
-          }
-        }
-      } catch (err) {
-        console.error("Failed to fetch vendor info:", err);
-      } finally {
-        setLoading(false);
-      }
+  useEffect(() => { setMounted(true); }, []);
 
-      try {
-        const statsRes = await fetch("/api/vendor/stats");
-        if (statsRes.ok) {
-          const statsData = await statsRes.json();
-          setStats(statsData);
-        }
-      } catch (err) {
-        console.error("Failed to fetch vendor stats:", err);
+  const fetchVendor = useCallback(async () => {
+    try {
+      const res = await fetch("/api/vendor/me");
+      if (!res.ok) throw new Error("Auth failed");
+      const data = await res.json();
+      setVendor(data.vendor);
+      if (data.vendor?.status === "incomplete") {
+        setShowWizard(true);
       }
+    } catch {
+      setError(isFr ? "Impossible de charger le profil" : "Failed to load profile");
     }
-    load();
+  }, [isFr]);
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await fetch("/api/vendor/stats");
+      if (res.ok) {
+        const data = await res.json();
+        setStats(data.stats);
+      }
+    } catch {
+      setStats({
+        productCount: 0, orderCount: 0, totalRevenue: 0,
+        pendingOrders: 0, totalSales: 0, totalEarnings: 0,
+        pendingPayout: 0, fulfillmentRate: 100,
+      });
+    }
   }, []);
 
-  if (loading || !vendor) {
-    return <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin" style={{ color: BRAND_RED }} /></div>;
+  useEffect(() => {
+    if (!mounted) return;
+    async function init() {
+      await fetchVendor();
+      await fetchStats();
+      setLoading(false);
+    }
+    init();
+  }, [mounted, fetchVendor, fetchStats]);
+
+  if (!mounted) return null;
+
+  if (loading) {
+    return (
+    <VendorSetupGuard />
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-600 border-t-[#CA3F2E]" />
+      </div>
+    );
   }
 
-  const totalEarn = parseFloat(vendor.totalEarnings || "0");
-  const pendingPay = parseFloat(vendor.pendingPayout || "0");
-  const fulfill = parseFloat(vendor.fulfillmentRate || "100");
-  const commission = parseFloat(vendor.commissionRate || "10");
+  if (error && !vendor) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-900/20 border border-red-800 rounded-xl p-4 text-red-300">
+          {error}
+        </div>
+      </div>
+    );
+  }
+
+  const st = stats || {
+    productCount: 0, orderCount: 0, totalRevenue: 0,
+    pendingOrders: 0, totalSales: 0, totalEarnings: 0,
+    pendingPayout: 0, fulfillmentRate: 100,
+  };
 
   return (
-    <div className="max-w-6xl">
-      <div className="mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">Welcome back!</h1>
-        <p className="text-gray-500 text-sm">Here is what is happening with your store</p>
+    <div className="p-4 md:p-6 space-y-6 min-w-0">
+      {/* Status Banners */}
+      {vendor?.status === "pending" && (
+        <div className="flex items-center gap-3 p-4 rounded-xl bg-amber-900/20 border border-amber-700/50">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <div>
+            <p className="text-amber-300 font-semibold text-sm">
+              {isFr ? "V\u00e9rification en attente" : "Pending Admin Verification"}
+            </p>
+            <p className="text-amber-400/70 text-xs">
+              {isFr ? "Votre demande a \u00e9t\u00e9 soumise. Nous vous notifierons par email." : "Your application has been submitted. We will notify you by email."}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {vendor?.status === "incomplete" && !showWizard && !wizardDismissed && (
+        <div className="flex items-center justify-between p-4 rounded-xl bg-blue-900/20 border border-blue-700/50">
+          <div>
+            <p className="text-blue-300 font-semibold text-sm">
+              {isFr ? "Profil incomplet" : "Incomplete Profile"}
+            </p>
+            <p className="text-blue-400/70 text-xs">
+              {isFr ? "Compl\u00e9tez votre profil pour soumettre votre candidature." : "Complete your profile to submit your application."}
+            </p>
+          </div>
+          <button
+            onClick={() => setShowWizard(true)}
+            className="px-4 py-2 rounded-lg text-sm font-semibold text-white"
+            style={{ backgroundColor: "#CA3F2E" }}
+          >
+            {isFr ? "Compl\u00e9ter" : "Complete Profile"}
+          </button>
+        </div>
+      )}
+
+      {vendor?.status === "rejected" && (
+        <div className="p-4 rounded-xl bg-red-900/20 border border-red-700/50">
+          <p className="text-red-300 font-semibold text-sm">
+            {isFr ? "Candidature refus\u00e9e" : "Application Rejected"}
+          </p>
+          <p className="text-red-400/70 text-xs">
+            {isFr ? "Contactez le support pour plus d'informations." : "Contact support for more information."}
+          </p>
+        </div>
+      )}
+
+      {vendor?.mustChangePassword && (
+        <div className="p-4 rounded-xl bg-orange-900/20 border border-orange-700/50">
+          <p className="text-orange-300 text-sm">
+            {isFr ? "Veuillez changer votre mot de passe." : "Please change your password."}{" "}
+            <a href={"/" + locale + "/vendor/change-password"} className="underline font-semibold">
+              {isFr ? "Changer maintenant" : "Change now"}
+            </a>
+          </p>
+        </div>
+      )}
+
+      {/* Welcome Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-white">
+          {isFr ? "Bonjour" : "Welcome"},{" "}
+          <span style={{ color: "#CA3F2E" }}>
+            {vendor?.storeName || vendor?.contactName || "Vendor"}
+          </span>
+        </h1>
+        <p className="text-gray-400 text-sm mt-1">
+          {isFr ? "Voici un aper\u00e7u de votre boutique." : "Here is an overview of your store."}
+        </p>
       </div>
 
-            {showWizard && (
-        <VendorOnboardingModal 
-          vendor={vendor} 
-          onClose={() => setShowWizard(false)} 
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          {
+            label: isFr ? "Produits" : "Products",
+            value: st.productCount,
+            icon: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4",
+          },
+          {
+            label: isFr ? "Commandes" : "Orders",
+            value: st.orderCount,
+            icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2",
+          },
+          {
+            label: isFr ? "Revenus" : "Revenue",
+            value: "$" + st.totalRevenue.toFixed(2),
+            icon: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
+          },
+          {
+            label: isFr ? "En attente" : "Pending",
+            value: st.pendingOrders,
+            icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
+          },
+        ].map((card, i) => (
+          <div key={i} className="bg-gray-900 rounded-xl border border-gray-800 p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-gray-500 uppercase tracking-wider">{card.label}</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d={card.icon} />
+              </svg>
+            </div>
+            <p className="text-2xl font-bold text-white">{card.value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Quick Actions */}
+      <div className="bg-gray-900 rounded-xl border border-gray-800 p-5">
+        <h2 className="text-lg font-semibold text-white mb-4">
+          {isFr ? "Actions rapides" : "Quick Actions"}
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[
+            { href: "/" + locale + "/vendor/products/add", label: isFr ? "Ajouter un produit" : "Add Product", color: "#CA3F2E" },
+            { href: "/" + locale + "/vendor/products", label: isFr ? "Mes produits" : "My Products", color: "#3B82F6" },
+            { href: "/" + locale + "/vendor/orders", label: isFr ? "Commandes" : "Orders", color: "#10B981" },
+            { href: "/" + locale + "/vendor/earnings", label: isFr ? "Gains" : "Earnings", color: "#F59E0B" },
+          ].map((action, i) => (
+            <a
+              key={i}
+              href={action.href}
+              className="flex items-center justify-center py-3 px-4 rounded-xl text-sm font-semibold text-white transition hover:opacity-90"
+              style={{ backgroundColor: action.color }}
+            >
+              {action.label}
+            </a>
+          ))}
+        </div>
+      </div>
+
+      {/* Fulfillment */}
+      <div className="bg-gray-900 rounded-xl border border-gray-800 p-5">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-medium text-gray-300">
+            {isFr ? "Taux de traitement" : "Fulfillment Rate"}
+          </h3>
+          <span className="text-sm font-bold text-white">{st.fulfillmentRate}%</span>
+        </div>
+        <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
+          <div
+            className="h-full rounded-full transition-all"
+            style={{ width: st.fulfillmentRate + "%", backgroundColor: "#CA3F2E" }}
+          />
+        </div>
+      </div>
+
+      {/* Onboarding Wizard Modal */}
+      {showWizard && (
+        <VendorOnboardingModal
+          locale={locale}
           onComplete={() => {
             setShowWizard(false);
-            setVendor(v => v ? { ...v, status: "pending" } : null);
-          }} 
+            fetchVendor();
+          }}
+          onSkip={() => {
+            setShowWizard(false);
+            setWizardDismissed(true);
+          }}
         />
       )}
-      
-      {vendor.status === "incomplete" && (
-        <div className="mb-6 rounded-xl border border-blue-300 bg-blue-50 px-4 py-3 flex justify-between items-center">
-          <div>
-            <p className="text-sm font-bold text-blue-900">Application not submitted</p>
-            <p className="text-xs text-blue-800">Please complete your store profile to submit your application for review.</p>
-          </div>
-          <button onClick={() => setShowWizard(true)} className="bg-blue-600 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-blue-700">Complete Profile</button>
-        </div>
-      )}
-
-      {vendor.status === "pending" && (
-        <PendingApprovalBanner isFr={locale === "fr"} type="vendor" />
-      )}
-
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-8">
-        <StatCard
-          label="Total Sales"
-          value={vendor.totalSales.toString()}
-          hint="Items sold"
-          icon={ShoppingBag}
-          color="#3B82F6"
-        />
-        <StatCard
-          label="Total Earnings"
-          value={"$" + totalEarn.toFixed(2)}
-          hint="All time"
-          icon={DollarSign}
-          color={BRAND_RED}
-        />
-        <StatCard
-          label="Pending Payout"
-          value={"$" + pendingPay.toFixed(2)}
-          hint="Available to request"
-          icon={Clock}
-          color="#F59E0B"
-        />
-        <StatCard
-          label="Fulfillment"
-          value={fulfill.toFixed(0) + "%"}
-          hint="Order success rate"
-          icon={TrendingUp}
-          color="#10B981"
-        />
-      </div>
-
-      {/* Quick actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-8">
-        <Link href={`/${locale}/vendor/products/add`} className="bg-white rounded-2xl p-5 border border-gray-100 hover:border-gray-300 hover:shadow-md transition-all group">
-          <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-3" style={{ backgroundColor: BRAND_RED }}>
-            <Plus className="w-5 h-5 text-white" />
-          </div>
-          <div className="font-bold text-gray-900">Add product</div>
-          <div className="text-xs text-gray-500 mt-1">Submit new items for approval</div>
-        </Link>
-        <Link href={`/${locale}/vendor/products`} className="bg-white rounded-2xl p-5 border border-gray-100 hover:border-gray-300 hover:shadow-md transition-all">
-          <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-3 bg-blue-100">
-            <Package className="w-5 h-5 text-blue-600" />
-          </div>
-          <div className="font-bold text-gray-900">Manage products</div>
-          <div className="text-xs text-gray-500 mt-1">
-            {stats?.productCounts.live || 0} live &middot; {stats?.productCounts.pending || 0} pending
-          </div>
-        </Link>
-        <a href={`/${locale}/store/${vendor.storeSlug}`} target="_blank" rel="noopener noreferrer" className="bg-white rounded-2xl p-5 border border-gray-100 hover:border-gray-300 hover:shadow-md transition-all">
-          <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-3 bg-green-100">
-            <ExternalLink className="w-5 h-5 text-green-600" />
-          </div>
-          <div className="font-bold text-gray-900">View my store</div>
-          <div className="text-xs text-gray-500 mt-1">See your public storefront</div>
-        </a>
-      </div>
-
-      {/* Product status breakdown */}
-      {stats && stats.productCounts.total > 0 && (
-        <div className="bg-white rounded-2xl p-5 border border-gray-100 mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-900">Products status</h2>
-            <Link href={`/${locale}/vendor/products`} className="text-xs font-semibold hover:underline" style={{ color: BRAND_RED }}>View all</Link>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <StatusPill label="Live" count={stats.productCounts.approved} icon={CheckCircle} color="#10B981" bg="#D1FAE5" />
-            <StatusPill label="Pending" count={stats.productCounts.pending} icon={AlertCircle} color="#F59E0B" bg="#FEF3C7" />
-            <StatusPill label="Rejected" count={stats.productCounts.rejected} icon={XCircle} color="#EF4444" bg="#FEE2E2" />
-            <StatusPill label="Total" count={stats.productCounts.total} icon={Package} color="#6B7280" bg="#F3F4F6" />
-          </div>
-        </div>
-      )}
-
-      {/* Recent orders */}
-      <div className="bg-white rounded-2xl p-5 border border-gray-100">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-gray-900">Recent orders</h2>
-          <Link href={`/${locale}/vendor/orders`} className="text-xs font-semibold hover:underline" style={{ color: BRAND_RED }}>View all</Link>
-        </div>
-
-        {!stats?.recentOrders.length ? (
-          <div className="text-center py-10 text-gray-500 text-sm">
-            <ShoppingBag className="w-10 h-10 mx-auto mb-2 text-gray-300" />
-            No orders yet. When customers buy your products, they will appear here.
-          </div>
-        ) : (
-          <div className="overflow-x-auto -mx-5">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-xs font-bold text-gray-500 uppercase tracking-wide border-b border-gray-100">
-                  <th className="px-5 py-3">Order</th>
-                  <th className="px-5 py-3">Date</th>
-                  <th className="px-5 py-3 text-right">Subtotal</th>
-                  <th className="px-5 py-3 text-right">Commission ({commission}%)</th>
-                  <th className="px-5 py-3 text-right">Your earning</th>
-                  <th className="px-5 py-3">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stats.recentOrders.map(o => (
-                  <tr key={o.id} className="border-b border-gray-50 last:border-0">
-                    <td className="px-5 py-3 font-mono text-xs text-gray-600">{o.id.slice(0, 8)}</td>
-                    <td className="px-5 py-3 text-gray-600 text-xs">{new Date(o.createdAt).toLocaleDateString()}</td>
-                    <td className="px-5 py-3 text-right font-semibold">${parseFloat(o.subtotal).toFixed(2)}</td>
-                    <td className="px-5 py-3 text-right text-gray-500">${parseFloat(o.commissionAmount).toFixed(2)}</td>
-                    <td className="px-5 py-3 text-right font-bold" style={{ color: BRAND_RED }}>${parseFloat(o.vendorEarning).toFixed(2)}</td>
-                    <td className="px-5 py-3"><OrderStatusBadge status={o.status} /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
     </div>
   );
-}
-
-function StatCard({ label, value, hint, icon: Icon, color }: { label: string; value: string; hint: string; icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>; color: string }) {
-  return (
-    <div className="bg-white rounded-2xl p-4 md:p-5 border border-gray-100">
-      <div className="flex items-center justify-between mb-2">
-        <div className="text-xs font-bold text-gray-500 uppercase tracking-wide">{label}</div>
-        <Icon className="w-4 h-4" style={{ color }} />
-      </div>
-      <div className="text-2xl md:text-3xl font-black text-gray-900 truncate">{value}</div>
-      <div className="text-xs text-gray-400 mt-1">{hint}</div>
-    </div>
-  );
-}
-
-function StatusPill({ label, count, icon: Icon, color, bg }: { label: string; count: number; icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>; color: string; bg: string }) {
-  return (
-    <div className="flex items-center gap-3 p-3 rounded-xl" style={{ backgroundColor: bg }}>
-      <Icon className="w-5 h-5 flex-shrink-0" style={{ color }} />
-      <div>
-        <div className="text-lg font-black" style={{ color }}>{count}</div>
-        <div className="text-xs font-semibold" style={{ color }}>{label}</div>
-      </div>
-    </div>
-  );
-}
-
-function OrderStatusBadge({ status }: { status: string }) {
-  const colors: Record<string, string> = {
-    pending: "bg-yellow-100 text-yellow-800",
-    processing: "bg-blue-100 text-blue-800",
-    shipped: "bg-purple-100 text-purple-800",
-    delivered: "bg-green-100 text-green-800",
-    cancelled: "bg-red-100 text-red-800",
-  };
-  return <span className={`text-xs font-semibold px-2 py-1 rounded-full ${colors[status] || "bg-gray-100 text-gray-800"}`}>{status}</span>;
 }
