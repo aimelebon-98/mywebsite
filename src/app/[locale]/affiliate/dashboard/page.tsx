@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
@@ -16,6 +16,9 @@ import {
   ExternalLink,
   Wallet,
   Loader2,
+  ShieldCheck,
+  ShieldAlert,
+  Calendar,
 } from "lucide-react";
 
 const AffiliateOnboardingModal = dynamic(
@@ -37,6 +40,8 @@ interface AffiliateData {
   status?: string;
   bankAccount?: string | null;
   bankName?: string | null;
+  isOverrideEligible?: boolean;
+  subscriptionExpiresAt?: string | null;
 }
 
 interface OrderItem {
@@ -71,7 +76,6 @@ function AffiliateDashboardInner() {
       const d = await res.json();
       if (d?.affiliate) {
         setAffiliate(d.affiliate);
-        // Wizard ONLY triggers if status is strictly "incomplete"
         if (d.affiliate.status === "incomplete") {
           setShowWizard(true);
         } else {
@@ -107,7 +111,6 @@ function AffiliateDashboardInner() {
     fetchAffiliate();
   };
 
-  // LOADING GATE — prevents flash
   if (loading || !affiliate) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
@@ -119,7 +122,6 @@ function AffiliateDashboardInner() {
     );
   }
 
-  // WIZARD OVERLAY ONLY WHEN UNCOMPLETED
   if (showWizard || affiliate.status === "incomplete") {
     return (
       <AffiliateOnboardingModal
@@ -141,6 +143,13 @@ function AffiliateDashboardInner() {
 
   const isPending = affiliate.status === "pending";
   const defaultRefUrl = `https://www.newdealzone.com/${locale}?ref=${affiliate.code}`;
+  const isEligible = Boolean(affiliate.isOverrideEligible);
+  const expiresDateStr = affiliate.subscriptionExpiresAt
+    ? new Date(affiliate.subscriptionExpiresAt).toLocaleDateString(
+        isFr ? "fr-FR" : "en-US",
+        { year: "numeric", month: "short", day: "numeric" }
+      )
+    : null;
 
   const copyToClipboard = (text: string, isDeep = false) => {
     navigator.clipboard.writeText(text);
@@ -178,7 +187,70 @@ function AffiliateDashboardInner() {
     <div className="space-y-8 min-w-0">
       {isPending && <PendingApprovalBanner isFr={isFr} type="affiliate" />}
 
-      {/* MISSING WALLET NOTICE */}
+      {/* OVERRIDE ELIGIBILITY — ALWAYS VISIBLE ON OVERVIEW */}
+      <div
+        className={`p-5 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
+          isEligible
+            ? "bg-emerald-950/40 border-emerald-500/30 text-emerald-200"
+            : "bg-amber-950/40 border-amber-500/30 text-amber-200"
+        }`}
+      >
+        <div className="flex items-start gap-3">
+          {isEligible ? (
+            <ShieldCheck className="w-6 h-6 text-emerald-400 flex-shrink-0 mt-0.5" />
+          ) : (
+            <ShieldAlert className="w-6 h-6 text-amber-400 flex-shrink-0 mt-0.5" />
+          )}
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="font-bold text-sm text-white">
+                {isEligible
+                  ? isFr
+                    ? "Overrides L2 (10%) & L3 (5%) Actifs"
+                    : "Level 2 (10%) & Level 3 (5%) Overrides Active"
+                  : isFr
+                  ? "Overrides L2 (10%) & L3 (5%) Verrouill\u00e9s"
+                  : "Level 2 (10%) & Level 3 (5%) Overrides Locked"}
+              </h3>
+              {isEligible ? (
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold uppercase border border-emerald-500/30">
+                  {isFr ? "\u00c9ligible" : "Eligible"}
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold uppercase border border-amber-500/30">
+                  {isFr ? "Non \u00c9ligible" : "Ineligible"}
+                </span>
+              )}
+            </div>
+            <p className="text-xs opacity-85 mt-1 leading-relaxed max-w-2xl">
+              {isEligible
+                ? isFr
+                  ? "Votre abonnement SMZ Bot est actif. Vous gagnez les overrides sur les ventes logicielles de votre \u00e9quipe L1 et L2."
+                  : "Your SMZ Bot subscription is active. You earn overrides on software sales from your L1 and L2 team."
+                : isFr
+                ? "Activez SMZ Bot Pro pour d\u00e9bloquer 10% (L1 team) + 5% (L2 team) d'overrides sur les ventes logicielles."
+                : "Activate SMZ Bot Pro to unlock 10% (L1 team) + 5% (L2 team) overrides on software sales."}
+            </p>
+            {expiresDateStr && (
+              <p className="text-[11px] font-mono mt-2 text-emerald-300 flex items-center gap-1.5 font-semibold">
+                <Calendar className="w-3.5 h-3.5" />
+                {isFr ? "Expiration :" : "Expires:"} {expiresDateStr}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {!isEligible && (
+          <Link
+            href={`/${locale}/product/smz-ai-trading-bot-pro`}
+            className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs shadow-md transition-all flex items-center gap-1.5 flex-shrink-0"
+          >
+            {isFr ? "Activer SMZ Bot Pro" : "Activate SMZ Bot Pro"}
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        )}
+      </div>
+
       {!hasWallet && (
         <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2 text-amber-300">
@@ -205,8 +277,8 @@ function AffiliateDashboardInner() {
           </h1>
           <p className="text-gray-400 text-xs sm:text-sm mt-1">
             {isFr
-              ? `Votre taux de commission actuel est de ${affiliate.commissionRate}%.`
-              : "Earn up to 50% commission on SMZ AI Bot subscriptions (5% on physical products)."}
+              ? "Gagnez jusqu'\u00e0 50% sur SMZ Bot (5% sur produits physiques) + overrides \u00e9quipe."
+              : "Earn up to 50% on SMZ Bot (5% on physical products) + team overrides."}
           </p>
         </div>
         <Link

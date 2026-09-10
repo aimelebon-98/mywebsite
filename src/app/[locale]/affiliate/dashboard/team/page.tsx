@@ -38,6 +38,13 @@ interface NetworkData {
   success: boolean;
   team: TeamMember[];
   teamSize: number;
+  hierarchy?: {
+    l1Count: number;
+    l2Count: number;
+    l3Count: number;
+    teamClicks: number;
+    teamOrders: number;
+  };
   traffic: {
     total: number;
     last7Days: number;
@@ -107,9 +114,11 @@ export default function AffiliateTeamPage() {
   };
 
   const team = data.team || [];
-  const totalTeamClicks = team.reduce((s, m) => s + (m.totalClicks || 0), 0);
-  const totalTeamOrders = team.reduce((s, m) => s + (m.totalOrders || 0), 0);
-  const totalDownlines = team.reduce((s, m) => s + (m.downlineCount || 0), 0);
+  const l1Count = data.hierarchy?.l1Count ?? data.teamSize ?? team.length;
+  const l2Count = data.hierarchy?.l2Count ?? team.reduce((s, m) => s + (m.downlineCount || 0), 0);
+  const l3Count = data.hierarchy?.l3Count ?? 0;
+  const totalTeamClicks = data.hierarchy?.teamClicks ?? team.reduce((s, m) => s + (m.totalClicks || 0), 0);
+  const totalTeamOrders = data.hierarchy?.teamOrders ?? team.reduce((s, m) => s + (m.totalOrders || 0), 0);
 
   const isEligible = data.affiliate?.isOverrideEligible;
   const expiresDateStr = data.affiliate?.subscriptionExpiresAt
@@ -150,7 +159,7 @@ export default function AffiliateTeamPage() {
         </button>
       </div>
 
-      {/* OVERRIDE ELIGIBILITY & EXPIRATION STATUS BANNER */}
+      {/* OVERRIDE ELIGIBILITY BANNER */}
       <div
         className={`p-5 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
           isEligible
@@ -169,10 +178,10 @@ export default function AffiliateTeamPage() {
               <h3 className="font-bold text-sm text-white">
                 {isEligible
                   ? isFr
-                    ? "Commissions L2 (10%) & L3 (5%) Actives"
+                    ? "Overrides L2 (10%) & L3 (5%) Actifs"
                     : "Level 2 (10%) & Level 3 (5%) Overrides Active"
                   : isFr
-                  ? "Commissions L2 & L3 Verrouill\u00e9es"
+                  ? "Overrides L2 (10%) & L3 (5%) Verrouill\u00e9s"
                   : "Level 2 (10%) & Level 3 (5%) Overrides Locked"}
               </h3>
               {isEligible ? (
@@ -188,16 +197,16 @@ export default function AffiliateTeamPage() {
             <p className="text-xs opacity-85 mt-1 leading-relaxed max-w-2xl">
               {isEligible
                 ? isFr
-                  ? "Votre abonnement SMZ Bot est actif. Vous recevez toutes les commissions d'overrides sur les ventes de votre \u00e9quipe."
-                  : "Your SMZ Bot subscription is active. You receive all multi-level override commissions from team software sales."
+                  ? "Votre abonnement SMZ Bot est actif. Vous recevez les overrides sur les ventes logicielles de votre \u00e9quipe."
+                  : "Your SMZ Bot subscription is active. You receive multi-level overrides on team software sales."
                 : isFr
-                ? "Un abonnement actif au SMZ Bot Pro est requis pour d\u00e9bloquer les overrides L2 (10%) et L3 (5%) g\u00e9n\u00e9r\u00e9s par votre \u00e9quipe."
+                ? "Un abonnement actif au SMZ Bot Pro est requis pour d\u00e9bloquer les overrides L2 (10%) et L3 (5%)."
                 : "An active SMZ Bot Pro subscription is required to unlock Level 2 (10%) and Level 3 (5%) team overrides."}
             </p>
             {expiresDateStr && (
               <p className="text-[11px] font-mono mt-2 text-emerald-300 flex items-center gap-1.5 font-semibold">
                 <Calendar className="w-3.5 h-3.5" />
-                {isFr ? "Expiration de l'abonnement :" : "Subscription Expires:"} {expiresDateStr}
+                {isFr ? "Expiration :" : "Expires:"} {expiresDateStr}
               </p>
             )}
           </div>
@@ -214,46 +223,49 @@ export default function AffiliateTeamPage() {
         )}
       </div>
 
-      {/* KPI cards */}
+      {/* KPI cards - CORRECT HIERARCHY */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/10">
           <p className="text-xs uppercase tracking-wider text-gray-400 font-semibold flex items-center gap-1.5">
             <Users className="w-3.5 h-3.5 text-purple-400" />
             {isFr ? "Recrues directes" : "Direct Recruits"}
           </p>
-          <p className="text-2xl sm:text-3xl font-bold mt-2">{data.teamSize}</p>
+          <p className="text-2xl sm:text-3xl font-bold mt-2">{l1Count}</p>
           <p className="text-[11px] text-gray-500 mt-1">
-            {isFr ? "Niveau 2 (L2)" : "Level 2 (L2)"}
+            {isFr ? "Niveau 1 (L1) — vos affili\u00e9s" : "Level 1 (L1) — your affiliates"}
           </p>
         </div>
         <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/10">
           <p className="text-xs uppercase tracking-wider text-gray-400 font-semibold flex items-center gap-1.5">
             <Users className="w-3.5 h-3.5 text-sky-400" />
-            {isFr ? "Leur \u00e9quipe (L3)" : "Their team (L3)"}
+            {isFr ? "Leur \u00e9quipe (L2)" : "Their Team (L2)"}
           </p>
-          <p className="text-2xl sm:text-3xl font-bold mt-2">{totalDownlines}</p>
+          <p className="text-2xl sm:text-3xl font-bold mt-2">{l2Count}</p>
           <p className="text-[11px] text-gray-500 mt-1">
-            {isFr ? "Recrues de vos recrues" : "Recruits of your recruits"}
+            {isFr ? "Recrues de vos L1" : "Recruits of your L1"}
+          </p>
+        </div>
+        <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/10">
+          <p className="text-xs uppercase tracking-wider text-gray-400 font-semibold flex items-center gap-1.5">
+            <Users className="w-3.5 h-3.5 text-violet-400" />
+            {isFr ? "Niveau 3 (L3)" : "Level 3 (L3)"}
+          </p>
+          <p className="text-2xl sm:text-3xl font-bold mt-2">{l3Count}</p>
+          <p className="text-[11px] text-gray-500 mt-1">
+            {isFr ? "Recrues de vos L2" : "Recruits of your L2"}
           </p>
         </div>
         <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/10">
           <p className="text-xs uppercase tracking-wider text-gray-400 font-semibold flex items-center gap-1.5">
             <MousePointerClick className="w-3.5 h-3.5 text-amber-400" />
-            {isFr ? "Clics \u00e9quipe" : "Team clicks"}
+            {isFr ? "Clics / Ventes L1" : "L1 Clicks / Orders"}
           </p>
-          <p className="text-2xl sm:text-3xl font-bold mt-2">{totalTeamClicks}</p>
+          <p className="text-2xl sm:text-3xl font-bold mt-2">
+            {totalTeamClicks}
+            <span className="text-base text-gray-500 font-medium"> / {totalTeamOrders}</span>
+          </p>
           <p className="text-[11px] text-gray-500 mt-1">
-            {isFr ? "Clics g\u00e9n\u00e9r\u00e9s par L2" : "Clicks generated by L2"}
-          </p>
-        </div>
-        <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/10">
-          <p className="text-xs uppercase tracking-wider text-gray-400 font-semibold flex items-center gap-1.5">
-            <ShoppingBag className="w-3.5 h-3.5 text-emerald-400" />
-            {isFr ? "Ventes \u00e9quipe" : "Team orders"}
-          </p>
-          <p className="text-2xl sm:text-3xl font-bold mt-2">{totalTeamOrders}</p>
-          <p className="text-[11px] text-gray-500 mt-1">
-            {isFr ? "Commandes via L2" : "Orders via L2 members"}
+            {isFr ? "Activit\u00e9 de vos recrues L1" : "Activity from your L1 recruits"}
           </p>
         </div>
       </div>
@@ -267,7 +279,7 @@ export default function AffiliateTeamPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/25">
             <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">
-              Level 1 — {isFr ? "Ventes directes" : "Direct sales"}
+              {isFr ? "Ventes clients (direct)" : "Customer sales (direct)"}
             </p>
             <p className="text-2xl font-black text-white mt-1">
               ${data.commissions.level1.amount}
@@ -279,7 +291,7 @@ export default function AffiliateTeamPage() {
           </div>
           <div className="p-4 rounded-xl bg-sky-500/10 border border-sky-500/25">
             <p className="text-[10px] font-bold uppercase tracking-wider text-sky-400 flex items-center justify-between">
-              <span>Level 2 — {isFr ? "Override \u00e9quipe" : "Team override"}</span>
+              <span>{isFr ? "Override \u00e9quipe L1" : "L1 Team Override"} · 10%</span>
               <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${isEligible ? "bg-emerald-500/20 text-emerald-300" : "bg-amber-500/20 text-amber-300"}`}>
                 {isEligible ? "ACTIVE" : "LOCKED"}
               </span>
@@ -289,12 +301,12 @@ export default function AffiliateTeamPage() {
             </p>
             <p className="text-xs text-sky-300/80 mt-1">
               {data.commissions.level2.count}{" "}
-              {isFr ? "overrides" : "overrides"} · 10% (SMZ Bot)
+              {isFr ? "overrides" : "overrides"} · {isFr ? "ventes SMZ de vos L1" : "SMZ sales by your L1"}
             </p>
           </div>
           <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/25">
             <p className="text-[10px] font-bold uppercase tracking-wider text-purple-400 flex items-center justify-between">
-              <span>Level 3 — {isFr ? "Override profond" : "Deep override"}</span>
+              <span>{isFr ? "Override \u00e9quipe L2" : "L2 Team Override"} · 5%</span>
               <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${isEligible ? "bg-emerald-500/20 text-emerald-300" : "bg-amber-500/20 text-amber-300"}`}>
                 {isEligible ? "ACTIVE" : "LOCKED"}
               </span>
@@ -304,7 +316,7 @@ export default function AffiliateTeamPage() {
             </p>
             <p className="text-xs text-purple-300/80 mt-1">
               {data.commissions.level3.count}{" "}
-              {isFr ? "overrides" : "overrides"} · 5% (SMZ Bot)
+              {isFr ? "overrides" : "overrides"} · {isFr ? "ventes SMZ de vos L2" : "SMZ sales by your L2"}
             </p>
           </div>
         </div>
@@ -317,17 +329,17 @@ export default function AffiliateTeamPage() {
         </div>
       </div>
 
-      {/* Your traffic snapshot */}
+      {/* Traffic */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/10 space-y-4">
           <h2 className="text-base font-bold flex items-center gap-2">
             <MousePointerClick className="w-4 h-4 text-[#CA3F2E]" />
-            {isFr ? "Votre trafic (L1)" : "Your traffic (L1)"}
+            {isFr ? "Votre trafic personnel" : "Your personal traffic"}
           </h2>
           <div className="grid grid-cols-3 gap-3">
             <div className="p-3 rounded-xl bg-black/40 border border-white/5 text-center">
               <p className="text-xl font-bold">{data.traffic.total}</p>
-              <p className="text-[10px] text-gray-500 uppercase mt-0.5">{isFr ? "Total" : "Total"}</p>
+              <p className="text-[10px] text-gray-500 uppercase mt-0.5">Total</p>
             </div>
             <div className="p-3 rounded-xl bg-black/40 border border-white/5 text-center">
               <p className="text-xl font-bold">{data.traffic.last7Days}</p>
@@ -358,18 +370,11 @@ export default function AffiliateTeamPage() {
                     : 0;
                 return (
                   <div key={c.country} className="flex items-center gap-3">
-                    <span className="w-10 text-xs font-mono font-bold text-gray-300">
-                      {c.country}
-                    </span>
+                    <span className="w-10 text-xs font-mono font-bold text-gray-300">{c.country}</span>
                     <div className="flex-1 h-2 rounded-full bg-white/5 overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-[#CA3F2E]"
-                        style={{ width: `${Math.max(pct, 4)}%` }}
-                      />
+                      <div className="h-full rounded-full bg-[#CA3F2E]" style={{ width: `${Math.max(pct, 4)}%` }} />
                     </div>
-                    <span className="text-xs text-gray-400 w-12 text-right">
-                      {c.count} ({pct}%)
-                    </span>
+                    <span className="text-xs text-gray-400 w-12 text-right">{c.count} ({pct}%)</span>
                   </div>
                 );
               })}
@@ -384,24 +389,24 @@ export default function AffiliateTeamPage() {
           <Sparkles className="w-5 h-5 text-[#CA3F2E] flex-shrink-0 mt-0.5" />
           <div className="text-xs text-gray-300 leading-relaxed space-y-1">
             <p className="font-semibold text-white">
-              {isFr ? "Comment fonctionnent les niveaux ?" : "How do levels work?"}
+              {isFr ? "Hi\u00e9rarchie de l'\u00e9quipe" : "Team hierarchy"}
             </p>
             <p>
               {isFr
-                ? "L1 = 5% sur produits physiques / 50% sur SMZ Bot. L2 (10%) & L3 (5%) = overrides sur les ventes de logiciel SMZ de votre \u00e9quipe (n\u00e9cessite un abonnement actif au SMZ Bot Pro)."
-                : "L1 = 5% on physical products / 50% on SMZ Bot. L2 (10%) & L3 (5%) = overrides on SMZ software sales by your team (requires active SMZ Bot Pro subscription)."}
+                ? "L1 = affili\u00e9s que VOUS recrutez. L2 = affili\u00e9s recrut\u00e9s par vos L1. L3 = affili\u00e9s recrut\u00e9s par vos L2. Sur SMZ Bot : 50% vente client directe, +10% override sur ventes de vos L1, +5% override sur ventes de vos L2 (abonnement SMZ actif requis pour les overrides)."
+                : "L1 = affiliates YOU recruit. L2 = affiliates recruited by your L1. L3 = affiliates recruited by your L2. On SMZ Bot: 50% direct customer sale, +10% override on your L1 sales, +5% override on your L2 sales (active SMZ subscription required for overrides)."}
             </p>
           </div>
         </div>
       </div>
 
-      {/* Team table */}
+      {/* Team table - L1 Direct Recruits */}
       <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/10 space-y-4">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-lg font-bold">
             {isFr
-              ? `Recrues directes (${data.teamSize})`
-              : `Direct recruits (${data.teamSize})`}
+              ? `Recrues directes L1 (${l1Count})`
+              : `Direct Recruits L1 (${l1Count})`}
           </h2>
           <Link
             href={`/${locale}/affiliate/dashboard`}
@@ -416,8 +421,8 @@ export default function AffiliateTeamPage() {
             <Users className="w-10 h-10 text-gray-600 mx-auto" />
             <p className="text-sm text-gray-400">
               {isFr
-                ? "Aucune recrue pour le moment. Partagez votre lien d'inscription affili\u00e9 !"
-                : "No recruits yet. Share your affiliate signup link!"}
+                ? "Aucune recrue L1 pour le moment. Partagez votre lien d'inscription affili\u00e9 !"
+                : "No L1 recruits yet. Share your affiliate signup link!"}
             </p>
             <div className="max-w-md mx-auto p-3 rounded-xl bg-black/50 border border-white/10 font-mono text-[11px] text-gray-400 break-all">
               {recruitUrl}
@@ -436,13 +441,13 @@ export default function AffiliateTeamPage() {
             <table className="w-full text-left text-xs min-w-[640px]">
               <thead className="border-b border-white/10 text-gray-400 uppercase tracking-wider">
                 <tr>
-                  <th className="py-3 px-2">{isFr ? "Membre" : "Member"}</th>
+                  <th className="py-3 px-2">{isFr ? "Membre L1" : "L1 Member"}</th>
                   <th className="py-3 px-2">Code</th>
                   <th className="py-3 px-2">{isFr ? "Statut" : "Status"}</th>
                   <th className="py-3 px-2">{isFr ? "Clics" : "Clicks"}</th>
                   <th className="py-3 px-2">{isFr ? "Ventes" : "Orders"}</th>
                   <th className="py-3 px-2">{isFr ? "Leurs gains" : "Their earnings"}</th>
-                  <th className="py-3 px-2">{isFr ? "Leur \u00e9quipe" : "Their team"}</th>
+                  <th className="py-3 px-2">{isFr ? "Leur L2" : "Their L2"}</th>
                   <th className="py-3 px-2">{isFr ? "Inscrit" : "Joined"}</th>
                 </tr>
               </thead>
@@ -451,9 +456,7 @@ export default function AffiliateTeamPage() {
                   <tr key={m.id} className="hover:bg-white/[0.02]">
                     <td className="py-3 px-2">
                       <div className="font-semibold text-white">{m.name}</div>
-                      <div className="text-[10px] text-gray-500 truncate max-w-[160px]">
-                        {m.email}
-                      </div>
+                      <div className="text-[10px] text-gray-500 truncate max-w-[160px]">{m.email}</div>
                     </td>
                     <td className="py-3 px-2">
                       <span className="font-mono font-bold text-[#CA3F2E]">{m.code}</span>
@@ -479,17 +482,12 @@ export default function AffiliateTeamPage() {
                     <td className="py-3 px-2">
                       <span className="inline-flex items-center gap-1">
                         <Users className="w-3 h-3 text-gray-500" />
-                        {m.downlineCount}{" "}
-                        <span className="text-gray-500">
-                          {isFr ? "L3" : "L3"}
-                        </span>
+                        {m.downlineCount}
                       </span>
                     </td>
                     <td className="py-3 px-2 text-gray-500">
                       {m.createdAt
-                        ? new Date(m.createdAt).toLocaleDateString(
-                            isFr ? "fr-FR" : "en-US"
-                          )
+                        ? new Date(m.createdAt).toLocaleDateString(isFr ? "fr-FR" : "en-US")
                         : "—"}
                     </td>
                   </tr>
