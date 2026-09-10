@@ -6,10 +6,7 @@ import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import { useCustomer } from "@/lib/customer-context";
 import { useCurrency } from "@/lib/currency-context";
-import Navbar from "@/components/Navbar";
-import AccountSidebar from "@/components/AccountSidebar";
-import AccountMobileBar from "@/components/AccountMobileBar";
-import Footer from "@/components/Footer";
+import AccountShell from "@/components/AccountShell";
 import { User, Package, Heart, MapPin, Loader2, LifeBuoy, Gift, Star, ShoppingBag, TrendingUp } from "lucide-react";
 
 interface Stats {
@@ -26,7 +23,6 @@ export default function DashboardPage() {
   const { customer, loading } = useCustomer();
   const { format: formatPrice } = useCurrency();
   const [stats, setStats] = useState<Stats>({ orderCount: 0, wishlistCount: 0, ticketCount: 0, totalSpent: 0 });
-  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !customer) router.push(`/${locale}/account/login`);
@@ -55,59 +51,45 @@ export default function DashboardPage() {
   ];
 
   return (
-    <>
-      <Navbar />
-      <AccountSidebar mobileOpen={menuOpen} onClose={() => setMenuOpen(false)} />
-      <main className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 pt-0 pb-4 lg:pt-8 lg:pb-8">
-          <div className="lg:grid lg:grid-cols-[260px_1fr] lg:gap-8">
-            <div className="hidden lg:block"><AccountSidebar /></div>
-            <div>
-              <AccountMobileBar title={isFr ? "Tableau de bord" : "Dashboard"} onOpen={() => setMenuOpen(true)} />
+    <AccountShell title={isFr ? "Tableau de bord" : "Dashboard"}>
+      <div className="mb-6">
+        <h2 className="text-xl lg:text-2xl font-bold text-gray-900">
+          {isFr ? "Bonjour, " : "Hi, "}{customer.name.split(" ")[0]}
+        </h2>
+        <p className="text-gray-500 mt-1 text-sm">{isFr ? "Bienvenue dans votre espace client" : "Welcome to your account"}</p>
+      </div>
 
-              <div className="mb-6 scroll-mt-40 px-4 lg:px-0">
-                <h1 className="text-2xl lg:text-3xl font-black text-gray-900 scroll-mt-40">
-                  {isFr ? "Bonjour, " : "Hi, "}{customer.name.split(" ")[0]}
-                </h1>
-                <p className="text-gray-500 mt-1 text-sm">{isFr ? "Bienvenue dans votre espace client" : "Welcome to your account"}</p>
-              </div>
-
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6 px-4 lg:px-0">
-                <div className="bg-white border border-gray-200 rounded-2xl p-4">
-                  <div className="flex items-center gap-2 text-gray-500 text-[10px] font-bold uppercase mb-2"><Package className="w-3.5 h-3.5" /> {isFr ? "Commandes" : "Orders"}</div>
-                  <div className="text-2xl font-black text-gray-900">{stats.orderCount}</div>
-                </div>
-                <div className="bg-white border border-gray-200 rounded-2xl p-4">
-                  <div className="flex items-center gap-2 text-gray-500 text-[10px] font-bold uppercase mb-2"><Heart className="w-3.5 h-3.5" /> {isFr ? "Favoris" : "Wishlist"}</div>
-                  <div className="text-2xl font-black text-gray-900">{stats.wishlistCount}</div>
-                </div>
-                <div className="bg-white border border-gray-200 rounded-2xl p-4">
-                  <div className="flex items-center gap-2 text-gray-500 text-[10px] font-bold uppercase mb-2"><LifeBuoy className="w-3.5 h-3.5" /> {isFr ? "Tickets" : "Tickets"}</div>
-                  <div className="text-2xl font-black text-gray-900">{stats.ticketCount}</div>
-                </div>
-                <div className="bg-white border border-gray-200 rounded-2xl p-4">
-                  <div className="flex items-center gap-2 text-gray-500 text-[10px] font-bold uppercase mb-2"><TrendingUp className="w-3.5 h-3.5" /> {isFr ? "D\u00e9pens\u00e9" : "Spent"}</div>
-                  <div className="text-2xl font-black text-gray-900">{formatPrice(stats.totalSpent)}</div>
-                </div>
-              </div>
-
-              <h2 className="text-base lg:text-lg font-bold text-gray-900 mb-3 px-4 lg:px-0">{isFr ? "Acc\u00e8s rapide" : "Quick access"}</h2>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 px-4 lg:px-0">
-                {quickCards.map(c => (
-                  <Link key={c.href} href={c.href}
-                    className="group bg-white border border-gray-200 rounded-2xl p-4 hover:border-gray-300 hover:shadow-md transition-all">
-                    <div className={"w-10 h-10 " + c.color + " rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 transition"}>
-                      <c.icon className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="font-bold text-gray-900 text-sm">{c.label}</div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        <div className="bg-white border border-gray-200/80 rounded-2xl p-4 shadow-sm">
+          <div className="flex items-center gap-2 text-gray-500 text-[10px] font-bold uppercase mb-2"><Package className="w-3.5 h-3.5" /> {isFr ? "Commandes" : "Orders"}</div>
+          <div className="text-2xl font-black text-gray-900">{stats.orderCount}</div>
         </div>
-      </main>
-      <Footer />
-    </>
+        <div className="bg-white border border-gray-200/80 rounded-2xl p-4 shadow-sm">
+          <div className="flex items-center gap-2 text-gray-500 text-[10px] font-bold uppercase mb-2"><Heart className="w-3.5 h-3.5" /> {isFr ? "Favoris" : "Wishlist"}</div>
+          <div className="text-2xl font-black text-gray-900">{stats.wishlistCount}</div>
+        </div>
+        <div className="bg-white border border-gray-200/80 rounded-2xl p-4 shadow-sm">
+          <div className="flex items-center gap-2 text-gray-500 text-[10px] font-bold uppercase mb-2"><LifeBuoy className="w-3.5 h-3.5" /> {isFr ? "Tickets" : "Tickets"}</div>
+          <div className="text-2xl font-black text-gray-900">{stats.ticketCount}</div>
+        </div>
+        <div className="bg-white border border-gray-200/80 rounded-2xl p-4 shadow-sm">
+          <div className="flex items-center gap-2 text-gray-500 text-[10px] font-bold uppercase mb-2"><TrendingUp className="w-3.5 h-3.5" /> {isFr ? "D\u00e9pens\u00e9" : "Spent"}</div>
+          <div className="text-2xl font-black text-gray-900">{formatPrice(stats.totalSpent)}</div>
+        </div>
+      </div>
+
+      <h3 className="text-base lg:text-lg font-bold text-gray-900 mb-3">{isFr ? "Acc\u00e8s rapide" : "Quick access"}</h3>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {quickCards.map(c => (
+          <Link key={c.href} href={c.href}
+            className="group bg-white border border-gray-200/80 rounded-2xl p-4 hover:border-gray-300 hover:shadow-md transition-all">
+            <div className={"w-10 h-10 " + c.color + " rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 transition"}>
+              <c.icon className="w-5 h-5 text-white" />
+            </div>
+            <div className="font-bold text-gray-900 text-sm">{c.label}</div>
+          </Link>
+        ))}
+      </div>
+    </AccountShell>
   );
 }
