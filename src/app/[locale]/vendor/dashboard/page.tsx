@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 
@@ -20,7 +20,6 @@ interface VendorData {
   totalEarnings: number;
   pendingPayout: number;
   fulfillmentRate: number;
-  conciergeDebt: number;
   preferredCurrency: string;
   mustChangePassword: boolean;
 }
@@ -36,24 +35,19 @@ interface StatsData {
   fulfillmentRate: number;
 }
 
-export default function VendorDashboardPage() {
+function VendorDashboardInner() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
   const locale = (params?.locale as string) || "en";
   const isFr = locale === "fr";
+  const forceSetupParam = searchParams.get("setup") === "1";
 
-  const [mounted, setMounted] = useState(false);
   const [vendor, setVendor] = useState<VendorData | null>(null);
   const [stats, setStats] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [showWizard, setShowWizard] = useState(false);
-  const [wizardDismissed, setWizardDismissed] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const [showWizard, setShowWizard] = useState(forceSetupParam);
 
   const fetchVendor = useCallback(async () => {
     try {
@@ -61,13 +55,13 @@ export default function VendorDashboardPage() {
       if (!res.ok) throw new Error("Auth failed");
       const data = await res.json();
       setVendor(data.vendor);
-      if (data.vendor?.status === "incomplete") {
+      if (data.vendor?.status === "incomplete" || forceSetupParam) {
         setShowWizard(true);
       }
     } catch {
       setError(isFr ? "Impossible de charger le profil" : "Failed to load profile");
     }
-  }, [isFr]);
+  }, [isFr, forceSetupParam]);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -78,33 +72,30 @@ export default function VendorDashboardPage() {
       }
     } catch {
       setStats({
-        productCount: 0,
-        orderCount: 0,
-        totalRevenue: 0,
-        pendingOrders: 0,
-        totalSales: 0,
-        totalEarnings: 0,
-        pendingPayout: 0,
-        fulfillmentRate: 100,
+        productCount: 0, orderCount: 0, totalRevenue: 0, pendingOrders: 0,
+        totalSales: 0, totalEarnings: 0, pendingPayout: 0, fulfillmentRate: 100,
       });
     }
   }, []);
 
   useEffect(() => {
-    if (!mounted) return;
-    if (searchParams.get("setup") === "1") {
-      setShowWizard(true);
-    }
     async function init() {
+      if (forceSetupParam) setShowWizard(true);
       await fetchVendor();
       await fetchStats();
       setLoading(false);
     }
     init();
-  }, [mounted, searchParams, fetchVendor, fetchStats]);
+  }, [forceSetupParam, fetchVendor, fetchStats]);
 
-  if (!mounted) return null;
+  const handleWizardComplete = () => {
+    setShowWizard(false);
+    if (forceSetupParam) router.replace(`/${locale}/vendor/dashboard`);
+    setLoading(true);
+    fetchVendor().finally(() => setLoading(false));
+  };
 
+  // LOADING GATE — no dashboard flash
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -116,40 +107,30 @@ export default function VendorDashboardPage() {
   if (error && !vendor) {
     return (
       <div className="p-6">
-        <div className="bg-red-900/20 border border-red-800 rounded-xl p-4 text-red-300 text-sm">
-          {error}
-        </div>
+        <div className="bg-red-900/20 border border-red-800 rounded-xl p-4 text-red-300 text-sm">{error}</div>
       </div>
     );
   }
 
-  const st = stats || {
-    productCount: 0,
-    orderCount: 0,
-    totalRevenue: 0,
-    pendingOrders: 0,
-    totalSales: 0,
-    totalEarnings: 0,
-    pendingPayout: 0,
-    fulfillmentRate: 100,
-  };
+  // WIZARD ONLY — no dashboard underneath
+  if (showWizard || vendor?.status === "incomplete") {
+    return (
+      <VendorOnboardingModal
+        locale={locale}
+        onComplete={handleWizardComplete}
+      />
+    );
+  }
 
-  const handleWizardComplete = () => {
-    setShowWizard(false);
-    fetchVendor();
-    if (searchParams.get("setup") === "1") {
-      router.replace(`/${locale}/vendor/dashboard`);
-    }
+  const st = stats || {
+    productCount: 0, orderCount: 0, totalRevenue: 0, pendingOrders: 0,
+    totalSales: 0, totalEarnings: 0, pendingPayout: 0, fulfillmentRate: 100,
   };
 
   return (
     <div className="p-4 md:p-6 space-y-6 min-w-0">
-      {/* Pending status banner */}
       {vendor?.status === "pending" && (
         <div className="flex items-center gap-3 p-4 rounded-2xl bg-amber-900/20 border border-amber-700/50">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-          </svg>
           <div>
             <p className="text-amber-300 font-semibold text-sm">
               {isFr ? "V\u00e9rification en attente" : "Pending Admin Verification"}
@@ -163,30 +144,6 @@ export default function VendorDashboardPage() {
         </div>
       )}
 
-      {/* Incomplete profile banner */}
-      {vendor?.status === "incomplete" && !showWizard && !wizardDismissed && (
-        <div className="flex items-center justify-between p-4 rounded-2xl bg-blue-900/20 border border-blue-700/50">
-          <div>
-            <p className="text-blue-300 font-semibold text-sm">
-              {isFr ? "Profil incomplet" : "Incomplete Profile"}
-            </p>
-            <p className="text-blue-400/70 text-xs">
-              {isFr
-                ? "Compl\u00e9tez les d\u00e9tails de votre boutique pour commencer \u00e0 vendre."
-                : "Complete your store profile to start selling on New Deal Zone."}
-            </p>
-          </div>
-          <button
-            onClick={() => setShowWizard(true)}
-            className="px-4 py-2 rounded-xl text-xs font-semibold text-white transition-opacity hover:opacity-90"
-            style={{ backgroundColor: "#CA3F2E" }}
-          >
-            {isFr ? "Compl\u00e9ter" : "Complete Profile"}
-          </button>
-        </div>
-      )}
-
-      {/* Welcome Header */}
       <div>
         <h1 className="text-2xl font-bold text-white">
           {isFr ? "Bonjour" : "Welcome"},{" "}
@@ -199,43 +156,20 @@ export default function VendorDashboardPage() {
         </p>
       </div>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          {
-            label: isFr ? "Produits" : "Products",
-            value: st.productCount,
-            icon: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4",
-          },
-          {
-            label: isFr ? "Commandes" : "Orders",
-            value: st.orderCount,
-            icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2",
-          },
-          {
-            label: isFr ? "Revenus" : "Revenue",
-            value: "$" + st.totalRevenue.toFixed(2),
-            icon: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
-          },
-          {
-            label: isFr ? "En attente" : "Pending",
-            value: st.pendingOrders,
-            icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
-          },
+          { label: isFr ? "Produits" : "Products", value: st.productCount },
+          { label: isFr ? "Commandes" : "Orders", value: st.orderCount },
+          { label: isFr ? "Revenus" : "Revenue", value: "$" + st.totalRevenue.toFixed(2) },
+          { label: isFr ? "En attente" : "Pending", value: st.pendingOrders },
         ].map((card, i) => (
           <div key={i} className="bg-gray-900 rounded-2xl border border-gray-800 p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-gray-500 uppercase tracking-wider">{card.label}</span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d={card.icon} />
-              </svg>
-            </div>
-            <p className="text-2xl font-bold text-white">{card.value}</p>
+            <span className="text-xs text-gray-500 uppercase tracking-wider">{card.label}</span>
+            <p className="text-2xl font-bold text-white mt-1">{card.value}</p>
           </div>
         ))}
       </div>
 
-      {/* Quick Actions */}
       <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
         <h2 className="text-base font-semibold text-white mb-4">
           {isFr ? "Actions rapides" : "Quick Actions"}
@@ -258,18 +192,20 @@ export default function VendorDashboardPage() {
           ))}
         </div>
       </div>
-
-      {/* Onboarding Wizard Modal */}
-      {showWizard && (
-        <VendorOnboardingModal
-          locale={locale}
-          onComplete={handleWizardComplete}
-          onSkip={() => {
-            setShowWizard(false);
-            setWizardDismissed(true);
-          }}
-        />
-      )}
     </div>
+  );
+}
+
+export default function VendorDashboardPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-600 border-t-[#CA3F2E]" />
+        </div>
+      }
+    >
+      <VendorDashboardInner />
+    </Suspense>
   );
 }

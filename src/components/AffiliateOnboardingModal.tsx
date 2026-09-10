@@ -5,7 +5,7 @@ import {
   Sparkles,
   MapPin,
   Share2,
-  Landmark,
+  Wallet,
   CheckCircle2,
   Loader2,
   ChevronRight,
@@ -20,6 +20,7 @@ interface AffiliateOnboardingModalProps {
   affiliateCode: string;
   onComplete: () => void;
   onSkip?: () => void;
+  forceSetup?: boolean;
 }
 
 const COUNTRIES = [
@@ -42,6 +43,7 @@ export default function AffiliateOnboardingModal({
   affiliateCode,
   onComplete,
   onSkip,
+  forceSetup = false,
 }: AffiliateOnboardingModalProps) {
   const isFr = locale === "fr";
   const [step, setStep] = useState(1);
@@ -58,12 +60,10 @@ export default function AffiliateOnboardingModal({
     websiteUrl: "",
     socialMediaUrl: "",
     marketingPlan: "",
-    bankName: "",
-    bankAccount: "",
-    bankAccountName: "",
+    usdtWallet: "",
   });
 
-  const setField = (key: string, val: any) =>
+  const setField = (key: string, val: string) =>
     setForm((prev) => ({ ...prev, [key]: val }));
 
   const refUrl = `https://www.newdealzone.com/${locale}?ref=${affiliateCode}`;
@@ -74,24 +74,44 @@ export default function AffiliateOnboardingModal({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const isValidTrc20 = (addr: string) => /^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(addr.trim());
+
   const validateStep = (s: number) => {
     if (s === 1) return form.country.length > 0 && form.phone.trim().length >= 4;
+    if (s === 3) return isValidTrc20(form.usdtWallet);
     return true;
   };
 
   const handleSubmit = async () => {
+    if (!isValidTrc20(form.usdtWallet)) {
+      setError(
+        isFr
+          ? "Adresse USDT TRC20 invalide (doit commencer par T et faire 34 caract\u00e8res)"
+          : "Invalid USDT TRC20 address (must start with T and be 34 characters)"
+      );
+      return;
+    }
     setError("");
     setLoading(true);
     try {
       const res = await fetch("/api/affiliate/onboarding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          phone: form.phone,
+          whatsapp: form.whatsapp,
+          country: form.country,
+          city: form.city,
+          websiteUrl: form.websiteUrl,
+          socialMediaUrl: form.socialMediaUrl,
+          marketingPlan: form.marketingPlan,
+          bankName: "USDT-TRC20",
+          bankAccount: form.usdtWallet.trim(),
+          bankAccountName: "USDT TRC20 Wallet",
+        }),
       });
       const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to complete onboarding");
-      }
+      if (!res.ok) throw new Error(data.error || "Failed to complete onboarding");
       setDone(true);
     } catch (err: any) {
       setError(err?.message || (isFr ? "Une erreur est survenue" : "An error occurred"));
@@ -104,7 +124,7 @@ export default function AffiliateOnboardingModal({
     title: isFr ? "Configuration Partenaire Affili\u00e9" : "Affiliate Partner Setup",
     step1: isFr ? "Contact & Pays" : "Contact & Region",
     step2: isFr ? "R\u00e9seaux & Canaux" : "Marketing Channels",
-    step3: isFr ? "Paiement" : "Payout Details",
+    step3: isFr ? "Portefeuille USDT" : "USDT Wallet",
     country: isFr ? "Votre pays *" : "Your Country *",
     city: isFr ? "Ville" : "City",
     cityPh: isFr ? "Lom\u00e9, Lagos, Abidjan..." : "Lom\u00e9, Lagos, Abidjan...",
@@ -114,17 +134,21 @@ export default function AffiliateOnboardingModal({
     socialPh: "https://instagram.com/..., TikTok, etc.",
     webUrl: isFr ? "Site web / Blog (facultatif)" : "Website / Blog (optional)",
     plan: isFr ? "Comment comptez-vous promouvoir nos produits ?" : "How do you plan to promote our products?",
-    planPh: isFr ? "Ex: TikTok, stories Instagram, groupes WhatsApp..." : "e.g. TikTok reviews, WhatsApp status, Instagram stories...",
-    bankName: isFr ? "Nom de banque ou Mobile Money" : "Bank Name or Mobile Money",
-    bankAccount: isFr ? "Num\u00e9ro de compte ou num\u00e9ro MoMo" : "Account Number / MoMo Phone",
-    bankAccountName: isFr ? "Nom complet du b\u00e9n\u00e9ficiaire" : "Account Holder Full Name",
+    planPh: isFr
+      ? "Ex: TikTok, stories Instagram, groupes WhatsApp..."
+      : "e.g. TikTok reviews, WhatsApp status, Instagram stories...",
+    walletLabel: isFr ? "Adresse portefeuille USDT (TRC20) *" : "USDT Wallet Address (TRC20) *",
+    walletPh: "TXyz... (Tron TRC20)",
+    walletHint: isFr
+      ? "Les commissions affili\u00e9es sont pay\u00e9es en USDT sur le r\u00e9seau TRC20 (Tron) uniquement. V\u00e9rifiez bien l'adresse."
+      : "Affiliate payouts are sent in USDT on the TRC20 (Tron) network only. Double-check your address.",
     next: isFr ? "Continuer" : "Next",
     back: isFr ? "Retour" : "Back",
     submit: isFr ? "Terminer la configuration" : "Complete Setup",
     doneTitle: isFr ? "F\u00e9licitations !" : "You're All Set!",
     doneDesc: isFr
-      ? "Votre profil affili\u00e9 est activ\u00e9. Voici votre lien de parrainage unique pour commencer \u00e0 toucher vos commissions :"
-      : "Your affiliate profile is configured. Here is your unique referral link to start earning commissions:",
+      ? "Votre profil affili\u00e9 est activ\u00e9. Voici votre lien de parrainage unique :"
+      : "Your affiliate profile is active. Here is your unique referral link:",
     copyLink: isFr ? "Copier mon lien" : "Copy My Link",
     copied: isFr ? "Copi\u00e9 !" : "Copied!",
     enterDash: isFr ? "Ouvrir mon tableau de bord" : "Go to Dashboard",
@@ -133,17 +157,11 @@ export default function AffiliateOnboardingModal({
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-      <div
-        className="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity"
-        onClick={() => {
-          if (!done && onSkip) onSkip();
-        }}
-      />
+      <div className="absolute inset-0 bg-black/90 backdrop-blur-md" />
 
       <div className="relative w-full max-w-xl bg-gray-900 border border-gray-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
-        {/* Header */}
         <div className="px-6 pt-6 pb-4 border-b border-gray-800 bg-gray-900/90 relative">
-          {onSkip && !done && (
+          {!forceSetup && onSkip && !done && (
             <button
               type="button"
               onClick={onSkip}
@@ -165,7 +183,7 @@ export default function AffiliateOnboardingModal({
               {[
                 { n: 1, label: t.step1, icon: MapPin },
                 { n: 2, label: t.step2, icon: Share2 },
-                { n: 3, label: t.step3, icon: Landmark },
+                { n: 3, label: t.step3, icon: Wallet },
               ].map((s) => {
                 const Icon = s.icon;
                 const active = step >= s.n;
@@ -190,7 +208,6 @@ export default function AffiliateOnboardingModal({
           )}
         </div>
 
-        {/* Body */}
         <div className="p-6 overflow-y-auto flex-1 space-y-4">
           {error && (
             <div className="p-3.5 rounded-xl bg-red-950/60 border border-red-800/80 text-red-300 text-xs">
@@ -198,7 +215,6 @@ export default function AffiliateOnboardingModal({
             </div>
           )}
 
-          {/* STEP 1: Contact */}
           {step === 1 && !done && (
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -219,7 +235,6 @@ export default function AffiliateOnboardingModal({
                     ))}
                   </select>
                 </div>
-
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-1.5">
                     {t.city}
@@ -233,7 +248,6 @@ export default function AffiliateOnboardingModal({
                   />
                 </div>
               </div>
-
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-1.5">
@@ -241,14 +255,12 @@ export default function AffiliateOnboardingModal({
                   </label>
                   <input
                     type="tel"
-                    required
                     value={form.phone}
                     onChange={(e) => setField("phone", e.target.value)}
                     placeholder="+228..."
                     className="w-full px-4 py-3 rounded-xl bg-gray-800/90 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm"
                   />
                 </div>
-
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-1.5">
                     {t.whatsapp}
@@ -265,7 +277,6 @@ export default function AffiliateOnboardingModal({
             </div>
           )}
 
-          {/* STEP 2: Marketing Channels */}
           {step === 2 && !done && (
             <div className="space-y-4">
               <div>
@@ -280,7 +291,6 @@ export default function AffiliateOnboardingModal({
                   className="w-full px-4 py-3 rounded-xl bg-gray-800/90 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm"
                 />
               </div>
-
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-1.5">
                   {t.webUrl}
@@ -293,7 +303,6 @@ export default function AffiliateOnboardingModal({
                   className="w-full px-4 py-3 rounded-xl bg-gray-800/90 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm"
                 />
               </div>
-
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-1.5">
                   {t.plan}
@@ -309,62 +318,38 @@ export default function AffiliateOnboardingModal({
             </div>
           )}
 
-          {/* STEP 3: Payout Info */}
           {step === 3 && !done && (
             <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-1.5">
-                  {t.bankName}
-                </label>
-                <input
-                  type="text"
-                  value={form.bankName}
-                  onChange={(e) => setField("bankName", e.target.value)}
-                  placeholder="Ecobank, Flooz, Wave, OPay..."
-                  className="w-full px-4 py-3 rounded-xl bg-gray-800/90 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm"
-                />
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs leading-relaxed">
+                {t.walletHint}
               </div>
-
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-1.5">
-                  {t.bankAccount}
+                  {t.walletLabel}
                 </label>
                 <input
                   type="text"
-                  value={form.bankAccount}
-                  onChange={(e) => setField("bankAccount", e.target.value)}
-                  placeholder="Account / Phone Number"
+                  value={form.usdtWallet}
+                  onChange={(e) => setField("usdtWallet", e.target.value)}
+                  placeholder={t.walletPh}
                   className="w-full px-4 py-3 rounded-xl bg-gray-800/90 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm font-mono"
                 />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-1.5">
-                  {t.bankAccountName}
-                </label>
-                <input
-                  type="text"
-                  value={form.bankAccountName}
-                  onChange={(e) => setField("bankAccountName", e.target.value)}
-                  placeholder="Full Name"
-                  className="w-full px-4 py-3 rounded-xl bg-gray-800/90 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm"
-                />
+                <p className="mt-1.5 text-[11px] text-gray-500">
+                  Network: <span className="text-[#CA3F2E] font-semibold">TRC20 (Tron)</span> — USDT only
+                </p>
               </div>
             </div>
           )}
 
-          {/* STEP 4: Success with Referral Link */}
           {done && (
             <div className="text-center py-5 space-y-4">
-              <div className="w-16 h-16 rounded-full bg-[#CA3F2E]/20 text-[#CA3F2E] flex items-center justify-center mx-auto border border-[#CA3F2E]/30 animate-pulse">
+              <div className="w-16 h-16 rounded-full bg-[#CA3F2E]/20 text-[#CA3F2E] flex items-center justify-center mx-auto border border-[#CA3F2E]/30">
                 <CheckCircle2 className="w-8 h-8" />
               </div>
-
               <div>
                 <h3 className="text-xl font-bold text-white">{t.doneTitle}</h3>
                 <p className="text-sm text-gray-400 mt-1 max-w-md mx-auto">{t.doneDesc}</p>
               </div>
-
               <div className="p-4 rounded-2xl bg-black/50 border border-white/10 space-y-2 text-left">
                 <span className="text-[11px] uppercase tracking-wider font-bold text-[#CA3F2E]">
                   Code: {affiliateCode}
@@ -386,7 +371,6 @@ export default function AffiliateOnboardingModal({
                   </button>
                 </div>
               </div>
-
               <button
                 type="button"
                 onClick={onComplete}
@@ -399,7 +383,6 @@ export default function AffiliateOnboardingModal({
           )}
         </div>
 
-        {/* Footer Controls */}
         {!done && (
           <div className="px-6 py-4 border-t border-gray-800 bg-gray-900/90 flex items-center justify-between">
             <div>
@@ -412,7 +395,7 @@ export default function AffiliateOnboardingModal({
                   <ChevronLeft className="w-4 h-4" />
                   {t.back}
                 </button>
-              ) : onSkip ? (
+              ) : !forceSetup && onSkip ? (
                 <button
                   type="button"
                   onClick={onSkip}
@@ -424,7 +407,6 @@ export default function AffiliateOnboardingModal({
                 <div />
               )}
             </div>
-
             <div>
               {step < 3 ? (
                 <button
@@ -439,7 +421,7 @@ export default function AffiliateOnboardingModal({
               ) : (
                 <button
                   type="button"
-                  disabled={loading}
+                  disabled={loading || !validateStep(3)}
                   onClick={handleSubmit}
                   className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#CA3F2E] hover:bg-[#8B2A1E] text-white font-semibold text-xs shadow-lg shadow-[#CA3F2E]/30 transition-all disabled:opacity-50"
                 >

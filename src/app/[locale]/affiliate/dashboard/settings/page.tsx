@@ -1,43 +1,36 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useTransition } from "react";
 import { useParams } from "next/navigation";
-import {
-  User,
-  CreditCard,
-  Lock,
-  CheckCircle2,
-  AlertCircle,
-  Loader2,
-  ArrowLeft,
-} from "lucide-react";
-import Link from "next/link";
+import { Loader2, Save, Wallet, User, Lock } from "lucide-react";
 
 export default function AffiliateSettingsPage() {
   const params = useParams();
   const locale = (params?.locale as string) || "en";
   const isFr = locale === "fr";
 
+  const [loading, setLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
-  const [msg, setMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [msg, setMsg] = useState("");
+  const [err, setErr] = useState("");
 
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
     whatsapp: "",
-    country: "NG",
+    country: "",
     city: "",
-    bankName: "",
+    bankName: "USDT-TRC20",
     bankAccount: "",
-    bankAccountName: "",
+    bankAccountName: "USDT TRC20 Wallet",
     preferredCurrency: "USD",
   });
 
-  const [passData, setPassData] = useState({
+  const [passwords, setPasswords] = useState({
     currentPassword: "",
     newPassword: "",
+    confirmPassword: "",
   });
-  const [passMsg, setPassMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
     fetch("/api/affiliate/me")
@@ -49,292 +42,248 @@ export default function AffiliateSettingsPage() {
             name: a.name || "",
             phone: a.phone || "",
             whatsapp: a.whatsapp || "",
-            country: a.country || "NG",
+            country: a.country || "",
             city: a.city || "",
-            bankName: a.bankName || "",
+            bankName: a.bankName || "USDT-TRC20",
             bankAccount: a.bankAccount || "",
-            bankAccountName: a.bankAccountName || "",
+            bankAccountName: a.bankAccountName || "USDT TRC20 Wallet",
             preferredCurrency: a.preferredCurrency || "USD",
           });
         }
-      });
+      })
+      .finally(() => setLoading(false));
   }, []);
 
-  const handleSaveSettings = (e: React.FormEvent) => {
-    e.preventDefault();
-    setMsg(null);
+  const isValidTrc20 = (addr: string) =>
+    !addr || /^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(addr.trim());
 
+  const saveProfile = (e: React.FormEvent) => {
+    e.preventDefault();
+    setMsg("");
+    setErr("");
+    if (formData.bankAccount && !isValidTrc20(formData.bankAccount)) {
+      setErr(
+        isFr
+          ? "Adresse USDT TRC20 invalide (doit commencer par T, 34 caract\u00e8res)"
+          : "Invalid USDT TRC20 address (must start with T, 34 characters)"
+      );
+      return;
+    }
     startTransition(async () => {
       try {
         const res = await fetch("/api/affiliate/settings", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
+          body: JSON.stringify({
+            ...formData,
+            bankName: "USDT-TRC20",
+            bankAccountName: "USDT TRC20 Wallet",
+          }),
         });
-
         const data = await res.json();
-        if (!res.ok) {
-          setMsg({ type: "error", text: data.error || "Failed to save settings" });
-          return;
-        }
-
-        setMsg({
-          type: "success",
-          text: isFr ? "Paramètres enregistrés avec succès !" : "Settings saved successfully!",
-        });
-      } catch {
-        setMsg({ type: "error", text: "Network error" });
+        if (!res.ok) throw new Error(data.error || "Save failed");
+        setMsg(isFr ? "Profil enregistr\u00e9" : "Profile saved");
+      } catch (e: any) {
+        setErr(e.message || "Error");
       }
     });
   };
 
-  const handleChangePassword = (e: React.FormEvent) => {
+  const changePassword = (e: React.FormEvent) => {
     e.preventDefault();
-    setPassMsg(null);
-
+    setMsg("");
+    setErr("");
+    if (passwords.newPassword !== passwords.confirmPassword) {
+      setErr(isFr ? "Les mots de passe ne correspondent pas" : "Passwords do not match");
+      return;
+    }
     startTransition(async () => {
       try {
         const res = await fetch("/api/affiliate/change-password", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(passData),
+          body: JSON.stringify(passwords),
         });
-
         const data = await res.json();
-        if (!res.ok) {
-          setPassMsg({ type: "error", text: data.error || "Failed to update password" });
-          return;
-        }
-
-        setPassMsg({
-          type: "success",
-          text: isFr ? "Mot de passe mis à jour avec succès !" : "Password updated successfully!",
-        });
-        setPassData({ currentPassword: "", newPassword: "" });
-      } catch {
-        setPassMsg({ type: "error", text: "Network error" });
+        if (!res.ok) throw new Error(data.error || "Failed");
+        setMsg(isFr ? "Mot de passe mis \u00e0 jour" : "Password updated");
+        setPasswords({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      } catch (e: any) {
+        setErr(e.message || "Error");
       }
     });
   };
 
+  if (loading) {
+    return (
+      <div className="flex justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-[#CA3F2E]" />
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-8 max-w-4xl">
+    <div className="space-y-8 max-w-2xl">
       <div>
-        <Link
-          href={`/${locale}/affiliate/dashboard`}
-          className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-white mb-2 transition-colors"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          {isFr ? "Retour au tableau de bord" : "Back to dashboard"}
-        </Link>
         <h1 className="text-2xl font-bold">
-          {isFr ? "Paramètres du Compte" : "Account Settings"}
+          {isFr ? "Param\u00e8tres" : "Settings"}
         </h1>
-        <p className="text-xs text-gray-400 mt-1">
+        <p className="text-sm text-gray-400 mt-1">
           {isFr
-            ? "Mettez à jour vos coordonnées, vos informations bancaires de virement et votre mot de passe."
-            : "Update your profile, payout bank credentials, and security password."}
+            ? "Mettez \u00e0 jour votre profil et votre portefeuille USDT TRC20."
+            : "Update your profile and USDT TRC20 payout wallet."}
         </p>
       </div>
 
-      {/* PROFILE & BANK SETTINGS FORM */}
-      <div className="p-6 sm:p-8 rounded-2xl bg-white/[0.03] border border-white/10">
-        <h2 className="text-base font-bold mb-6 flex items-center gap-2">
-          <CreditCard className="w-4 h-4 text-[#CA3F2E]" />
-          {isFr ? "Informations Personnelles & Bancaires" : "Personal & Payout Details"}
-        </h2>
+      {msg && (
+        <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm">
+          {msg}
+        </div>
+      )}
+      {err && (
+        <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+          {err}
+        </div>
+      )}
 
-        {msg && (
-          <div
-            className={`mb-6 p-3 rounded-xl text-xs flex items-center gap-2 border ${
-              msg.type === "success"
-                ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
-                : "bg-red-500/10 border-red-500/30 text-red-400"
-            }`}
-          >
-            {msg.type === "success" ? (
-              <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-            ) : (
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            )}
-            <span>{msg.text}</span>
-          </div>
-        )}
+      <form onSubmit={saveProfile} className="p-6 sm:p-8 rounded-2xl bg-white/[0.03] border border-white/10 space-y-6">
+        <div className="flex items-center gap-2 text-sm font-bold text-white">
+          <User className="w-4 h-4 text-[#CA3F2E]" />
+          {isFr ? "Profil" : "Profile"}
+        </div>
 
-        <form onSubmit={handleSaveSettings} className="space-y-5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs text-gray-400 uppercase font-semibold mb-1.5">
-                {isFr ? "Nom Complet" : "Full Name"}
-              </label>
-              <input
-                type="text"
-                required
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-white text-xs focus:outline-none focus:border-[#CA3F2E]"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-400 uppercase font-semibold mb-1.5">
-                WhatsApp
-              </label>
-              <input
-                type="text"
-                value={formData.whatsapp}
-                onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-white text-xs focus:outline-none focus:border-[#CA3F2E]"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs text-gray-400 uppercase font-semibold mb-1.5">
-                {isFr ? "Pays" : "Country"}
-              </label>
-              <input
-                type="text"
-                value={formData.country}
-                onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-white text-xs focus:outline-none focus:border-[#CA3F2E]"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-400 uppercase font-semibold mb-1.5">
-                {isFr ? "Devise de Retrait Préférée" : "Preferred Payout Currency"}
-              </label>
-              <select
-                value={formData.preferredCurrency}
-                onChange={(e) => setFormData({ ...formData, preferredCurrency: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#181818] border border-white/10 text-white text-xs focus:outline-none focus:border-[#CA3F2E]"
-              >
-                <option value="USD">USD ($)</option>
-                <option value="NGN">NGN (₦)</option>
-                <option value="XOF">FCFA (XOF)</option>
-                <option value="EUR">EUR (€)</option>
-                <option value="GHS">GHS (GH₵)</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="pt-4 border-t border-white/10 space-y-4">
-            <h3 className="text-xs uppercase font-bold text-gray-400 tracking-wider">
-              {isFr ? "Coordonnées Bancaires (Pour Virement)" : "Bank Details (For Wire Transfer)"}
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs text-gray-400 uppercase font-semibold mb-1.5">
-                  {isFr ? "Nom de la Banque" : "Bank Name"}
-                </label>
-                <input
-                  type="text"
-                  placeholder={isFr ? "ex: UBA, Ecobank, Zenith..." : "e.g. Zenith Bank, GTBank..."}
-                  value={formData.bankName}
-                  onChange={(e) => setFormData({ ...formData, bankName: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-white text-xs focus:outline-none focus:border-[#CA3F2E]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs text-gray-400 uppercase font-semibold mb-1.5">
-                  {isFr ? "Numéro de Compte / IBAN" : "Account Number / IBAN"}
-                </label>
-                <input
-                  type="text"
-                  value={formData.bankAccount}
-                  onChange={(e) => setFormData({ ...formData, bankAccount: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-white text-xs focus:outline-none focus:border-[#CA3F2E]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs text-gray-400 uppercase font-semibold mb-1.5">
-                  {isFr ? "Titulaire du Compte" : "Account Holder Name"}
-                </label>
-                <input
-                  type="text"
-                  value={formData.bankAccountName}
-                  onChange={(e) => setFormData({ ...formData, bankAccountName: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-white text-xs focus:outline-none focus:border-[#CA3F2E]"
-                />
-              </div>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={isPending}
-            className="py-3 px-6 rounded-xl bg-[#CA3F2E] hover:bg-[#8B2A1E] text-white font-semibold text-xs transition-all disabled:opacity-50 flex items-center gap-2"
-          >
-            {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
-            <span>{isFr ? "Enregistrer les modifications" : "Save Changes"}</span>
-          </button>
-        </form>
-      </div>
-
-      {/* PASSWORD CHANGE FORM */}
-      <div className="p-6 sm:p-8 rounded-2xl bg-white/[0.03] border border-white/10">
-        <h2 className="text-base font-bold mb-6 flex items-center gap-2">
-          <Lock className="w-4 h-4 text-amber-400" />
-          {isFr ? "Changer de Mot de Passe" : "Change Password"}
-        </h2>
-
-        {passMsg && (
-          <div
-            className={`mb-6 p-3 rounded-xl text-xs flex items-center gap-2 border ${
-              passMsg.type === "success"
-                ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
-                : "bg-red-500/10 border-red-500/30 text-red-400"
-            }`}
-          >
-            {passMsg.type === "success" ? (
-              <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-            ) : (
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            )}
-            <span>{passMsg.text}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleChangePassword} className="space-y-4 max-w-md">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs text-gray-400 uppercase font-semibold mb-1.5">
-              {isFr ? "Mot de Passe Actuel" : "Current Password"}
-            </label>
+            <label className="block text-xs text-gray-400 mb-1.5">{isFr ? "Nom" : "Name"}</label>
             <input
-              type="password"
-              required
-              value={passData.currentPassword}
-              onChange={(e) => setPassData({ ...passData, currentPassword: e.target.value })}
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-white text-xs focus:outline-none focus:border-[#CA3F2E]"
             />
           </div>
-
           <div>
-            <label className="block text-xs text-gray-400 uppercase font-semibold mb-1.5">
-              {isFr ? "Nouveau Mot de Passe" : "New Password"}
-            </label>
+            <label className="block text-xs text-gray-400 mb-1.5">{isFr ? "T\u00e9l\u00e9phone" : "Phone"}</label>
             <input
-              type="password"
-              required
-              value={passData.newPassword}
-              onChange={(e) => setPassData({ ...passData, newPassword: e.target.value })}
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-white text-xs focus:outline-none focus:border-[#CA3F2E]"
             />
           </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5">WhatsApp</label>
+            <input
+              value={formData.whatsapp}
+              onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
+              className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-white text-xs focus:outline-none focus:border-[#CA3F2E]"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5">{isFr ? "Pays" : "Country"}</label>
+            <input
+              value={formData.country}
+              onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+              className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-white text-xs focus:outline-none focus:border-[#CA3F2E]"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5">{isFr ? "Ville" : "City"}</label>
+            <input
+              value={formData.city}
+              onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+              className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-white text-xs focus:outline-none focus:border-[#CA3F2E]"
+            />
+          </div>
+        </div>
 
-          <button
-            type="submit"
-            disabled={isPending}
-            className="py-3 px-6 rounded-xl bg-white/10 hover:bg-white/15 text-white font-semibold text-xs transition-all disabled:opacity-50 flex items-center gap-2"
-          >
-            {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
-            <span>{isFr ? "Mettre à jour le mot de passe" : "Update Password"}</span>
-          </button>
-        </form>
-      </div>
+        <div className="pt-4 border-t border-white/10 space-y-4">
+          <div className="flex items-center gap-2 text-sm font-bold text-white">
+            <Wallet className="w-4 h-4 text-[#CA3F2E]" />
+            {isFr ? "Portefeuille de paiement (USDT TRC20)" : "Payout Wallet (USDT TRC20)"}
+          </div>
+          <p className="text-xs text-gray-400">
+            {isFr
+              ? "Les retraits affili\u00e9s sont envoy\u00e9s uniquement en USDT sur le r\u00e9seau TRC20 (Tron)."
+              : "Affiliate withdrawals are paid only in USDT on the TRC20 (Tron) network."}
+          </p>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5">
+              {isFr ? "Adresse USDT TRC20 *" : "USDT TRC20 Address *"}
+            </label>
+            <input
+              value={formData.bankAccount}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  bankAccount: e.target.value,
+                  bankName: "USDT-TRC20",
+                  bankAccountName: "USDT TRC20 Wallet",
+                })
+              }
+              placeholder="TXyz... (34 characters)"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-[#CA3F2E]"
+            />
+            <p className="mt-1 text-[11px] text-gray-500">
+              Network: <span className="text-[#CA3F2E] font-semibold">TRC20</span>
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={isPending}
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#CA3F2E] hover:bg-[#8B2A1E] text-white text-sm font-semibold disabled:opacity-50"
+        >
+          {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+          {isFr ? "Enregistrer" : "Save changes"}
+        </button>
+      </form>
+
+      <form onSubmit={changePassword} className="p-6 sm:p-8 rounded-2xl bg-white/[0.03] border border-white/10 space-y-4">
+        <div className="flex items-center gap-2 text-sm font-bold text-white">
+          <Lock className="w-4 h-4 text-[#CA3F2E]" />
+          {isFr ? "S\u00e9curit\u00e9" : "Security"}
+        </div>
+        <div>
+          <label className="block text-xs text-gray-400 mb-1.5">
+            {isFr ? "Mot de passe actuel" : "Current password"}
+          </label>
+          <input
+            type="password"
+            value={passwords.currentPassword}
+            onChange={(e) => setPasswords({ ...passwords, currentPassword: e.target.value })}
+            className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-white text-xs focus:outline-none focus:border-[#CA3F2E]"
+          />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-400 mb-1.5">
+            {isFr ? "Nouveau mot de passe" : "New password"}
+          </label>
+          <input
+            type="password"
+            value={passwords.newPassword}
+            onChange={(e) => setPasswords({ ...passwords, newPassword: e.target.value })}
+            className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-white text-xs focus:outline-none focus:border-[#CA3F2E]"
+          />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-400 mb-1.5">
+            {isFr ? "Confirmer" : "Confirm"}
+          </label>
+          <input
+            type="password"
+            value={passwords.confirmPassword}
+            onChange={(e) => setPasswords({ ...passwords, confirmPassword: e.target.value })}
+            className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-white text-xs focus:outline-none focus:border-[#CA3F2E]"
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={isPending}
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-sm font-semibold disabled:opacity-50"
+        >
+          {isFr ? "Changer le mot de passe" : "Change password"}
+        </button>
+      </form>
     </div>
   );
 }

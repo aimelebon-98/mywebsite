@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { vendors, vendorSessions, affiliates, affiliateSessions, customers, customerSessions } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -82,7 +82,7 @@ export async function GET(req: NextRequest) {
 
       if (existingAff.length > 0) {
         affId = existingAff[0].id;
-        isNew = existingAff[0].status === "incomplete";
+        isNew = existingAff[0].status === "incomplete" || !existingAff[0].bankAccount;
       } else {
         affId = crypto.randomUUID();
         isNew = true;

@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -15,6 +15,7 @@ import {
   ArrowRight,
   ExternalLink,
   Wallet,
+  Loader2,
 } from "lucide-react";
 
 const AffiliateOnboardingModal = dynamic(
@@ -34,6 +35,8 @@ interface AffiliateData {
   totalClicks: number;
   totalOrders: number;
   status?: string;
+  bankAccount?: string | null;
+  bankName?: string | null;
 }
 
 interface OrderItem {
@@ -46,20 +49,35 @@ interface OrderItem {
   createdAt: string;
 }
 
-export default function AffiliateDashboardOverview() {
+function AffiliateDashboardInner() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
   const locale = (params?.locale as string) || "en";
   const isFr = locale === "fr";
+  const forceSetupParam = searchParams.get("setup") === "1";
 
   const [affiliate, setAffiliate] = useState<AffiliateData | null>(null);
   const [orders, setOrders] = useState<OrderItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [copiedGeneral, setCopiedGeneral] = useState(false);
   const [deepLinkInput, setDeepLinkInput] = useState("");
   const [generatedDeepLink, setGeneratedDeepLink] = useState("");
   const [copiedDeep, setCopiedDeep] = useState(false);
   const [showWizard, setShowWizard] = useState(false);
+
+  const needsSetup = (a: AffiliateData | null) => {
+    if (!a) return forceSetupParam;
+    if (a.status === "incomplete") return true;
+    if (forceSetupParam) return true;
+    // No USDT wallet yet
+    if (!a.bankAccount || String(a.bankAccount).trim().length < 10) return true;
+    if (a.bankName && a.bankName !== "USDT-TRC20" && !String(a.bankAccount).startsWith("T")) {
+      // legacy bank details without wallet — still allow dashboard
+      return false;
+    }
+    return false;
+  };
 
   const fetchAffiliate = useCallback(async () => {
     try {
@@ -67,27 +85,58 @@ export default function AffiliateDashboardOverview() {
       const d = await res.json();
       if (d?.affiliate) {
         setAffiliate(d.affiliate);
-        if (d.affiliate.status === "incomplete") {
+        if (needsSetup(d.affiliate) || forceSetupParam || d.affiliate.status === "incomplete") {
           setShowWizard(true);
         }
       }
     } catch (e) {
       console.error("Failed to load affiliate profile:", e);
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  }, [forceSetupParam]);
 
   useEffect(() => {
-    if (searchParams.get("setup") === "1") {
-      setShowWizard(true);
-    }
+    if (forceSetupParam) setShowWizard(true);
     fetchAffiliate();
-
     fetch("/api/affiliate/orders")
       .then((r) => r.json())
-      .then((d) => d?.orders && setOrders(d.orders.slice(0, 5)));
-  }, [searchParams, fetchAffiliate]);
+      .then((d) => d?.orders && setOrders(d.orders.slice(0, 5)))
+      .catch(() => {});
+  }, [forceSetupParam, fetchAffiliate]);
 
-  if (!affiliate) return null;
+  const handleWizardComplete = () => {
+    setShowWizard(false);
+    if (forceSetupParam) {
+      router.replace(`/${locale}/affiliate/dashboard`);
+    }
+    setLoading(true);
+    fetchAffiliate();
+  };
+
+  // LOADING — never flash dashboard
+  if (loading || !affiliate) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
+        <Loader2 className="w-8 h-8 animate-spin text-[#CA3F2E]" />
+        <p className="text-xs text-gray-400">
+          {isFr ? "Chargement de votre espace affili\u00e9..." : "Loading your affiliate space..."}
+        </p>
+      </div>
+    );
+  }
+
+  // WIZARD ONLY — full screen, no dashboard underneath
+  if (showWizard || affiliate.status === "incomplete") {
+    return (
+      <AffiliateOnboardingModal
+        locale={locale}
+        affiliateCode={affiliate.code}
+        onComplete={handleWizardComplete}
+        forceSetup={true}
+      />
+    );
+  }
 
   const isPending = affiliate.status === "pending";
   const defaultRefUrl = `https://www.newdealzone.com/${locale}?ref=${affiliate.code}`;
@@ -106,7 +155,6 @@ export default function AffiliateDashboardOverview() {
   const handleGenerateDeepLink = (e: React.FormEvent) => {
     e.preventDefault();
     if (!deepLinkInput.trim()) return;
-
     try {
       const url = new URL(deepLinkInput.trim());
       url.searchParams.set("ref", affiliate.code);
@@ -123,23 +171,14 @@ export default function AffiliateDashboardOverview() {
       ? ((affiliate.totalOrders / affiliate.totalClicks) * 100).toFixed(1)
       : "0.0";
 
-  const handleWizardComplete = () => {
-    setShowWizard(false);
-    fetchAffiliate();
-    if (searchParams.get("setup") === "1") {
-      router.replace(`/${locale}/affiliate/dashboard`);
-    }
-  };
-
   return (
     <div className="space-y-8 min-w-0">
       {isPending && <PendingApprovalBanner isFr={isFr} type="affiliate" />}
 
-      {/* WELCOME BANNER */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-white/[0.06] to-white/[0.02] border border-white/10">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">
-            {isFr ? `Bonjour, ${affiliate.name} 👋` : `Welcome, ${affiliate.name} 👋`}
+            {isFr ? `Bonjour, ${affiliate.name}` : `Welcome, ${affiliate.name}`}
           </h1>
           <p className="text-gray-400 text-xs sm:text-sm mt-1">
             {isFr
@@ -147,30 +186,16 @@ export default function AffiliateDashboardOverview() {
               : "Earn up to 50% commission on SMZ AI Bot subscriptions (5% on physical products)."}
           </p>
         </div>
-
-        <div className="flex items-center gap-3 self-start sm:self-auto">
-          {affiliate.status === "incomplete" && !showWizard && (
-            <button
-              onClick={() => setShowWizard(true)}
-              className="px-4 py-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs transition-all shadow-lg"
-            >
-              {isFr ? "Compl\u00e9ter Profil" : "Complete Setup"}
-            </button>
-          )}
-
-          <Link
-            href={`/${locale}/affiliate/dashboard/payouts`}
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#CA3F2E] hover:bg-[#8B2A1E] text-white font-semibold text-sm transition-all shadow-lg shadow-[#CA3F2E]/20"
-          >
-            <Wallet className="w-4 h-4" />
-            <span>{isFr ? "Demander un Retrait" : "Request Payout"}</span>
-          </Link>
-        </div>
+        <Link
+          href={`/${locale}/affiliate/dashboard/payouts`}
+          className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#CA3F2E] hover:bg-[#8B2A1E] text-white font-semibold text-sm transition-all self-start sm:self-auto shadow-lg shadow-[#CA3F2E]/20"
+        >
+          <Wallet className="w-4 h-4" />
+          <span>{isFr ? "Demander un Retrait" : "Request Payout"}</span>
+        </Link>
       </div>
 
-      {/* STATS CARDS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Pending Payout */}
         <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/10">
           <div className="flex items-center justify-between text-gray-400 mb-2">
             <span className="text-xs uppercase tracking-wider font-semibold">
@@ -182,11 +207,9 @@ export default function AffiliateDashboardOverview() {
             ${parseFloat(affiliate.pendingPayout || "0").toFixed(2)}
           </p>
           <p className="text-[11px] text-gray-400 mt-1">
-            {isFr ? "Min. $20 pour retrait" : "Min. $20 to withdraw"}
+            {isFr ? "Min. $20 pour retrait (USDT TRC20)" : "Min. $20 to withdraw (USDT TRC20)"}
           </p>
         </div>
-
-        {/* Lifetime Earnings */}
         <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/10">
           <div className="flex items-center justify-between text-gray-400 mb-2">
             <span className="text-xs uppercase tracking-wider font-semibold">
@@ -201,8 +224,6 @@ export default function AffiliateDashboardOverview() {
             {isFr ? "Depuis votre inscription" : "Lifetime affiliate revenue"}
           </p>
         </div>
-
-        {/* Total Orders */}
         <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/10">
           <div className="flex items-center justify-between text-gray-400 mb-2">
             <span className="text-xs uppercase tracking-wider font-semibold">
@@ -210,15 +231,11 @@ export default function AffiliateDashboardOverview() {
             </span>
             <ShoppingBag className="w-4 h-4 text-blue-400" />
           </div>
-          <p className="text-2xl sm:text-3xl font-bold text-white">
-            {affiliate.totalOrders || 0}
-          </p>
+          <p className="text-2xl sm:text-3xl font-bold text-white">{affiliate.totalOrders || 0}</p>
           <p className="text-[11px] text-gray-400 mt-1">
             {isFr ? "Commandes valid\u00e9es" : "Completed purchases"}
           </p>
         </div>
-
-        {/* Clicks & CVR */}
         <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/10">
           <div className="flex items-center justify-between text-gray-400 mb-2">
             <span className="text-xs uppercase tracking-wider font-semibold">
@@ -228,9 +245,7 @@ export default function AffiliateDashboardOverview() {
           </div>
           <p className="text-2xl sm:text-3xl font-bold text-white">
             {affiliate.totalClicks || 0}
-            <span className="text-xs font-normal text-gray-400 ml-2">
-              ({conversionRate}%)
-            </span>
+            <span className="text-xs font-normal text-gray-400 ml-2">({conversionRate}%)</span>
           </p>
           <p className="text-[11px] text-gray-400 mt-1">
             {isFr ? "30 jours de suivi cookie" : "30-day tracking window"}
@@ -238,9 +253,7 @@ export default function AffiliateDashboardOverview() {
         </div>
       </div>
 
-      {/* REFERRAL LINK TOOLS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Main Referral Link Card */}
         <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/10 flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-2 text-xs font-semibold text-[#CA3F2E] uppercase tracking-wider mb-2">
@@ -255,12 +268,10 @@ export default function AffiliateDashboardOverview() {
                 ? "Partagez ce lien sur vos r\u00e9seaux. Tout achat r\u00e9alis\u00e9 sous 30 jours vous rapporte une commission."
                 : "Share this link in your bios or messages. Any sale within 30 days earns you commission."}
             </p>
-
             <div className="mt-4 p-3 rounded-xl bg-black/60 border border-white/10 font-mono text-xs text-gray-300 break-all select-all">
               {defaultRefUrl}
             </div>
           </div>
-
           <div className="mt-6">
             <button
               onClick={() => copyToClipboard(defaultRefUrl, false)}
@@ -269,7 +280,7 @@ export default function AffiliateDashboardOverview() {
               {copiedGeneral ? (
                 <>
                   <CheckCheck className="w-4 h-4" />
-                  <span>{isFr ? "Copi\u00e9 dans le presse-papier !" : "Copied to clipboard!"}</span>
+                  <span>{isFr ? "Copi\u00e9 !" : "Copied!"}</span>
                 </>
               ) : (
                 <>
@@ -281,7 +292,6 @@ export default function AffiliateDashboardOverview() {
           </div>
         </div>
 
-        {/* Deep Link Generator */}
         <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/10 flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-2 text-xs font-semibold text-blue-400 uppercase tracking-wider mb-2">
@@ -289,14 +299,8 @@ export default function AffiliateDashboardOverview() {
               {isFr ? "G\u00e9n\u00e9rateur de Liens Produits" : "Product Deep Link Generator"}
             </div>
             <h3 className="text-lg font-bold">
-              {isFr ? "Cr\u00e9ez un lien vers un produit ou abonnement" : "Link directly to any product/subscription"}
+              {isFr ? "Cr\u00e9ez un lien vers un produit" : "Link directly to any product"}
             </h3>
-            <p className="text-xs text-gray-400 mt-1">
-              {isFr
-                ? "Collez l'URL d'un produit ou abonnement pour g\u00e9n\u00e9rer votre lien affili\u00e9 d\u00e9di\u00e9."
-                : "Paste any product URL from our shop to create your custom tracked link."}
-            </p>
-
             <form onSubmit={handleGenerateDeepLink} className="mt-4 space-y-3">
               <input
                 type="text"
@@ -312,12 +316,9 @@ export default function AffiliateDashboardOverview() {
                 {isFr ? "G\u00e9n\u00e9rer le lien affili\u00e9" : "Generate Deep Link"}
               </button>
             </form>
-
             {generatedDeepLink && (
               <div className="mt-4 p-3 rounded-xl bg-blue-950/40 border border-blue-500/30">
-                <p className="font-mono text-xs text-blue-200 break-all select-all">
-                  {generatedDeepLink}
-                </p>
+                <p className="font-mono text-xs text-blue-200 break-all select-all">{generatedDeepLink}</p>
                 <button
                   onClick={() => copyToClipboard(generatedDeepLink, true)}
                   className="mt-2 text-xs text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1"
@@ -340,7 +341,6 @@ export default function AffiliateDashboardOverview() {
         </div>
       </div>
 
-      {/* RECENT REFERRED ORDERS TABLE */}
       <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/10">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold">
@@ -354,12 +354,11 @@ export default function AffiliateDashboardOverview() {
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
-
         {orders.length === 0 ? (
           <div className="text-center py-10 text-gray-400 text-xs">
             {isFr
-              ? "Aucune commande pour le moment. Partagez votre lien pour commencer \u00e0 encaisser des commissions !"
-              : "No referred orders yet. Share your link to start generating commissions!"}
+              ? "Aucune commande pour le moment. Partagez votre lien !"
+              : "No referred orders yet. Share your link to start earning!"}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -377,9 +376,7 @@ export default function AffiliateDashboardOverview() {
                 {orders.map((ord) => (
                   <tr key={ord.id}>
                     <td className="py-3 px-2 font-mono text-white">#{ord.orderId.slice(0, 8)}</td>
-                    <td className="py-3 px-2">
-                      {new Date(ord.createdAt).toLocaleDateString()}
-                    </td>
+                    <td className="py-3 px-2">{new Date(ord.createdAt).toLocaleDateString()}</td>
                     <td className="py-3 px-2">${parseFloat(ord.subtotal).toFixed(2)}</td>
                     <td className="py-3 px-2 font-semibold text-emerald-400">
                       +${parseFloat(ord.commissionAmount).toFixed(2)}
@@ -396,16 +393,20 @@ export default function AffiliateDashboardOverview() {
           </div>
         )}
       </div>
-
-      {/* POPUP WIZARD OVERLAY */}
-      {showWizard && (
-        <AffiliateOnboardingModal
-          locale={locale}
-          affiliateCode={affiliate.code}
-          onComplete={handleWizardComplete}
-          onSkip={() => setShowWizard(false)}
-        />
-      )}
     </div>
+  );
+}
+
+export default function AffiliateDashboardOverview() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex justify-center py-20">
+          <Loader2 className="w-8 h-8 animate-spin text-[#CA3F2E]" />
+        </div>
+      }
+    >
+      <AffiliateDashboardInner />
+    </Suspense>
   );
 }
