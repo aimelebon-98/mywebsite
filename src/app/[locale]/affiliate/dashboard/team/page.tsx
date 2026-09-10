@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
@@ -15,6 +15,10 @@ import {
   Copy,
   CheckCheck,
   UserPlus,
+  ShieldCheck,
+  ShieldAlert,
+  Calendar,
+  ArrowRight,
 } from "lucide-react";
 
 interface TeamMember {
@@ -49,6 +53,8 @@ interface NetworkData {
   affiliate: {
     code: string;
     commissionRate: string;
+    isOverrideEligible: boolean;
+    subscriptionExpiresAt: string | null;
   };
 }
 
@@ -105,6 +111,14 @@ export default function AffiliateTeamPage() {
   const totalTeamOrders = team.reduce((s, m) => s + (m.totalOrders || 0), 0);
   const totalDownlines = team.reduce((s, m) => s + (m.downlineCount || 0), 0);
 
+  const isEligible = data.affiliate?.isOverrideEligible;
+  const expiresDateStr = data.affiliate?.subscriptionExpiresAt
+    ? new Date(data.affiliate.subscriptionExpiresAt).toLocaleDateString(
+        isFr ? "fr-FR" : "en-US",
+        { year: "numeric", month: "short", day: "numeric" }
+      )
+    : null;
+
   return (
     <div className="space-y-8 min-w-0">
       {/* Header */}
@@ -134,6 +148,70 @@ export default function AffiliateTeamPage() {
             ? "Copier lien recrutement"
             : "Copy recruit link"}
         </button>
+      </div>
+
+      {/* OVERRIDE ELIGIBILITY & EXPIRATION STATUS BANNER */}
+      <div
+        className={`p-5 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
+          isEligible
+            ? "bg-emerald-950/40 border-emerald-500/30 text-emerald-200"
+            : "bg-amber-950/40 border-amber-500/30 text-amber-200"
+        }`}
+      >
+        <div className="flex items-start gap-3">
+          {isEligible ? (
+            <ShieldCheck className="w-6 h-6 text-emerald-400 flex-shrink-0 mt-0.5" />
+          ) : (
+            <ShieldAlert className="w-6 h-6 text-amber-400 flex-shrink-0 mt-0.5" />
+          )}
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="font-bold text-sm text-white">
+                {isEligible
+                  ? isFr
+                    ? "Commissions L2 (10%) & L3 (5%) Actives"
+                    : "Level 2 (10%) & Level 3 (5%) Overrides Active"
+                  : isFr
+                  ? "Commissions L2 & L3 Verrouill\u00e9es"
+                  : "Level 2 (10%) & Level 3 (5%) Overrides Locked"}
+              </h3>
+              {isEligible ? (
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold uppercase border border-emerald-500/30">
+                  {isFr ? "\u00c9ligible" : "Eligible"}
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold uppercase border border-amber-500/30">
+                  {isFr ? "Non \u00c9ligible" : "Ineligible"}
+                </span>
+              )}
+            </div>
+            <p className="text-xs opacity-85 mt-1 leading-relaxed max-w-2xl">
+              {isEligible
+                ? isFr
+                  ? "Votre abonnement SMZ Bot est actif. Vous recevez toutes les commissions d'overrides sur les ventes de votre \u00e9quipe."
+                  : "Your SMZ Bot subscription is active. You receive all multi-level override commissions from team software sales."
+                : isFr
+                ? "Un abonnement actif au SMZ Bot Pro est requis pour d\u00e9bloquer les overrides L2 (10%) et L3 (5%) g\u00e9n\u00e9r\u00e9s par votre \u00e9quipe."
+                : "An active SMZ Bot Pro subscription is required to unlock Level 2 (10%) and Level 3 (5%) team overrides."}
+            </p>
+            {expiresDateStr && (
+              <p className="text-[11px] font-mono mt-2 text-emerald-300 flex items-center gap-1.5 font-semibold">
+                <Calendar className="w-3.5 h-3.5" />
+                {isFr ? "Expiration de l'abonnement :" : "Subscription Expires:"} {expiresDateStr}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {!isEligible && (
+          <Link
+            href={`/${locale}/product/smz-ai-trading-bot-pro`}
+            className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs shadow-md transition-all flex items-center gap-1.5 flex-shrink-0"
+          >
+            {isFr ? "Activer SMZ Bot Pro" : "Activate SMZ Bot Pro"}
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        )}
       </div>
 
       {/* KPI cards */}
@@ -196,31 +274,37 @@ export default function AffiliateTeamPage() {
             </p>
             <p className="text-xs text-emerald-300/80 mt-1">
               {data.commissions.level1.count}{" "}
-              {isFr ? "ventes" : "sales"} · {data.affiliate?.commissionRate || "5"}%
+              {isFr ? "ventes" : "sales"} · 5% (Physique) / 50% (SMZ)
             </p>
           </div>
           <div className="p-4 rounded-xl bg-sky-500/10 border border-sky-500/25">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-sky-400">
-              Level 2 — {isFr ? "Override \u00e9quipe" : "Team override"}
+            <p className="text-[10px] font-bold uppercase tracking-wider text-sky-400 flex items-center justify-between">
+              <span>Level 2 — {isFr ? "Override \u00e9quipe" : "Team override"}</span>
+              <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${isEligible ? "bg-emerald-500/20 text-emerald-300" : "bg-amber-500/20 text-amber-300"}`}>
+                {isEligible ? "ACTIVE" : "LOCKED"}
+              </span>
             </p>
             <p className="text-2xl font-black text-white mt-1">
               ${data.commissions.level2.amount}
             </p>
             <p className="text-xs text-sky-300/80 mt-1">
               {data.commissions.level2.count}{" "}
-              {isFr ? "overrides" : "overrides"} · ~10%
+              {isFr ? "overrides" : "overrides"} · 10% (SMZ Bot)
             </p>
           </div>
           <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/25">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-purple-400">
-              Level 3 — {isFr ? "Override profond" : "Deep override"}
+            <p className="text-[10px] font-bold uppercase tracking-wider text-purple-400 flex items-center justify-between">
+              <span>Level 3 — {isFr ? "Override profond" : "Deep override"}</span>
+              <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${isEligible ? "bg-emerald-500/20 text-emerald-300" : "bg-amber-500/20 text-amber-300"}`}>
+                {isEligible ? "ACTIVE" : "LOCKED"}
+              </span>
             </p>
             <p className="text-2xl font-black text-white mt-1">
               ${data.commissions.level3.amount}
             </p>
             <p className="text-xs text-purple-300/80 mt-1">
               {data.commissions.level3.count}{" "}
-              {isFr ? "overrides" : "overrides"} · ~5%
+              {isFr ? "overrides" : "overrides"} · 5% (SMZ Bot)
             </p>
           </div>
         </div>
@@ -304,8 +388,8 @@ export default function AffiliateTeamPage() {
             </p>
             <p>
               {isFr
-                ? "L1 = clients qui ach\u00e8tent via votre lien. L2 = affili\u00e9s que vous recrutez (et leurs ventes). L3 = affili\u00e9s recrut\u00e9s par votre \u00e9quipe. Vous gagnez des overrides sur L2 et L3."
-                : "L1 = customers who buy via your link. L2 = affiliates you recruit (and their sales). L3 = affiliates recruited by your team. You earn overrides on L2 and L3."}
+                ? "L1 = 5% sur produits physiques / 50% sur SMZ Bot. L2 (10%) & L3 (5%) = overrides sur les ventes de logiciel SMZ de votre \u00e9quipe (n\u00e9cessite un abonnement actif au SMZ Bot Pro)."
+                : "L1 = 5% on physical products / 50% on SMZ Bot. L2 (10%) & L3 (5%) = overrides on SMZ software sales by your team (requires active SMZ Bot Pro subscription)."}
             </p>
           </div>
         </div>

@@ -4,8 +4,9 @@ import {
   affiliates,
   affiliateOrders,
   affiliateClicks,
+  subscriptions,
 } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import { getCurrentAffiliate } from "@/lib/affiliate-auth";
 
 export const dynamic = "force-dynamic";
@@ -20,6 +21,33 @@ export async function GET() {
   try {
     const aff = await getCurrentAffiliate();
     if (!aff) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    // Check active subscription status & expiration date
+    let isOverrideEligible = false;
+    let subscriptionExpiresAt: string | null = null;
+    try {
+      const subRows = await db
+        .select({ status: subscriptions.status, expiresAt: subscriptions.expiresAt })
+        .from(subscriptions)
+        .where(
+          and(
+            eq(subscriptions.customerEmail, aff.email.toLowerCase().trim()),
+            eq(subscriptions.status, "active")
+          )
+        )
+        .orderBy(desc(subscriptions.expiresAt))
+        .limit(1);
+
+      if (subRows.length > 0) {
+        const sub = subRows[0];
+        if (sub.expiresAt && new Date(sub.expiresAt) > new Date()) {
+          isOverrideEligible = true;
+          subscriptionExpiresAt = new Date(sub.expiresAt).toISOString();
+        }
+      }
+    } catch (e) {
+      console.error("Subscription check error:", e);
+    }
 
     // Team members (L2 downline)
     const team = await db.select({
@@ -71,6 +99,8 @@ export async function GET() {
         id: aff.id, name: aff.name, email: aff.email, code: aff.code, status: aff.status,
         commissionRate: aff.commissionRate, totalClicks: aff.totalClicks, totalOrders: aff.totalOrders,
         totalEarnings: aff.totalEarnings, pendingPayout: aff.pendingPayout, totalPaidOut: aff.totalPaidOut,
+        isOverrideEligible,
+        subscriptionExpiresAt,
       },
       team: teamWithKids,
       teamSize: teamWithKids.length,
