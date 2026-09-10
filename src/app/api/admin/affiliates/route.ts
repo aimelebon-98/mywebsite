@@ -6,8 +6,8 @@ import { requireAdmin } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: NextRequest) {
-  const adminCheck = await requireAdmin(req);
+export async function GET() {
+  const adminCheck = await requireAdmin();
   if (adminCheck) return adminCheck;
 
   try {
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const adminCheck = await requireAdmin(req);
+  const adminCheck = await requireAdmin();
   if (adminCheck) return adminCheck;
 
   try {

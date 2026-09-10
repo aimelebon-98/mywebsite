@@ -1,28 +1,35 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-  const locale = req.nextUrl.searchParams.get("locale") || "en";
-  const role = req.nextUrl.searchParams.get("role") || "customer";
   const clientId = process.env.GOOGLE_CLIENT_ID;
-
   if (!clientId) {
-    return NextResponse.redirect(
-      new URL(`/${locale}/account/login?error=oauth_not_configured`, req.nextUrl.origin)
+    return NextResponse.json(
+      { error: "Google OAuth not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in Vercel env vars." },
+      { status: 501 }
     );
   }
-  const redirectUri = `${req.nextUrl.origin}/api/auth/google/callback`;
-  const state = Buffer.from(JSON.stringify({ locale, role })).toString("base64url");
 
-  const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
-  url.searchParams.set("client_id", clientId);
-  url.searchParams.set("redirect_uri", redirectUri);
-  url.searchParams.set("response_type", "code");
-  url.searchParams.set("scope", "openid email profile");
-  url.searchParams.set("state", state);
-  url.searchParams.set("access_type", "online");
-  url.searchParams.set("prompt", "select_account");
+  const locale = req.nextUrl.searchParams.get("locale") || "en";
+  const role = req.nextUrl.searchParams.get("role") || "vendor";
 
-  return NextResponse.redirect(url);
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || "https://www.newdealzone.com";
+  const redirectUri = `${appUrl}/api/auth/google/callback`;
+
+  // Encode state as base64 JSON
+  const stateObj = JSON.stringify({ locale, role });
+  const state = Buffer.from(stateObj).toString("base64");
+
+  const params = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: redirectUri,
+    response_type: "code",
+    scope: "openid email profile",
+    access_type: "offline",
+    state,
+    prompt: "select_account",
+  });
+
+  return NextResponse.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`);
 }

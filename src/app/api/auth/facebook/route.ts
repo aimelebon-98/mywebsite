@@ -1,30 +1,33 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-  const locale = req.nextUrl.searchParams.get("locale") || "en";
-  const role = req.nextUrl.searchParams.get("role") || "customer";
-  const appId =
-    process.env.FACEBOOK_CLIENT_ID ||
-    process.env.FACEBOOK_APP_ID ||
-    process.env.NEXT_PUBLIC_FACEBOOK_APP_ID;
-
-  if (!appId) {
-    return NextResponse.redirect(
-      new URL(`/${locale}/account/login?error=oauth_not_configured`, req.nextUrl.origin)
+  const clientId = process.env.FACEBOOK_APP_ID || process.env.FACEBOOK_CLIENT_ID;
+  if (!clientId) {
+    return NextResponse.json(
+      { error: "Facebook OAuth not configured. Set FACEBOOK_APP_ID and FACEBOOK_APP_SECRET in Vercel env vars." },
+      { status: 501 }
     );
   }
 
-  const redirectUri = `${req.nextUrl.origin}/api/auth/facebook/callback`;
-  const state = Buffer.from(JSON.stringify({ locale, role })).toString("base64url");
+  const locale = req.nextUrl.searchParams.get("locale") || "en";
+  const role = req.nextUrl.searchParams.get("role") || "vendor";
 
-  const url = new URL("https://www.facebook.com/v19.0/dialog/oauth");
-  url.searchParams.set("client_id", appId);
-  url.searchParams.set("redirect_uri", redirectUri);
-  url.searchParams.set("scope", "email public_profile");
-  url.searchParams.set("state", state);
-  url.searchParams.set("response_type", "code");
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || "https://www.newdealzone.com";
+  const redirectUri = `${appUrl}/api/auth/facebook/callback`;
 
-  return NextResponse.redirect(url);
+  // Encode state as base64 JSON
+  const stateObj = JSON.stringify({ locale, role });
+  const state = Buffer.from(stateObj).toString("base64");
+
+  const params = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: redirectUri,
+    response_type: "code",
+    scope: "email,public_profile",
+    state,
+  });
+
+  return NextResponse.redirect(`https://www.facebook.com/v19.0/dialog/oauth?${params.toString()}`);
 }
