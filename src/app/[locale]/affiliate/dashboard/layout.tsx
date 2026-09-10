@@ -113,6 +113,11 @@ export default function AffiliateDashboardLayout({
       icon: Users,
     },
     {
+      label: isFr ? "Arbre G\u00e9n\u00e9alogique" : "Genealogy Tree",
+      href: /\/affiliate/dashboard/genealogy,
+      icon: GitFork,
+    },
+    {
       label: isFr ? "Commandes Li\u00e9es" : "Referred Orders",
       href: `/${locale}/affiliate/dashboard/orders`,
       icon: ShoppingBag,
