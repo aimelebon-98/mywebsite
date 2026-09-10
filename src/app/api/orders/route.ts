@@ -375,15 +375,14 @@ export async function POST(request: NextRequest) {
       const cCurrency = currency || (insertedOrder as any)?.currency || "USD";
 
       if (insertedOrder?.id) {
-        processAffiliateAttribution({
+        const affResult = await processAffiliateAttribution({
           orderId: String(insertedOrder.id),
           subtotalUsd: isNaN(orderTotalNum) ? 0 : orderTotalNum,
           customerEmail: cEmail,
           customerPhone: cPhone,
           currency: cCurrency,
-        }).then((res) => {
-          console.log("[Orders POST] Affiliate attribution result:", JSON.stringify(res));
-        }).catch((err: unknown) => console.error("[Orders POST] Affiliate hook execution error:", err));
+        });
+        console.log("[Orders POST] Affiliate attribution result:", JSON.stringify(affResult));
       }
     } catch (e) {
       console.error("[Orders POST] Affiliate hook trigger error:", e);
