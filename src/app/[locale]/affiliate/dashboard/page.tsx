@@ -19,6 +19,8 @@ import {
   ShieldCheck,
   ShieldAlert,
   Calendar,
+  BarChart3,
+  TrendingUp,
 } from "lucide-react";
 
 const AffiliateOnboardingModal = dynamic(
@@ -70,6 +72,9 @@ function AffiliateDashboardInner() {
   const [copiedDeep, setCopiedDeep] = useState(false);
   const [showWizard, setShowWizard] = useState(false);
 
+  const [timeStats, setTimeStats] = useState({ today: 0, d7: 0, m30: 0 });
+  const [chartData, setChartData] = useState<{ date: string; amount: number; heightPct: number }[]>([]);
+
   const fetchAffiliate = useCallback(async () => {
     try {
       const res = await fetch("/api/affiliate/me");
@@ -94,11 +99,59 @@ function AffiliateDashboardInner() {
       setShowWizard(true);
     }
     fetchAffiliate();
+
     fetch("/api/affiliate/orders")
       .then((r) => r.json())
-      .then((d) => d?.orders && setOrders(d.orders.slice(0, 5)))
+      .then((d) => {
+        if (d?.orders) {
+          setOrders(d.orders.slice(0, 5));
+
+          // Calculate time-based stats and chart data
+          const now = new Date();
+          const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+          const startOf7DaysAgo = startOfToday - 6 * 24 * 60 * 60 * 1000;
+          const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+
+          let t = 0, d7 = 0, m30 = 0;
+          const dailyMap: Record<string, number> = {};
+          
+          for (let i = 6; i >= 0; i--) {
+            const dateObj = new Date(startOfToday - i * 24 * 60 * 60 * 1000);
+            const dateStr = dateObj.toLocaleDateString(isFr ? 'fr-FR' : 'en-US', { month: 'short', day: 'numeric' });
+            dailyMap[dateStr] = 0;
+          }
+
+          d.orders.forEach((o: OrderItem) => {
+            if (o.status === "cancelled" || o.status === "rejected") return;
+            
+            const amt = parseFloat(o.commissionAmount) || 0;
+            const oTime = new Date(o.createdAt).getTime();
+
+            if (oTime >= startOfToday) t += amt;
+            if (oTime >= startOf7DaysAgo) d7 += amt;
+            if (oTime >= startOfMonth) m30 += amt;
+
+            if (oTime >= startOf7DaysAgo) {
+              const dateStr = new Date(o.createdAt).toLocaleDateString(isFr ? 'fr-FR' : 'en-US', { month: 'short', day: 'numeric' });
+              if (dailyMap[dateStr] !== undefined) {
+                dailyMap[dateStr] += amt;
+              }
+            }
+          });
+
+          const maxDaily = Math.max(...Object.values(dailyMap), 1);
+          const cData = Object.entries(dailyMap).map(([date, amt]) => ({
+            date,
+            amount: amt as number,
+            heightPct: Math.round(((amt as number) / maxDaily) * 100)
+          }));
+
+          setTimeStats({ today: t, d7, m30 });
+          setChartData(cData);
+        }
+      })
       .catch(() => {});
-  }, [searchParams, fetchAffiliate]);
+  }, [searchParams, fetchAffiliate, isFr]);
 
   const handleWizardComplete = () => {
     setShowWizard(false);
@@ -187,7 +240,7 @@ function AffiliateDashboardInner() {
     <div className="space-y-8 min-w-0">
       {isPending && <PendingApprovalBanner isFr={isFr} type="affiliate" />}
 
-      {/* OVERRIDE ELIGIBILITY — ALWAYS VISIBLE ON OVERVIEW */}
+      {/* OVERRIDE ELIGIBILITY */}
       <div
         className={`p-5 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
           isEligible
@@ -228,8 +281,8 @@ function AffiliateDashboardInner() {
                   ? "Votre abonnement SMZ Bot est actif. Vous gagnez les overrides sur les ventes logicielles de votre \u00e9quipe L1 et L2."
                   : "Your SMZ Bot subscription is active. You earn overrides on software sales from your L1 and L2 team."
                 : isFr
-                ? "Activez SMZ Bot Pro pour d\u00e9bloquer 10% (L1 team) + 5% (L2 team) d'overrides sur les ventes logicielles."
-                : "Activate SMZ Bot Pro to unlock 10% (L1 team) + 5% (L2 team) overrides on software sales."}
+                ? "Activez SMZ Bot Pro pour d\u00e9bloquer les commissions de renouvellement (50%) et les overrides d'\u00e9quipe L2 (10%) + L3 (5%)."
+                : "Activate SMZ Bot Pro to unlock recurring renewal commissions (50%) and team overrides L2 (10%) + L3 (5%)."}
             </p>
             {expiresDateStr && (
               <p className="text-[11px] font-mono mt-2 text-emerald-300 flex items-center gap-1.5 font-semibold">
@@ -270,6 +323,7 @@ function AffiliateDashboardInner() {
         </div>
       )}
 
+      {/* Header Profile Box */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-white/[0.06] to-white/[0.02] border border-white/10">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">
@@ -290,6 +344,7 @@ function AffiliateDashboardInner() {
         </Link>
       </div>
 
+      {/* 4 Main KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/10">
           <div className="flex items-center justify-between text-gray-400 mb-2">
@@ -348,6 +403,54 @@ function AffiliateDashboardInner() {
         </div>
       </div>
 
+      {/* NEW: Earnings Trend Widget (Stats + 7D Bar Chart) */}
+      <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/10 flex flex-col md:flex-row gap-8">
+        <div className="w-full md:w-1/3 space-y-5">
+          <h2 className="text-lg font-bold flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-[#CA3F2E]" />
+            {isFr ? "R\u00e9sum\u00e9 des gains" : "Earnings Summary"}
+          </h2>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center border-b border-white/10 pb-3">
+              <span className="text-sm font-semibold text-gray-400">{isFr ? "Aujourd'hui" : "Today"}</span>
+              <span className="text-lg font-bold text-emerald-400">${timeStats.today.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between items-center border-b border-white/10 pb-3">
+              <span className="text-sm font-semibold text-gray-400">{isFr ? "7 Derniers Jours" : "Last 7 Days"}</span>
+              <span className="text-lg font-bold text-emerald-400">${timeStats.d7.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-semibold text-gray-400">{isFr ? "Ce Mois-ci" : "This Month"}</span>
+              <span className="text-lg font-bold text-emerald-400">${timeStats.m30.toFixed(2)}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="w-full md:w-2/3">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-4 flex items-center gap-1.5">
+            <BarChart3 className="w-4 h-4" />
+            {isFr ? "Gains sur 7 jours" : "7-Day Earnings Trend"}
+          </h3>
+          <div className="h-44 flex items-end justify-between gap-2 sm:gap-4 relative pt-4">
+            {chartData.map((d, i) => (
+              <div key={i} className="flex-1 flex flex-col items-center justify-end group h-full relative">
+                <div className="opacity-0 group-hover:opacity-100 absolute -top-6 text-[10px] sm:text-xs font-bold text-emerald-400 transition-opacity bg-black/60 px-2 py-1 rounded shadow-lg z-10">
+                  ${d.amount.toFixed(2)}
+                </div>
+                <div 
+                  className="w-full bg-emerald-500/20 group-hover:bg-emerald-500/40 rounded-t-md transition-all duration-300 relative border-t border-emerald-500/50" 
+                  style={{ height: `${Math.max(d.heightPct, 3)}%` }} 
+                />
+                <div className="text-[9px] sm:text-[10px] text-gray-500 mt-2 truncate max-w-full text-center">
+                  {d.date}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Referral Links Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/10 flex flex-col justify-between">
           <div>
@@ -436,6 +539,7 @@ function AffiliateDashboardInner() {
         </div>
       </div>
 
+      {/* Recent Orders */}
       <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/10">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold">
