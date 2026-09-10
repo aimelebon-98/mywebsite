@@ -2,7 +2,7 @@
 import { db } from "@/db";
 import { vendors, vendorSessions } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { hashVendorPassword } from "@/lib/vendor-auth";
+import { hashVendorPassword, generateUniqueStoreSlug } from "@/lib/vendor-auth";
 import crypto from "crypto";
 
 export const dynamic = "force-dynamic";
@@ -10,57 +10,49 @@ export const dynamic = "force-dynamic";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { email, password, contactName } = body;
+    const { email, password, contactName, name } = body;
 
+    const applicantName = contactName || name || "";
     if (!email || !password) {
       return NextResponse.json({ error: "Email and password required" }, { status: 400 });
     }
-    if (password.length < 8) {
-      return NextResponse.json({ error: "Password must be at least 8 characters" }, { status: 400 });
+    if (password.length < 6) {
+      return NextResponse.json({ error: "Password must be at least 6 characters" }, { status: 400 });
     }
 
-    const existing = await db.select().from(vendors).where(eq(vendors.email, email.toLowerCase().trim()));
+    const emailLower = email.toLowerCase().trim();
+    const existing = await db.select().from(vendors).where(eq(vendors.email, emailLower)).limit(1);
     if (existing.length > 0) {
       return NextResponse.json({ error: "An account with this email already exists" }, { status: 409 });
     }
 
     const hash = await hashVendorPassword(password);
     const vendorId = crypto.randomUUID();
+    const storeName = `${applicantName ? applicantName.split(" ")[0] : "Seller"}'s Store`;
+    const storeSlug = await generateUniqueStoreSlug(storeName);
     const now = new Date();
 
     await db.insert(vendors).values({
       id: vendorId,
-      email: email.toLowerCase().trim(),
+      email: emailLower,
       passwordHash: hash,
-      storeName: "",
-      storeSlug: "",
-      storeDescription: "",
-      storeDescriptionFr: "",
-      contactName: contactName || "",
-      phone: "",
-      whatsapp: "",
-      country: "",
-      city: "",
-      bankName: "",
-      bankAccount: "",
-      bankAccountName: "",
-      commissionRate: 10,
-      status: "pending",
-      fulfillmentRate: 100,
+      storeName,
+      storeSlug,
+      contactName: applicantName,
+      commissionRate: "10.00",
+      status: "incomplete",
+      fulfillmentRate: "100.00",
       totalSales: 0,
-      totalEarnings: 0,
-      pendingPayout: 0,
-      totalPaidOut: 0,
-      conciergeDebt: 0,
-      conciergePaidTotal: 0,
+      totalEarnings: "0",
+      pendingPayout: "0",
+      totalPaidOut: "0",
       preferredCurrency: "USD",
       mustChangePassword: false,
-      adminNote: "",
       createdAt: now,
       updatedAt: now,
     });
 
-    const token = crypto.randomBytes(32).toString("hex");
+    const token = crypto.randomBytes(48).toString("hex");
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
     const ua = req.headers.get("user-agent") || "unknown";
 
@@ -76,7 +68,7 @@ export async function POST(req: NextRequest) {
 
     const res = NextResponse.json({
       success: true,
-      vendor: { id: vendorId, email: email.toLowerCase().trim(), status: "pending" },
+      vendor: { id: vendorId, email: emailLower, status: "incomplete" },
     });
 
     res.cookies.set("ndz_vendor_session", token, {

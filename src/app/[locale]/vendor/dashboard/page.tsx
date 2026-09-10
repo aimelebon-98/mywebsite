@@ -1,9 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import VendorSetupGuard from "@/components/VendorSetupGuard";
 
 const VendorOnboardingModal = dynamic(
   () => import("@/components/VendorOnboardingModal"),
@@ -39,6 +38,8 @@ interface StatsData {
 
 export default function VendorDashboardPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const locale = (params?.locale as string) || "en";
   const isFr = locale === "fr";
 
@@ -50,7 +51,9 @@ export default function VendorDashboardPage() {
   const [showWizard, setShowWizard] = useState(false);
   const [wizardDismissed, setWizardDismissed] = useState(false);
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const fetchVendor = useCallback(async () => {
     try {
@@ -75,28 +78,35 @@ export default function VendorDashboardPage() {
       }
     } catch {
       setStats({
-        productCount: 0, orderCount: 0, totalRevenue: 0,
-        pendingOrders: 0, totalSales: 0, totalEarnings: 0,
-        pendingPayout: 0, fulfillmentRate: 100,
+        productCount: 0,
+        orderCount: 0,
+        totalRevenue: 0,
+        pendingOrders: 0,
+        totalSales: 0,
+        totalEarnings: 0,
+        pendingPayout: 0,
+        fulfillmentRate: 100,
       });
     }
   }, []);
 
   useEffect(() => {
     if (!mounted) return;
+    if (searchParams.get("setup") === "1") {
+      setShowWizard(true);
+    }
     async function init() {
       await fetchVendor();
       await fetchStats();
       setLoading(false);
     }
     init();
-  }, [mounted, fetchVendor, fetchStats]);
+  }, [mounted, searchParams, fetchVendor, fetchStats]);
 
   if (!mounted) return null;
 
   if (loading) {
     return (
-    <VendorSetupGuard />
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-600 border-t-[#CA3F2E]" />
       </div>
@@ -106,7 +116,7 @@ export default function VendorDashboardPage() {
   if (error && !vendor) {
     return (
       <div className="p-6">
-        <div className="bg-red-900/20 border border-red-800 rounded-xl p-4 text-red-300">
+        <div className="bg-red-900/20 border border-red-800 rounded-xl p-4 text-red-300 text-sm">
           {error}
         </div>
       </div>
@@ -114,16 +124,29 @@ export default function VendorDashboardPage() {
   }
 
   const st = stats || {
-    productCount: 0, orderCount: 0, totalRevenue: 0,
-    pendingOrders: 0, totalSales: 0, totalEarnings: 0,
-    pendingPayout: 0, fulfillmentRate: 100,
+    productCount: 0,
+    orderCount: 0,
+    totalRevenue: 0,
+    pendingOrders: 0,
+    totalSales: 0,
+    totalEarnings: 0,
+    pendingPayout: 0,
+    fulfillmentRate: 100,
+  };
+
+  const handleWizardComplete = () => {
+    setShowWizard(false);
+    fetchVendor();
+    if (searchParams.get("setup") === "1") {
+      router.replace(`/${locale}/vendor/dashboard`);
+    }
   };
 
   return (
     <div className="p-4 md:p-6 space-y-6 min-w-0">
-      {/* Status Banners */}
+      {/* Pending status banner */}
       {vendor?.status === "pending" && (
-        <div className="flex items-center gap-3 p-4 rounded-xl bg-amber-900/20 border border-amber-700/50">
+        <div className="flex items-center gap-3 p-4 rounded-2xl bg-amber-900/20 border border-amber-700/50">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
           </svg>
@@ -132,51 +155,34 @@ export default function VendorDashboardPage() {
               {isFr ? "V\u00e9rification en attente" : "Pending Admin Verification"}
             </p>
             <p className="text-amber-400/70 text-xs">
-              {isFr ? "Votre demande a \u00e9t\u00e9 soumise. Nous vous notifierons par email." : "Your application has been submitted. We will notify you by email."}
+              {isFr
+                ? "Votre demande a \u00e9t\u00e9 soumise. Nous vous notifierons d\u00e8s validation."
+                : "Your application has been submitted. We will notify you once approved."}
             </p>
           </div>
         </div>
       )}
 
+      {/* Incomplete profile banner */}
       {vendor?.status === "incomplete" && !showWizard && !wizardDismissed && (
-        <div className="flex items-center justify-between p-4 rounded-xl bg-blue-900/20 border border-blue-700/50">
+        <div className="flex items-center justify-between p-4 rounded-2xl bg-blue-900/20 border border-blue-700/50">
           <div>
             <p className="text-blue-300 font-semibold text-sm">
               {isFr ? "Profil incomplet" : "Incomplete Profile"}
             </p>
             <p className="text-blue-400/70 text-xs">
-              {isFr ? "Compl\u00e9tez votre profil pour soumettre votre candidature." : "Complete your profile to submit your application."}
+              {isFr
+                ? "Compl\u00e9tez les d\u00e9tails de votre boutique pour commencer \u00e0 vendre."
+                : "Complete your store profile to start selling on New Deal Zone."}
             </p>
           </div>
           <button
             onClick={() => setShowWizard(true)}
-            className="px-4 py-2 rounded-lg text-sm font-semibold text-white"
+            className="px-4 py-2 rounded-xl text-xs font-semibold text-white transition-opacity hover:opacity-90"
             style={{ backgroundColor: "#CA3F2E" }}
           >
             {isFr ? "Compl\u00e9ter" : "Complete Profile"}
           </button>
-        </div>
-      )}
-
-      {vendor?.status === "rejected" && (
-        <div className="p-4 rounded-xl bg-red-900/20 border border-red-700/50">
-          <p className="text-red-300 font-semibold text-sm">
-            {isFr ? "Candidature refus\u00e9e" : "Application Rejected"}
-          </p>
-          <p className="text-red-400/70 text-xs">
-            {isFr ? "Contactez le support pour plus d'informations." : "Contact support for more information."}
-          </p>
-        </div>
-      )}
-
-      {vendor?.mustChangePassword && (
-        <div className="p-4 rounded-xl bg-orange-900/20 border border-orange-700/50">
-          <p className="text-orange-300 text-sm">
-            {isFr ? "Veuillez changer votre mot de passe." : "Please change your password."}{" "}
-            <a href={"/" + locale + "/vendor/change-password"} className="underline font-semibold">
-              {isFr ? "Changer maintenant" : "Change now"}
-            </a>
-          </p>
         </div>
       )}
 
@@ -217,7 +223,7 @@ export default function VendorDashboardPage() {
             icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
           },
         ].map((card, i) => (
-          <div key={i} className="bg-gray-900 rounded-xl border border-gray-800 p-4">
+          <div key={i} className="bg-gray-900 rounded-2xl border border-gray-800 p-4">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs text-gray-500 uppercase tracking-wider">{card.label}</span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -230,8 +236,8 @@ export default function VendorDashboardPage() {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-gray-900 rounded-xl border border-gray-800 p-5">
-        <h2 className="text-lg font-semibold text-white mb-4">
+      <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
+        <h2 className="text-base font-semibold text-white mb-4">
           {isFr ? "Actions rapides" : "Quick Actions"}
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -244,7 +250,7 @@ export default function VendorDashboardPage() {
             <a
               key={i}
               href={action.href}
-              className="flex items-center justify-center py-3 px-4 rounded-xl text-sm font-semibold text-white transition hover:opacity-90"
+              className="flex items-center justify-center py-3 px-4 rounded-xl text-xs font-semibold text-white transition hover:opacity-90"
               style={{ backgroundColor: action.color }}
             >
               {action.label}
@@ -253,30 +259,11 @@ export default function VendorDashboardPage() {
         </div>
       </div>
 
-      {/* Fulfillment */}
-      <div className="bg-gray-900 rounded-xl border border-gray-800 p-5">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-medium text-gray-300">
-            {isFr ? "Taux de traitement" : "Fulfillment Rate"}
-          </h3>
-          <span className="text-sm font-bold text-white">{st.fulfillmentRate}%</span>
-        </div>
-        <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
-          <div
-            className="h-full rounded-full transition-all"
-            style={{ width: st.fulfillmentRate + "%", backgroundColor: "#CA3F2E" }}
-          />
-        </div>
-      </div>
-
       {/* Onboarding Wizard Modal */}
       {showWizard && (
         <VendorOnboardingModal
           locale={locale}
-          onComplete={() => {
-            setShowWizard(false);
-            fetchVendor();
-          }}
+          onComplete={handleWizardComplete}
           onSkip={() => {
             setShowWizard(false);
             setWizardDismissed(true);

@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { vendors, vendorApplications } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { getCurrentVendor } from "@/lib/vendor-auth";
+import crypto from "crypto";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,7 @@ const COUNTRY_CURRENCY: Record<string, string> = {
 
 export async function POST(req: NextRequest) {
   try {
-    const vendor = await getCurrentVendor(req);
+    const vendor = await getCurrentVendor();
     if (!vendor) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
@@ -55,8 +56,15 @@ export async function POST(req: NextRequest) {
       bankAccount: bankAccount || "",
       bankAccountName: bankAccountName || "",
       preferredCurrency: currency,
+      status: "pending",
       updatedAt: now,
     }).where(eq(vendors.id, vendor.id));
+
+    const catsArr = Array.isArray(productCategories)
+      ? productCategories
+      : productCategories
+      ? String(productCategories).split(",").map((s: string) => s.trim())
+      : [];
 
     await db.insert(vendorApplications).values({
       id: crypto.randomUUID(),
@@ -66,7 +74,7 @@ export async function POST(req: NextRequest) {
       whatsapp: whatsapp || "",
       storeName,
       storeDescription: storeDescription || "",
-      productCategories: productCategories || "",
+      productCategories: catsArr.join(", "),
       country,
       city: city || "",
       instagramUrl: instagramUrl || "",
@@ -83,8 +91,14 @@ export async function POST(req: NextRequest) {
       await sendAdminNewVendorApplicationEmail(adminEmail, {
         applicantName: contactName,
         email: vendor.email,
+        phone: phone || "",
         storeName,
+        storeDescription: storeDescription || "",
         country,
+        city: city || "",
+        categories: catsArr,
+        instagramUrl: instagramUrl || undefined,
+        websiteUrl: websiteUrl || undefined,
       });
     } catch (emailErr) {
       console.error("Admin notification email failed:", emailErr);
@@ -96,5 +110,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Failed to save profile" }, { status: 500 });
   }
 }
-
-import crypto from "crypto";

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { getCurrentVendor } from "@/lib/vendor-auth";
 
 export const dynamic = "force-dynamic";
@@ -6,30 +6,38 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     const vendor = await getCurrentVendor();
-    if (!vendor) return NextResponse.json({ vendor: null });
+    if (!vendor) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    const vAny = vendor as unknown as { mustChangePassword?: boolean; preferredCurrency?: string; conciergeDebt?: string };
     return NextResponse.json({
+      success: true,
       vendor: {
         id: vendor.id,
         email: vendor.email,
+        contactName: vendor.contactName,
         storeName: vendor.storeName,
         storeSlug: vendor.storeSlug,
-        logo: vendor.logo,
+        storeDescription: vendor.storeDescription,
+        phone: vendor.phone,
+        whatsapp: vendor.whatsapp,
+        country: vendor.country,
+        city: vendor.city,
         status: vendor.status,
         commissionRate: vendor.commissionRate,
         totalSales: vendor.totalSales,
         totalEarnings: vendor.totalEarnings,
         pendingPayout: vendor.pendingPayout,
-        totalPaidOut: vendor.totalPaidOut,
+        preferredCurrency: vendor.preferredCurrency,
+        mustChangePassword: vendor.mustChangePassword,
+        logo: vendor.logo,
+        banner: vendor.banner,
+        trustTagline: vendor.trustTagline,
         fulfillmentRate: vendor.fulfillmentRate,
-        mustChangePassword: vAny.mustChangePassword ?? false,
-        preferredCurrency: vAny.preferredCurrency || "USD",
-        conciergeDebt: vAny.conciergeDebt || "0",
       },
     });
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ error: msg }, { status: 500 });
+  } catch (err: any) {
+    console.error("Vendor /me error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

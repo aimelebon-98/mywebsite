@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, Suspense, useTransition } from "react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import TurnstileGate from "@/components/TurnstileGate";
 import SocialLoginButtons from "@/components/SocialLoginButtons";
@@ -20,11 +20,11 @@ import {
 function AffiliateApplyForm() {
   const params = useParams();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const locale = (params?.locale as string) || "en";
   const isFr = locale === "fr";
 
   const prefillEmail = searchParams.get("email") || "";
-  const oauthPrefill = Boolean(searchParams.get("oauth") || prefillEmail);
   const prefillName = searchParams.get("name") || "";
 
   const [isPending, startTransition] = useTransition();
@@ -54,7 +54,7 @@ function AffiliateApplyForm() {
 
   const t = isFr ? {
     heading: "Cr\u00e9ation de compte Affili\u00e9",
-    subtitle: "Cr\u00e9ez votre compte pour commencer \u00e0 toucher jusqu'\u00e0 50% de commission imm\u00e9diatement.",
+    subtitle: "Cr\u00e9ez votre compte pour commencer \u00e0 toucher jusqu'\u00e0 50% de commission.",
     name: "Nom complet",
     email: "Adresse email",
     password: "Mot de passe",
@@ -66,7 +66,7 @@ function AffiliateApplyForm() {
     tag: "REJOINDRE LE R\u00c9SEAU",
   } : {
     heading: "Affiliate Account Signup",
-    subtitle: "Create your account to instantly start earning up to 50% commission.",
+    subtitle: "Create your account to start earning up to 50% commission.",
     name: "Full name",
     email: "Email address",
     password: "Password",
@@ -105,7 +105,7 @@ function AffiliateApplyForm() {
           return;
         }
 
-        window.location.href = `/${locale}/affiliate/dashboard`;
+        router.push(`/${locale}/affiliate/dashboard?setup=1`);
       } catch {
         setErrorMsg("Network error. Please try again.");
       }

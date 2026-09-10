@@ -2,24 +2,26 @@
 
 import { useState } from "react";
 import {
-  Store,
+  Sparkles,
   MapPin,
+  Share2,
   Landmark,
   CheckCircle2,
   Loader2,
   ChevronRight,
   ChevronLeft,
   X,
-  Sparkles,
+  Copy,
+  CheckCheck,
 } from "lucide-react";
 
-interface VendorOnboardingModalProps {
+interface AffiliateOnboardingModalProps {
   locale: string;
+  affiliateCode: string;
   onComplete: () => void;
   onSkip?: () => void;
 }
 
-const CATEGORIES = ["sneakers", "running", "formal", "boots", "sandals", "casual"];
 const COUNTRIES = [
   { code: "NG", name: "Nigeria" },
   { code: "TG", name: "Togo" },
@@ -29,57 +31,51 @@ const COUNTRIES = [
   { code: "CI", name: "C\u00f4te d'Ivoire" },
   { code: "CM", name: "Cameroun" },
   { code: "BJ", name: "B\u00e9nin" },
-  { code: "ML", name: "Mali" },
-  { code: "BF", name: "Burkina Faso" },
-  { code: "NE", name: "Niger" },
   { code: "ZA", name: "South Africa" },
   { code: "FR", name: "France" },
   { code: "US", name: "United States" },
   { code: "OTHER", name: "Other" },
 ];
 
-export default function VendorOnboardingModal({
+export default function AffiliateOnboardingModal({
   locale,
+  affiliateCode,
   onComplete,
   onSkip,
-}: VendorOnboardingModalProps) {
+}: AffiliateOnboardingModalProps) {
   const isFr = locale === "fr";
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const [form, setForm] = useState({
-    storeName: "",
-    storeDescription: "",
-    categories: [] as string[],
     country: "",
     city: "",
     phone: "",
     whatsapp: "",
+    websiteUrl: "",
+    socialMediaUrl: "",
+    marketingPlan: "",
     bankName: "",
     bankAccount: "",
     bankAccountName: "",
-    instagramUrl: "",
-    websiteUrl: "",
   });
 
   const setField = (key: string, val: any) =>
     setForm((prev) => ({ ...prev, [key]: val }));
 
-  const toggleCategory = (cat: string) => {
-    setForm((prev) => ({
-      ...prev,
-      categories: prev.categories.includes(cat)
-        ? prev.categories.filter((c) => c !== cat)
-        : [...prev.categories, cat],
-    }));
+  const refUrl = `https://www.newdealzone.com/${locale}?ref=${affiliateCode}`;
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(refUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const validateStep = (s: number) => {
-    if (s === 1) return form.storeName.trim().length >= 2;
-    if (s === 2) return form.country.length > 0 && form.phone.trim().length >= 4;
-    if (s === 3) return true;
+    if (s === 1) return form.country.length > 0 && form.phone.trim().length >= 4;
     return true;
   };
 
@@ -87,27 +83,14 @@ export default function VendorOnboardingModal({
     setError("");
     setLoading(true);
     try {
-      const res = await fetch("/api/vendor/onboarding", {
+      const res = await fetch("/api/affiliate/onboarding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          storeName: form.storeName,
-          storeDescription: form.storeDescription,
-          productCategories: form.categories,
-          country: form.country,
-          city: form.city,
-          phone: form.phone,
-          whatsapp: form.whatsapp,
-          bankName: form.bankName,
-          bankAccount: form.bankAccount,
-          bankAccountName: form.bankAccountName,
-          instagramUrl: form.instagramUrl,
-          websiteUrl: form.websiteUrl,
-        }),
+        body: JSON.stringify(form),
       });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || "Failed to complete setup");
+        throw new Error(data.error || "Failed to complete onboarding");
       }
       setDone(true);
     } catch (err: any) {
@@ -118,35 +101,34 @@ export default function VendorOnboardingModal({
   };
 
   const t = {
-    title: isFr ? "Configuration de votre boutique" : "Set Up Your Seller Store",
-    step1: isFr ? "Boutique" : "Store Info",
-    step2: isFr ? "Contact & Pays" : "Contact & Region",
-    step3: isFr ? "Coordonn\u00e9es bancaires" : "Payout Details",
-    storeName: isFr ? "Nom de votre boutique *" : "Store Name *",
-    storeNamePh: isFr ? "Ex: Sneaker Vault Lom\u00e9" : "e.g. Sneaker Vault",
-    storeDesc: isFr ? "Description courte" : "Store Description",
-    storeDescPh: isFr ? "Pr\u00e9sentez vos produits et votre marque..." : "Tell customers about your products...",
-    catLabel: isFr ? "Cat\u00e9gories principales" : "Product Categories",
-    country: isFr ? "Pays d'origine *" : "Country *",
+    title: isFr ? "Configuration Partenaire Affili\u00e9" : "Affiliate Partner Setup",
+    step1: isFr ? "Contact & Pays" : "Contact & Region",
+    step2: isFr ? "R\u00e9seaux & Canaux" : "Marketing Channels",
+    step3: isFr ? "Paiement" : "Payout Details",
+    country: isFr ? "Votre pays *" : "Your Country *",
     city: isFr ? "Ville" : "City",
-    cityPh: isFr ? "Lom\u00e9, Abuja, Accra..." : "Lom\u00e9, Abuja, Accra...",
+    cityPh: isFr ? "Lom\u00e9, Lagos, Abidjan..." : "Lom\u00e9, Lagos, Abidjan...",
     phone: isFr ? "Num\u00e9ro de t\u00e9l\u00e9phone *" : "Phone Number *",
     whatsapp: "WhatsApp",
-    bankName: isFr ? "Nom de la banque ou op\u00e9rateur" : "Bank / Mobile Money Provider",
-    bankNamePh: isFr ? "Ex: Ecobank, GTBank, Flooz, TMoney" : "e.g. Ecobank, GTBank, Flooz, TMoney",
-    bankAccount: isFr ? "Num\u00e9ro de compte ou t\u00e9l\u00e9phone" : "Account Number / Phone",
-    bankAccountName: isFr ? "Nom complet du titulaire" : "Account Holder Full Name",
-    insta: "Instagram URL",
-    website: isFr ? "Site web (facultatif)" : "Website URL (optional)",
+    socialUrl: isFr ? "Lien Profil Social Principal" : "Primary Social Profile URL",
+    socialPh: "https://instagram.com/..., TikTok, etc.",
+    webUrl: isFr ? "Site web / Blog (facultatif)" : "Website / Blog (optional)",
+    plan: isFr ? "Comment comptez-vous promouvoir nos produits ?" : "How do you plan to promote our products?",
+    planPh: isFr ? "Ex: TikTok, stories Instagram, groupes WhatsApp..." : "e.g. TikTok reviews, WhatsApp status, Instagram stories...",
+    bankName: isFr ? "Nom de banque ou Mobile Money" : "Bank Name or Mobile Money",
+    bankAccount: isFr ? "Num\u00e9ro de compte ou num\u00e9ro MoMo" : "Account Number / MoMo Phone",
+    bankAccountName: isFr ? "Nom complet du b\u00e9n\u00e9ficiaire" : "Account Holder Full Name",
     next: isFr ? "Continuer" : "Next",
     back: isFr ? "Retour" : "Back",
-    submit: isFr ? "Finaliser ma boutique" : "Submit Store Setup",
-    doneTitle: isFr ? "Boutique enregistr\u00e9e !" : "Store Profile Created!",
+    submit: isFr ? "Terminer la configuration" : "Complete Setup",
+    doneTitle: isFr ? "F\u00e9licitations !" : "You're All Set!",
     doneDesc: isFr
-      ? "Votre boutique est pr\u00eate. L'\u00e9quipe v\u00e9rifie vos informations et vous pouvez d\u00e9sormais explorer votre tableau de bord."
-      : "Your store setup is complete. You can now access your vendor dashboard and begin uploading products.",
-    enterDash: isFr ? "Acc\u00e9der au tableau de bord" : "Go to Dashboard",
-    skip: isFr ? "Compl\u00e9ter plus tard" : "Complete later",
+      ? "Votre profil affili\u00e9 est activ\u00e9. Voici votre lien de parrainage unique pour commencer \u00e0 toucher vos commissions :"
+      : "Your affiliate profile is configured. Here is your unique referral link to start earning commissions:",
+    copyLink: isFr ? "Copier mon lien" : "Copy My Link",
+    copied: isFr ? "Copi\u00e9 !" : "Copied!",
+    enterDash: isFr ? "Ouvrir mon tableau de bord" : "Go to Dashboard",
+    skip: isFr ? "Passer pour l'instant" : "Skip for now",
   };
 
   return (
@@ -159,8 +141,8 @@ export default function VendorOnboardingModal({
       />
 
       <div className="relative w-full max-w-xl bg-gray-900 border border-gray-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
-        {/* Progress header */}
-        <div className="px-6 pt-6 pb-4 border-b border-gray-800 bg-gray-900/90 backdrop-blur-sm relative">
+        {/* Header */}
+        <div className="px-6 pt-6 pb-4 border-b border-gray-800 bg-gray-900/90 relative">
           {onSkip && !done && (
             <button
               type="button"
@@ -173,17 +155,16 @@ export default function VendorOnboardingModal({
 
           <div className="flex items-center gap-2 mb-2">
             <div className="w-7 h-7 rounded-lg bg-[#CA3F2E]/20 text-[#CA3F2E] flex items-center justify-center">
-              <Store className="w-4 h-4" />
+              <Sparkles className="w-4 h-4" />
             </div>
             <h2 className="text-lg font-bold text-white tracking-tight">{t.title}</h2>
           </div>
 
-          {/* Stepper bar */}
           {!done && (
             <div className="grid grid-cols-3 gap-2 mt-3">
               {[
-                { n: 1, label: t.step1, icon: Store },
-                { n: 2, label: t.step2, icon: MapPin },
+                { n: 1, label: t.step1, icon: MapPin },
+                { n: 2, label: t.step2, icon: Share2 },
                 { n: 3, label: t.step3, icon: Landmark },
               ].map((s) => {
                 const Icon = s.icon;
@@ -209,7 +190,7 @@ export default function VendorOnboardingModal({
           )}
         </div>
 
-        {/* Modal Body */}
+        {/* Body */}
         <div className="p-6 overflow-y-auto flex-1 space-y-4">
           {error && (
             <div className="p-3.5 rounded-xl bg-red-950/60 border border-red-800/80 text-red-300 text-xs">
@@ -217,65 +198,8 @@ export default function VendorOnboardingModal({
             </div>
           )}
 
-          {/* STEP 1: Store info */}
+          {/* STEP 1: Contact */}
           {step === 1 && !done && (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-1.5">
-                  {t.storeName}
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={form.storeName}
-                  onChange={(e) => setField("storeName", e.target.value)}
-                  placeholder={t.storeNamePh}
-                  className="w-full px-4 py-3 rounded-xl bg-gray-800/90 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-1.5">
-                  {t.storeDesc}
-                </label>
-                <textarea
-                  rows={3}
-                  value={form.storeDescription}
-                  onChange={(e) => setField("storeDescription", e.target.value)}
-                  placeholder={t.storeDescPh}
-                  className="w-full px-4 py-3 rounded-xl bg-gray-800/90 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm resize-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-2">
-                  {t.catLabel}
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {CATEGORIES.map((cat) => {
-                    const sel = form.categories.includes(cat);
-                    return (
-                      <button
-                        key={cat}
-                        type="button"
-                        onClick={() => toggleCategory(cat)}
-                        className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
-                          sel
-                            ? "bg-[#CA3F2E] border-[#CA3F2E] text-white shadow-md shadow-[#CA3F2E]/30"
-                            : "bg-gray-800/70 border-gray-700 text-gray-400 hover:text-white hover:border-gray-600"
-                        }`}
-                      >
-                        {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 2: Location & Contact */}
-          {step === 2 && !done && (
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
@@ -338,38 +262,54 @@ export default function VendorOnboardingModal({
                   />
                 </div>
               </div>
+            </div>
+          )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-1.5">
-                    {t.insta}
-                  </label>
-                  <input
-                    type="text"
-                    value={form.instagramUrl}
-                    onChange={(e) => setField("instagramUrl", e.target.value)}
-                    placeholder="https://instagram.com/..."
-                    className="w-full px-4 py-3 rounded-xl bg-gray-800/90 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm"
-                  />
-                </div>
+          {/* STEP 2: Marketing Channels */}
+          {step === 2 && !done && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-1.5">
+                  {t.socialUrl}
+                </label>
+                <input
+                  type="text"
+                  value={form.socialMediaUrl}
+                  onChange={(e) => setField("socialMediaUrl", e.target.value)}
+                  placeholder={t.socialPh}
+                  className="w-full px-4 py-3 rounded-xl bg-gray-800/90 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm"
+                />
+              </div>
 
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-1.5">
-                    {t.website}
-                  </label>
-                  <input
-                    type="text"
-                    value={form.websiteUrl}
-                    onChange={(e) => setField("websiteUrl", e.target.value)}
-                    placeholder="https://..."
-                    className="w-full px-4 py-3 rounded-xl bg-gray-800/90 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm"
-                  />
-                </div>
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-1.5">
+                  {t.webUrl}
+                </label>
+                <input
+                  type="text"
+                  value={form.websiteUrl}
+                  onChange={(e) => setField("websiteUrl", e.target.value)}
+                  placeholder="https://..."
+                  className="w-full px-4 py-3 rounded-xl bg-gray-800/90 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-1.5">
+                  {t.plan}
+                </label>
+                <textarea
+                  rows={3}
+                  value={form.marketingPlan}
+                  onChange={(e) => setField("marketingPlan", e.target.value)}
+                  placeholder={t.planPh}
+                  className="w-full px-4 py-3 rounded-xl bg-gray-800/90 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm resize-none"
+                />
               </div>
             </div>
           )}
 
-          {/* STEP 3: Banking */}
+          {/* STEP 3: Payout Info */}
           {step === 3 && !done && (
             <div className="space-y-4">
               <div>
@@ -380,7 +320,7 @@ export default function VendorOnboardingModal({
                   type="text"
                   value={form.bankName}
                   onChange={(e) => setField("bankName", e.target.value)}
-                  placeholder={t.bankNamePh}
+                  placeholder="Ecobank, Flooz, Wave, OPay..."
                   className="w-full px-4 py-3 rounded-xl bg-gray-800/90 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm"
                 />
               </div>
@@ -393,7 +333,7 @@ export default function VendorOnboardingModal({
                   type="text"
                   value={form.bankAccount}
                   onChange={(e) => setField("bankAccount", e.target.value)}
-                  placeholder="1234567890"
+                  placeholder="Account / Phone Number"
                   className="w-full px-4 py-3 rounded-xl bg-gray-800/90 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm font-mono"
                 />
               </div>
@@ -413,20 +353,44 @@ export default function VendorOnboardingModal({
             </div>
           )}
 
-          {/* STEP 4: Completed */}
+          {/* STEP 4: Success with Referral Link */}
           {done && (
-            <div className="text-center py-6 space-y-4">
+            <div className="text-center py-5 space-y-4">
               <div className="w-16 h-16 rounded-full bg-[#CA3F2E]/20 text-[#CA3F2E] flex items-center justify-center mx-auto border border-[#CA3F2E]/30 animate-pulse">
                 <CheckCircle2 className="w-8 h-8" />
               </div>
+
               <div>
                 <h3 className="text-xl font-bold text-white">{t.doneTitle}</h3>
-                <p className="text-sm text-gray-400 mt-2 max-w-md mx-auto">{t.doneDesc}</p>
+                <p className="text-sm text-gray-400 mt-1 max-w-md mx-auto">{t.doneDesc}</p>
               </div>
+
+              <div className="p-4 rounded-2xl bg-black/50 border border-white/10 space-y-2 text-left">
+                <span className="text-[11px] uppercase tracking-wider font-bold text-[#CA3F2E]">
+                  Code: {affiliateCode}
+                </span>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={refUrl}
+                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={copyLink}
+                    className="px-3.5 py-2 rounded-xl bg-[#CA3F2E] hover:bg-[#8B2A1E] text-white text-xs font-semibold flex items-center gap-1.5 transition-all"
+                  >
+                    {copied ? <CheckCheck className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copied ? t.copied : t.copyLink}
+                  </button>
+                </div>
+              </div>
+
               <button
                 type="button"
                 onClick={onComplete}
-                className="px-8 py-3.5 rounded-xl bg-[#CA3F2E] hover:bg-[#8B2A1E] text-white font-bold text-sm shadow-xl shadow-[#CA3F2E]/30 transition-all inline-flex items-center gap-2"
+                className="w-full py-3.5 rounded-xl bg-[#CA3F2E] hover:bg-[#8B2A1E] text-white font-bold text-sm shadow-xl shadow-[#CA3F2E]/30 transition-all inline-flex items-center justify-center gap-2"
               >
                 <Sparkles className="w-4 h-4" />
                 {t.enterDash}
@@ -435,7 +399,7 @@ export default function VendorOnboardingModal({
           )}
         </div>
 
-        {/* Modal Footer Controls */}
+        {/* Footer Controls */}
         {!done && (
           <div className="px-6 py-4 border-t border-gray-800 bg-gray-900/90 flex items-center justify-between">
             <div>
