@@ -6,7 +6,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Terms of Service - NewDealZone",
-  description: "The terms and conditions governing your use of NewDealZone.",
+  description: "The terms and conditions governing your use of NewDealZone and the Affiliate Partner Program.",
   robots: { index: true, follow: true },
 };
 
@@ -99,8 +99,34 @@ export default async function TermsPage() {
       ),
     },
     {
+      id: "affiliate",
+      title: "11. Affiliate Partner Program Terms",
+      content: (
+        <>
+          <p>By participating in the NewDealZone Affiliate Partner Program, affiliates agree to the following conditions:</p>
+          <ul className="list-disc pl-6 space-y-2 text-sm text-gray-700">
+            <li>
+              <strong>Hybrid Commission Structure:</strong> Affiliates earn a <strong>5% direct commission</strong> on physical goods (shoes, apparel, leather products) on a single tier (Level 1). On digital software subscriptions (e.g. SMZ AI Trading Bot Pro), affiliates can earn up to 3 tiers of commission: <strong>50% (Level 1 Direct)</strong>, <strong>10% (Level 2 Team Override)</strong>, and <strong>5% (Level 3 Deep Override)</strong>.
+            </li>
+            <li>
+              <strong>First-Time Sales vs. Recurring Renewals:</strong> Direct Level 1 50% commissions are guaranteed on a customer&apos;s initial software purchase regardless of the affiliate&apos;s subscription status. However, recurring software subscription renewals (months 2+, annual renewals) and multi-level team overrides (L2 10% and L3 5%) strictly require the affiliate to maintain an active SMZ Bot Pro subscription. If the affiliate&apos;s subscription is inactive or expired at the time of renewal, recurring commissions and overrides are forfeited.
+            </li>
+            <li>
+              <strong>Payment on Delivery (Physical Products):</strong> Commissions for physical products ordered via Cash on Delivery or WhatsApp checkout are logged in a &quot;Pending&quot; state and become withdrawable into the available balance ONLY upon confirmed delivery of the order. Cancelled, returned, or refunded orders forfeit commission.
+            </li>
+            <li>
+              <strong>Withdrawals & Wallet Requirements:</strong> The minimum withdrawal threshold is <strong>$20.00 USD</strong>. All commission payouts are remitted in USDT via the Tron (TRC20) network to the wallet address specified in the affiliate&apos;s Settings.
+            </li>
+            <li>
+              <strong>Anti-Fraud & Prohibited Conduct:</strong> Self-referrals, creating duplicate accounts to farm commissions, misleading advertising, or sending unsolicited spam are strictly prohibited. Violations will result in immediate account termination and forfeiture of all accrued balances.
+            </li>
+          </ul>
+        </>
+      ),
+    },
+    {
       id: "contact",
-      title: "11. Contact",
+      title: "12. Contact",
       content: (
         <p>Questions about these Terms? Contact us at <strong>support@newdealzone.com</strong>.</p>
       ),
@@ -192,8 +218,34 @@ export default async function TermsPage() {
       ),
     },
     {
+      id: "affiliate",
+      title: "11. Conditions du Programme d'Affiliation",
+      content: (
+        <>
+          <p>En participant au Programme d&apos;Affiliation NewDealZone, les affili\u00e9s acceptent les conditions suivantes :</p>
+          <ul className="list-disc pl-6 space-y-2 text-sm text-gray-700">
+            <li>
+              <strong>Structure de commission hybride :</strong> Les affili\u00e9s per\u00e7oivent une <strong>commission directe de 5%</strong> sur les produits physiques (chaussures, v\u00eatement, maroquinerie) sur un seul niveau. Sur les abonnements logiciels (ex: SMZ AI Trading Bot Pro), les affili\u00e9s peuvent gagner sur 3 niveaux : <strong>50% (Niveau 1 Direct)</strong>, <strong>10% (Niveau 2 Override \u00c9quipe)</strong> et <strong>5% (Niveau 3 Override Profond)</strong>.
+            </li>
+            <li>
+              <strong>Premier achat vs Renouvellements :</strong> La commission directe de 50% sur le premier achat d&apos;un client est garantie quel que soit le statut de l&apos;affili\u00e9. En revanche, les renouvellements d&apos;abonnement logiciel et les overrides d&apos;équipe (L2 10% et L3 5%) necessitent un abonnement actif au SMZ Bot Pro. Si l&apos;affili\u00e9 est inactif au moment du renouvellement, la commission est perdue.
+            </li>
+            <li>
+              <strong>Paiement \u00e0 la livraison (Produits physiques) :</strong> Les commissions sur les produits physiques command\u00e9s en paiement \u00e0 la livraison sont en attente et deviennent retirables UNIQUEMENT apr\u00e8s confirmation de la livraison.
+            </li>
+            <li>
+              <strong>Retraits et Portefeuille :</strong> Le seuil minimum de retrait est de <strong>20,00 $ USD</strong>. Tous les paiements sont effectu\u00e9s en USDT via le r\u00e9seau Tron (TRC20).
+            </li>
+            <li>
+              <strong>Lutte contre la fraude :</strong> L&apos;auto-parrainage, le spam et la cr\u00e9ation de faux comptes pour cumuler des commissions sont strictement interdits sous peine de fermeture immediate du compte et confiscation des soldes.
+            </li>
+          </ul>
+        </>
+      ),
+    },
+    {
       id: "contact",
-      title: "11. Contact",
+      title: "12. Contact",
       content: (
         <p>Questions ? Contactez-nous a <strong>support@newdealzone.com</strong>.</p>
       ),
@@ -207,7 +259,7 @@ export default async function TermsPage() {
         <LegalPageLayout
           title={isFr ? "Conditions generales" : "Terms of Service"}
           subtitle={isFr ? "Les regles qui regissent votre utilisation de NewDealZone." : "The rules governing your use of NewDealZone."}
-          lastUpdated="January 1, 2026"
+          lastUpdated="September 10, 2026"
           sections={isFr ? frSections : enSections}
         />
       </div>
