@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { affiliates, affiliateApplications } from "@/db/schema";
-import { eq, desc, inArray } from "drizzle-orm";
+import { eq, desc, inArray, sql } from "drizzle-orm";
 import { requireAdmin } from "@/lib/admin-auth";
 import { ensureAffiliateTablesExist } from "@/lib/ensure-affiliate-tables";
 
@@ -98,33 +98,25 @@ export async function PUT(request: NextRequest) {
     if (action === "pending") targetStatus = "pending";
 
     
-    // ---------- DELETE ----------
+    // ---------- DELETE (Total Wipe) ----------
     if (action === "delete") {
-      // Cascade handles sessions/orders/payouts/clicks via FK
-      // Also clean matching applications by email
       const rows = await db
         .select({ id: affiliates.id, email: affiliates.email })
         .from(affiliates)
         .where(inArray(affiliates.id, ids));
 
       for (const row of rows) {
+        const cleanEmail = (row.email || "").toLowerCase().trim();
         try {
-          await db
-            .delete(affiliateApplications)
-            .where(eq(affiliateApplications.email, row.email));
-        } catch (e) {
-          console.error("Delete affiliateApplications:", e);
-        }
+          await db.delete(affiliateApplications).where(eq(sql`LOWER(${affiliateApplications.email})`, cleanEmail));
+        } catch (e) {}
       }
 
       await db.delete(affiliates).where(inArray(affiliates.id, ids));
 
       return NextResponse.json({
         success: true,
-        message:
-          ids.length > 1
-            ? `Deleted ${ids.length} affiliates`
-            : "Affiliate deleted",
+        message: ids.length > 1 ? `Deleted ${ids.length} affiliates` : "Affiliate deleted",
         updated: ids.length,
         deleted: ids.length,
       });
