@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useTransition } from "react";
 import {
@@ -13,6 +13,11 @@ import {
   Users,
   DollarSign,
   Trash2,
+  Wallet,
+  CreditCard,
+  MousePointerClick,
+  Layers,
+  TrendingUp,
 } from "lucide-react";
 import AffiliateNetworkPanel from "@/components/AffiliateNetworkPanel";
 
@@ -34,6 +39,63 @@ interface Affiliate {
   bankAccount: string | null;
   adminNote: string | null;
   createdAt: string | null;
+}
+
+function money(v: string | number | null | undefined) {
+  const n = parseFloat(String(v || "0"));
+  return isNaN(n) ? "0.00" : n.toFixed(2);
+}
+
+function StatCard({
+  label,
+  value,
+  hint,
+  icon: Icon,
+  tone = "default",
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+  icon: any;
+  tone?: "default" | "amber" | "emerald" | "sky" | "violet" | "rose";
+}) {
+  const tones: Record<string, string> = {
+    default: "text-gray-900",
+    amber: "text-amber-600",
+    emerald: "text-emerald-600",
+    sky: "text-sky-600",
+    violet: "text-violet-600",
+    rose: "text-[#CA3F2E]",
+  };
+  const iconBg: Record<string, string> = {
+    default: "bg-gray-100 text-gray-600",
+    amber: "bg-amber-50 text-amber-600",
+    emerald: "bg-emerald-50 text-emerald-600",
+    sky: "bg-sky-50 text-sky-600",
+    violet: "bg-violet-50 text-violet-600",
+    rose: "bg-red-50 text-[#CA3F2E]",
+  };
+
+  return (
+    <div className="group relative overflow-hidden rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm hover:shadow-md hover:border-gray-300 transition-all">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+            {label}
+          </p>
+          <p className={`mt-1.5 text-xl sm:text-2xl font-black tracking-tight truncate ${tones[tone]}`}>
+            {value}
+          </p>
+          {hint && (
+            <p className="mt-1 text-[11px] text-gray-400 leading-snug">{hint}</p>
+          )}
+        </div>
+        <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${iconBg[tone]}`}>
+          <Icon className="w-4 h-4" />
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function AffiliatesManager() {
@@ -193,110 +255,113 @@ export default function AffiliatesManager() {
     });
   };
 
+  const l1Amt = money(overview?.commissions?.level1?.amount);
+  const l2Amt = money(overview?.commissions?.level2?.amount);
+  const l3Amt = money(overview?.commissions?.level3?.amount);
+  const l1Count = overview?.commissions?.level1?.count || 0;
+  const l2Count = overview?.commissions?.level2?.count || 0;
+  const l3Count = overview?.commissions?.level3?.count || 0;
+  const clicks30 = overview?.clicksLast30Days || 0;
+  const withParent = overview?.withParent || 0;
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Affiliates</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            Manage codes, multi-tier team networks, and commission rates.
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#CA3F2E]/10 text-[#CA3F2E] text-[10px] font-bold uppercase tracking-wider mb-2">
+            <Users className="w-3 h-3" />
+            Network Ops
+          </div>
+          <h2 className="text-2xl font-black text-gray-900 tracking-tight">Affiliates</h2>
+          <p className="text-sm text-gray-500 mt-1 max-w-xl">
+            Monitor multi-tier performance, manage commission rates, and review payout exposure.
           </p>
         </div>
         <button
           onClick={() => load(search || undefined)}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-sm font-medium"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 hover:bg-gray-50 text-sm font-semibold text-gray-700 shadow-sm transition self-start sm:self-auto"
         >
           <RefreshCw className="w-4 h-4" /> Refresh
         </button>
       </div>
 
-      {/* Overview Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-          <p className="text-xs uppercase text-gray-400 font-semibold">
-            Affiliates
-          </p>
-          <p className="text-2xl font-bold mt-1">{stats.totalAffiliates}</p>
-          <p className="text-[11px] text-gray-400 mt-1">Total registered accounts</p>
+      {/* PRIMARY KPI STRIP */}
+      <div className="rounded-3xl border border-gray-200 bg-gradient-to-br from-white via-white to-gray-50 p-4 sm:p-5 shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-sm font-bold text-gray-900">Program Snapshot</h3>
+            <p className="text-[11px] text-gray-400">Live balances across the full affiliate network</p>
+          </div>
+          <div className="hidden sm:flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            Live
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-          <p className="text-xs uppercase text-gray-400 font-semibold">
-            Lifetime earnings
-          </p>
-          <p className="text-2xl font-bold mt-1 text-gray-900">
-            ${stats.totalEarningsAll}
-          </p>
-          <p className="text-[11px] text-gray-400 mt-1">All commissions earned</p>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-          <p className="text-xs uppercase text-gray-400 font-semibold">
-            Pending payouts
-          </p>
-          <p className="text-2xl font-bold mt-1 text-amber-600">
-            ${stats.totalPendingPayoutAll}
-          </p>
-          <p className="text-[11px] text-gray-400 mt-1">Available for withdraw</p>
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-          <p className="text-xs uppercase text-gray-400 font-semibold">
-            Total paid out
-          </p>
-          <p className="text-2xl font-bold mt-1 text-emerald-600">
-            ${stats.totalPaidOutAll}
-          </p>
-          <p className="text-[11px] text-gray-400 mt-1">Admin confirmed paid</p>
+
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+          <StatCard
+            label="Affiliates"
+            value={String(stats.totalAffiliates)}
+            hint="Total registered accounts"
+            icon={Users}
+            tone="rose"
+          />
+          <StatCard
+            label="Lifetime Earnings"
+            value={`$${money(stats.totalEarningsAll)}`}
+            hint="All commissions earned"
+            icon={TrendingUp}
+            tone="default"
+          />
+          <StatCard
+            label="Pending Payouts"
+            value={`$${money(stats.totalPendingPayoutAll)}`}
+            hint="Available for withdraw"
+            icon={Wallet}
+            tone="amber"
+          />
+          <StatCard
+            label="Total Paid Out"
+            value={`$${money(stats.totalPaidOutAll)}`}
+            hint="Admin confirmed paid"
+            icon={CreditCard}
+            tone="emerald"
+          />
         </div>
       </div>
 
-      {overview && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
-            <p className="text-xs uppercase text-gray-400 font-semibold flex items-center gap-1">
-              <DollarSign className="w-3.5 h-3.5 text-emerald-600" /> L1 Direct Commissions
-            </p>
-            <p className="text-xl font-bold mt-1 text-emerald-700">
-              ${overview.commissions?.level1?.amount || "0.00"}
-            </p>
-            <p className="text-[11px] text-gray-400 mt-0.5">
-              {overview.commissions?.level1?.count || 0} direct sales
-            </p>
-          </div>
-          <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
-            <p className="text-xs uppercase text-gray-400 font-semibold">
-              L2 Team Overrides
-            </p>
-            <p className="text-xl font-bold mt-1 text-sky-700">
-              ${overview.commissions?.level2?.amount || "0.00"}
-            </p>
-            <p className="text-[11px] text-gray-400 mt-0.5">
-              {overview.commissions?.level2?.count || 0} overrides (10%)
-            </p>
-          </div>
-          <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
-            <p className="text-xs uppercase text-gray-400 font-semibold">
-              L3 Deep Overrides
-            </p>
-            <p className="text-xl font-bold mt-1 text-violet-700">
-              ${overview.commissions?.level3?.amount || "0.00"}
-            </p>
-            <p className="text-[11px] text-gray-400 mt-0.5">
-              {overview.commissions?.level3?.count || 0} overrides (5%)
-            </p>
-          </div>
-          <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
-            <p className="text-xs uppercase text-gray-400 font-semibold flex items-center gap-1">
-              <Users className="w-3.5 h-3.5 text-blue-600" /> Network Traffic
-            </p>
-            <p className="text-xl font-bold mt-1 text-gray-900">
-              {overview.clicksLast30Days || 0}
-              <span className="text-sm font-normal text-gray-400"> clicks / 30d</span>
-            </p>
-            <p className="text-[11px] text-gray-400 mt-0.5">
-              {overview.withParent || 0} recruits with upline
-            </p>
-          </div>
-        </div>
-      )}
+      {/* COMMISSION BREAKDOWN */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+        <StatCard
+          label="L1 Direct Commissions"
+          value={`$${l1Amt}`}
+          hint={`${l1Count} direct sales · 5% / 50%`}
+          icon={DollarSign}
+          tone="emerald"
+        />
+        <StatCard
+          label="L2 Team Overrides"
+          value={`$${l2Amt}`}
+          hint={`${l2Count} overrides · 10%`}
+          icon={Layers}
+          tone="sky"
+        />
+        <StatCard
+          label="L3 Deep Overrides"
+          value={`$${l3Amt}`}
+          hint={`${l3Count} overrides · 5%`}
+          icon={GitBranch}
+          tone="violet"
+        />
+        <StatCard
+          label="Network Traffic"
+          value={`${clicks30}`}
+          hint={`${clicks30} clicks / 30d · ${withParent} with upline`}
+          icon={MousePointerClick}
+          tone="default"
+        />
+      </div>
 
       {msg && (
         <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold">
@@ -311,19 +376,19 @@ export default function AffiliatesManager() {
       )}
 
       <div className="relative">
-        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && load(search)}
           placeholder="Search name, email, or code..."
-          className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#CA3F2E]"
+          className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm bg-white shadow-sm focus:outline-none focus:border-[#CA3F2E] focus:ring-2 focus:ring-[#CA3F2E]/10"
         />
       </div>
 
       {/* SELECT ALL BAR */}
       {list.length > 0 && (
-        <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-gray-50 rounded-xl border border-gray-100">
+        <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-white rounded-xl border border-gray-200 shadow-sm">
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -351,8 +416,8 @@ export default function AffiliatesManager() {
           </div>
 
           {selectedIds.length > 0 && (
-            <div className="flex items-center gap-2 animate-in fade-in duration-200">
-              <span className="text-xs font-bold text-gray-700 mr-2">
+            <div className="flex items-center gap-2 animate-in fade-in duration-200 flex-wrap justify-end">
+              <span className="text-xs font-bold text-gray-700 mr-1">
                 {selectedIds.length} selected:
               </span>
               <button
@@ -427,9 +492,9 @@ export default function AffiliatesManager() {
           No affiliates found.
         </div>
       ) : (
-        <div className="overflow-x-auto bg-white rounded-2xl border border-gray-100 shadow-sm">
+        <div className="overflow-x-auto bg-white rounded-2xl border border-gray-200 shadow-sm">
           <table className="w-full text-left text-sm">
-            <thead className="bg-gray-50 text-xs uppercase text-gray-500 border-b border-gray-100">
+            <thead className="bg-gray-50/80 text-[10px] uppercase tracking-wider text-gray-500 border-b border-gray-100">
               <tr>
                 <th className="px-3 py-3 w-10">
                   <button
