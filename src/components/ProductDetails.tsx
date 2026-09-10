@@ -215,7 +215,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
 
   const handleBuyNow = () => {
     addItem(cartPayload);
-    router.push(`/${locale}/cart`);
+    router.push(`/${locale}/checkout`);
   };
 
   const handleSubmitReview = async () => {
