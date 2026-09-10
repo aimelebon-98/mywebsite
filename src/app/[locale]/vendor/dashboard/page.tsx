@@ -41,13 +41,12 @@ function VendorDashboardInner() {
   const router = useRouter();
   const locale = (params?.locale as string) || "en";
   const isFr = locale === "fr";
-  const forceSetupParam = searchParams.get("setup") === "1";
 
   const [vendor, setVendor] = useState<VendorData | null>(null);
   const [stats, setStats] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [showWizard, setShowWizard] = useState(forceSetupParam);
+  const [showWizard, setShowWizard] = useState(false);
 
   const fetchVendor = useCallback(async () => {
     try {
@@ -55,13 +54,15 @@ function VendorDashboardInner() {
       if (!res.ok) throw new Error("Auth failed");
       const data = await res.json();
       setVendor(data.vendor);
-      if (data.vendor?.status === "incomplete" || forceSetupParam) {
+      if (data.vendor?.status === "incomplete") {
         setShowWizard(true);
+      } else {
+        setShowWizard(false);
       }
     } catch {
       setError(isFr ? "Impossible de charger le profil" : "Failed to load profile");
     }
-  }, [isFr, forceSetupParam]);
+  }, [isFr]);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -79,23 +80,29 @@ function VendorDashboardInner() {
   }, []);
 
   useEffect(() => {
+    if (searchParams.get("setup") === "1") {
+      setShowWizard(true);
+    }
     async function init() {
-      if (forceSetupParam) setShowWizard(true);
       await fetchVendor();
       await fetchStats();
       setLoading(false);
     }
     init();
-  }, [forceSetupParam, fetchVendor, fetchStats]);
+  }, [searchParams, fetchVendor, fetchStats]);
 
   const handleWizardComplete = () => {
     setShowWizard(false);
-    if (forceSetupParam) router.replace(`/${locale}/vendor/dashboard`);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("setup");
+      window.history.replaceState({}, "", url.toString());
+    }
     setLoading(true);
     fetchVendor().finally(() => setLoading(false));
   };
 
-  // LOADING GATE — no dashboard flash
+  // LOADING GATE
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -112,12 +119,20 @@ function VendorDashboardInner() {
     );
   }
 
-  // WIZARD ONLY — no dashboard underneath
+  // WIZARD ONLY WHEN UNCOMPLETED
   if (showWizard || vendor?.status === "incomplete") {
     return (
       <VendorOnboardingModal
         locale={locale}
         onComplete={handleWizardComplete}
+        onSkip={() => {
+          setShowWizard(false);
+          if (typeof window !== "undefined") {
+            const url = new URL(window.location.href);
+            url.searchParams.delete("setup");
+            window.history.replaceState({}, "", url.toString());
+          }
+        }}
       />
     );
   }

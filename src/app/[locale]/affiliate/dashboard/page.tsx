@@ -55,7 +55,6 @@ function AffiliateDashboardInner() {
   const router = useRouter();
   const locale = (params?.locale as string) || "en";
   const isFr = locale === "fr";
-  const forceSetupParam = searchParams.get("setup") === "1";
 
   const [affiliate, setAffiliate] = useState<AffiliateData | null>(null);
   const [orders, setOrders] = useState<OrderItem[]>([]);
@@ -66,27 +65,17 @@ function AffiliateDashboardInner() {
   const [copiedDeep, setCopiedDeep] = useState(false);
   const [showWizard, setShowWizard] = useState(false);
 
-  const needsSetup = (a: AffiliateData | null) => {
-    if (!a) return forceSetupParam;
-    if (a.status === "incomplete") return true;
-    if (forceSetupParam) return true;
-    // No USDT wallet yet
-    if (!a.bankAccount || String(a.bankAccount).trim().length < 10) return true;
-    if (a.bankName && a.bankName !== "USDT-TRC20" && !String(a.bankAccount).startsWith("T")) {
-      // legacy bank details without wallet — still allow dashboard
-      return false;
-    }
-    return false;
-  };
-
   const fetchAffiliate = useCallback(async () => {
     try {
       const res = await fetch("/api/affiliate/me");
       const d = await res.json();
       if (d?.affiliate) {
         setAffiliate(d.affiliate);
-        if (needsSetup(d.affiliate) || forceSetupParam || d.affiliate.status === "incomplete") {
+        // Wizard ONLY triggers if status is strictly "incomplete"
+        if (d.affiliate.status === "incomplete") {
           setShowWizard(true);
+        } else {
+          setShowWizard(false);
         }
       }
     } catch (e) {
@@ -94,27 +83,31 @@ function AffiliateDashboardInner() {
     } finally {
       setLoading(false);
     }
-  }, [forceSetupParam]);
+  }, []);
 
   useEffect(() => {
-    if (forceSetupParam) setShowWizard(true);
+    if (searchParams.get("setup") === "1") {
+      setShowWizard(true);
+    }
     fetchAffiliate();
     fetch("/api/affiliate/orders")
       .then((r) => r.json())
       .then((d) => d?.orders && setOrders(d.orders.slice(0, 5)))
       .catch(() => {});
-  }, [forceSetupParam, fetchAffiliate]);
+  }, [searchParams, fetchAffiliate]);
 
   const handleWizardComplete = () => {
     setShowWizard(false);
-    if (forceSetupParam) {
-      router.replace(`/${locale}/affiliate/dashboard`);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("setup");
+      window.history.replaceState({}, "", url.toString());
     }
     setLoading(true);
     fetchAffiliate();
   };
 
-  // LOADING — never flash dashboard
+  // LOADING GATE — prevents flash
   if (loading || !affiliate) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
@@ -126,14 +119,22 @@ function AffiliateDashboardInner() {
     );
   }
 
-  // WIZARD ONLY — full screen, no dashboard underneath
+  // WIZARD OVERLAY ONLY WHEN UNCOMPLETED
   if (showWizard || affiliate.status === "incomplete") {
     return (
       <AffiliateOnboardingModal
         locale={locale}
         affiliateCode={affiliate.code}
         onComplete={handleWizardComplete}
-        forceSetup={true}
+        onSkip={() => {
+          setShowWizard(false);
+          if (typeof window !== "undefined") {
+            const url = new URL(window.location.href);
+            url.searchParams.delete("setup");
+            window.history.replaceState({}, "", url.toString());
+          }
+        }}
+        forceSetup={affiliate.status === "incomplete"}
       />
     );
   }
@@ -171,9 +172,31 @@ function AffiliateDashboardInner() {
       ? ((affiliate.totalOrders / affiliate.totalClicks) * 100).toFixed(1)
       : "0.0";
 
+  const hasWallet = Boolean(affiliate.bankAccount && String(affiliate.bankAccount).trim().length > 10);
+
   return (
     <div className="space-y-8 min-w-0">
       {isPending && <PendingApprovalBanner isFr={isFr} type="affiliate" />}
+
+      {/* MISSING WALLET NOTICE */}
+      {!hasWallet && (
+        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2 text-amber-300">
+            <Wallet className="w-4 h-4 flex-shrink-0" />
+            <span>
+              {isFr
+                ? "Pensez \u00e0 ajouter votre adresse portefeuille USDT (TRC20) pour recevoir vos paiements de commission."
+                : "Add your USDT (TRC20) wallet address in Settings so you can receive commission payouts."}
+            </span>
+          </div>
+          <Link
+            href={`/${locale}/affiliate/dashboard/settings`}
+            className="px-3.5 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 font-semibold text-xs border border-amber-500/40 whitespace-nowrap transition-colors"
+          >
+            {isFr ? "Ajouter mon adresse USDT" : "Add USDT Address"}
+          </Link>
+        </div>
+      )}
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-white/[0.06] to-white/[0.02] border border-white/10">
         <div>
