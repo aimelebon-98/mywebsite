@@ -6,10 +6,8 @@ import {
   Shield,
   Wallet,
   User,
-  Lock,
   Loader2,
   CheckCircle2,
-  QrCode,
   Copy,
   CheckCheck,
   AlertCircle,
@@ -28,7 +26,7 @@ export default function AffiliateSettingsPage() {
 
   // 2FA state
   const [totpSecret, setTotpSecret] = useState("");
-  const [totpQr, setTotpQr] = useState("");
+  const [totpQrDataUrl, setTotpQrDataUrl] = useState("");
   const [totpEnabled, setTotpEnabled] = useState(false);
   const [verifyCode, setVerifyCode] = useState("");
   const [copiedSecret, setCopiedSecret] = useState(false);
@@ -46,36 +44,39 @@ export default function AffiliateSettingsPage() {
     newPassword: "",
   });
 
-  useEffect(() => {
-    fetch("/api/affiliate/me")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d?.affiliate) {
-          setForm((f) => ({
-            ...f,
-            name: d.affiliate.name || "",
-            email: d.affiliate.email || "",
-            phone: d.affiliate.phone || "",
-            whatsapp: d.affiliate.whatsapp || "",
-            country: d.affiliate.country || "",
-            city: d.affiliate.city || "",
-            bankAccount: d.affiliate.bankAccount || "",
-          }));
-        }
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+  const loadSettings = async () => {
+    try {
+      const meRes = await fetch("/api/affiliate/me");
+      const d = await meRes.json();
+      if (d?.affiliate) {
+        setForm((f) => ({
+          ...f,
+          name: d.affiliate.name || "",
+          email: d.affiliate.email || "",
+          phone: d.affiliate.phone || "",
+          whatsapp: d.affiliate.whatsapp || "",
+          country: d.affiliate.country || "",
+          city: d.affiliate.city || "",
+          bankAccount: d.affiliate.bankAccount || "",
+        }));
+      }
 
-    fetch("/api/affiliate/settings/2fa")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d?.success) {
-          setTotpSecret(d.secret);
-          setTotpQr(d.qrUrl);
-          setTotpEnabled(d.enabled);
-        }
-      })
-      .catch(() => {});
+      const t2Res = await fetch("/api/affiliate/settings/2fa");
+      const t2Data = await t2Res.json();
+      if (t2Data?.success) {
+        setTotpSecret(t2Data.secret || "");
+        setTotpQrDataUrl(t2Data.qrDataUrl || "");
+        setTotpEnabled(Boolean(t2Data.enabled));
+      }
+    } catch (e) {
+      console.error("Failed to load settings:", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadSettings();
   }, []);
 
   const handleToggle2FA = async (enable: boolean) => {
@@ -105,6 +106,7 @@ export default function AffiliateSettingsPage() {
           ? "2FA d\u00e9sactiv\u00e9."
           : "2FA disabled.",
       });
+      await loadSettings();
     } catch (e: any) {
       setMsg({ type: "error", text: e.message || "Error" });
     } finally {
@@ -145,8 +147,6 @@ export default function AffiliateSettingsPage() {
       </div>
     );
   }
-
-  const qrImgUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(totpQr)}`;
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -239,10 +239,14 @@ export default function AffiliateSettingsPage() {
             {!totpEnabled ? (
               <div className="pt-4 border-t border-white/10 space-y-4">
                 <div className="flex flex-col sm:flex-row items-center gap-6 p-4 rounded-xl bg-black/40 border border-white/5">
-                  <div className="w-36 h-36 bg-white p-2 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <img src={qrImgUrl} alt="QR Code" className="w-full h-full object-contain" />
+                  <div className="w-36 h-36 bg-white p-2 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
+                    {totpQrDataUrl ? (
+                      <img src={totpQrDataUrl} alt="QR Code" className="w-full h-full object-contain" />
+                    ) : (
+                      <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+                    )}
                   </div>
-                  <div className="space-y-2 text-xs text-gray-300">
+                  <div className="space-y-2 text-xs text-gray-300 flex-1 min-w-0">
                     <p className="font-bold text-white">
                       1. {isFr ? "Scannez ce QR code dans Google Authenticator" : "Scan this QR code in Google Authenticator"}
                     </p>
@@ -251,19 +255,21 @@ export default function AffiliateSettingsPage() {
                         ? "Ou saisissez cette cl\u00e9 secr\u00e8te manuellement :"
                         : "Or enter this secret key manually:"}
                     </p>
-                    <div className="flex items-center gap-2 p-2 rounded-lg bg-white/5 border border-white/10 font-mono text-emerald-400 text-sm font-bold">
-                      <span>{totpSecret}</span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          navigator.clipboard.writeText(totpSecret);
-                          setCopiedSecret(true);
-                          setTimeout(() => setCopiedSecret(false), 2000);
-                        }}
-                        className="p-1 text-gray-400 hover:text-white"
-                      >
-                        {copiedSecret ? <CheckCheck className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                      </button>
+                    <div className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-white/5 border border-white/10 font-mono text-emerald-400 text-sm font-bold">
+                      <span className="truncate select-all">{totpSecret || "Loading..."}</span>
+                      {totpSecret && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(totpSecret);
+                            setCopiedSecret(true);
+                            setTimeout(() => setCopiedSecret(false), 2000);
+                          }}
+                          className="p-1 text-gray-400 hover:text-white flex-shrink-0"
+                        >
+                          {copiedSecret ? <CheckCheck className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
