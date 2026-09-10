@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import {
@@ -77,14 +77,25 @@ export default function AffiliateOnboardingModal({
   const isValidTrc20 = (addr: string) =>
     !addr.trim() || /^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(addr.trim());
 
+  // COMPULSORY VALIDATION RULES
   const validateStep = (s: number) => {
     if (s === 1) return form.country.length > 0 && form.phone.trim().length >= 4;
-    if (s === 2) return true; // Optional
-    if (s === 3) return isValidTrc20(form.usdtWallet); // Optional
+    if (s === 2) return form.marketingPlan.trim().length >= 5; // COMPULSORY
+    if (s === 3) return isValidTrc20(form.usdtWallet);
     return true;
   };
 
   const handleSubmit = async () => {
+    if (!form.marketingPlan.trim()) {
+      setError(
+        isFr
+          ? "Veuillez expliquer comment vous comptez promouvoir nos produits."
+          : "Please describe how you plan to promote our products."
+      );
+      setStep(2);
+      return;
+    }
+
     if (form.usdtWallet.trim() && !isValidTrc20(form.usdtWallet)) {
       setError(
         isFr
@@ -126,7 +137,7 @@ export default function AffiliateOnboardingModal({
   const t = {
     title: isFr ? "Configuration Partenaire Affili\u00e9" : "Affiliate Partner Setup",
     step1: isFr ? "Contact & Pays" : "Contact & Region",
-    step2: isFr ? "R\u00e9seaux & Canaux" : "Marketing Channels",
+    step2: isFr ? "Canaux de Vente" : "Marketing Channels",
     step3: isFr ? "Portefeuille USDT" : "USDT Wallet",
     country: isFr ? "Votre pays *" : "Your Country *",
     city: isFr ? "Ville" : "City",
@@ -136,10 +147,10 @@ export default function AffiliateOnboardingModal({
     socialUrl: isFr ? "Lien Profil Social Principal (facultatif)" : "Primary Social Profile URL (optional)",
     socialPh: "https://instagram.com/..., TikTok, etc.",
     webUrl: isFr ? "Site web / Blog (facultatif)" : "Website / Blog (optional)",
-    plan: isFr ? "Comment comptez-vous promouvoir nos produits ? (facultatif)" : "How do you plan to promote our products? (optional)",
+    plan: isFr ? "Comment comptez-vous promouvoir nos produits ? *" : "How do you plan to promote our products? *",
     planPh: isFr
-      ? "Ex: TikTok, stories Instagram, groupes WhatsApp..."
-      : "e.g. TikTok reviews, WhatsApp status, Instagram stories...",
+      ? "Ex: TikTok, stories Instagram, groupes WhatsApp, canal Telegram..."
+      : "e.g. TikTok reviews, WhatsApp status, Instagram stories, Telegram channel...",
     walletLabel: isFr ? "Adresse portefeuille USDT (TRC20) (facultatif)" : "USDT Wallet Address (TRC20) (optional)",
     walletPh: isFr ? "Vous pourrez l'ajouter plus tard dans les param\u00e8tres" : "you can add it later in settings",
     walletHint: isFr
@@ -160,14 +171,15 @@ export default function AffiliateOnboardingModal({
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+      {/* SOFT BACKDROP (MATCHING SMZ BOT MODAL) */}
       <div
-        className="absolute inset-0 bg-black/90 backdrop-blur-md"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={() => {
           if (!forceSetup && onSkip) onSkip();
         }}
       />
 
-      <div className="relative w-full max-w-xl bg-gray-900 border border-gray-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      <div className="relative w-full max-w-xl bg-gray-900 border border-gray-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-200">
         <div className="px-6 pt-6 pb-4 border-b border-gray-800 bg-gray-900/90 relative">
           {(!forceSetup || onSkip) && !done && (
             <button
@@ -289,6 +301,19 @@ export default function AffiliateOnboardingModal({
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-1.5">
+                  {t.plan}
+                </label>
+                <textarea
+                  rows={3}
+                  required
+                  value={form.marketingPlan}
+                  onChange={(e) => setField("marketingPlan", e.target.value)}
+                  placeholder={t.planPh}
+                  className="w-full px-4 py-3 rounded-xl bg-gray-800/90 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm resize-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-1.5">
                   {t.socialUrl}
                 </label>
                 <input
@@ -309,18 +334,6 @@ export default function AffiliateOnboardingModal({
                   onChange={(e) => setField("websiteUrl", e.target.value)}
                   placeholder="https://..."
                   className="w-full px-4 py-3 rounded-xl bg-gray-800/90 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-1.5">
-                  {t.plan}
-                </label>
-                <textarea
-                  rows={3}
-                  value={form.marketingPlan}
-                  onChange={(e) => setField("marketingPlan", e.target.value)}
-                  placeholder={t.planPh}
-                  className="w-full px-4 py-3 rounded-xl bg-gray-800/90 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm resize-none"
                 />
               </div>
             </div>

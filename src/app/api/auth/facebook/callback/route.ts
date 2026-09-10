@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { vendors, vendorSessions, affiliates, affiliateSessions } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, or, sql } from "drizzle-orm";
 import { hashVendorPassword, generateUniqueStoreSlug } from "@/lib/vendor-auth";
 import { generateAffiliateCode } from "@/lib/affiliate-auth";
 import crypto from "crypto";
@@ -64,6 +64,9 @@ export async function GET(req: NextRequest) {
     const emailLower = String(user.email).toLowerCase().trim();
     const now = new Date();
 
+    const refCookie = req.cookies.get("ndz_affiliate")?.value || "";
+    const cleanRef = String(refCookie).trim().toLowerCase();
+
     // ----------------------------------------------------
     // AFFILIATE SOCIAL SIGNUP/LOGIN
     // ----------------------------------------------------
@@ -75,18 +78,41 @@ export async function GET(req: NextRequest) {
       if (existingAff.length > 0) {
         affId = existingAff[0].id;
         isNew = existingAff[0].status === "incomplete" || !existingAff[0].bankAccount;
+
+        if (!existingAff[0].parentAffiliateId && cleanRef) {
+          try {
+            const [parent] = await db.select({ id: affiliates.id }).from(affiliates).where(
+              or(eq(sql`LOWER(${affiliates.code})`, cleanRef), eq(sql`LOWER(${affiliates.email})`, cleanRef))
+            ).limit(1);
+            if (parent && parent.id !== affId) {
+              await db.update(affiliates).set({ parentAffiliateId: parent.id }).where(eq(affiliates.id, affId));
+            }
+          } catch {}
+        }
       } else {
         affId = crypto.randomUUID();
         isNew = true;
         const fallbackName = user.name || emailLower.split("@")[0];
         const affCode = generateAffiliateCode(fallbackName);
         const tempHash = await hashVendorPassword(crypto.randomBytes(16).toString("hex"));
+
+        let parentAffiliateId: string | null = null;
+        if (cleanRef) {
+          try {
+            const [parent] = await db.select({ id: affiliates.id }).from(affiliates).where(
+              or(eq(sql`LOWER(${affiliates.code})`, cleanRef), eq(sql`LOWER(${affiliates.email})`, cleanRef))
+            ).limit(1);
+            if (parent) parentAffiliateId = parent.id;
+          } catch {}
+        }
+
         await db.insert(affiliates).values({
           id: affId,
           email: emailLower,
           passwordHash: tempHash,
           name: fallbackName,
           code: affCode,
+          parentAffiliateId,
           status: "incomplete",
           commissionRate: "5.00",
           mustChangePassword: false,
