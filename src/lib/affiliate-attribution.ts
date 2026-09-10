@@ -45,12 +45,41 @@ export async function processAffiliateAttribution({
   try {
     let code = affiliateCode;
 
+    // 1. Read from cookie if code not passed explicitly
     if (!code) {
       try {
         const cookieStore = await cookies();
         code = cookieStore.get("ndz_affiliate")?.value || null;
       } catch {
         code = null;
+      }
+    }
+
+    // 2. LIFETIME RENEWAL FALLBACK:
+    // If no code in cookie/params, check if buyer's email belongs to an affiliate account with a parentAffiliateId!
+    if (!code && customerEmail) {
+      try {
+        const cleanCustomerEmail = customerEmail.toLowerCase().trim();
+        const [buyerAff] = await db
+          .select()
+          .from(affiliates)
+          .where(eq(affiliates.email, cleanCustomerEmail))
+          .limit(1);
+
+        if (buyerAff?.parentAffiliateId) {
+          const [parentAff] = await db
+            .select({ code: affiliates.code })
+            .from(affiliates)
+            .where(eq(affiliates.id, buyerAff.parentAffiliateId))
+            .limit(1);
+
+          if (parentAff?.code) {
+            code = parentAff.code;
+            console.log(`[Affiliate Lifetime Renewal] Resolved parent affiliate code '${code}' for returning user '${cleanCustomerEmail}'`);
+          }
+        }
+      } catch (e) {
+        console.error("Lifetime renewal fallback error:", e);
       }
     }
 
@@ -61,7 +90,7 @@ export async function processAffiliateAttribution({
 
     const cleanCode = String(code).trim().toLowerCase();
 
-    // 1. Fetch Level 1 Affiliate
+    // 3. Fetch Level 1 Affiliate
     const [l1Affiliate] = await db
       .select()
       .from(affiliates)
@@ -78,7 +107,7 @@ export async function processAffiliateAttribution({
       return { success: false, reason: `Affiliate is ${l1Affiliate.status}` };
     }
 
-    // 2. Duplicate attribution prevention
+    // 4. Duplicate attribution prevention
     const trackedOrderRef = String(orderNumber || orderId);
     const existing = await db
       .select()
@@ -90,7 +119,7 @@ export async function processAffiliateAttribution({
       return { success: false, reason: "Order already attributed" };
     }
 
-    // 3. Check if order contains SMZ Bot or is a subscription
+    // 5. Check if order contains SMZ Bot or is a subscription
     let isSmzBot = false;
     try {
       const [orderRow] = await db.select({ items: orders.items }).from(orders).where(eq(orders.id, orderId)).limit(1);
@@ -118,8 +147,6 @@ export async function processAffiliateAttribution({
     const l1CommissionStr = l1CommissionNum.toFixed(2);
     const subtotalStr = subtotalUsd.toFixed(2);
 
-    // DIGITAL/SUBSCRIPTIONS ARE CONFIRMED IMMEDIATELY ON PAYMENT
-    // PHYSICAL COD ORDERS ARE 'PENDING' UNTIL DELIVERED
     const initialStatus = isSmzBot ? "confirmed" : "pending";
 
     // Insert Level 1 affiliate order
@@ -136,7 +163,6 @@ export async function processAffiliateAttribution({
       })
       .returning();
 
-    // Increment click/order counters
     await db
       .update(affiliates)
       .set({
@@ -145,7 +171,6 @@ export async function processAffiliateAttribution({
       })
       .where(eq(affiliates.id, l1Affiliate.id));
 
-    // ONLY CREDIT AVAILABLE BALANCE IMMEDIATELY IF CONFIRMED (DIGITAL)
     if (initialStatus === "confirmed") {
       const curEarnings = parseFloat(l1Affiliate.totalEarnings || "0");
       const curPending = parseFloat(l1Affiliate.pendingPayout || "0");
@@ -262,7 +287,6 @@ export async function processAffiliateAttribution({
   }
 }
 
-// Confirm pending physical commission on delivery
 export async function confirmAffiliateCommissionOnDelivery(orderRef: string) {
   try {
     const pendingAffOrders = await db
@@ -273,13 +297,11 @@ export async function confirmAffiliateCommissionOnDelivery(orderRef: string) {
     for (const affOrder of pendingAffOrders) {
       const commAmount = parseFloat(affOrder.commissionAmount || "0");
 
-      // Mark commission confirmed
       await db
         .update(affiliateOrders)
         .set({ status: "confirmed" })
         .where(eq(affiliateOrders.id, affOrder.id));
 
-      // Credit affiliate available balance (pendingPayout)
       const [aff] = await db
         .select()
         .from(affiliates)
@@ -298,8 +320,6 @@ export async function confirmAffiliateCommissionOnDelivery(orderRef: string) {
             updatedAt: new Date(),
           })
           .where(eq(affiliates.id, aff.id));
-
-        console.log(`[Affiliate Delivery] Confirmed $${commAmount} commission for affiliate ${aff.email} on order ${orderRef}`);
       }
     }
   } catch (e) {
@@ -307,7 +327,6 @@ export async function confirmAffiliateCommissionOnDelivery(orderRef: string) {
   }
 }
 
-// Cancel pending physical commission on order cancellation
 export async function cancelAffiliateCommissionOnOrderCancel(orderRef: string) {
   try {
     await db
