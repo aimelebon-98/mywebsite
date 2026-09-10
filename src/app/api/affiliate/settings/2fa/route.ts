@@ -14,16 +14,17 @@ export async function GET() {
   const affiliate = await requireAffiliate();
   if (affiliate instanceof NextResponse) return affiliate;
 
-  // Refresh affiliate row from DB to get latest schema fields
   const [dbAff] = await db.select().from(affiliates).where(eq(affiliates.id, affiliate.id)).limit(1);
   if (!dbAff) return NextResponse.json({ error: "Affiliate not found" }, { status: 404 });
 
-  let secret = dbAff.totpSecret;
+  const affData = dbAff as any;
+  let secret = affData.totpSecret;
+
   if (!secret) {
     secret = generateBase32Secret();
     await db
       .update(affiliates)
-      .set({ totpSecret: secret })
+      .set({ totpSecret: secret } as any)
       .where(eq(affiliates.id, dbAff.id));
   }
 
@@ -35,7 +36,7 @@ export async function GET() {
     secret,
     qrUrl: otpAuthUrl,
     qrDataUrl,
-    enabled: Boolean(dbAff.totpEnabled),
+    enabled: Boolean(affData.totpEnabled),
   });
 }
 
@@ -48,18 +49,19 @@ export async function POST(req: NextRequest) {
   const [dbAff] = await db.select().from(affiliates).where(eq(affiliates.id, affiliate.id)).limit(1);
   if (!dbAff) return NextResponse.json({ error: "Affiliate not found" }, { status: 404 });
 
+  const affData = dbAff as any;
   const { code, action } = await req.json();
 
   if (action === "disable") {
     await db
       .update(affiliates)
-      .set({ totpEnabled: false, totpSecret: null })
+      .set({ totpEnabled: false, totpSecret: null } as any)
       .where(eq(affiliates.id, dbAff.id));
 
     return NextResponse.json({ success: true, enabled: false });
   }
 
-  const secret = dbAff.totpSecret;
+  const secret = affData.totpSecret;
   if (!secret) return NextResponse.json({ error: "2FA setup secret missing" }, { status: 400 });
 
   const isValid = verifyTOTPCode(secret, String(code));
@@ -67,7 +69,7 @@ export async function POST(req: NextRequest) {
 
   await db
     .update(affiliates)
-    .set({ totpEnabled: true })
+    .set({ totpEnabled: true } as any)
     .where(eq(affiliates.id, dbAff.id));
 
   return NextResponse.json({ success: true, enabled: true });
