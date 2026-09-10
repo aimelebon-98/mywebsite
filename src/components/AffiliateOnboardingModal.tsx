@@ -74,16 +74,18 @@ export default function AffiliateOnboardingModal({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const isValidTrc20 = (addr: string) => /^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(addr.trim());
+  const isValidTrc20 = (addr: string) =>
+    !addr.trim() || /^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(addr.trim());
 
   const validateStep = (s: number) => {
     if (s === 1) return form.country.length > 0 && form.phone.trim().length >= 4;
-    if (s === 3) return isValidTrc20(form.usdtWallet);
+    if (s === 2) return true; // Optional
+    if (s === 3) return isValidTrc20(form.usdtWallet); // Optional
     return true;
   };
 
   const handleSubmit = async () => {
-    if (!isValidTrc20(form.usdtWallet)) {
+    if (form.usdtWallet.trim() && !isValidTrc20(form.usdtWallet)) {
       setError(
         isFr
           ? "Adresse USDT TRC20 invalide (doit commencer par T et faire 34 caract\u00e8res)"
@@ -91,6 +93,7 @@ export default function AffiliateOnboardingModal({
       );
       return;
     }
+
     setError("");
     setLoading(true);
     try {
@@ -130,18 +133,18 @@ export default function AffiliateOnboardingModal({
     cityPh: isFr ? "Lom\u00e9, Lagos, Abidjan..." : "Lom\u00e9, Lagos, Abidjan...",
     phone: isFr ? "Num\u00e9ro de t\u00e9l\u00e9phone *" : "Phone Number *",
     whatsapp: "WhatsApp",
-    socialUrl: isFr ? "Lien Profil Social Principal" : "Primary Social Profile URL",
+    socialUrl: isFr ? "Lien Profil Social Principal (facultatif)" : "Primary Social Profile URL (optional)",
     socialPh: "https://instagram.com/..., TikTok, etc.",
     webUrl: isFr ? "Site web / Blog (facultatif)" : "Website / Blog (optional)",
-    plan: isFr ? "Comment comptez-vous promouvoir nos produits ?" : "How do you plan to promote our products?",
+    plan: isFr ? "Comment comptez-vous promouvoir nos produits ? (facultatif)" : "How do you plan to promote our products? (optional)",
     planPh: isFr
       ? "Ex: TikTok, stories Instagram, groupes WhatsApp..."
       : "e.g. TikTok reviews, WhatsApp status, Instagram stories...",
-    walletLabel: isFr ? "Adresse portefeuille USDT (TRC20) *" : "USDT Wallet Address (TRC20) *",
-    walletPh: "TXyz... (Tron TRC20)",
+    walletLabel: isFr ? "Adresse portefeuille USDT (TRC20) (facultatif)" : "USDT Wallet Address (TRC20) (optional)",
+    walletPh: isFr ? "Vous pourrez l'ajouter plus tard dans les param\u00e8tres" : "you can add it later in settings",
     walletHint: isFr
-      ? "Les commissions affili\u00e9es sont pay\u00e9es en USDT sur le r\u00e9seau TRC20 (Tron) uniquement. V\u00e9rifiez bien l'adresse."
-      : "Affiliate payouts are sent in USDT on the TRC20 (Tron) network only. Double-check your address.",
+      ? "Les paiements de commission sont effectu\u00e9s en USDT TRC20. Vous pouvez saisir votre adresse maintenant ou l'ajouter plus tard dans votre tableau de bord."
+      : "Commission payouts are made in USDT TRC20. You can enter your wallet address now or add it later in your Settings.",
     next: isFr ? "Continuer" : "Next",
     back: isFr ? "Retour" : "Back",
     submit: isFr ? "Terminer la configuration" : "Complete Setup",
@@ -157,14 +160,19 @@ export default function AffiliateOnboardingModal({
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/90 backdrop-blur-md" />
+      <div
+        className="absolute inset-0 bg-black/90 backdrop-blur-md"
+        onClick={() => {
+          if (!forceSetup && onSkip) onSkip();
+        }}
+      />
 
       <div className="relative w-full max-w-xl bg-gray-900 border border-gray-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         <div className="px-6 pt-6 pb-4 border-b border-gray-800 bg-gray-900/90 relative">
-          {!forceSetup && onSkip && !done && (
+          {(!forceSetup || onSkip) && !done && (
             <button
               type="button"
-              onClick={onSkip}
+              onClick={onSkip || onComplete}
               className="absolute top-5 right-5 text-gray-400 hover:text-white transition-colors p-1"
             >
               <X className="w-5 h-5" />
@@ -395,16 +403,14 @@ export default function AffiliateOnboardingModal({
                   <ChevronLeft className="w-4 h-4" />
                   {t.back}
                 </button>
-              ) : !forceSetup && onSkip ? (
+              ) : (
                 <button
                   type="button"
-                  onClick={onSkip}
+                  onClick={onSkip || onComplete}
                   className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
                 >
                   {t.skip}
                 </button>
-              ) : (
-                <div />
               )}
             </div>
             <div>
