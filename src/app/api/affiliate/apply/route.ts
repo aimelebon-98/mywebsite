@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { affiliateApplications, affiliates } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
@@ -54,62 +54,34 @@ export async function POST(request: NextRequest) {
 
     if (existingAff.length) {
       const aff = existingAff[0];
-      if (aff.status === "pending" || aff.status === "approved") {
-        const { token, expiresAt, cookieName } = await createAffiliateSession(
-          aff.id,
-          ip,
-          ua
-        );
-        const res = NextResponse.json({
-          success: true,
-          pending: aff.status === "pending",
-          message:
-            aff.status === "pending"
-              ? "Application pending. Logging you into your dashboard."
-              : "Welcome back!",
-          redirectTo: "dashboard",
-        });
-        res.cookies.set({
-          name: cookieName,
-          value: token,
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
-          path: "/",
-          expires: expiresAt,
-        });
-        return res;
-      }
-      return NextResponse.json(
-        { error: "An affiliate account already exists for this email. Please log in." },
-        { status: 409 }
+      const { token, expiresAt, cookieName } = await createAffiliateSession(
+        aff.id,
+        ip,
+        ua
       );
-    }
-
-    const existing = await db
-      .select()
-      .from(affiliateApplications)
-      .where(
-        and(
-          eq(affiliateApplications.email, emailLower),
-          eq(affiliateApplications.status, "pending")
-        )
-      )
-      .limit(1);
-
-    if (existing.length) {
-      return NextResponse.json(
-        { error: "You already have a pending application under review." },
-        { status: 409 }
-      );
+      const res = NextResponse.json({
+        success: true,
+        pending: aff.status === "pending",
+        message: "Welcome back!",
+        redirectTo: "dashboard",
+      });
+      res.cookies.set({
+        name: cookieName,
+        value: token,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        expires: expiresAt,
+      });
+      return res;
     }
 
     let plainPassword =
       typeof password === "string" && password.length >= 6
         ? String(password)
         : crypto.randomBytes(8).toString("hex");
-    const mustChange =
-      !(typeof password === "string" && password.length >= 6);
+
     const passwordHash = await hashAffiliatePassword(plainPassword);
 
     let code = generateAffiliateCode(nameTrim);
@@ -133,32 +105,12 @@ export async function POST(request: NextRequest) {
         name: nameTrim,
         code,
         commissionRate: "5.00",
-        status: "approved",
-        approvedAt: new Date(),
+        status: "incomplete",
         country: country?.trim() || null,
         city: city?.trim() || null,
         phone: phone?.trim() || null,
         whatsapp: whatsapp?.trim() || null,
-        mustChangePassword: mustChange,
-      })
-      .returning();
-
-    const [application] = await db
-      .insert(affiliateApplications)
-      .values({
-        applicantName: nameTrim,
-        email: emailLower,
-        passwordHash,
-        phone: phone?.trim() || null,
-        whatsapp: whatsapp?.trim() || null,
-        country: country?.trim() || null,
-        city: city?.trim() || null,
-        websiteUrl: websiteUrl?.trim() || null,
-        socialMediaUrl: socialMediaUrl?.trim() || null,
-        marketingPlan: marketingPlan?.trim() || null,
-        status: "approved",
-        reviewedAt: new Date(),
-        adminNote: "Auto-approved at signup",
+        mustChangePassword: false,
       })
       .returning();
 
@@ -168,44 +120,14 @@ export async function POST(request: NextRequest) {
       ua
     );
 
-    try {
-      const emailMod = await import("@/lib/email");
-      if (typeof emailMod.sendAffiliateApplicationReceivedEmail === "function") {
-        emailMod
-          .sendAffiliateApplicationReceivedEmail(emailLower, nameTrim, locale)
-          .catch((err: unknown) => console.error("Applicant email error:", err));
-      }
-      if (typeof emailMod.sendAdminNewAffiliateApplicationEmail === "function") {
-        const adminEmail =
-          process.env.ADMIN_NOTIFICATION_EMAIL || "komlaimelebon@gmail.com";
-        emailMod
-          .sendAdminNewAffiliateApplicationEmail(adminEmail, {
-            applicantName: nameTrim,
-            email: emailLower,
-            phone: phone?.trim() || null,
-            country: country?.trim() || null,
-            websiteUrl: websiteUrl?.trim() || null,
-            socialMediaUrl: socialMediaUrl?.trim() || null,
-            marketingPlan: marketingPlan?.trim() || null,
-          })
-          .catch((err: unknown) =>
-            console.error("Admin notification email error:", err)
-          );
-      }
-    } catch (e) {
-      console.error("Email notification error (non-fatal):", e);
-    }
-
     const res = NextResponse.json({
       success: true,
       pending: false,
-      message: "Welcome to your Affiliate Dashboard!",
       redirectTo: "dashboard",
-      applicationId: application.id,
       affiliate: {
         id: newAffiliate.id,
         code: newAffiliate.code,
-        status: "approved",
+        status: "incomplete",
       },
     });
 
