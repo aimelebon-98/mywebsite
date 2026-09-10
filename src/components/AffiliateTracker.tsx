@@ -10,14 +10,21 @@ function TrackerInner() {
     const ref = searchParams.get("ref");
     if (!ref) return;
 
-    const alreadyTracked = sessionStorage.getItem("ndz_ref_tracked");
-    if (alreadyTracked === ref) return;
+    const cleanRef = ref.trim();
+    try {
+      localStorage.setItem("ndz_affiliate", cleanRef);
+      sessionStorage.setItem("ndz_affiliate", cleanRef);
+      document.cookie = `ndz_affiliate=${encodeURIComponent(cleanRef)}; path=/; max-age=2592000; SameSite=Lax`;
+    } catch {}
 
-    fetch(`/api/affiliate/track?ref=${encodeURIComponent(ref)}`)
+    const alreadyTracked = sessionStorage.getItem("ndz_ref_tracked");
+    if (alreadyTracked === cleanRef) return;
+
+    fetch(`/api/affiliate/track?ref=${encodeURIComponent(cleanRef)}`)
       .then((r) => r.json())
       .then((data) => {
         if (data.success) {
-          sessionStorage.setItem("ndz_ref_tracked", ref);
+          sessionStorage.setItem("ndz_ref_tracked", cleanRef);
         }
       })
       .catch(() => {});

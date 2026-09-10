@@ -75,6 +75,7 @@ const createOrderSchema = z.object({
   displayCurrency: z.string().optional(),
   bundleName: z.string().optional().nullable(),
   couponDiscount: z.union([z.number(), z.string()]).optional(),
+  affiliateCode: z.string().max(100).optional().nullable(),
 });
 
 async function generateNextOrderNumber(offset = 0): Promise<string> {
@@ -169,7 +170,7 @@ export async function POST(request: NextRequest) {
       customerId,
       items, subtotal, discountAmount, discountCode, couponCode,
       shippingCost, total, currency,
-      customerNotes, locale,
+      customerNotes, locale, affiliateCode,
     } = parseResult.data;
 
     const itemCount = items.reduce((sum, it) => sum + (it.quantity || 1), 0);
@@ -367,19 +368,23 @@ export async function POST(request: NextRequest) {
       console.error("[Orders] CAPI Purchase setup error:", capiErr);
     }
 
-    // Affiliate attribution hook (non-blocking)
+    // Affiliate attribution hook
     try {
       const orderTotalNum = parseFloat(String(total || insertedOrder.total || "0"));
       const cEmail = resolvedEmail || customerEmail || (insertedOrder as any)?.customerEmail || null;
       const cPhone = customerPhone || (insertedOrder as any)?.customerPhone || null;
       const cCurrency = currency || (insertedOrder as any)?.currency || "USD";
+      const cookieRef = request.cookies.get("ndz_affiliate")?.value || null;
+      const resolvedAffCode = affiliateCode || cookieRef || null;
 
       if (insertedOrder?.id) {
         const affResult = await processAffiliateAttribution({
           orderId: String(insertedOrder.id),
+          orderNumber: insertedOrder.orderNumber,
           subtotalUsd: isNaN(orderTotalNum) ? 0 : orderTotalNum,
           customerEmail: cEmail,
           customerPhone: cPhone,
+          affiliateCode: resolvedAffCode,
           currency: cCurrency,
         });
         console.log("[Orders POST] Affiliate attribution result:", JSON.stringify(affResult));

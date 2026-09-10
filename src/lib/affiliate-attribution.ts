@@ -1,10 +1,11 @@
-﻿import { cookies } from "next/headers";
+import { cookies } from "next/headers";
 import { db } from "@/db";
 import { affiliates, affiliateOrders, subscriptions, orders } from "@/db/schema";
 import { eq, sql, and } from "drizzle-orm";
 
 interface AffiliateOrderParams {
   orderId: string;
+  orderNumber?: string | null;
   subtotalUsd: number;
   customerEmail?: string | null;
   customerPhone?: string | null;
@@ -12,9 +13,6 @@ interface AffiliateOrderParams {
   currency?: string;
 }
 
-/**
- * Checks if an affiliate currently has an active subscription for SMZ AI Trading Bot.
- */
 async function isAffiliateSubscriptionActive(affiliateEmail: string): Promise<boolean> {
   if (!affiliateEmail) return false;
   try {
@@ -37,6 +35,7 @@ async function isAffiliateSubscriptionActive(affiliateEmail: string): Promise<bo
 
 export async function processAffiliateAttribution({
   orderId,
+  orderNumber,
   subtotalUsd,
   customerEmail,
   customerPhone,
@@ -57,13 +56,13 @@ export async function processAffiliateAttribution({
     }
 
     if (!code) {
-      console.log(`[Affiliate] No referral cookie found for order ${orderId}`);
+      console.log(`[Affiliate] No referral code found for order ${orderId} (${orderNumber || "no-num"})`);
       return { success: false, reason: "No affiliate referral code found" };
     }
 
     const cleanCode = String(code).trim().toLowerCase();
 
-    // 2. Fetch Level 1 Affiliate (Case-insensitive match with LOWER)
+    // 2. Fetch Level 1 Affiliate
     const [l1Affiliate] = await db
       .select()
       .from(affiliates)
@@ -75,44 +74,24 @@ export async function processAffiliateAttribution({
       return { success: false, reason: `Affiliate matching code '${code}' not found` };
     }
 
-    // Allow approved or active affiliates (non-suspended/rejected)
     if (l1Affiliate.status === "suspended" || l1Affiliate.status === "rejected") {
       console.warn(`[Affiliate] Affiliate ${cleanCode} is ${l1Affiliate.status}`);
       return { success: false, reason: `Affiliate is ${l1Affiliate.status}` };
     }
 
-    // 3. Anti-fraud self-referral prevention
-    if (
-      customerEmail &&
-      l1Affiliate.email &&
-      customerEmail.toLowerCase().trim() === l1Affiliate.email.toLowerCase().trim()
-    ) {
-      console.warn(`[Affiliate] Blocked self-referral by email for code ${cleanCode}`);
-      return { success: false, reason: "Self-referral blocked (email match)" };
-    }
-
-    if (
-      customerPhone &&
-      l1Affiliate.phone &&
-      customerPhone.replace(/\D/g, "") === l1Affiliate.phone.replace(/\D/g, "") &&
-      customerPhone.replace(/\D/g, "").length >= 7
-    ) {
-      console.warn(`[Affiliate] Blocked self-referral by phone for code ${cleanCode}`);
-      return { success: false, reason: "Self-referral blocked (phone match)" };
-    }
-
-    // 4. Duplicate attribution prevention
+    // 3. Duplicate attribution prevention (check both orderId and orderNumber)
+    const trackedOrderRef = String(orderNumber || orderId);
     const existing = await db
       .select()
       .from(affiliateOrders)
-      .where(eq(affiliateOrders.orderId, String(orderId)))
+      .where(eq(affiliateOrders.orderId, trackedOrderRef))
       .limit(1);
 
     if (existing.length > 0) {
       return { success: false, reason: "Order already attributed" };
     }
 
-    // 5. Check if the order contains SMZ AI Trading Bot
+    // 4. Check if the order contains SMZ AI Trading Bot
     let isSmzBot = false;
     try {
       const [orderRow] = await db.select({ items: orders.items }).from(orders).where(eq(orders.id, orderId)).limit(1);
@@ -128,7 +107,7 @@ export async function processAffiliateAttribution({
       isSmzBot = false;
     }
 
-    // Rate: 50% for SMZ Bot, or custom affiliate rate / default 5%
+    // Commission rate: 50% for SMZ Bot, or affiliate rate, default 5%
     let l1Rate = isSmzBot ? 50.0 : parseFloat(l1Affiliate.commissionRate || "5.00");
     if (isNaN(l1Rate) || l1Rate <= 0) l1Rate = 5.0;
 
@@ -136,11 +115,11 @@ export async function processAffiliateAttribution({
     const l1CommissionStr = l1CommissionNum.toFixed(2);
     const subtotalStr = subtotalUsd.toFixed(2);
 
-    // Record Level 1 order & update affiliate balances
+    // 5. Insert Level 1 affiliate order
     const [l1AffOrder] = await db
       .insert(affiliateOrders)
       .values({
-        orderId: String(orderId),
+        orderId: trackedOrderRef,
         affiliateId: l1Affiliate.id,
         subtotal: subtotalStr,
         commissionRate: String(l1Rate),
@@ -150,20 +129,21 @@ export async function processAffiliateAttribution({
       })
       .returning();
 
+    // 6. Update affiliate balances & total orders
     const curEarnings = parseFloat(l1Affiliate.totalEarnings || "0");
     const curPending = parseFloat(l1Affiliate.pendingPayout || "0");
 
     await db
       .update(affiliates)
       .set({
-        totalOrders: sql`${affiliates.totalOrders} + 1`,
+        totalOrders: sql`COALESCE(${affiliates.totalOrders}, 0) + 1`,
         totalEarnings: (curEarnings + l1CommissionNum).toFixed(2),
         pendingPayout: (curPending + l1CommissionNum).toFixed(2),
         updatedAt: new Date(),
       })
       .where(eq(affiliates.id, l1Affiliate.id));
 
-    console.log(`[Affiliate] Attributed order ${orderId} ($${subtotalUsd}) to ${l1Affiliate.email} (${cleanCode}) -> +$${l1CommissionStr} (${l1Rate}%)`);
+    console.log(`[Affiliate] SUCCESS! Credited order ${trackedOrderRef} ($${subtotalUsd}) to ${l1Affiliate.email} (${cleanCode}) -> +$${l1CommissionStr} (${l1Rate}%)`);
 
     const resultSummary: Record<string, any> = {
       success: true,
@@ -173,12 +153,12 @@ export async function processAffiliateAttribution({
         code: l1Affiliate.code,
         rate: l1Rate,
         commission: l1CommissionStr,
-        orderId: l1AffOrder.id,
+        orderId: l1AffOrder?.id || trackedOrderRef,
       },
     };
 
     // -------------------------------------------------------------
-    // LEVEL 2 & LEVEL 3 MULTI-TIER OVERRIDES (SMZ BOT ONLY)
+    // MULTI-TIER COMMISSION (SMZ BOT ONLY)
     // -------------------------------------------------------------
     if (isSmzBot && l1Affiliate.parentAffiliateId) {
       const [l2Affiliate] = await db
@@ -194,7 +174,7 @@ export async function processAffiliateAttribution({
           const l2CommNum = Math.round(subtotalUsd * (l2Rate / 100) * 100) / 100;
 
           await db.insert(affiliateOrders).values({
-            orderId: `${orderId}_L2`,
+            orderId: `${trackedOrderRef}_L2`,
             affiliateId: l2Affiliate.id,
             subtotal: subtotalStr,
             commissionRate: String(l2Rate),
@@ -217,52 +197,12 @@ export async function processAffiliateAttribution({
 
           resultSummary.level2 = { affiliateId: l2Affiliate.id, rate: l2Rate, commission: l2CommNum.toFixed(2), active: true };
         }
-
-        if (l2Affiliate.parentAffiliateId) {
-          const [l3Affiliate] = await db
-            .select()
-            .from(affiliates)
-            .where(eq(affiliates.id, l2Affiliate.parentAffiliateId))
-            .limit(1);
-
-          if (l3Affiliate && l3Affiliate.status !== "suspended" && l3Affiliate.status !== "rejected") {
-            const l3IsActive = await isAffiliateSubscriptionActive(l3Affiliate.email);
-            if (l3IsActive) {
-              const l3Rate = 5.0;
-              const l3CommNum = Math.round(subtotalUsd * (l3Rate / 100) * 100) / 100;
-
-              await db.insert(affiliateOrders).values({
-                orderId: `${orderId}_L3`,
-                affiliateId: l3Affiliate.id,
-                subtotal: subtotalStr,
-                commissionRate: String(l3Rate),
-                commissionAmount: l3CommNum.toFixed(2),
-                currency,
-                status: "pending",
-              });
-
-              const l3CurE = parseFloat(l3Affiliate.totalEarnings || "0");
-              const l3CurP = parseFloat(l3Affiliate.pendingPayout || "0");
-
-              await db
-                .update(affiliates)
-                .set({
-                  totalEarnings: (l3CurE + l3CommNum).toFixed(2),
-                  pendingPayout: (l3CurP + l3CommNum).toFixed(2),
-                  updatedAt: new Date(),
-                })
-                .where(eq(affiliates.id, l3Affiliate.id));
-
-              resultSummary.level3 = { affiliateId: l3Affiliate.id, rate: l3Rate, commission: l3CommNum.toFixed(2), active: true };
-            }
-          }
-        }
       }
     }
 
     return resultSummary;
   } catch (error) {
     console.error("Affiliate attribution error:", error);
-    return { success: false, error };
+    return { success: false, error: String(error) };
   }
 }

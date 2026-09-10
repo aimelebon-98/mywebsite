@@ -255,6 +255,7 @@ export default function CheckoutPage() {
           customerId: customer?.id || null,
           currency: "USD",
           displayCurrency: userCurrency,
+          affiliateCode: typeof window !== "undefined" ? (localStorage.getItem("ndz_affiliate") || sessionStorage.getItem("ndz_affiliate") || null) : null,
           locale,
         }),
       });
