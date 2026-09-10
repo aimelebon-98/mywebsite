@@ -119,6 +119,11 @@ export default function AffiliateDashboardLayout({
       icon: GitFork,
     },
     {
+      label: isFr ? "Plan de R\u00e9mun\u00e9ration" : "Compensation Plan",
+      href: /\/affiliate/dashboard/compensation,
+      icon: TrendingUp,
+    },
+    {
       label: isFr ? "Commandes Li\u00e9es" : "Referred Orders",
       href: `/${locale}/affiliate/dashboard/orders`,
       icon: ShoppingBag,
