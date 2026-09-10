@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { type SubscriptionTierMonths, getTierQuote, parseSubscriptionConfig } from "@/lib/subscription-pricing";
 import { SubscriptionTierSelector } from "./SubscriptionTierSelector";
-import { Copy, CheckCircle2, Clock, ExternalLink, AlertCircle, LayoutGrid, Loader2, X, Sparkles, Users } from "lucide-react";
+import { Copy, CheckCircle2, Clock, ExternalLink, AlertCircle, LayoutGrid, Loader2, X, Sparkles, Send } from "lucide-react";
 
 interface Product {
   id: string;
@@ -58,7 +58,6 @@ export function SubscriptionCheckoutModal({ product, isOpen, onClose, locale = "
 
   const quote = getTierQuote(config.monthlyPrice, months);
 
-  // Auto-detect referral code from URL, storage or cookie
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
@@ -71,7 +70,6 @@ export function SubscriptionCheckoutModal({ product, isOpen, onClose, locale = "
     } catch {}
   }, []);
 
-  // Status polling
   useEffect(() => {
     if (step !== "payment" || !pay?.orderNumber) return;
     const iv = setInterval(async () => {
@@ -90,7 +88,6 @@ export function SubscriptionCheckoutModal({ product, isOpen, onClose, locale = "
     return () => clearInterval(iv);
   }, [step, pay?.orderNumber]);
 
-  // Countdown timer calculation
   useEffect(() => {
     if (step !== "payment" || !pay) {
       setTimeLeft(null);
@@ -173,6 +170,12 @@ export function SubscriptionCheckoutModal({ product, isOpen, onClose, locale = "
   const qrUrl = pay?.payAddress
     ? `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(pay.payAddress)}`
     : "";
+
+  const telegramMsg = isFr
+    ? `Bonjour ! Je viens de m'abonner \u00e0 SMZ AI Trading Bot Pro. Mon num\u00e9ro de commande est : ${pay?.orderNumber || ""}. Merci de m'envoyer le lien du canal de signaux.`
+    : `Hello! I just subscribed to SMZ AI Trading Bot Pro. My Order Number is: ${pay?.orderNumber || ""}. Please send me the signals channel link.`;
+
+  const telegramUrl = `https://t.me/livetraderu?text=${encodeURIComponent(telegramMsg)}`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -287,7 +290,6 @@ export function SubscriptionCheckoutModal({ product, isOpen, onClose, locale = "
                   />
                 </div>
 
-                {/* Auto-Affiliate Recruitment Checkbox */}
                 <div className="pt-2">
                   <div className="p-3.5 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/50">
                     <label className="flex items-start gap-3 cursor-pointer select-none">
@@ -330,7 +332,6 @@ export function SubscriptionCheckoutModal({ product, isOpen, onClose, locale = "
 
           {step === "payment" && pay && (
             <div className="space-y-5">
-              {/* Status & Live Countdown Bar */}
               <div className="flex items-center justify-between p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 text-amber-900 dark:text-amber-200 text-xs">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400 animate-pulse flex-shrink-0" />
@@ -353,7 +354,6 @@ export function SubscriptionCheckoutModal({ product, isOpen, onClose, locale = "
                 </span>
               </div>
 
-              {/* QR & Details Card */}
               <div className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-xl bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800">
                 <div className="w-36 h-36 bg-white p-2 rounded-lg border border-gray-200 shadow-sm flex items-center justify-center flex-shrink-0">
                   {qrUrl ? (
@@ -438,9 +438,21 @@ export function SubscriptionCheckoutModal({ product, isOpen, onClose, locale = "
                   {isFr ? "Votre abonnement est maintenant actif." : "Your subscription has been activated."}
                 </p>
               </div>
+
+              {/* TELEGRAM REDIRECT BUTTON */}
+              <a
+                href={telegramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full inline-flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[#229ED9] hover:bg-[#1b88bd] text-white font-extrabold text-sm shadow-lg shadow-[#229ED9]/25 transition-all"
+              >
+                <Send className="w-4 h-4" />
+                {isFr ? "Rejoindre sur Telegram (@livetraderu)" : "Claim Signals on Telegram (@livetraderu)"}
+              </a>
+
               <button
                 onClick={onClose}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition"
+                className="w-full bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 text-gray-700 dark:text-gray-300 font-bold py-3 rounded-xl transition text-sm"
               >
                 {isFr ? "Fermer" : "Done"}
               </button>
