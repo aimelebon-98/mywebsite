@@ -91,7 +91,7 @@ export async function processAffiliateAttribution({
       return { success: false, reason: "Order already attributed" };
     }
 
-    // 4. Check if the order contains SMZ AI Trading Bot
+    // 4. Check if order contains SMZ Bot or is a subscription
     let isSmzBot = false;
     try {
       const [orderRow] = await db.select({ items: orders.items }).from(orders).where(eq(orders.id, orderId)).limit(1);
@@ -107,7 +107,11 @@ export async function processAffiliateAttribution({
       isSmzBot = false;
     }
 
-    // Commission rate: 50% for SMZ Bot, or affiliate rate, default 5%
+    if (!isSmzBot && (trackedOrderRef.startsWith("SUB-") || trackedOrderRef.toLowerCase().includes("sub"))) {
+      isSmzBot = true;
+    }
+
+    // Commission rate: 50% for SMZ Bot (L1), or affiliate custom rate, default 5%
     let l1Rate = isSmzBot ? 50.0 : parseFloat(l1Affiliate.commissionRate || "5.00");
     if (isNaN(l1Rate) || l1Rate <= 0) l1Rate = 5.0;
 
@@ -129,7 +133,7 @@ export async function processAffiliateAttribution({
       })
       .returning();
 
-    // 6. Update affiliate balances & total orders
+    // 6. Update Level 1 affiliate balances & total orders
     const curEarnings = parseFloat(l1Affiliate.totalEarnings || "0");
     const curPending = parseFloat(l1Affiliate.pendingPayout || "0");
 
@@ -143,7 +147,7 @@ export async function processAffiliateAttribution({
       })
       .where(eq(affiliates.id, l1Affiliate.id));
 
-    console.log(`[Affiliate] SUCCESS! Credited order ${trackedOrderRef} ($${subtotalUsd}) to ${l1Affiliate.email} (${cleanCode}) -> +$${l1CommissionStr} (${l1Rate}%)`);
+    console.log(`[Affiliate] SUCCESS! Credited L1 order ${trackedOrderRef} ($${subtotalUsd}) to ${l1Affiliate.email} (${cleanCode}) -> +$${l1CommissionStr} (${l1Rate}%)`);
 
     const resultSummary: Record<string, any> = {
       success: true,
@@ -158,9 +162,10 @@ export async function processAffiliateAttribution({
     };
 
     // -------------------------------------------------------------
-    // MULTI-TIER COMMISSION (SMZ BOT ONLY)
+    // MULTI-TIER OVERRIDES (SMZ BOT ONLY: 50% L1, 10% L2, 5% L3)
     // -------------------------------------------------------------
     if (isSmzBot && l1Affiliate.parentAffiliateId) {
+      // LEVEL 2 OVERRIDE (10%)
       const [l2Affiliate] = await db
         .select()
         .from(affiliates)
@@ -196,6 +201,47 @@ export async function processAffiliateAttribution({
             .where(eq(affiliates.id, l2Affiliate.id));
 
           resultSummary.level2 = { affiliateId: l2Affiliate.id, rate: l2Rate, commission: l2CommNum.toFixed(2), active: true };
+
+          // LEVEL 3 OVERRIDE (5%)
+          if (l2Affiliate.parentAffiliateId) {
+            const [l3Affiliate] = await db
+              .select()
+              .from(affiliates)
+              .where(eq(affiliates.id, l2Affiliate.parentAffiliateId))
+              .limit(1);
+
+            if (l3Affiliate && l3Affiliate.status !== "suspended" && l3Affiliate.status !== "rejected") {
+              const l3IsActive = await isAffiliateSubscriptionActive(l3Affiliate.email);
+              if (l3IsActive) {
+                const l3Rate = 5.0;
+                const l3CommNum = Math.round(subtotalUsd * (l3Rate / 100) * 100) / 100;
+
+                await db.insert(affiliateOrders).values({
+                  orderId: `${trackedOrderRef}_L3`,
+                  affiliateId: l3Affiliate.id,
+                  subtotal: subtotalStr,
+                  commissionRate: String(l3Rate),
+                  commissionAmount: l3CommNum.toFixed(2),
+                  currency,
+                  status: "pending",
+                });
+
+                const l3CurE = parseFloat(l3Affiliate.totalEarnings || "0");
+                const l3CurP = parseFloat(l3Affiliate.pendingPayout || "0");
+
+                await db
+                  .update(affiliates)
+                  .set({
+                    totalEarnings: (l3CurE + l3CommNum).toFixed(2),
+                    pendingPayout: (l3CurP + l3CommNum).toFixed(2),
+                    updatedAt: new Date(),
+                  })
+                  .where(eq(affiliates.id, l3Affiliate.id));
+
+                resultSummary.level3 = { affiliateId: l3Affiliate.id, rate: l3Rate, commission: l3CommNum.toFixed(2), active: true };
+              }
+            }
+          }
         }
       }
     }
