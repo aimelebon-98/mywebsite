@@ -17,6 +17,7 @@ import {
   Globe,
   ChevronDown,
   Users,
+  GitFork,
 } from "lucide-react";
 
 interface AffiliateData {
@@ -114,7 +115,7 @@ export default function AffiliateDashboardLayout({
     },
     {
       label: isFr ? "Arbre G\u00e9n\u00e9alogique" : "Genealogy Tree",
-      href: /\/affiliate/dashboard/genealogy,
+      href: `/${locale}/affiliate/dashboard/genealogy`,
       icon: GitFork,
     },
     {
@@ -165,7 +166,7 @@ export default function AffiliateDashboardLayout({
               locale === "fr" ? "text-white font-bold bg-white/5" : "text-gray-300"
             }`}
           >
-            <span>Français</span>
+            <span>Fran\u00e7ais</span>
             <span className="font-mono text-[10px] text-gray-500">FR</span>
           </button>
         </div>
@@ -212,7 +213,7 @@ export default function AffiliateDashboardLayout({
             <p className="text-xs text-gray-400">{isFr ? "Partenaire" : "Partner"}</p>
             <p className="text-sm font-semibold truncate text-white">{affiliate.name}</p>
             <div className="mt-1 flex items-center gap-1.5 text-xs text-[#CA3F2E]">
-              <Sparkles className="w-3 h-3" />
+              <Sparkles className="w-3 3-3" />
               <span className="font-mono font-bold">{affiliate.code}</span>
             </div>
           </div>
