@@ -1,6 +1,6 @@
-import { cookies } from "next/headers";
+﻿import { cookies } from "next/headers";
 import { db } from "@/db";
-import { affiliates, affiliateOrders, subscriptions, products, orders } from "@/db/schema";
+import { affiliates, affiliateOrders, subscriptions, orders } from "@/db/schema";
 import { eq, sql, and } from "drizzle-orm";
 
 interface AffiliateOrderParams {
@@ -46,7 +46,7 @@ export async function processAffiliateAttribution({
   try {
     let code = affiliateCode;
 
-    // 1. If code was not passed explicitly, read from ndz_affiliate cookie
+    // 1. Read from cookie if code not passed explicitly
     if (!code) {
       try {
         const cookieStore = await cookies();
@@ -57,29 +57,37 @@ export async function processAffiliateAttribution({
     }
 
     if (!code) {
+      console.log(`[Affiliate] No referral cookie found for order ${orderId}`);
       return { success: false, reason: "No affiliate referral code found" };
     }
 
-    const cleanCode = code.trim().toUpperCase();
+    const cleanCode = String(code).trim().toLowerCase();
 
-    // 2. Fetch Level 1 Affiliate
+    // 2. Fetch Level 1 Affiliate (Case-insensitive match with LOWER)
     const [l1Affiliate] = await db
       .select()
       .from(affiliates)
-      .where(eq(affiliates.code, cleanCode))
+      .where(eq(sql`LOWER(${affiliates.code})`, cleanCode))
       .limit(1);
 
-    if (!l1Affiliate || l1Affiliate.status !== "approved") {
-      return { success: false, reason: "Affiliate not found or not approved" };
+    if (!l1Affiliate) {
+      console.warn(`[Affiliate] No affiliate found matching code '${code}'`);
+      return { success: false, reason: `Affiliate matching code '${code}' not found` };
     }
 
-    // 3. Self-referral prevention (anti-fraud)
+    // Allow approved or active affiliates (non-suspended/rejected)
+    if (l1Affiliate.status === "suspended" || l1Affiliate.status === "rejected") {
+      console.warn(`[Affiliate] Affiliate ${cleanCode} is ${l1Affiliate.status}`);
+      return { success: false, reason: `Affiliate is ${l1Affiliate.status}` };
+    }
+
+    // 3. Anti-fraud self-referral prevention
     if (
       customerEmail &&
       l1Affiliate.email &&
       customerEmail.toLowerCase().trim() === l1Affiliate.email.toLowerCase().trim()
     ) {
-      console.warn(`[Affiliate] Blocked self-referral by email for ${cleanCode}`);
+      console.warn(`[Affiliate] Blocked self-referral by email for code ${cleanCode}`);
       return { success: false, reason: "Self-referral blocked (email match)" };
     }
 
@@ -89,11 +97,11 @@ export async function processAffiliateAttribution({
       customerPhone.replace(/\D/g, "") === l1Affiliate.phone.replace(/\D/g, "") &&
       customerPhone.replace(/\D/g, "").length >= 7
     ) {
-      console.warn(`[Affiliate] Blocked self-referral by phone for ${cleanCode}`);
+      console.warn(`[Affiliate] Blocked self-referral by phone for code ${cleanCode}`);
       return { success: false, reason: "Self-referral blocked (phone match)" };
     }
 
-    // 4. Duplicate attribution prevention for Level 1
+    // 4. Duplicate attribution prevention
     const existing = await db
       .select()
       .from(affiliateOrders)
@@ -104,12 +112,12 @@ export async function processAffiliateAttribution({
       return { success: false, reason: "Order already attributed" };
     }
 
-    // 5. Check if the order is for SMZ AI Trading Bot Pro
+    // 5. Check if the order contains SMZ AI Trading Bot
     let isSmzBot = false;
     try {
       const [orderRow] = await db.select({ items: orders.items }).from(orders).where(eq(orders.id, orderId)).limit(1);
       if (orderRow?.items) {
-        const parsedItems = JSON.parse(orderRow.items);
+        const parsedItems = typeof orderRow.items === "string" ? JSON.parse(orderRow.items) : orderRow.items;
         isSmzBot = Array.isArray(parsedItems) && parsedItems.some((it: any) =>
           (it.name || "").toLowerCase().includes("smz") ||
           (it.productId || "").toLowerCase().includes("smz") ||
@@ -120,15 +128,15 @@ export async function processAffiliateAttribution({
       isSmzBot = false;
     }
 
-    // -------------------------------------------------------------
-    // TIER COMMISSION LOGIC
-    // -------------------------------------------------------------
+    // Rate: 50% for SMZ Bot, or custom affiliate rate / default 5%
     let l1Rate = isSmzBot ? 50.0 : parseFloat(l1Affiliate.commissionRate || "5.00");
+    if (isNaN(l1Rate) || l1Rate <= 0) l1Rate = 5.0;
+
     const l1CommissionNum = Math.round(subtotalUsd * (l1Rate / 100) * 100) / 100;
     const l1CommissionStr = l1CommissionNum.toFixed(2);
     const subtotalStr = subtotalUsd.toFixed(2);
 
-    // Record Level 1 order & update balance
+    // Record Level 1 order & update affiliate balances
     const [l1AffOrder] = await db
       .insert(affiliateOrders)
       .values({
@@ -155,6 +163,8 @@ export async function processAffiliateAttribution({
       })
       .where(eq(affiliates.id, l1Affiliate.id));
 
+    console.log(`[Affiliate] Attributed order ${orderId} ($${subtotalUsd}) to ${l1Affiliate.email} (${cleanCode}) -> +$${l1CommissionStr} (${l1Rate}%)`);
+
     const resultSummary: Record<string, any> = {
       success: true,
       isSmzBot,
@@ -169,17 +179,15 @@ export async function processAffiliateAttribution({
 
     // -------------------------------------------------------------
     // LEVEL 2 & LEVEL 3 MULTI-TIER OVERRIDES (SMZ BOT ONLY)
-    // Level 2 (10%) and Level 3 (5%) require parent to be an ACTIVE SUBSCRIBER
     // -------------------------------------------------------------
     if (isSmzBot && l1Affiliate.parentAffiliateId) {
-      // Level 2 Parent
       const [l2Affiliate] = await db
         .select()
         .from(affiliates)
         .where(eq(affiliates.id, l1Affiliate.parentAffiliateId))
         .limit(1);
 
-      if (l2Affiliate && l2Affiliate.status === "approved") {
+      if (l2Affiliate && l2Affiliate.status !== "suspended" && l2Affiliate.status !== "rejected") {
         const l2IsActive = await isAffiliateSubscriptionActive(l2Affiliate.email);
         if (l2IsActive) {
           const l2Rate = 10.0;
@@ -208,11 +216,8 @@ export async function processAffiliateAttribution({
             .where(eq(affiliates.id, l2Affiliate.id));
 
           resultSummary.level2 = { affiliateId: l2Affiliate.id, rate: l2Rate, commission: l2CommNum.toFixed(2), active: true };
-        } else {
-          resultSummary.level2 = { affiliateId: l2Affiliate.id, active: false, reason: "Inactive subscription - override skipped" };
         }
 
-        // Level 3 Grandparent
         if (l2Affiliate.parentAffiliateId) {
           const [l3Affiliate] = await db
             .select()
@@ -220,7 +225,7 @@ export async function processAffiliateAttribution({
             .where(eq(affiliates.id, l2Affiliate.parentAffiliateId))
             .limit(1);
 
-          if (l3Affiliate && l3Affiliate.status === "approved") {
+          if (l3Affiliate && l3Affiliate.status !== "suspended" && l3Affiliate.status !== "rejected") {
             const l3IsActive = await isAffiliateSubscriptionActive(l3Affiliate.email);
             if (l3IsActive) {
               const l3Rate = 5.0;
@@ -249,8 +254,6 @@ export async function processAffiliateAttribution({
                 .where(eq(affiliates.id, l3Affiliate.id));
 
               resultSummary.level3 = { affiliateId: l3Affiliate.id, rate: l3Rate, commission: l3CommNum.toFixed(2), active: true };
-            } else {
-              resultSummary.level3 = { affiliateId: l3Affiliate.id, active: false, reason: "Inactive subscription - override skipped" };
             }
           }
         }
