@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { affiliates, affiliateClicks } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
@@ -15,18 +15,25 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const cleanCode = code.trim().toUpperCase();
+    const cleanCode = code.trim().toLowerCase();
 
     const [affiliate] = await db
       .select()
       .from(affiliates)
-      .where(eq(affiliates.code, cleanCode))
+      .where(eq(sql`LOWER(${affiliates.code})`, cleanCode))
       .limit(1);
 
-    if (!affiliate || affiliate.status !== "approved") {
+    if (!affiliate) {
       return NextResponse.json(
-        { error: "Invalid or inactive affiliate code" },
+        { error: "Invalid affiliate code" },
         { status: 404 }
+      );
+    }
+
+    if (affiliate.status === "suspended" || affiliate.status === "rejected") {
+      return NextResponse.json(
+        { error: "Inactive affiliate code" },
+        { status: 403 }
       );
     }
 
@@ -52,17 +59,21 @@ export async function GET(request: NextRequest) {
       .set({ totalClicks: sql`${affiliates.totalClicks} + 1` })
       .where(eq(affiliates.id, affiliate.id));
 
-    const maxAge = 30 * 24 * 60 * 60;
-    const response = NextResponse.json({
+    const maxAge = 30 * 24 * 60 * 60; // 30 days
+    const res = NextResponse.json({
       success: true,
       code: affiliate.code,
     });
-    response.headers.set(
-      "Set-Cookie",
-      `ndz_affiliate=${encodeURIComponent(affiliate.code)}; Path=/; Max-Age=${maxAge}; SameSite=Lax; Secure`
-    );
 
-    return response;
+    // CRITICAL FIX: Explicitly set Path=/ so cookie is accessible across the whole site during checkout
+    res.cookies.set("ndz_affiliate", affiliate.code, {
+      path: "/",
+      maxAge,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+    });
+
+    return res;
   } catch (error) {
     console.error("Affiliate track error:", error);
     return NextResponse.json(

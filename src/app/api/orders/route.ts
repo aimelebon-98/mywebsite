@@ -367,13 +367,12 @@ export async function POST(request: NextRequest) {
       console.error("[Orders] CAPI Purchase setup error:", capiErr);
     }
 
-        // Affiliate attribution hook (non-blocking)
+    // Affiliate attribution hook (non-blocking)
     try {
-      const orderTotalRaw = (insertedOrder as any)?.total;
-      const orderTotalNum = typeof orderTotalRaw === "number" ? orderTotalRaw : parseFloat(String(orderTotalRaw || "0"));
-      const cEmail = (insertedOrder as any)?.customerEmail || null;
-      const cPhone = (insertedOrder as any)?.customerPhone || null;
-      const cCurrency = (insertedOrder as any)?.currency || "USD";
+      const orderTotalNum = parseFloat(String(total || insertedOrder.total || "0"));
+      const cEmail = resolvedEmail || customerEmail || (insertedOrder as any)?.customerEmail || null;
+      const cPhone = customerPhone || (insertedOrder as any)?.customerPhone || null;
+      const cCurrency = currency || (insertedOrder as any)?.currency || "USD";
 
       if (insertedOrder?.id) {
         processAffiliateAttribution({
@@ -382,10 +381,12 @@ export async function POST(request: NextRequest) {
           customerEmail: cEmail,
           customerPhone: cPhone,
           currency: cCurrency,
-        }).catch((err: unknown) => console.error("Affiliate hook execution error:", err));
+        }).then((res) => {
+          console.log("[Orders POST] Affiliate attribution result:", JSON.stringify(res));
+        }).catch((err: unknown) => console.error("[Orders POST] Affiliate hook execution error:", err));
       }
     } catch (e) {
-      console.error("Affiliate hook trigger error:", e);
+      console.error("[Orders POST] Affiliate hook trigger error:", e);
     }
     return NextResponse.json({
       success: true,
