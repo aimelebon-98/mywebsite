@@ -12,24 +12,52 @@ export async function GET() {
 
   try {
     const list = await db.select().from(affiliates).orderBy(affiliates.createdAt);
-    return NextResponse.json({ success: true, affiliates: list });
+
+    let totalEarningsAll = 0;
+    let totalPendingPayoutAll = 0;
+    let totalPaidOutAll = 0;
+
+    list.forEach((a) => {
+      totalEarningsAll += parseFloat(a.totalEarnings || "0");
+      totalPendingPayoutAll += parseFloat(a.pendingPayout || "0");
+      totalPaidOutAll += parseFloat(a.totalPaidOut || "0");
+    });
+
+    return NextResponse.json({
+      success: true,
+      affiliates: list,
+      stats: {
+        totalAffiliates: list.length,
+        totalEarningsAll: totalEarningsAll.toFixed(2),
+        totalPendingPayoutAll: totalPendingPayoutAll.toFixed(2),
+        totalPaidOutAll: totalPaidOutAll.toFixed(2),
+      },
+    });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || "Failed to load affiliates" }, { status: 500 });
   }
 }
 
-export async function POST(req: NextRequest) {
+async function handleUpdateOrDelete(req: NextRequest) {
   const adminCheck = await requireAdmin();
   if (adminCheck) return adminCheck;
 
   try {
     const body = await req.json();
-    const { action, ids, targetStatus, commissionRate } = body;
 
-    if (!Array.isArray(ids) || ids.length === 0) {
+    // Support both single ID (affiliateId) and bulk array (ids or affiliateIds)
+    const rawIds = body.ids || body.affiliateIds || (body.affiliateId ? [body.affiliateId] : []);
+    const ids: string[] = Array.isArray(rawIds) ? rawIds : [rawIds];
+
+    const action = body.action;
+    const targetStatus = body.targetStatus || body.status;
+    const commissionRate = body.commissionRate;
+
+    if (ids.length === 0 || !ids[0]) {
       return NextResponse.json({ error: "No affiliate IDs provided" }, { status: 400 });
     }
 
+    // ---------- DELETE ACTION ----------
     if (action === "delete") {
       const rows = await db
         .select({ id: affiliates.id, email: affiliates.email })
@@ -59,6 +87,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // ---------- UPDATE STATUS / COMMISSION RATE ----------
     const updates: Record<string, unknown> = {
       updatedAt: new Date(),
     };
@@ -82,6 +111,16 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Apply bulk status actions if action is approve, suspend, or reject
+    if (action === "approve") {
+      updates.status = "approved";
+      updates.approvedAt = new Date();
+    } else if (action === "suspend") {
+      updates.status = "suspended";
+    } else if (action === "reject") {
+      updates.status = "rejected";
+    }
+
     await db.update(affiliates).set(updates).where(inArray(affiliates.id, ids));
 
     return NextResponse.json({
@@ -90,6 +129,15 @@ export async function POST(req: NextRequest) {
       updated: ids.length,
     });
   } catch (err: any) {
+    console.error("Admin affiliates update error:", err);
     return NextResponse.json({ error: err.message || "Failed to update affiliates" }, { status: 500 });
   }
+}
+
+export async function POST(req: NextRequest) {
+  return handleUpdateOrDelete(req);
+}
+
+export async function PUT(req: NextRequest) {
+  return handleUpdateOrDelete(req);
 }

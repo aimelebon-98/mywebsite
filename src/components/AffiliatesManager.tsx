@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useTransition } from "react";
 import {
@@ -9,7 +9,12 @@ import {
   Sparkles,
   CheckSquare,
   Square,
+  GitBranch,
+  Users,
+  DollarSign,
+  Trash2,
 } from "lucide-react";
+import AffiliateNetworkPanel from "@/components/AffiliateNetworkPanel";
 
 interface Affiliate {
   id: string;
@@ -39,15 +44,18 @@ export default function AffiliatesManager() {
     totalPendingPayoutAll: "0.00",
     totalPaidOutAll: "0.00",
   });
+  const [overview, setOverview] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [isPending, startTransition] = useTransition();
   const [msg, setMsg] = useState<string | null>(null);
   const [editRates, setEditRates] = useState<Record<string, string>>({});
   const [editStatus, setEditStatus] = useState<Record<string, string>>({});
+
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkRate, setBulkRate] = useState("5");
   const [bulkMsg, setBulkMsg] = useState<string | null>(null);
+  const [networkId, setNetworkId] = useState<string | null>(null);
 
   const load = (q?: string) => {
     setLoading(true);
@@ -71,7 +79,14 @@ export default function AffiliatesManager() {
         }
         if (d?.stats) setStats(d.stats);
       })
-      .finally(() => setLoading(false));
+      .catch((e) => console.error("Failed to load affiliates:", e))
+      .finally(() => {
+        setLoading(false);
+        fetch("/api/admin/affiliates/network", { credentials: "include" })
+          .then((r) => r.json())
+          .then((d) => d?.overview && setOverview(d.overview))
+          .catch(() => {});
+      });
   };
 
   useEffect(() => {
@@ -81,26 +96,53 @@ export default function AffiliatesManager() {
   const save = (id: string) => {
     setMsg(null);
     startTransition(async () => {
-      const res = await fetch("/api/admin/affiliates", {
-        credentials: "include",
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          affiliateId: id,
-          commissionRate: editRates[id],
-          status: editStatus[id],
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setMsg(data.error || "Update failed");
-        return;
+      try {
+        const res = await fetch("/api/admin/affiliates", {
+          credentials: "include",
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ids: [id],
+            commissionRate: editRates[id],
+            targetStatus: editStatus[id],
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setMsg(data.error || "Update failed");
+          return;
+        }
+        setMsg("Affiliate updated");
+        load(search || undefined);
+      } catch {
+        setMsg("Failed to update affiliate");
       }
-      setMsg("Affiliate updated");
-      load(search || undefined);
     });
   };
 
+  const deleteSingle = (id: string, name: string) => {
+    if (!confirm(`PERMANENTLY DELETE affiliate "${name}"? This action cannot be undone.`)) return;
+    setMsg(null);
+    startTransition(async () => {
+      try {
+        const res = await fetch("/api/admin/affiliates", {
+          credentials: "include",
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ids: [id], action: "delete" }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setMsg(data.error || "Delete failed");
+          return;
+        }
+        setMsg("Affiliate deleted");
+        load(search || undefined);
+      } catch {
+        setMsg("Failed to delete affiliate");
+      }
+    });
+  };
 
   function toggleSelect(id: string) {
     setSelectedIds((prev) =>
@@ -113,7 +155,10 @@ export default function AffiliatesManager() {
     else setSelectedIds(list.map((a) => a.id));
   }
 
-  const bulkUpdate = (payload: Record<string, unknown>, confirmLabel: string) => {
+  const bulkUpdate = (
+    payload: Record<string, unknown>,
+    confirmLabel: string
+  ) => {
     if (selectedIds.length === 0) return;
     const isDelete = payload.action === "delete";
     const confirmMsg = isDelete
@@ -123,34 +168,38 @@ export default function AffiliatesManager() {
       : `${confirmLabel} ${selectedIds.length} affiliate${
           selectedIds.length === 1 ? "" : "s"
         }?`;
-    if (!confirm(confirmMsg)) {
-      return;
-    }
+    if (!confirm(confirmMsg)) return;
+
     setBulkMsg(null);
     startTransition(async () => {
-      const res = await fetch("/api/admin/affiliates", {
-        credentials: "include",
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ affiliateIds: selectedIds, ...payload }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setBulkMsg(data.error || "Bulk update failed");
-        return;
+      try {
+        const res = await fetch("/api/admin/affiliates", {
+          credentials: "include",
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ids: selectedIds, ...payload }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setBulkMsg(data.error || "Bulk update failed");
+          return;
+        }
+        setBulkMsg(data.message || "Bulk update done");
+        setSelectedIds([]);
+        load(search || undefined);
+      } catch {
+        setBulkMsg("Bulk update failed due to network error");
       }
-      setBulkMsg(data.message || "Bulk update done");
-      setSelectedIds([]);
-      load(search || undefined);
     });
   };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Affiliates</h2>
           <p className="text-sm text-gray-500 mt-1">
-            Manage codes, commission rates (1–50%), and status.
+            Manage codes, multi-tier team networks, and commission rates.
           </p>
         </div>
         <button
@@ -161,28 +210,37 @@ export default function AffiliatesManager() {
         </button>
       </div>
 
+      {/* Overview Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl border border-gray-100 p-5">
-          <p className="text-xs uppercase text-gray-400 font-semibold">Affiliates</p>
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+          <p className="text-xs uppercase text-gray-400 font-semibold">
+            Affiliates
+          </p>
           <p className="text-2xl font-bold mt-1">{stats.totalAffiliates}</p>
-          <p className="text-[11px] text-gray-400 mt-1">Approved accounts</p>
+          <p className="text-[11px] text-gray-400 mt-1">Total registered accounts</p>
         </div>
-        <div className="bg-white rounded-2xl border border-gray-100 p-5">
-          <p className="text-xs uppercase text-gray-400 font-semibold">Lifetime earnings</p>
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+          <p className="text-xs uppercase text-gray-400 font-semibold">
+            Lifetime earnings
+          </p>
           <p className="text-2xl font-bold mt-1 text-gray-900">
             ${stats.totalEarningsAll}
           </p>
-          <p className="text-[11px] text-gray-400 mt-1">All commissions ever earned</p>
+          <p className="text-[11px] text-gray-400 mt-1">All commissions earned</p>
         </div>
-        <div className="bg-white rounded-2xl border border-gray-100 p-5">
-          <p className="text-xs uppercase text-gray-400 font-semibold">Pending payouts</p>
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+          <p className="text-xs uppercase text-gray-400 font-semibold">
+            Pending payouts
+          </p>
           <p className="text-2xl font-bold mt-1 text-amber-600">
             ${stats.totalPendingPayoutAll}
           </p>
           <p className="text-[11px] text-gray-400 mt-1">Available for withdraw</p>
         </div>
-        <div className="bg-white rounded-2xl border border-gray-100 p-5">
-          <p className="text-xs uppercase text-gray-400 font-semibold">Total paid out</p>
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+          <p className="text-xs uppercase text-gray-400 font-semibold">
+            Total paid out
+          </p>
           <p className="text-2xl font-bold mt-1 text-emerald-600">
             ${stats.totalPaidOutAll}
           </p>
@@ -190,9 +248,65 @@ export default function AffiliatesManager() {
         </div>
       </div>
 
+      {overview && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+            <p className="text-xs uppercase text-gray-400 font-semibold flex items-center gap-1">
+              <DollarSign className="w-3.5 h-3.5 text-emerald-600" /> L1 Direct Commissions
+            </p>
+            <p className="text-xl font-bold mt-1 text-emerald-700">
+              ${overview.commissions?.level1?.amount || "0.00"}
+            </p>
+            <p className="text-[11px] text-gray-400 mt-0.5">
+              {overview.commissions?.level1?.count || 0} direct sales
+            </p>
+          </div>
+          <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+            <p className="text-xs uppercase text-gray-400 font-semibold">
+              L2 Team Overrides
+            </p>
+            <p className="text-xl font-bold mt-1 text-sky-700">
+              ${overview.commissions?.level2?.amount || "0.00"}
+            </p>
+            <p className="text-[11px] text-gray-400 mt-0.5">
+              {overview.commissions?.level2?.count || 0} overrides (10%)
+            </p>
+          </div>
+          <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+            <p className="text-xs uppercase text-gray-400 font-semibold">
+              L3 Deep Overrides
+            </p>
+            <p className="text-xl font-bold mt-1 text-violet-700">
+              ${overview.commissions?.level3?.amount || "0.00"}
+            </p>
+            <p className="text-[11px] text-gray-400 mt-0.5">
+              {overview.commissions?.level3?.count || 0} overrides (5%)
+            </p>
+          </div>
+          <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+            <p className="text-xs uppercase text-gray-400 font-semibold flex items-center gap-1">
+              <Users className="w-3.5 h-3.5 text-blue-600" /> Network Traffic
+            </p>
+            <p className="text-xl font-bold mt-1 text-gray-900">
+              {overview.clicksLast30Days || 0}
+              <span className="text-sm font-normal text-gray-400"> clicks / 30d</span>
+            </p>
+            <p className="text-[11px] text-gray-400 mt-0.5">
+              {overview.withParent || 0} recruits with upline
+            </p>
+          </div>
+        </div>
+      )}
+
       {msg && (
-        <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm">
+        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold">
           {msg}
+        </div>
+      )}
+
+      {bulkMsg && (
+        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold">
+          {bulkMsg}
         </div>
       )}
 
@@ -203,7 +317,7 @@ export default function AffiliatesManager() {
           onChange={(e) => setSearch(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && load(search)}
           placeholder="Search name, email, or code..."
-          className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm"
+          className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#CA3F2E]"
         />
       </div>
 
@@ -304,27 +418,25 @@ export default function AffiliatesManager() {
         </div>
       )}
 
-      {bulkMsg && (
-        <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm">
-          {bulkMsg}
-        </div>
-      )}
-
       {loading ? (
         <div className="flex justify-center py-16">
           <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
         </div>
       ) : list.length === 0 ? (
-        <div className="text-center py-16 text-gray-400 text-sm bg-white rounded-2xl border">
-          No affiliates yet. Approve an application first.
+        <div className="text-center py-16 text-gray-400 text-sm bg-white rounded-2xl border border-gray-100">
+          No affiliates found.
         </div>
       ) : (
-        <div className="overflow-x-auto bg-white rounded-2xl border border-gray-100">
+        <div className="overflow-x-auto bg-white rounded-2xl border border-gray-100 shadow-sm">
           <table className="w-full text-left text-sm">
-            <thead className="bg-gray-50 text-xs uppercase text-gray-500">
+            <thead className="bg-gray-50 text-xs uppercase text-gray-500 border-b border-gray-100">
               <tr>
                 <th className="px-3 py-3 w-10">
-                  <button type="button" onClick={toggleSelectAll} className="text-gray-400 hover:text-[#CA3F2E]">
+                  <button
+                    type="button"
+                    onClick={toggleSelectAll}
+                    className="text-gray-400 hover:text-[#CA3F2E]"
+                  >
                     {selectedIds.length === list.length && list.length > 0 ? (
                       <CheckSquare className="w-4 h-4 text-[#CA3F2E]" />
                     ) : (
@@ -339,16 +451,25 @@ export default function AffiliatesManager() {
                 <th className="px-4 py-3">Orders</th>
                 <th className="px-4 py-3">Earnings</th>
                 <th className="px-4 py-3">Pending</th>
-                <th className="px-4 py-3">Paid</th>
                 <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Save</th>
+                <th className="px-4 py-3">Team</th>
+                <th className="px-4 py-3">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {list.map((a) => (
-                <tr key={a.id} className={`hover:bg-gray-50/80 ${selectedIds.includes(a.id) ? "bg-red-50/40" : ""}`}>
+                <tr
+                  key={a.id}
+                  className={`hover:bg-gray-50/80 transition-colors ${
+                    selectedIds.includes(a.id) ? "bg-red-50/40" : ""
+                  }`}
+                >
                   <td className="px-3 py-3">
-                    <button type="button" onClick={() => toggleSelect(a.id)} className="text-gray-400 hover:text-[#CA3F2E]">
+                    <button
+                      type="button"
+                      onClick={() => toggleSelect(a.id)}
+                      className="text-gray-400 hover:text-[#CA3F2E]"
+                    >
                       {selectedIds.includes(a.id) ? (
                         <CheckSquare className="w-4 h-4 text-[#CA3F2E]" />
                       ) : (
@@ -376,19 +497,16 @@ export default function AffiliatesManager() {
                       onChange={(e) =>
                         setEditRates((p) => ({ ...p, [a.id]: e.target.value }))
                       }
-                      className="w-20 px-2 py-1.5 border border-gray-200 rounded-lg text-sm"
+                      className="w-20 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#CA3F2E]"
                     />
                   </td>
-                  <td className="px-4 py-3">{a.totalClicks ?? 0}</td>
-                  <td className="px-4 py-3">{a.totalOrders ?? 0}</td>
-                  <td className="px-4 py-3 font-medium">
+                  <td className="px-4 py-3 font-medium">{a.totalClicks ?? 0}</td>
+                  <td className="px-4 py-3 font-medium">{a.totalOrders ?? 0}</td>
+                  <td className="px-4 py-3 font-medium text-gray-900">
                     ${parseFloat(a.totalEarnings || "0").toFixed(2)}
                   </td>
-                  <td className="px-4 py-3 text-amber-600 font-medium">
+                  <td className="px-4 py-3 text-amber-600 font-semibold">
                     ${parseFloat(a.pendingPayout || "0").toFixed(2)}
-                  </td>
-                  <td className="px-4 py-3 text-emerald-600 font-medium">
-                    ${parseFloat(a.totalPaidOut || "0").toFixed(2)}
                   </td>
                   <td className="px-4 py-3">
                     <select
@@ -396,32 +514,62 @@ export default function AffiliatesManager() {
                       onChange={(e) =>
                         setEditStatus((p) => ({ ...p, [a.id]: e.target.value }))
                       }
-                      className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs"
+                      className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs font-semibold focus:outline-none focus:border-[#CA3F2E]"
                     >
                       <option value="approved">approved</option>
                       <option value="suspended">suspended</option>
                       <option value="pending">pending</option>
+                      <option value="rejected">rejected</option>
                     </select>
                   </td>
                   <td className="px-4 py-3">
                     <button
-                      disabled={isPending}
-                      onClick={() => save(a.id)}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gray-900 text-white text-xs font-semibold hover:bg-gray-800 disabled:opacity-50"
+                      type="button"
+                      onClick={() => setNetworkId(a.id)}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-xs font-semibold text-gray-800 transition"
+                      title="View team, traffic & level commissions"
                     >
-                      {isPending ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <Save className="w-3.5 h-3.5" />
-                      )}
-                      Save
+                      <GitBranch className="w-3.5 h-3.5" />
+                      Network
                     </button>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        disabled={isPending}
+                        onClick={() => save(a.id)}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gray-900 text-white text-xs font-semibold hover:bg-gray-800 disabled:opacity-50 transition"
+                      >
+                        {isPending ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Save className="w-3.5 h-3.5" />
+                        )}
+                        Save
+                      </button>
+
+                      <button
+                        disabled={isPending}
+                        onClick={() => deleteSingle(a.id, a.name)}
+                        className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 transition"
+                        title="Delete affiliate"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+      )}
+
+      {networkId && (
+        <AffiliateNetworkPanel
+          affiliateId={networkId}
+          onClose={() => setNetworkId(null)}
+        />
       )}
     </div>
   );
