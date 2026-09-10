@@ -15,16 +15,28 @@ export async function GET(req: NextRequest) {
 
   let role = "vendor";
   let locale = "en";
-  try {
-    const parsed = JSON.parse(stateParam);
-    role = parsed.role || "vendor";
-    locale = parsed.locale || "en";
-  } catch {}
 
-  const redirectBase = `/${locale}/${role}/`;
+  if (stateParam) {
+    try {
+      // Try raw JSON parse first
+      const parsed = JSON.parse(stateParam);
+      role = parsed.role || role;
+      locale = parsed.locale || locale;
+    } catch {
+      try {
+        // Try base64 decode if state was base64-encoded
+        const decoded = Buffer.from(stateParam, "base64").toString("utf-8");
+        const parsed = JSON.parse(decoded);
+        role = parsed.role || role;
+        locale = parsed.locale || locale;
+      } catch {}
+    }
+  }
+
+  const origin = process.env.NEXT_PUBLIC_APP_URL || "https://www.newdealzone.com";
 
   if (!code) {
-    return NextResponse.redirect(redirectBase + "login?error=no_code");
+    return NextResponse.redirect(new URL(`/${locale}/${role}/login?error=no_code`, req.url));
   }
 
   try {
@@ -35,14 +47,15 @@ export async function GET(req: NextRequest) {
         code,
         client_id: process.env.GOOGLE_CLIENT_ID || "",
         client_secret: process.env.GOOGLE_CLIENT_SECRET || "",
-        redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL || "https://www.newdealzone.com"}/api/auth/google/callback`,
+        redirect_uri: `${origin}/api/auth/google/callback`,
         grant_type: "authorization_code",
       }),
     });
 
     const tokenData = await tokenRes.json();
     if (!tokenData.access_token) {
-      return NextResponse.redirect(redirectBase + "login?error=token_failed");
+      console.error("Google token exchange failed:", tokenData);
+      return NextResponse.redirect(new URL(`/${locale}/${role}/login?error=token_failed`, req.url));
     }
 
     const userRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
@@ -51,10 +64,10 @@ export async function GET(req: NextRequest) {
     const user = await userRes.json();
 
     if (!user.email) {
-      return NextResponse.redirect(redirectBase + "login?error=no_email");
+      return NextResponse.redirect(new URL(`/${locale}/${role}/login?error=no_email`, req.url));
     }
 
-    const emailLower = user.email.toLowerCase().trim();
+    const emailLower = String(user.email).toLowerCase().trim();
     const now = new Date();
 
     if (role === "affiliate") {
@@ -93,11 +106,14 @@ export async function GET(req: NextRequest) {
         createdAt: now,
       });
 
-      const response = NextResponse.redirect(redirectBase + "dashboard");
-      response.headers.append(
-        "Set-Cookie",
-        `ndz_affiliate_session=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000; Secure`
-      );
+      const response = NextResponse.redirect(new URL(`/${locale}/affiliate/dashboard`, req.url));
+      response.cookies.set("ndz_affiliate_session", token, {
+        path: "/",
+        httpOnly: true,
+        sameSite: "lax",
+        maxAge: 2592000,
+        secure: process.env.NODE_ENV === "production",
+      });
       return response;
     }
 
@@ -141,14 +157,17 @@ export async function GET(req: NextRequest) {
       createdAt: now,
     });
 
-    const response = NextResponse.redirect(redirectBase + "dashboard?setup=1");
-    response.headers.append(
-      "Set-Cookie",
-      `ndz_vendor_session=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000; Secure`
-    );
+    const response = NextResponse.redirect(new URL(`/${locale}/vendor/dashboard?setup=1`, req.url));
+    response.cookies.set("ndz_vendor_session", token, {
+      path: "/",
+      httpOnly: true,
+      sameSite: "lax",
+      maxAge: 2592000,
+      secure: process.env.NODE_ENV === "production",
+    });
     return response;
   } catch (err) {
     console.error("Google OAuth callback error:", err);
-    return NextResponse.redirect(redirectBase + "login?error=oauth_error");
+    return NextResponse.redirect(new URL(`/${locale}/${role}/login?error=oauth_error`, req.url));
   }
 }
