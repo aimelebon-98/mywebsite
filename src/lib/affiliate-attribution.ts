@@ -45,7 +45,6 @@ export async function processAffiliateAttribution({
   try {
     let code = affiliateCode;
 
-    // 1. Read from cookie if code not passed explicitly
     if (!code) {
       try {
         const cookieStore = await cookies();
@@ -62,7 +61,7 @@ export async function processAffiliateAttribution({
 
     const cleanCode = String(code).trim().toLowerCase();
 
-    // 2. Fetch Level 1 Affiliate
+    // 1. Fetch Level 1 Affiliate
     const [l1Affiliate] = await db
       .select()
       .from(affiliates)
@@ -79,7 +78,7 @@ export async function processAffiliateAttribution({
       return { success: false, reason: `Affiliate is ${l1Affiliate.status}` };
     }
 
-    // 3. Duplicate attribution prevention (check both orderId and orderNumber)
+    // 2. Duplicate attribution prevention
     const trackedOrderRef = String(orderNumber || orderId);
     const existing = await db
       .select()
@@ -91,7 +90,7 @@ export async function processAffiliateAttribution({
       return { success: false, reason: "Order already attributed" };
     }
 
-    // 4. Check if order contains SMZ Bot or is a subscription
+    // 3. Check if order contains SMZ Bot or is a subscription
     let isSmzBot = false;
     try {
       const [orderRow] = await db.select({ items: orders.items }).from(orders).where(eq(orders.id, orderId)).limit(1);
@@ -111,7 +110,7 @@ export async function processAffiliateAttribution({
       isSmzBot = true;
     }
 
-    // Commission rate: 50% for SMZ Bot (L1), or affiliate custom rate, default 5%
+    // Rate: 50% for SMZ Bot (L1), 5% for Physical products
     let l1Rate = isSmzBot ? 50.0 : parseFloat(l1Affiliate.commissionRate || "5.00");
     if (isNaN(l1Rate) || l1Rate <= 0) l1Rate = 5.0;
 
@@ -119,7 +118,11 @@ export async function processAffiliateAttribution({
     const l1CommissionStr = l1CommissionNum.toFixed(2);
     const subtotalStr = subtotalUsd.toFixed(2);
 
-    // 5. Insert Level 1 affiliate order
+    // DIGITAL/SUBSCRIPTIONS ARE CONFIRMED IMMEDIATELY ON PAYMENT
+    // PHYSICAL COD ORDERS ARE 'PENDING' UNTIL DELIVERED
+    const initialStatus = isSmzBot ? "confirmed" : "pending";
+
+    // Insert Level 1 affiliate order
     const [l1AffOrder] = await db
       .insert(affiliateOrders)
       .values({
@@ -129,29 +132,39 @@ export async function processAffiliateAttribution({
         commissionRate: String(l1Rate),
         commissionAmount: l1CommissionStr,
         currency,
-        status: "pending",
+        status: initialStatus,
       })
       .returning();
 
-    // 6. Update Level 1 affiliate balances & total orders
-    const curEarnings = parseFloat(l1Affiliate.totalEarnings || "0");
-    const curPending = parseFloat(l1Affiliate.pendingPayout || "0");
-
+    // Increment click/order counters
     await db
       .update(affiliates)
       .set({
         totalOrders: sql`COALESCE(${affiliates.totalOrders}, 0) + 1`,
-        totalEarnings: (curEarnings + l1CommissionNum).toFixed(2),
-        pendingPayout: (curPending + l1CommissionNum).toFixed(2),
         updatedAt: new Date(),
       })
       .where(eq(affiliates.id, l1Affiliate.id));
 
-    console.log(`[Affiliate] SUCCESS! Credited L1 order ${trackedOrderRef} ($${subtotalUsd}) to ${l1Affiliate.email} (${cleanCode}) -> +$${l1CommissionStr} (${l1Rate}%)`);
+    // ONLY CREDIT AVAILABLE BALANCE IMMEDIATELY IF CONFIRMED (DIGITAL)
+    if (initialStatus === "confirmed") {
+      const curEarnings = parseFloat(l1Affiliate.totalEarnings || "0");
+      const curPending = parseFloat(l1Affiliate.pendingPayout || "0");
+
+      await db
+        .update(affiliates)
+        .set({
+          totalEarnings: (curEarnings + l1CommissionNum).toFixed(2),
+          pendingPayout: (curPending + l1CommissionNum).toFixed(2),
+        })
+        .where(eq(affiliates.id, l1Affiliate.id));
+    }
+
+    console.log(`[Affiliate] Credited L1 order ${trackedOrderRef} ($${subtotalUsd}) to ${l1Affiliate.email} -> +$${l1CommissionStr} (${l1Rate}%, status: ${initialStatus})`);
 
     const resultSummary: Record<string, any> = {
       success: true,
       isSmzBot,
+      status: initialStatus,
       level1: {
         affiliateId: l1Affiliate.id,
         code: l1Affiliate.code,
@@ -161,11 +174,8 @@ export async function processAffiliateAttribution({
       },
     };
 
-    // -------------------------------------------------------------
-    // MULTI-TIER OVERRIDES (SMZ BOT ONLY: 50% L1, 10% L2, 5% L3)
-    // -------------------------------------------------------------
+    // MULTI-TIER OVERRIDES (SMZ BOT ONLY)
     if (isSmzBot && l1Affiliate.parentAffiliateId) {
-      // LEVEL 2 OVERRIDE (10%)
       const [l2Affiliate] = await db
         .select()
         .from(affiliates)
@@ -185,7 +195,7 @@ export async function processAffiliateAttribution({
             commissionRate: String(l2Rate),
             commissionAmount: l2CommNum.toFixed(2),
             currency,
-            status: "pending",
+            status: "confirmed",
           });
 
           const l2CurE = parseFloat(l2Affiliate.totalEarnings || "0");
@@ -200,9 +210,8 @@ export async function processAffiliateAttribution({
             })
             .where(eq(affiliates.id, l2Affiliate.id));
 
-          resultSummary.level2 = { affiliateId: l2Affiliate.id, rate: l2Rate, commission: l2CommNum.toFixed(2), active: true };
+          resultSummary.level2 = { affiliateId: l2Affiliate.id, rate: l2Rate, commission: l2CommNum.toFixed(2) };
 
-          // LEVEL 3 OVERRIDE (5%)
           if (l2Affiliate.parentAffiliateId) {
             const [l3Affiliate] = await db
               .select()
@@ -223,7 +232,7 @@ export async function processAffiliateAttribution({
                   commissionRate: String(l3Rate),
                   commissionAmount: l3CommNum.toFixed(2),
                   currency,
-                  status: "pending",
+                  status: "confirmed",
                 });
 
                 const l3CurE = parseFloat(l3Affiliate.totalEarnings || "0");
@@ -238,7 +247,7 @@ export async function processAffiliateAttribution({
                   })
                   .where(eq(affiliates.id, l3Affiliate.id));
 
-                resultSummary.level3 = { affiliateId: l3Affiliate.id, rate: l3Rate, commission: l3CommNum.toFixed(2), active: true };
+                resultSummary.level3 = { affiliateId: l3Affiliate.id, rate: l3Rate, commission: l3CommNum.toFixed(2) };
               }
             }
           }
@@ -250,5 +259,62 @@ export async function processAffiliateAttribution({
   } catch (error) {
     console.error("Affiliate attribution error:", error);
     return { success: false, error: String(error) };
+  }
+}
+
+// Confirm pending physical commission on delivery
+export async function confirmAffiliateCommissionOnDelivery(orderRef: string) {
+  try {
+    const pendingAffOrders = await db
+      .select()
+      .from(affiliateOrders)
+      .where(and(eq(affiliateOrders.orderId, orderRef), eq(affiliateOrders.status, "pending")));
+
+    for (const affOrder of pendingAffOrders) {
+      const commAmount = parseFloat(affOrder.commissionAmount || "0");
+
+      // Mark commission confirmed
+      await db
+        .update(affiliateOrders)
+        .set({ status: "confirmed" })
+        .where(eq(affiliateOrders.id, affOrder.id));
+
+      // Credit affiliate available balance (pendingPayout)
+      const [aff] = await db
+        .select()
+        .from(affiliates)
+        .where(eq(affiliates.id, affOrder.affiliateId))
+        .limit(1);
+
+      if (aff) {
+        const curE = parseFloat(aff.totalEarnings || "0");
+        const curP = parseFloat(aff.pendingPayout || "0");
+
+        await db
+          .update(affiliates)
+          .set({
+            totalEarnings: (curE + commAmount).toFixed(2),
+            pendingPayout: (curP + commAmount).toFixed(2),
+            updatedAt: new Date(),
+          })
+          .where(eq(affiliates.id, aff.id));
+
+        console.log(`[Affiliate Delivery] Confirmed $${commAmount} commission for affiliate ${aff.email} on order ${orderRef}`);
+      }
+    }
+  } catch (e) {
+    console.error("confirmAffiliateCommissionOnDelivery error:", e);
+  }
+}
+
+// Cancel pending physical commission on order cancellation
+export async function cancelAffiliateCommissionOnOrderCancel(orderRef: string) {
+  try {
+    await db
+      .update(affiliateOrders)
+      .set({ status: "cancelled" })
+      .where(and(eq(affiliateOrders.orderId, orderRef), eq(affiliateOrders.status, "pending")));
+  } catch (e) {
+    console.error("cancelAffiliateCommissionOnOrderCancel error:", e);
   }
 }

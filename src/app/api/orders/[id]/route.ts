@@ -3,6 +3,10 @@ import { db } from "@/db";
 import { orders } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireAdmin } from "@/lib/admin-auth";
+import {
+  confirmAffiliateCommissionOnDelivery,
+  cancelAffiliateCommissionOnOrderCancel,
+} from "@/lib/affiliate-attribution";
 
 interface Params {
   params: Promise<{ id: string }>;
@@ -54,7 +58,19 @@ export async function PUT(request: NextRequest, { params }: Params) {
 
     const result = await db.update(orders).set(updates).where(eq(orders.id, id)).returning();
     if (result.length === 0) return NextResponse.json({ error: "Order not found" }, { status: 404 });
-    return NextResponse.json(result[0]);
+
+    const updatedOrder = result[0];
+
+    // Trigger affiliate commission confirmation or cancellation based on delivery status
+    if (body.status === "delivered") {
+      await confirmAffiliateCommissionOnDelivery(updatedOrder.id);
+      await confirmAffiliateCommissionOnDelivery(updatedOrder.orderNumber);
+    } else if (body.status === "cancelled") {
+      await cancelAffiliateCommissionOnOrderCancel(updatedOrder.id);
+      await cancelAffiliateCommissionOnOrderCancel(updatedOrder.orderNumber);
+    }
+
+    return NextResponse.json(updatedOrder);
   } catch (error) {
     console.error("Error updating order:", error);
     return NextResponse.json({ error: "Failed to update order" }, { status: 500 });
