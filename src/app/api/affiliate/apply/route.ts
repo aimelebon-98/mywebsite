@@ -1,7 +1,7 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { affiliateApplications, affiliates } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, or, sql } from "drizzle-orm";
 import { ensureAffiliateTablesExist } from "@/lib/ensure-affiliate-tables";
 import {
   hashAffiliatePassword,
@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
       websiteUrl,
       socialMediaUrl,
       marketingPlan,
+      invitedBy,
       locale = "en",
     } = body;
 
@@ -97,6 +98,30 @@ export async function POST(request: NextRequest) {
       attempts++;
     }
 
+    // Resolve parent affiliate if invitedBy code or email was provided
+    let parentAffiliateId: string | null = null;
+    if (invitedBy && typeof invitedBy === "string" && invitedBy.trim()) {
+      const cleanInvitedBy = invitedBy.trim().toLowerCase();
+      try {
+        const [parent] = await db
+          .select({ id: affiliates.id })
+          .from(affiliates)
+          .where(
+            or(
+              eq(sql`LOWER(${affiliates.code})`, cleanInvitedBy),
+              eq(sql`LOWER(${affiliates.email})`, cleanInvitedBy)
+            )
+          )
+          .limit(1);
+
+        if (parent) {
+          parentAffiliateId = parent.id;
+        }
+      } catch (e) {
+        console.error("Error resolving parent affiliate:", e);
+      }
+    }
+
     const [newAffiliate] = await db
       .insert(affiliates)
       .values({
@@ -106,6 +131,7 @@ export async function POST(request: NextRequest) {
         code,
         commissionRate: "5.00",
         status: "incomplete",
+        parentAffiliateId,
         country: country?.trim() || null,
         city: city?.trim() || null,
         phone: phone?.trim() || null,

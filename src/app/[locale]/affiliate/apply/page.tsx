@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, Suspense, useTransition } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
@@ -14,7 +14,9 @@ import {
   Eye,
   EyeOff,
   User,
-  Mail
+  Mail,
+  Users,
+  CheckCircle2,
 } from "lucide-react";
 
 function AffiliateApplyForm() {
@@ -31,14 +33,39 @@ function AffiliateApplyForm() {
   const [errorMsg, setErrorMsg] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState("");
+  const [autoDetectedRef, setAutoDetectedRef] = useState("");
 
   const [formData, setFormData] = useState({
     applicantName: prefillName,
     email: prefillEmail,
     password: "",
+    invitedBy: "",
   });
 
   useEffect(() => {
+    let detectedRef = searchParams.get("ref") || "";
+    if (!detectedRef && typeof window !== "undefined") {
+      try {
+        detectedRef =
+          localStorage.getItem("ndz_affiliate") ||
+          sessionStorage.getItem("ndz_affiliate") ||
+          "";
+        if (!detectedRef) {
+          const match = document.cookie.match(/ndz_affiliate=([^;]+)/);
+          if (match) detectedRef = decodeURIComponent(match[1]);
+        }
+      } catch {}
+    }
+
+    if (detectedRef) {
+      const cleanRef = detectedRef.trim();
+      setAutoDetectedRef(cleanRef);
+      setFormData((prev) => ({
+        ...prev,
+        invitedBy: prev.invitedBy || cleanRef,
+      }));
+    }
+
     if (prefillEmail || prefillName) {
       setFormData((f) => ({
         ...f,
@@ -46,37 +73,48 @@ function AffiliateApplyForm() {
         email: f.email || prefillEmail,
       }));
     }
-  }, [prefillEmail, prefillName]);
+  }, [searchParams, prefillEmail, prefillName]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const t = isFr ? {
-    heading: "Cr\u00e9ation de compte Affili\u00e9",
-    subtitle: "Cr\u00e9ez votre compte pour commencer \u00e0 toucher jusqu'\u00e0 50% de commission.",
-    name: "Nom complet",
-    email: "Adresse email",
-    password: "Mot de passe",
-    submit: "Cr\u00e9er mon compte",
-    submitting: "Cr\u00e9ation...",
-    backHome: "Retour \u00e0 la pr\u00e9sentation",
-    haveAccount: "D\u00e9j\u00e0 affili\u00e9 ?",
-    login: "Se connecter",
-    tag: "REJOINDRE LE R\u00c9SEAU",
-  } : {
-    heading: "Affiliate Account Signup",
-    subtitle: "Create your account to start earning up to 50% commission.",
-    name: "Full name",
-    email: "Email address",
-    password: "Password",
-    submit: "Create my account",
-    submitting: "Creating...",
-    backHome: "Back to program overview",
-    haveAccount: "Already an affiliate?",
-    login: "Log in",
-    tag: "JOIN THE NETWORK",
-  };
+  const t = isFr
+    ? {
+        heading: "Cr\u00e9ation de compte Affili\u00e9",
+        subtitle:
+          "Cr\u00e9ez votre compte pour commencer \u00e0 toucher jusqu'\u00e0 50% de commission.",
+        name: "Nom complet",
+        email: "Adresse email",
+        password: "Mot de passe",
+        invitedBy: "Qui vous a invit\u00e9 ? (Code ou Email)",
+        invitedByOptional: "Facultatif",
+        invitedByPh: "Ex: CODE123 ou email@domaine.com",
+        invitedByDetected: "Code de parrainage d\u00e9tect\u00e9 automatiquement depuis votre lien",
+        submit: "Cr\u00e9er mon compte",
+        submitting: "Cr\u00e9ation...",
+        backHome: "Retour \u00e0 la pr\u00e9sentation",
+        haveAccount: "D\u00e9j\u00e0 affili\u00e9 ?",
+        login: "Se connecter",
+        tag: "REJOINDRE LE R\u00c9SEAU",
+      }
+    : {
+        heading: "Affiliate Account Signup",
+        subtitle: "Create your account to start earning up to 50% commission.",
+        name: "Full name",
+        email: "Email address",
+        password: "Password",
+        invitedBy: "Who invited you? (Code or Email)",
+        invitedByOptional: "Optional",
+        invitedByPh: "e.g. CODE123 or email@domain.com",
+        invitedByDetected: "Referral code auto-detected from your link",
+        submit: "Create my account",
+        submitting: "Creating...",
+        backHome: "Back to program overview",
+        haveAccount: "Already an affiliate?",
+        login: "Log in",
+        tag: "JOIN THE NETWORK",
+      };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -193,6 +231,29 @@ function AffiliateApplyForm() {
                     {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-2">
+                  {t.invitedBy} <span className="text-gray-500 font-normal">({t.invitedByOptional})</span>
+                </label>
+                <div className="relative">
+                  <Users className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    name="invitedBy"
+                    value={formData.invitedBy}
+                    onChange={handleChange}
+                    placeholder={t.invitedByPh}
+                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm transition-colors"
+                  />
+                </div>
+                {autoDetectedRef && formData.invitedBy === autoDetectedRef && (
+                  <p className="mt-1.5 text-[11px] text-emerald-400 flex items-center gap-1 font-medium">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    {t.invitedByDetected}
+                  </p>
+                )}
               </div>
 
               <button
