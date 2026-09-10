@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useState, useEffect, useTransition, Suspense } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import TurnstileGate from "@/components/TurnstileGate";
 import SocialLoginButtons from "@/components/SocialLoginButtons";
@@ -15,17 +15,26 @@ import {
   ArrowLeft,
 } from "lucide-react";
 
-export default function AffiliateLoginPage() {
+function AffiliateLoginForm() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const locale = (params?.locale as string) || "en";
   const isFr = locale === "fr";
 
+  const prefillEmail = searchParams.get("email") || "";
+
   const [isPending, startTransition] = useTransition();
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(prefillEmail);
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [turnstileToken, setTurnstileToken] = useState("");
+
+  useEffect(() => {
+    if (prefillEmail) {
+      setEmail(prefillEmail);
+    }
+  }, [prefillEmail]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,7 +75,7 @@ export default function AffiliateLoginPage() {
               className="inline-flex items-center gap-2 text-xs text-gray-400 hover:text-white mb-6 transition-colors"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              {isFr ? "Retour a la presentation" : "Back to affiliate page"}
+              {isFr ? "Retour \u00e0 la pr\u00e9sentation" : "Back to affiliate page"}
             </Link>
 
             <div className="w-12 h-12 rounded-2xl bg-[#CA3F2E]/20 text-[#CA3F2E] flex items-center justify-center mx-auto mb-4 border border-[#CA3F2E]/30">
@@ -74,7 +83,7 @@ export default function AffiliateLoginPage() {
             </div>
 
             <h1 className="text-2xl font-bold tracking-tight">
-              {isFr ? "Portail Partenaire Affilie" : "Affiliate Partner Portal"}
+              {isFr ? "Portail Partenaire Affili\u00e9" : "Affiliate Partner Portal"}
             </h1>
             <p className="mt-2 text-xs text-gray-400">
               {isFr
@@ -118,7 +127,7 @@ export default function AffiliateLoginPage() {
                     href={`/${locale}/affiliate/forgot-password`}
                     className="text-xs text-[#CA3F2E] hover:underline font-medium"
                   >
-                    {isFr ? "Mot de passe oublie ?" : "Forgot password?"}
+                    {isFr ? "Mot de passe oubli\u00e9 ?" : "Forgot password?"}
                   </Link>
                 </div>
                 <div className="relative">
@@ -156,7 +165,7 @@ export default function AffiliateLoginPage() {
             <SocialLoginButtons mode="login" role="affiliate" theme="dark" />
 
             <div className="mt-6 pt-6 border-t border-white/10 text-center text-xs text-gray-400">
-              {isFr ? "Pas encore affilie ?" : "Not an affiliate yet?"}{" "}
+              {isFr ? "Pas encore affili\u00e9 ?" : "Not an affiliate yet?"}{" "}
               <Link
                 href={`/${locale}/affiliate/apply`}
                 className="text-[#CA3F2E] hover:underline font-medium"
@@ -168,5 +177,13 @@ export default function AffiliateLoginPage() {
         </div>
       </div>
     </TurnstileGate>
+  );
+}
+
+export default function AffiliateLoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center text-white"><Loader2 className="w-8 h-8 animate-spin text-[#CA3F2E]" /></div>}>
+      <AffiliateLoginForm />
+    </Suspense>
   );
 }

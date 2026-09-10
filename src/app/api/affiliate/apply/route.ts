@@ -47,35 +47,25 @@ export async function POST(request: NextRequest) {
       "";
     const ua = request.headers.get("user-agent") || "";
 
+    // CHECK IF ACCOUNT ALREADY EXISTS
     const existingAff = await db
       .select()
       .from(affiliates)
       .where(eq(affiliates.email, emailLower))
       .limit(1);
 
-    if (existingAff.length) {
-      const aff = existingAff[0];
-      const { token, expiresAt, cookieName } = await createAffiliateSession(
-        aff.id,
-        ip,
-        ua
+    if (existingAff.length > 0) {
+      return NextResponse.json(
+        {
+          error:
+            locale === "fr"
+              ? "Un compte existe d\u00e9j\u00e0 avec cette adresse email."
+              : "An account with this email address already exists.",
+          accountExists: true,
+          redirectTo: "login",
+        },
+        { status: 400 }
       );
-      const res = NextResponse.json({
-        success: true,
-        pending: aff.status === "pending",
-        message: "Welcome back!",
-        redirectTo: "dashboard",
-      });
-      res.cookies.set({
-        name: cookieName,
-        value: token,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        path: "/",
-        expires: expiresAt,
-      });
-      return res;
     }
 
     let plainPassword =

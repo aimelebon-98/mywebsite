@@ -139,6 +139,17 @@ function AffiliateApplyForm() {
 
         const data = await res.json();
         if (!res.ok) {
+          if (data.accountExists) {
+            setErrorMsg(
+              isFr
+                ? "Un compte existe d\u00e9j\u00e0 avec cet email. Redirection vers la page de connexion..."
+                : "An account with this email address already exists. Redirecting to login..."
+            );
+            setTimeout(() => {
+              router.push(`/${locale}/affiliate/login?email=${encodeURIComponent(formData.email.trim())}`);
+            }, 1800);
+            return;
+          }
           setErrorMsg(data.error || "Failed to create account");
           return;
         }
@@ -174,7 +185,7 @@ function AffiliateApplyForm() {
 
             <form onSubmit={handleSubmit} className="space-y-5">
               {errorMsg && (
-                <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 flex items-center gap-3 text-sm">
+                <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-center gap-3 text-xs leading-relaxed">
                   <span>{errorMsg}</span>
                 </div>
               )}
