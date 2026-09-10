@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { type SubscriptionTierMonths, getTierQuote, parseSubscriptionConfig } from "@/lib/subscription-pricing";
 import { SubscriptionTierSelector } from "./SubscriptionTierSelector";
-import { Copy, CheckCircle2, Clock, ExternalLink, AlertCircle, LayoutGrid, Loader2, X } from "lucide-react";
+import { Copy, CheckCircle2, Clock, ExternalLink, AlertCircle, LayoutGrid, Loader2, X, Sparkles, Users } from "lucide-react";
 
 interface Product {
   id: string;
@@ -37,6 +37,9 @@ export function SubscriptionCheckoutModal({ product, isOpen, onClose, locale = "
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [autoAffiliate, setAutoAffiliate] = useState(true);
+  const [refCode, setRefCode] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copiedAddr, setCopiedAddr] = useState(false);
@@ -54,6 +57,19 @@ export function SubscriptionCheckoutModal({ product, isOpen, onClose, locale = "
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
   const quote = getTierQuote(config.monthlyPrice, months);
+
+  // Auto-detect referral code from URL, storage or cookie
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      let r = localStorage.getItem("ndz_affiliate") || sessionStorage.getItem("ndz_affiliate") || "";
+      if (!r) {
+        const match = document.cookie.match(/ndz_affiliate=([^;]+)/);
+        if (match) r = decodeURIComponent(match[1]);
+      }
+      if (r) setRefCode(r.trim());
+    } catch {}
+  }, []);
 
   // Status polling
   useEffect(() => {
@@ -86,7 +102,7 @@ export function SubscriptionCheckoutModal({ product, isOpen, onClose, locale = "
       const parsed = new Date(pay.expiresAt).getTime();
       targetMs = isNaN(parsed) ? Date.now() + 20 * 60 * 1000 : parsed;
     } else {
-      targetMs = Date.now() + 20 * 60 * 1000; // 20 minutes default
+      targetMs = Date.now() + 20 * 60 * 1000;
     }
 
     const updateTimer = () => {
@@ -115,6 +131,8 @@ export function SubscriptionCheckoutModal({ product, isOpen, onClose, locale = "
           customerName: name,
           customerEmail: email,
           customerPhone: phone,
+          autoAffiliate,
+          refCode,
           locale,
         }),
       });
@@ -267,6 +285,29 @@ export function SubscriptionCheckoutModal({ product, isOpen, onClose, locale = "
                     placeholder="@handle"
                     className="mt-1 w-full p-2.5 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-sm focus:ring-2 focus:ring-emerald-500"
                   />
+                </div>
+
+                {/* Auto-Affiliate Recruitment Checkbox */}
+                <div className="pt-2">
+                  <div className="p-3.5 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/50">
+                    <label className="flex items-start gap-3 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={autoAffiliate}
+                        onChange={(e) => setAutoAffiliate(e.target.checked)}
+                        className="mt-0.5 w-4 h-4 rounded border-gray-300 dark:border-zinc-700 text-emerald-600 focus:ring-emerald-500 accent-emerald-600 flex-shrink-0"
+                      />
+                      <div className="text-xs text-gray-700 dark:text-gray-300 leading-snug">
+                        <span className="font-bold text-gray-900 dark:text-white flex items-center gap-1.5 mb-0.5">
+                          <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                          {isFr ? "Devenir partenaire affili\u00e9 (Recommand\u00e9)" : "Become an affiliate partner (Recommended)"}
+                        </span>
+                        {isFr
+                          ? "Gagnez jusqu'a 50% de commission en recommandant ce robot. Votre compte affili\u00e9 sera cr\u00e9\u00e9 automatiquement."
+                          : "Earn up to 50% commission promoting this bot. Your affiliate account will be created automatically."}
+                      </div>
+                    </label>
+                  </div>
                 </div>
               </div>
 

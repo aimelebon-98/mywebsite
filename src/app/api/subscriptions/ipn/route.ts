@@ -50,6 +50,23 @@ export async function POST(request: NextRequest) {
       if (sub) {
         if (paid && sub.status !== "active") {
           await db.update(subscriptions).set({ status: "active", startsAt: new Date(), expiresAt: sub.expiresAt || new Date(), updatedAt: new Date() }).where(eq(subscriptions.id, sub.id));
+
+          // Trigger multi-tier affiliate attribution
+          try {
+            let meta: any = {};
+            try { meta = JSON.parse(sub.metadata || "{}"); } catch {}
+            const { processAffiliateAttribution } = await import("@/lib/affiliate-attribution");
+            await processAffiliateAttribution({
+              orderId: sub.orderNumber,
+              orderNumber: sub.orderNumber,
+              subtotalUsd: parseFloat(sub.totalPaid || "0"),
+              customerEmail: sub.customerEmail,
+              customerPhone: sub.customerPhone,
+              affiliateCode: meta?.refCode || null,
+            });
+          } catch (e) {
+            console.error("[IPN] Affiliate attribution error:", e);
+          }
         } else if (["failed", "expired", "refunded"].includes(localStatus)) {
           await db.update(subscriptions).set({ status: localStatus, updatedAt: new Date() }).where(eq(subscriptions.id, sub.id));
         }
