@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { affiliates, subscriptions, affiliateOrders } from "@/db/schema";
+import { affiliates, subscriptions } from "@/db/schema";
 import { eq, desc, inArray, and } from "drizzle-orm";
 import { getCurrentAffiliate } from "@/lib/affiliate-auth";
 
@@ -25,7 +25,6 @@ export async function GET() {
     const aff = await getCurrentAffiliate();
     if (!aff) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    // Helper to check active subscription
     async function getSubscriptionStatus(email: string) {
       if (!email) return false;
       try {
@@ -43,7 +42,6 @@ export async function GET() {
 
     const selfActive = await getSubscriptionStatus(aff.email);
 
-    // Root Node (Me)
     const rootNode: NodeMember = {
       id: aff.id,
       name: aff.name,
@@ -61,9 +59,15 @@ export async function GET() {
     // LEVEL 1
     const l1Rows = await db
       .select({
-        id: affiliates.id, name: affiliates.name, email: affiliates.email, code: affiliates.code,
-        status: affiliates.status, totalEarnings: affiliates.totalEarnings, totalOrders: affiliates.totalOrders,
+        id: affiliates.id,
+        name: affiliates.name,
+        email: affiliates.email,
+        code: affiliates.code,
+        status: affiliates.status,
+        totalEarnings: affiliates.totalEarnings,
+        totalOrders: affiliates.totalOrders,
         createdAt: affiliates.createdAt,
+        parentAffiliateId: affiliates.parentAffiliateId,
       })
       .from(affiliates)
       .where(eq(affiliates.parentAffiliateId, aff.id))
@@ -72,13 +76,30 @@ export async function GET() {
     const l1Ids = l1Rows.map((r) => r.id);
 
     // LEVEL 2
-    let l2Rows: typeof l1Rows & { parentAffiliateId: string | null }[] = [];
+    let l2Rows: Array<{
+      id: string;
+      name: string;
+      email: string;
+      code: string;
+      status: string | null;
+      totalEarnings: string | null;
+      totalOrders: number | null;
+      createdAt: Date | null;
+      parentAffiliateId: string | null;
+    }> = [];
+
     if (l1Ids.length > 0) {
       l2Rows = await db
         .select({
-          id: affiliates.id, name: affiliates.name, email: affiliates.email, code: affiliates.code,
-          status: affiliates.status, totalEarnings: affiliates.totalEarnings, totalOrders: affiliates.totalOrders,
-          createdAt: affiliates.createdAt, parentAffiliateId: affiliates.parentAffiliateId,
+          id: affiliates.id,
+          name: affiliates.name,
+          email: affiliates.email,
+          code: affiliates.code,
+          status: affiliates.status,
+          totalEarnings: affiliates.totalEarnings,
+          totalOrders: affiliates.totalOrders,
+          createdAt: affiliates.createdAt,
+          parentAffiliateId: affiliates.parentAffiliateId,
         })
         .from(affiliates)
         .where(inArray(affiliates.parentAffiliateId, l1Ids))
@@ -88,13 +109,30 @@ export async function GET() {
     const l2Ids = l2Rows.map((r) => r.id);
 
     // LEVEL 3
-    let l3Rows: typeof l1Rows & { parentAffiliateId: string | null }[] = [];
+    let l3Rows: Array<{
+      id: string;
+      name: string;
+      email: string;
+      code: string;
+      status: string | null;
+      totalEarnings: string | null;
+      totalOrders: number | null;
+      createdAt: Date | null;
+      parentAffiliateId: string | null;
+    }> = [];
+
     if (l2Ids.length > 0) {
       l3Rows = await db
         .select({
-          id: affiliates.id, name: affiliates.name, email: affiliates.email, code: affiliates.code,
-          status: affiliates.status, totalEarnings: affiliates.totalEarnings, totalOrders: affiliates.totalOrders,
-          createdAt: affiliates.createdAt, parentAffiliateId: affiliates.parentAffiliateId,
+          id: affiliates.id,
+          name: affiliates.name,
+          email: affiliates.email,
+          code: affiliates.code,
+          status: affiliates.status,
+          totalEarnings: affiliates.totalEarnings,
+          totalOrders: affiliates.totalOrders,
+          createdAt: affiliates.createdAt,
+          parentAffiliateId: affiliates.parentAffiliateId,
         })
         .from(affiliates)
         .where(inArray(affiliates.parentAffiliateId, l2Ids))
