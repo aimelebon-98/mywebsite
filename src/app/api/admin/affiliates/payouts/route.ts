@@ -1,160 +1,127 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { affiliates, affiliatePayouts } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { affiliatePayouts, affiliates } from "@/db/schema";
+import { eq, desc, inArray } from "drizzle-orm";
 import { requireAdmin } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
-// GET: List all affiliate payouts with affiliate details
 export async function GET() {
-  const adminCheck = await requireAdmin();
-  if (adminCheck instanceof NextResponse) return adminCheck;
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
 
   try {
-    const list = await db
+    const rows = await db
       .select({
         payout: affiliatePayouts,
-        affiliate: {
-          id: affiliates.id,
-          name: affiliates.name,
-          email: affiliates.email,
-          code: affiliates.code,
-          bankName: affiliates.bankName,
-          bankAccount: affiliates.bankAccount,
-          bankAccountName: affiliates.bankAccountName,
-          preferredCurrency: affiliates.preferredCurrency,
-        },
+        affiliate: affiliates,
       })
       .from(affiliatePayouts)
       .innerJoin(affiliates, eq(affiliatePayouts.affiliateId, affiliates.id))
       .orderBy(desc(affiliatePayouts.requestedAt));
 
-    return NextResponse.json({ success: true, payouts: list });
+    return NextResponse.json({ success: true, payouts: rows });
   } catch (error) {
     console.error("Admin fetch affiliate payouts error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
-// POST: Process payout (approve & pay OR reject & refund)
-export async function POST(request: NextRequest) {
-  const adminCheck = await requireAdmin();
-  if (adminCheck instanceof NextResponse) return adminCheck;
+export async function POST(req: NextRequest) {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
 
   try {
-    const body = await request.json();
-    const { payoutId, action, reference, note } = body;
+    const { payoutId, payoutIds, action, reference } = await req.json();
 
-    if (!payoutId || !["complete", "reject"].includes(action)) {
-      return NextResponse.json(
-        { error: "payoutId and valid action (complete/reject) are required" },
-        { status: 400 }
-      );
+    const idsToProcess: string[] = Array.isArray(payoutIds) && payoutIds.length > 0
+      ? payoutIds
+      : payoutId
+      ? [payoutId]
+      : [];
+
+    if (idsToProcess.length === 0 || !action) {
+      return NextResponse.json({ error: "Missing payout ID(s) or action" }, { status: 400 });
     }
 
-    const [payout] = await db
-      .select()
-      .from(affiliatePayouts)
-      .where(eq(affiliatePayouts.id, payoutId))
-      .limit(1);
+    const now = new Date();
 
-    if (!payout) {
-      return NextResponse.json(
-        { error: "Payout request not found" },
-        { status: 404 }
-      );
+    for (const id of idsToProcess) {
+      const [row] = await db
+        .select()
+        .from(affiliatePayouts)
+        .where(eq(affiliatePayouts.id, id))
+        .limit(1);
+
+      if (!row || row.status !== "pending") continue;
+
+      if (action === "complete") {
+        await db
+          .update(affiliatePayouts)
+          .set({
+            status: "completed",
+            reference: reference || "Bulk Paid by Admin",
+            paidAt: now,
+            processedBy: "Admin",
+          })
+          .where(eq(affiliatePayouts.id, id));
+
+        const [aff] = await db
+          .select()
+          .from(affiliates)
+          .where(eq(affiliates.id, row.affiliateId))
+          .limit(1);
+
+        if (aff) {
+          const curPaidOut = parseFloat(aff.totalPaidOut || "0");
+          const pAmount = parseFloat(row.amount || "0");
+
+          await db
+            .update(affiliates)
+            .set({
+              totalPaidOut: (curPaidOut + pAmount).toFixed(2),
+              updatedAt: now,
+            })
+            .where(eq(affiliates.id, aff.id));
+        }
+      } else if (action === "reject") {
+        await db
+          .update(affiliatePayouts)
+          .set({
+            status: "rejected",
+            processedBy: "Admin",
+          })
+          .where(eq(affiliatePayouts.id, id));
+
+        // Refund pending balance back to affiliate
+        const [aff] = await db
+          .select()
+          .from(affiliates)
+          .where(eq(affiliates.id, row.affiliateId))
+          .limit(1);
+
+        if (aff) {
+          const curPending = parseFloat(aff.pendingPayout || "0");
+          const pAmount = parseFloat(row.amount || "0");
+
+          await db
+            .update(affiliates)
+            .set({
+              pendingPayout: (curPending + pAmount).toFixed(2),
+              updatedAt: now,
+            })
+            .where(eq(affiliates.id, aff.id));
+        }
+      }
     }
 
-    if (payout.status !== "pending") {
-      return NextResponse.json(
-        { error: `Payout is already ${payout.status}` },
-        { status: 400 }
-      );
-    }
-
-    const [affiliate] = await db
-      .select()
-      .from(affiliates)
-      .where(eq(affiliates.id, payout.affiliateId))
-      .limit(1);
-
-    if (!affiliate) {
-      return NextResponse.json(
-        { error: "Affiliate not found" },
-        { status: 404 }
-      );
-    }
-
-    const payoutAmount = parseFloat(payout.amount);
-
-    if (action === "complete") {
-      // Mark as completed/paid
-      const currentPaid = parseFloat(affiliate.totalPaidOut || "0");
-      const newPaid = (currentPaid + payoutAmount).toFixed(2);
-
-      await db
-        .update(affiliates)
-        .set({
-          totalPaidOut: newPaid,
-          updatedAt: new Date(),
-        })
-        .where(eq(affiliates.id, affiliate.id));
-
-      const [updatedPayout] = await db
-        .update(affiliatePayouts)
-        .set({
-          status: "completed",
-          reference: reference || null,
-          note: note || payout.note || null,
-          paidAt: new Date(),
-          processedBy: "Admin",
-        })
-        .where(eq(affiliatePayouts.id, payoutId))
-        .returning();
-
-      return NextResponse.json({
-        success: true,
-        message: "Payout marked as completed",
-        payout: updatedPayout,
-      });
-    } else {
-      // Reject payout: refund amount back to pendingPayout
-      const currentPending = parseFloat(affiliate.pendingPayout || "0");
-      const restoredPending = (currentPending + payoutAmount).toFixed(2);
-
-      await db
-        .update(affiliates)
-        .set({
-          pendingPayout: restoredPending,
-          updatedAt: new Date(),
-        })
-        .where(eq(affiliates.id, affiliate.id));
-
-      const [updatedPayout] = await db
-        .update(affiliatePayouts)
-        .set({
-          status: "rejected",
-          note: note || "Rejected by admin",
-          processedBy: "Admin",
-        })
-        .where(eq(affiliatePayouts.id, payoutId))
-        .returning();
-
-      return NextResponse.json({
-        success: true,
-        message: "Payout rejected and balance refunded to affiliate",
-        payout: updatedPayout,
-      });
-    }
+    return NextResponse.json({
+      success: true,
+      processedCount: idsToProcess.length,
+      action,
+    });
   } catch (error) {
-    console.error("Admin process affiliate payout error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("Admin process payouts error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

@@ -1,7 +1,17 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { Loader2, RefreshCw, CheckCircle2, XCircle, Wallet } from "lucide-react";
+import {
+  Loader2,
+  RefreshCw,
+  CheckCircle2,
+  XCircle,
+  Wallet,
+  Download,
+  CheckSquare,
+  Square,
+  Sparkles,
+} from "lucide-react";
 
 interface PayoutRow {
   payout: {
@@ -34,6 +44,7 @@ export default function AffiliatePayoutsManager() {
   const [msg, setMsg] = useState<string | null>(null);
   const [refs, setRefs] = useState<Record<string, string>>({});
   const [filter, setFilter] = useState<"pending" | "all">("pending");
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const load = () => {
     setLoading(true);
@@ -49,7 +60,26 @@ export default function AffiliatePayoutsManager() {
     load();
   }, []);
 
-  const process = (payoutId: string, action: "complete" | "reject") => {
+  const filtered =
+    filter === "all"
+      ? list
+      : list.filter((r) => r.payout.status === "pending");
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === filtered.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filtered.map((r) => r.payout.id));
+    }
+  };
+
+  const toggleSelectOne = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+
+  const processSingle = (payoutId: string, action: "complete" | "reject") => {
     setMsg(null);
     startTransition(async () => {
       const res = await fetch("/api/admin/affiliates/payouts", {
@@ -75,10 +105,85 @@ export default function AffiliatePayoutsManager() {
     });
   };
 
-  const filtered =
-    filter === "all"
-      ? list
-      : list.filter((r) => r.payout.status === "pending");
+  const processBulk = (action: "complete" | "reject") => {
+    if (selectedIds.length === 0) return;
+    if (
+      !confirm(
+        `Are you sure you want to bulk ${action} ${selectedIds.length} payout(s)?`
+      )
+    )
+      return;
+
+    setMsg(null);
+    startTransition(async () => {
+      const res = await fetch("/api/admin/affiliates/payouts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          payoutIds: selectedIds,
+          action,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setMsg(data.error || "Bulk action failed");
+        return;
+      }
+      setMsg(`Bulk ${action} completed for ${selectedIds.length} payout(s).`);
+      setSelectedIds([]);
+      load();
+    });
+  };
+
+  const exportCSV = () => {
+    const itemsToExport =
+      selectedIds.length > 0
+        ? filtered.filter((r) => selectedIds.includes(r.payout.id))
+        : filtered;
+
+    if (itemsToExport.length === 0) return;
+
+    const headers = [
+      "Payout ID",
+      "Affiliate Name",
+      "Email",
+      "Code",
+      "Amount USD",
+      "USDT Wallet Address",
+      "Status",
+      "Requested Date",
+      "Reference",
+    ];
+
+    const rows = itemsToExport.map((r) => [
+      r.payout.id,
+      `"${r.affiliate.name.replace(/"/g, '""')}"`,
+      `"${r.affiliate.email}"`,
+      r.affiliate.code,
+      r.payout.amount,
+      `"${r.affiliate.bankAccount || ""}"`,
+      r.payout.status || "pending",
+      r.payout.requestedAt
+        ? new Date(r.payout.requestedAt).toISOString()
+        : "",
+      `"${(r.payout.reference || "").replace(/"/g, '""')}"`,
+    ]);
+
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute(
+      "download",
+      `affiliate_payouts_${filter}_${Date.now()}.csv`
+    );
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <div className="space-y-6">
@@ -89,15 +194,23 @@ export default function AffiliatePayoutsManager() {
             Affiliate Payouts
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            Process bank transfers for affiliate commissions.
+            Process bank and USDT crypto transfers for affiliate commissions.
           </p>
         </div>
-        <button
-          onClick={load}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-sm font-medium"
-        >
-          <RefreshCw className="w-4 h-4" /> Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={exportCSV}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 text-sm font-semibold shadow-sm"
+          >
+            <Download className="w-4 h-4 text-emerald-600" /> Export CSV
+          </button>
+          <button
+            onClick={load}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-sm font-medium"
+          >
+            <RefreshCw className="w-4 h-4" /> Refresh
+          </button>
+        </div>
       </div>
 
       {msg && (
@@ -106,23 +219,71 @@ export default function AffiliatePayoutsManager() {
         </div>
       )}
 
-      <div className="flex gap-2">
-        <button
-          onClick={() => setFilter("pending")}
-          className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${
-            filter === "pending" ? "bg-gray-900 text-white" : "bg-gray-100"
-          }`}
-        >
-          Pending
-        </button>
-        <button
-          onClick={() => setFilter("all")}
-          className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${
-            filter === "all" ? "bg-gray-900 text-white" : "bg-gray-100"
-          }`}
-        >
-          All
-        </button>
+      {/* Filter & Bulk Bar */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setFilter("pending")}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${
+              filter === "pending" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-700"
+            }`}
+          >
+            Pending
+          </button>
+          <button
+            onClick={() => setFilter("all")}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${
+              filter === "all" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-700"
+            }`}
+          >
+            All
+          </button>
+        </div>
+
+        {filtered.length > 0 && (
+          <div className="flex items-center gap-3 flex-wrap">
+            <button
+              type="button"
+              onClick={toggleSelectAll}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-700 hover:text-gray-900"
+            >
+              {selectedIds.length === filtered.length ? (
+                <CheckSquare className="w-4 h-4 text-[#CA3F2E]" />
+              ) : (
+                <Square className="w-4 h-4 text-gray-400" />
+              )}
+              <span>
+                {selectedIds.length === filtered.length
+                  ? "Deselect All"
+                  : `Select All (${filtered.length})`}
+              </span>
+            </button>
+
+            {selectedIds.length > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-gray-500">
+                  {selectedIds.length} selected:
+                </span>
+                <button
+                  type="button"
+                  disabled={isPending}
+                  onClick={() => processBulk("complete")}
+                  className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-bold shadow-sm hover:bg-emerald-700 transition"
+                >
+                  Bulk Mark Paid
+                </button>
+                <button
+                  type="button"
+                  disabled={isPending}
+                  onClick={() => processBulk("reject")}
+                  className="px-3 py-1.5 rounded-lg bg-red-50 text-red-600 border border-red-200 text-xs font-bold hover:bg-red-100 transition"
+                >
+                  Bulk Reject
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {loading ? (
@@ -131,88 +292,105 @@ export default function AffiliatePayoutsManager() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-16 text-gray-400 text-sm bg-white rounded-2xl border">
-          No payout requests.
+          No payout requests found.
         </div>
       ) : (
         <div className="space-y-4">
-          {filtered.map((row) => (
-            <div
-              key={row.payout.id}
-              className="bg-white rounded-2xl border border-gray-100 p-5"
-            >
-              <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
-                <div>
-                  <div className="font-bold text-lg">{row.affiliate.name}</div>
-                  <div className="text-xs text-gray-400">
-                    {row.affiliate.email} · {row.affiliate.code}
-                  </div>
-                  <div className="mt-2 text-2xl font-bold text-gray-900">
-                    ${parseFloat(row.payout.amount).toFixed(2)}{" "}
-                    <span className="text-sm font-normal text-gray-400">
-                      {row.payout.currency || "USD"}
-                    </span>
-                  </div>
-                  <div className="mt-2 text-sm text-gray-600 space-y-0.5">
-                    <p>
-                      Bank: {row.affiliate.bankName || "—"} /{" "}
-                      {row.affiliate.bankAccount || "—"}
-                    </p>
-                    <p>Account name: {row.affiliate.bankAccountName || "—"}</p>
-                    <p className="text-xs text-gray-400">
-                      Requested{" "}
-                      {row.payout.requestedAt
-                        ? new Date(row.payout.requestedAt).toLocaleString()
-                        : "—"}
-                    </p>
-                  </div>
-                  <span
-                    className={`inline-block mt-2 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                      row.payout.status === "pending"
-                        ? "bg-amber-100 text-amber-700"
-                        : row.payout.status === "completed"
-                        ? "bg-emerald-100 text-emerald-700"
-                        : "bg-red-100 text-red-700"
-                    }`}
-                  >
-                    {row.payout.status}
-                  </span>
-                </div>
+          {filtered.map((row) => {
+            const isSelected = selectedIds.includes(row.payout.id);
+            return (
+              <div
+                key={row.payout.id}
+                className={`bg-white rounded-2xl border transition-all p-5 shadow-sm ${
+                  isSelected ? "border-[#CA3F2E] ring-1 ring-[#CA3F2E]/20 bg-red-50/10" : "border-gray-100"
+                }`}
+              >
+                <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+                  <div className="flex items-start gap-3 min-w-0">
+                    <button
+                      type="button"
+                      onClick={() => toggleSelectOne(row.payout.id)}
+                      className="mt-1 text-gray-400 hover:text-gray-900"
+                    >
+                      {isSelected ? (
+                        <CheckSquare className="w-5 h-5 text-[#CA3F2E]" />
+                      ) : (
+                        <Square className="w-5 h-5 text-gray-300" />
+                      )}
+                    </button>
 
-                {row.payout.status === "pending" && (
-                  <div className="space-y-2 w-full max-w-xs">
-                    <input
-                      type="text"
-                      placeholder="Bank transfer reference"
-                      value={refs[row.payout.id] || ""}
-                      onChange={(e) =>
-                        setRefs((p) => ({
-                          ...p,
-                          [row.payout.id]: e.target.value,
-                        }))
-                      }
-                      className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm"
-                    />
-                    <div className="flex gap-2">
-                      <button
-                        disabled={isPending}
-                        onClick={() => process(row.payout.id, "complete")}
-                        className="flex-1 inline-flex justify-center items-center gap-1 px-3 py-2 rounded-xl bg-emerald-600 text-white text-sm font-semibold disabled:opacity-50"
+                    <div className="min-w-0 flex-1">
+                      <div className="font-bold text-lg text-gray-900">{row.affiliate.name}</div>
+                      <div className="text-xs text-gray-400">
+                        {row.affiliate.email} · <span className="font-mono text-[#CA3F2E] font-bold">{row.affiliate.code}</span>
+                      </div>
+                      <div className="mt-2 text-2xl font-bold text-gray-900">
+                        ${parseFloat(row.payout.amount).toFixed(2)}{" "}
+                        <span className="text-sm font-normal text-gray-400">
+                          {row.payout.currency || "USD"}
+                        </span>
+                      </div>
+                      <div className="mt-2 text-sm text-gray-600 space-y-0.5">
+                        <p className="font-mono text-xs text-gray-800 break-all select-all">
+                          USDT Wallet: <strong className="text-emerald-600">{row.affiliate.bankAccount || "Not set"}</strong>
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          Requested{" "}
+                          {row.payout.requestedAt
+                            ? new Date(row.payout.requestedAt).toLocaleString()
+                            : "—"}
+                        </p>
+                      </div>
+                      <span
+                        className={`inline-block mt-2 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                          row.payout.status === "pending"
+                            ? "bg-amber-100 text-amber-700"
+                            : row.payout.status === "completed"
+                            ? "bg-emerald-100 text-emerald-700"
+                            : "bg-red-100 text-red-700"
+                        }`}
                       >
-                        <CheckCircle2 className="w-4 h-4" /> Paid
-                      </button>
-                      <button
-                        disabled={isPending}
-                        onClick={() => process(row.payout.id, "reject")}
-                        className="flex-1 inline-flex justify-center items-center gap-1 px-3 py-2 rounded-xl bg-red-50 text-red-600 border border-red-200 text-sm font-semibold disabled:opacity-50"
-                      >
-                        <XCircle className="w-4 h-4" /> Reject
-                      </button>
+                        {row.payout.status}
+                      </span>
                     </div>
                   </div>
-                )}
+
+                  {row.payout.status === "pending" && (
+                    <div className="space-y-2 w-full max-w-xs">
+                      <input
+                        type="text"
+                        placeholder="USDT TX Hash / Reference"
+                        value={refs[row.payout.id] || ""}
+                        onChange={(e) =>
+                          setRefs((p) => ({
+                            ...p,
+                            [row.payout.id]: e.target.value,
+                          }))
+                        }
+                        className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#CA3F2E]"
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          disabled={isPending}
+                          onClick={() => processSingle(row.payout.id, "complete")}
+                          className="flex-1 inline-flex justify-center items-center gap-1 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold disabled:opacity-50 transition"
+                        >
+                          <CheckCircle2 className="w-4 h-4" /> Paid
+                        </button>
+                        <button
+                          disabled={isPending}
+                          onClick={() => processSingle(row.payout.id, "reject")}
+                          className="flex-1 inline-flex justify-center items-center gap-1 px-3 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-sm font-semibold disabled:opacity-50 transition"
+                        >
+                          <XCircle className="w-4 h-4" /> Reject
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
