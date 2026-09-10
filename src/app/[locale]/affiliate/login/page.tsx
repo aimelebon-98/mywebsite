@@ -54,6 +54,14 @@ function AffiliateLoginForm() {
           return;
         }
 
+        // If 2FA or Email OTP is required
+        if (data.requires2FA) {
+          router.push(
+            `/${locale}/affiliate/verify-otp?id=${encodeURIComponent(data.affiliateId)}&method=${encodeURIComponent(data.method)}`
+          );
+          return;
+        }
+
         if (data.mustChangePassword) {
           router.push(`/${locale}/affiliate/change-password`);
         } else {

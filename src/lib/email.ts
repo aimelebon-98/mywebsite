@@ -1362,3 +1362,65 @@ export async function sendAffiliatePasswordResetEmail(
     return false;
   }
 }
+
+export async function sendAffiliateLoginOtpEmail(
+  to: string,
+  name: string,
+  otpCode: string,
+  deviceInfo: string,
+  locale: "en" | "fr" = "en"
+): Promise<boolean> {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.newdealzone.com";
+  const isFr = locale === "fr";
+  const subject = isFr
+    ? `Code de verification de connexion : ${otpCode} \u2014 New Deal Zone`
+    : `Login verification code: ${otpCode} \u2014 New Deal Zone`;
+
+  const html = `
+    <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #eaeaea;">
+      <div style="background:linear-gradient(135deg,#CA3F2E 0%,#8B2A1E 100%);padding:28px 24px;text-align:center;color:#fff;">
+        <h1 style="margin:0;font-size:22px;">New Deal Zone</h1>
+        <p style="margin:8px 0 0;opacity:0.9;font-size:13px;">${isFr ? "Verification de connexion" : "Login Security Check"}</p>
+      </div>
+      <div style="padding:28px 24px;color:#1a1a1a;">
+        <p style="margin:0 0 12px;font-size:16px;">${isFr ? `Bonjour ${name},` : `Hi ${name},`}</p>
+        <p style="margin:0 0 20px;color:#555;line-height:1.6;">
+          ${isFr
+            ? "Une tentative de connexion a votre compte affili\u00e9 a \u00e9t\u00e9 d\u00e9tect\u00e9e depuis un nouvel appareil ou navigateur :"
+            : "A login attempt to your affiliate account was detected from a new device or browser:"}
+        </p>
+
+        <div style="background:#f8f9fa;border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:12px;color:#666;">
+          <strong>Device/IP:</strong> ${deviceInfo}
+        </div>
+
+        <div style="text-align:center;margin:28px 0;">
+          <div style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:8px;">
+            ${isFr ? "Votre code OTP (valide 10 minutes)" : "Your One-Time Passcode (valid 10 mins)"}
+          </div>
+          <div style="font-family:monospace;font-size:36px;font-weight:900;letter-spacing:8px;color:#CA3F2E;background:#fef2f2;display:inline-block;padding:12px 28px;border-radius:12px;border:1px border-red-200;">
+            ${otpCode}
+          </div>
+        </div>
+
+        <p style="margin:0;font-size:12px;color:#888;line-height:1.5;text-align:center;">
+          ${isFr
+            ? "Si vous n'etes pas a l'origine de cette connexion, modifiez immediatement votre mot de passe."
+            : "If you did not initiate this login, please change your password immediately."}
+        </p>
+      </div>
+    </div>
+  `;
+
+  try {
+    const fromEmail = process.env.RESEND_FROM_EMAIL || "NewDealZone <support@newdealzone.com>";
+    const resendMod = await import("resend");
+    const resend = process.env.RESEND_API_KEY ? new resendMod.Resend(process.env.RESEND_API_KEY) : null;
+    if (!resend) return false;
+    await resend.emails.send({ from: fromEmail, to, subject, html });
+    return true;
+  } catch (e) {
+    console.error("sendAffiliateLoginOtpEmail error:", e);
+    return false;
+  }
+}
