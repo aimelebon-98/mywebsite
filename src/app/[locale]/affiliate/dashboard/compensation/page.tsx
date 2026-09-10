@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import { 
   Target, 
@@ -10,7 +11,11 @@ import {
   XCircle, 
   TrendingUp, 
   Users, 
-  AlertTriangle 
+  AlertTriangle,
+  Calculator,
+  Calendar,
+  Sparkles,
+  ArrowRight
 } from "lucide-react";
 
 export default function CompensationPlanPage() {
@@ -18,9 +23,63 @@ export default function CompensationPlanPage() {
   const locale = (params?.locale as string) || "en";
   const isFr = locale === "fr";
 
+  const [selectedTeamSize, setSelectedTeamSize] = useState<10 | 50 | 100 | 1000 | 10000>(100);
+
+  const teamProjections = {
+    10: {
+      l1: 5, l2: 5, l3: 0,
+      monthly: 60,
+      sixMonths: 360,
+      oneYear: 720,
+      annualLumpSum: 539.70,
+    },
+    50: {
+      l1: 10, l2: 30, l3: 10,
+      monthly: 170,
+      sixMonths: 1020,
+      oneYear: 2040,
+      annualLumpSum: 1529.15,
+    },
+    100: {
+      l1: 15, l2: 50, l3: 35,
+      monthly: 285,
+      sixMonths: 1710,
+      oneYear: 3420,
+      annualLumpSum: 2563.68,
+    },
+    1000: {
+      l1: 50, l2: 350, l3: 600,
+      monthly: 1800,
+      sixMonths: 10800,
+      oneYear: 21600,
+      annualLumpSum: 16191.90,
+    },
+    10000: {
+      l1: 100, l2: 2900, l3: 7000,
+      monthly: 13800,
+      sixMonths: 82800,
+      oneYear: 165600,
+      annualLumpSum: 124131.00,
+    },
+  };
+
+  const activeProj = teamProjections[selectedTeamSize];
+
   const t = isFr ? {
-    title: "Plan de R\u00e9mun\u00e9ration",
+    title: "Plan de R\u00e9mun\u00e9ration & Projections",
     subtitle: "D\u00e9couvrez comment maximiser vos gains gr\u00e2ce \u00e0 notre mod\u00e8le d'affiliation hybride.",
+    calcTitle: "Calculateur de Potentiel de Gains",
+    calcSubtitle: "S\u00e9lectionnez la taille de votre \u00e9quipe pour estimer vos revenus passifs r\u00e9currents :",
+    teamSizeLabel: "Taille de l'\u00e9quipe :",
+    monthlyEarnings: "Revenu Mensuel Estim\u00e9",
+    sixMonthEarnings: "Potentiel sur 6 Mois",
+    oneYearEarnings: "Potentiel sur 1 An",
+    breakdownTitle: "R\u00e9partition de l'\u00e9quipe :",
+    l1Count: "Niveau 1 (Direct 50%) :",
+    l2Count: "Niveau 2 (\u00c9quipe 10%) :",
+    l3Count: "Niveau 3 (Profond 5%) :",
+    annualNote: "Si votre \u00e9quipe vend des abonnements annuels (179.91$), votre gain instantan\u00e9 est de :",
+    matrixTitle: "Tableau Comparatif des Projections",
     physicalTitle: "1. Produits Physiques (V\u00eatements, Chaussures, etc.)",
     physicalDesc: "Gagnez une commission directe sur chaque produit physique vendu via votre lien.",
     physicalRate: "5% de commission",
@@ -52,8 +111,20 @@ export default function CompensationPlanPage() {
     s4Desc: "Vous \u00eates ACTIF. Vous avez recrut\u00e9 John (L1). John recrute Sarah (L2). Sarah vend un abonnement SMZ Bot \u00e0 179.91$.",
     s4Result: "Sarah gagne 89.95$ (50%). John gagne 17.99$ (10%). VOUS gagnez 8.99$ (5%).",
   } : {
-    title: "Compensation Plan",
+    title: "Compensation Plan & Earnings Projections",
     subtitle: "Learn how to maximize your earnings with our hybrid affiliate model.",
+    calcTitle: "Earnings Potential Calculator",
+    calcSubtitle: "Select your potential team size to estimate your recurring passive income:",
+    teamSizeLabel: "Active Team Size:",
+    monthlyEarnings: "Estimated Monthly Income",
+    sixMonthEarnings: "6-Month Earnings",
+    oneYearEarnings: "1-Year Earnings",
+    breakdownTitle: "Team Structure Split:",
+    l1Count: "Level 1 (Direct 50%):",
+    l2Count: "Level 2 (Team 10%):",
+    l3Count: "Level 3 (Deep 5%):",
+    annualNote: "If your team sells annual subscriptions ($179.91/yr), your lump-sum payout is:",
+    matrixTitle: "Earnings Projection Matrix",
     physicalTitle: "1. Physical Products (Shoes, Apparel, Bags)",
     physicalDesc: "Earn a direct commission on every physical product sold through your link.",
     physicalRate: "5% Commission",
@@ -87,13 +158,124 @@ export default function CompensationPlanPage() {
   };
 
   return (
-    <div className="space-y-8 max-w-5xl">
+    <div className="space-y-10 max-w-5xl">
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3">
           <Target className="w-8 h-8 text-[#CA3F2E]" />
           {t.title}
         </h1>
         <p className="text-gray-400 mt-2">{t.subtitle}</p>
+      </div>
+
+      {/* CALCULATOR INTERACTIVE WIDGET */}
+      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-[#121215] via-[#1a1215] to-[#251012] border border-[#CA3F2E]/30 shadow-2xl space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#CA3F2E]/20 text-[#CA3F2E] text-xs font-bold uppercase tracking-wider mb-2">
+              <Calculator className="w-3.5 h-3.5" />
+              {t.calcTitle}
+            </div>
+            <p className="text-xs text-gray-300">{t.calcSubtitle}</p>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            {([10, 50, 100, 1000, 10000] as const).map((size) => (
+              <button
+                key={size}
+                onClick={() => setSelectedTeamSize(size)}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  selectedTeamSize === size
+                    ? "bg-[#CA3F2E] text-white shadow-lg shadow-red-600/30 scale-105"
+                    : "bg-white/5 text-gray-400 hover:text-white hover:bg-white/10"
+                }`}
+              >
+                {size >= 1000 ? `${size / 1000}k` : size}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Projection Display */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+          <div className="p-5 rounded-2xl bg-black/50 border border-white/10 space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 flex items-center gap-1">
+              <Calendar className="w-3.5 h-3.5 text-blue-400" /> 1 Month
+            </span>
+            <p className="text-2xl sm:text-3xl font-black text-emerald-400">
+              ${activeProj.monthly.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+            </p>
+            <p className="text-[11px] text-gray-400">{t.monthlyEarnings}</p>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-black/50 border border-white/10 space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 flex items-center gap-1">
+              <TrendingUp className="w-3.5 h-3.5 text-sky-400" /> 6 Months
+            </span>
+            <p className="text-2xl sm:text-3xl font-black text-sky-300">
+              ${activeProj.sixMonths.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+            </p>
+            <p className="text-[11px] text-gray-400">{t.sixMonthEarnings}</p>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-black/50 border border-white/10 space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 flex items-center gap-1">
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" /> 1 Year
+            </span>
+            <p className="text-2xl sm:text-3xl font-black text-amber-300">
+              ${activeProj.oneYear.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+            </p>
+            <p className="text-[11px] text-gray-400">{t.oneYearEarnings}</p>
+          </div>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-gray-300">
+          <div>
+            <span className="font-bold text-white">{t.breakdownTitle}</span>{" "}
+            <span>{t.l1Count} <strong>{activeProj.l1}</strong> · </span>
+            <span>{t.l2Count} <strong>{activeProj.l2}</strong> · </span>
+            <span>{t.l3Count} <strong>{activeProj.l3}</strong></span>
+          </div>
+          <div className="text-emerald-400 font-semibold font-mono">
+            Annual Package = <strong className="text-white">${activeProj.annualLumpSum.toLocaleString("en-US", { minimumFractionDigits: 2 })}</strong>
+          </div>
+        </div>
+      </div>
+
+      {/* MATRIX COMPARISON TABLE */}
+      <div className="p-6 sm:p-8 rounded-3xl bg-white/[0.03] border border-white/10 space-y-4">
+        <h2 className="text-xl font-bold flex items-center gap-2">
+          <TrendingUp className="w-5 h-5 text-[#CA3F2E]" />
+          {t.matrixTitle}
+        </h2>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs min-w-[600px]">
+            <thead className="border-b border-white/10 text-gray-400 uppercase tracking-wider">
+              <tr>
+                <th className="py-3 px-3">Team Size</th>
+                <th className="py-3 px-3">Structure Split</th>
+                <th className="py-3 px-3">1 Month</th>
+                <th className="py-3 px-3">6 Months</th>
+                <th className="py-3 px-3">1 Year</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5 text-gray-300 font-mono">
+              {[
+                { size: 10, split: "5 L1 + 5 L2", m: 60, s6: 360, y1: 720 },
+                { size: 50, split: "10 L1 + 30 L2 + 10 L3", m: 170, s6: 1020, y1: 2040 },
+                { size: 100, split: "15 L1 + 50 L2 + 35 L3", m: 285, s6: 1710, y1: 3420 },
+                { size: 1000, split: "50 L1 + 350 L2 + 600 L3", m: 1800, s6: 10800, y1: 21600 },
+                { size: 10000, split: "100 L1 + 2,900 L2 + 7,000 L3", m: 13800, s6: 82800, y1: 165600 },
+              ].map((row) => (
+                <tr key={row.size} className="hover:bg-white/[0.02]">
+                  <td className="py-3.5 px-3 font-bold text-white font-sans">{row.size.toLocaleString()} Members</td>
+                  <td className="py-3.5 px-3 text-gray-400 font-sans">{row.split}</td>
+                  <td className="py-3.5 px-3 font-bold text-emerald-400">${row.m.toLocaleString()} / mo</td>
+                  <td className="py-3.5 px-3 text-sky-300">${row.s6.toLocaleString()}</td>
+                  <td className="py-3.5 px-3 font-bold text-amber-400">${row.y1.toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
