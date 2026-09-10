@@ -1,0 +1,2 @@
+ALTER TABLE wishlist ADD COLUMN IF NOT EXISTS customer_id uuid;
+ALTER TABLE wishlist ALTER COLUMN visitor_id DROP NOT NULL;

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { vendorProducts, products, vendors } from "@/db/schema";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { requireAdmin } from "@/lib/admin-auth";
 import { sendVendorProductStatusEmail } from "@/lib/email";
 
@@ -39,99 +39,88 @@ export async function GET(req: Request) {
       if (!p) return null;
       return {
         id: vp.id,
-        productId: vp.productId,
-        vendorId: vp.vendorId,
         status: vp.status,
         adminNote: vp.adminNote,
         submittedAt: vp.submittedAt,
-        approvedAt: vp.approvedAt,
-        vendor: v || null,
-        product: {
-          name: p.name,
-          nameFr: p.nameFr,
-          slug: p.slug,
-          price: p.price,
-          comparePrice: p.comparePrice,
-          category: p.category,
-          brand: p.brand,
-          material: p.material,
-          stock: p.stock,
-          imageUrl: p.imageUrl,
-          images: p.images,
-          sizes: p.sizes,
-          colors: p.colors,
-          shortDescription: p.shortDescription,
-          longDescription: p.longDescription,
-          shortDescriptionFr: p.shortDescriptionFr,
-          longDescriptionFr: p.longDescriptionFr,
-          seoTitle: p.seoTitle,
-          metaDescription: p.metaDescription,
-          focusKeyphrase: p.focusKeyphrase,
-          originCountry: p.originCountry,
-          originCity: p.originCity,
-          active: p.active,
-        },
+        product: p,
+        vendor: v,
       };
     }).filter(Boolean);
 
     items.sort((a, b) => new Date(b!.submittedAt).getTime() - new Date(a!.submittedAt).getTime());
 
-    const pendingCount = vps.filter(v => v.status === "pending").length;
+    const pendingCount = items.filter(i => i!.status === "pending").length;
     return NextResponse.json({ items, pendingCount });
   } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
-    if (msg === "UNAUTHORIZED") return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }
 
 export async function POST(req: Request) {
   try {
     await requireAdmin();
-    const { vendorProductId, action, adminNote } = await req.json();
-    if (!vendorProductId || !["approve", "reject", "suspend"].includes(action)) {
+    const body = await req.json();
+    const { vendorProductId, vendorProductIds, action, adminNote } = body;
+
+    const ids: string[] = Array.isArray(vendorProductIds)
+      ? vendorProductIds.filter((id: unknown) => typeof id === "string" && id.length > 0)
+      : vendorProductId
+      ? [String(vendorProductId)]
+      : [];
+
+    if (ids.length === 0 || !["approve", "reject", "suspend"].includes(action)) {
       return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
 
-    const [vp] = await db.select().from(vendorProducts).where(eq(vendorProducts.id, vendorProductId)).limit(1);
-    if (!vp) return NextResponse.json({ error: "Not found" }, { status: 404 });
-
-    const [product] = await db.select().from(products).where(eq(products.id, vp.productId)).limit(1);
-    const [vendor] = await db.select().from(vendors).where(eq(vendors.id, vp.vendorId)).limit(1);
-
     const note = String(adminNote || "").slice(0, 1000);
-    const vpUpdate: Record<string, unknown> = { adminNote: note };
-    const prodUpdate: Record<string, unknown> = { updatedAt: new Date() };
-    let approved = false;
+    let updatedCount = 0;
 
-    if (action === "approve") {
-      vpUpdate.status = "approved";
-      vpUpdate.approvedAt = new Date();
-      prodUpdate.active = true;
-      approved = true;
-      // Also update vendor stats total product count if needed later
-    } else if (action === "reject") {
-      if (!note.trim()) return NextResponse.json({ error: "Rejection reason required" }, { status: 400 });
-      vpUpdate.status = "rejected";
-      prodUpdate.active = false;
-    } else if (action === "suspend") {
-      vpUpdate.status = "suspended";
-      prodUpdate.active = false;
+    for (const vpId of ids) {
+      const [vp] = await db.select().from(vendorProducts).where(eq(vendorProducts.id, vpId)).limit(1);
+      if (!vp) continue;
+
+      const [product] = await db.select().from(products).where(eq(products.id, vp.productId)).limit(1);
+      const [vendor] = await db.select().from(vendors).where(eq(vendors.id, vp.vendorId)).limit(1);
+
+      const vpUpdate: Record<string, unknown> = { adminNote: note };
+      const prodUpdate: Record<string, unknown> = { updatedAt: new Date() };
+      let approved = false;
+
+      if (action === "approve") {
+        vpUpdate.status = "approved";
+        vpUpdate.approvedAt = new Date();
+        prodUpdate.active = true;
+        approved = true;
+      } else if (action === "reject") {
+        vpUpdate.status = "rejected";
+        prodUpdate.active = false;
+      } else if (action === "suspend") {
+        vpUpdate.status = "suspended";
+        prodUpdate.active = false;
+      }
+
+      await db.update(vendorProducts).set(vpUpdate as any).where(eq(vendorProducts.id, vpId));
+      await db.update(products).set(prodUpdate as any).where(eq(products.id, vp.productId));
+
+      if (vendor && product && (action === "approve" || action === "reject")) {
+        sendVendorProductStatusEmail(
+          vendor.email,
+          vendor.contactName || vendor.storeName,
+          product.name,
+          approved,
+          note,
+          "en"
+        ).catch((e) => console.error("Email failed:", e));
+      }
+      updatedCount++;
     }
 
-    await db.update(vendorProducts).set(vpUpdate as unknown as Partial<typeof vendorProducts.$inferInsert>).where(eq(vendorProducts.id, vendorProductId));
-    await db.update(products).set(prodUpdate as unknown as Partial<typeof products.$inferInsert>).where(eq(products.id, vp.productId));
-
-    // Send email to vendor
-    if (vendor && product && (action === "approve" || action === "reject")) {
-      sendVendorProductStatusEmail(vendor.email, vendor.contactName || vendor.storeName, product.name, approved, note, "en")
-        .catch(e => console.error("[Email] Product status email failed:", e));
-    }
-
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      message: ids.length > 1 ? `Updated ${updatedCount} products` : "Product updated",
+      updated: updatedCount,
+    });
   } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
-    if (msg === "UNAUTHORIZED") return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }

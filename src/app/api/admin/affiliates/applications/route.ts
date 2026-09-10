@@ -3,14 +3,8 @@ import { db } from "@/db";
 import { affiliates, affiliateApplications } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { requireAdmin } from "@/lib/admin-auth";
-import {
-  hashAffiliatePassword,
-  generateAffiliateCode,
-} from "@/lib/affiliate-auth";
-import {
-  sendAffiliateApprovedEmail,
-  sendAffiliateRejectedEmail,
-} from "@/lib/email";
+import { hashAffiliatePassword, generateAffiliateCode } from "@/lib/affiliate-auth";
+import { sendAffiliateApprovedEmail, sendAffiliateRejectedEmail } from "@/lib/email";
 import crypto from "crypto";
 
 export const dynamic = "force-dynamic";
@@ -18,20 +12,11 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const adminCheck = await requireAdmin();
   if (adminCheck instanceof NextResponse) return adminCheck;
-
   try {
-    const list = await db
-      .select()
-      .from(affiliateApplications)
-      .orderBy(desc(affiliateApplications.createdAt));
-
+    const list = await db.select().from(affiliateApplications).orderBy(desc(affiliateApplications.createdAt));
     return NextResponse.json({ success: true, applications: list });
   } catch (error) {
-    console.error("Admin fetch affiliate applications error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -41,94 +26,47 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const {
-      applicationId,
-      action,
-      adminNote,
-      commissionRate = "5.00",
-      locale = "en",
-    } = body;
+    const { applicationId, applicationIds, action, adminNote, commissionRate = "5.00", locale = "en" } = body;
 
-    if (!applicationId || !["approve", "reject"].includes(action)) {
-      return NextResponse.json(
-        {
-          error:
-            "applicationId and valid action (approve/reject) are required",
-        },
-        { status: 400 }
-      );
+    const ids: string[] = Array.isArray(applicationIds)
+      ? applicationIds.filter((id: unknown) => typeof id === "string" && id.length > 0)
+      : applicationId
+      ? [String(applicationId)]
+      : [];
+
+    if (ids.length === 0 || !["approve", "reject"].includes(action)) {
+      return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
 
-    const [app] = await db
-      .select()
-      .from(affiliateApplications)
-      .where(eq(affiliateApplications.id, applicationId))
-      .limit(1);
+    let processed = 0;
 
-    if (!app) {
-      return NextResponse.json(
-        { error: "Application not found" },
-        { status: 404 }
-      );
-    }
+    for (const appId of ids) {
+      const [app] = await db.select().from(affiliateApplications).where(eq(affiliateApplications.id, appId)).limit(1);
+      if (!app) continue;
 
-    if (action === "approve") {
-      const [existingAff] = await db
-        .select()
-        .from(affiliates)
-        .where(eq(affiliates.email, app.email))
-        .limit(1);
+      if (action === "approve") {
+        const [existingAff] = await db.select().from(affiliates).where(eq(affiliates.email, app.email)).limit(1);
+        let code: string;
 
-      let affiliateId: string;
-      let code: string;
-      let tempPassword: string | null = null;
-
-      if (existingAff) {
-        // Instant-dashboard flow
-        await db
-          .update(affiliates)
-          .set({
+        if (existingAff) {
+          await db.update(affiliates).set({
             status: "approved",
             commissionRate: String(commissionRate),
             approvedAt: new Date(),
             adminNote: adminNote || null,
             name: app.applicantName || existingAff.name,
-            phone: app.phone || existingAff.phone,
-            whatsapp: app.whatsapp || existingAff.whatsapp,
-            country: app.country || existingAff.country,
-            city: app.city || existingAff.city,
             updatedAt: new Date(),
-          })
-          .where(eq(affiliates.id, existingAff.id));
-        affiliateId = existingAff.id;
-        code = existingAff.code;
-      } else {
-        let passwordHash =
-          (app as { passwordHash?: string | null }).passwordHash || null;
-        let mustChange = false;
-
-        if (!passwordHash) {
-          tempPassword = crypto.randomBytes(4).toString("hex");
-          passwordHash = await hashAffiliatePassword(tempPassword);
-          mustChange = true;
-        }
-
-        code = generateAffiliateCode(app.applicantName);
-        let attempts = 0;
-        while (attempts < 5) {
-          const existing = await db
-            .select({ id: affiliates.id })
-            .from(affiliates)
-            .where(eq(affiliates.code, code))
-            .limit(1);
-          if (!existing.length) break;
+          }).where(eq(affiliates.id, existingAff.id));
+          code = existingAff.code;
+        } else {
+          let passwordHash = (app as any).passwordHash || null;
+          let tempPassword: string | null = null;
+          if (!passwordHash) {
+            tempPassword = crypto.randomBytes(4).toString("hex");
+            passwordHash = await hashAffiliatePassword(tempPassword);
+          }
           code = generateAffiliateCode(app.applicantName);
-          attempts++;
-        }
-
-        const [newAffiliate] = await db
-          .insert(affiliates)
-          .values({
+          await db.insert(affiliates).values({
             email: app.email,
             passwordHash,
             name: app.applicantName,
@@ -136,81 +74,29 @@ export async function POST(request: NextRequest) {
             commissionRate: String(commissionRate),
             status: "approved",
             country: app.country,
-            city: app.city,
             phone: app.phone,
             whatsapp: app.whatsapp,
-            mustChangePassword: mustChange,
+            mustChangePassword: !!tempPassword,
             adminNote: adminNote || null,
             approvedAt: new Date(),
-          })
-          .returning();
-        affiliateId = newAffiliate.id;
+          });
+          sendAffiliateApprovedEmail(app.email, app.applicantName, code, tempPassword || "(existing password)", String(commissionRate), locale).catch(()=>{});
+        }
+        await db.update(affiliateApplications).set({ status: "approved", reviewedAt: new Date(), adminNote: adminNote || null }).where(eq(affiliateApplications.id, appId));
+      } else {
+        await db.update(affiliateApplications).set({ status: "rejected", reviewedAt: new Date(), adminNote: adminNote || null }).where(eq(affiliateApplications.id, appId));
+        await db.update(affiliates).set({ status: "rejected", adminNote: adminNote || null, updatedAt: new Date() }).where(eq(affiliates.email, app.email));
+        sendAffiliateRejectedEmail(app.email, app.applicantName, adminNote || undefined, locale).catch(()=>{});
       }
-
-      await db
-        .update(affiliateApplications)
-        .set({
-          status: "approved",
-          reviewedAt: new Date(),
-          adminNote: adminNote || null,
-        })
-        .where(eq(affiliateApplications.id, applicationId));
-
-      sendAffiliateApprovedEmail(
-        app.email,
-        app.applicantName,
-        code,
-        tempPassword || "(the password you chose when applying)",
-        String(commissionRate),
-        locale
-      ).catch((err) => console.error("Affiliate approved email error:", err));
-
-      return NextResponse.json({
-        success: true,
-        message: "Affiliate approved",
-        affiliate: {
-          id: affiliateId,
-          name: app.applicantName,
-          email: app.email,
-          code,
-        },
-      });
-    } else {
-      await db
-        .update(affiliateApplications)
-        .set({
-          status: "rejected",
-          reviewedAt: new Date(),
-          adminNote: adminNote || null,
-        })
-        .where(eq(affiliateApplications.id, applicationId));
-
-      await db
-        .update(affiliates)
-        .set({
-          status: "rejected",
-          adminNote: adminNote || null,
-          updatedAt: new Date(),
-        })
-        .where(eq(affiliates.email, app.email));
-
-      sendAffiliateRejectedEmail(
-        app.email,
-        app.applicantName,
-        adminNote || undefined,
-        locale
-      ).catch((err) => console.error("Affiliate rejected email error:", err));
-
-      return NextResponse.json({
-        success: true,
-        message: "Application marked as rejected",
-      });
+      processed++;
     }
+
+    return NextResponse.json({
+      success: true,
+      message: ids.length > 1 ? `Processed ${processed} applications` : (action === "approve" ? "Approved" : "Rejected"),
+      processed,
+    });
   } catch (error) {
-    console.error("Admin review affiliate application error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
