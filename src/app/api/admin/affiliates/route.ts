@@ -1,104 +1,35 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { affiliates, affiliateApplications } from "@/db/schema";
-import { eq, desc, inArray, sql } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import { requireAdmin } from "@/lib/admin-auth";
-import { ensureAffiliateTablesExist } from "@/lib/ensure-affiliate-tables";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(request: NextRequest) {
+export async function GET(req: NextRequest) {
+  const adminCheck = await requireAdmin(req);
+  if (adminCheck) return adminCheck;
+
   try {
-    await requireAdmin();
-    await ensureAffiliateTablesExist();
-
-    const { searchParams } = new URL(request.url);
-    const search = searchParams.get("search")?.toLowerCase().trim();
-
-    const list = await db
-      .select()
-      .from(affiliates)
-      .orderBy(desc(affiliates.createdAt));
-
-    const filtered = search
-      ? list.filter(
-          (a) =>
-            a.name.toLowerCase().includes(search) ||
-            a.email.toLowerCase().includes(search) ||
-            a.code.toLowerCase().includes(search)
-        )
-      : list;
-
-    const totalEarningsAll = filtered.reduce(
-      (acc, a) => acc + parseFloat(a.totalEarnings || "0"),
-      0
-    );
-    const totalPendingPayoutAll = filtered.reduce(
-      (acc, a) => acc + parseFloat(a.pendingPayout || "0"),
-      0
-    );
-    const totalPaidOutAll = filtered.reduce(
-      (acc, a) => acc + parseFloat(a.totalPaidOut || "0"),
-      0
-    );
-
-    return NextResponse.json({
-      success: true,
-      affiliates: filtered,
-      stats: {
-        totalAffiliates: filtered.length,
-        totalEarningsAll: totalEarningsAll.toFixed(2),
-        totalPendingPayoutAll: totalPendingPayoutAll.toFixed(2),
-        totalPaidOutAll: totalPaidOutAll.toFixed(2),
-      },
-    });
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
-    console.error("Admin fetch affiliates error:", error);
-    if (msg === "UNAUTHORIZED") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    return NextResponse.json({ error: msg }, { status: 500 });
+    const list = await db.select().from(affiliates).orderBy(affiliates.createdAt);
+    return NextResponse.json({ success: true, affiliates: list });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message || "Failed to load affiliates" }, { status: 500 });
   }
 }
 
-export async function PUT(request: NextRequest) {
+export async function POST(req: NextRequest) {
+  const adminCheck = await requireAdmin(req);
+  if (adminCheck) return adminCheck;
+
   try {
-    await requireAdmin();
-    await ensureAffiliateTablesExist();
+    const body = await req.json();
+    const { action, ids, targetStatus, commissionRate } = body;
 
-    const body = await request.json();
-    const {
-      affiliateId,
-      affiliateIds,
-      commissionRate,
-      status,
-      adminNote,
-      action,
-    } = body;
-
-    const ids: string[] = Array.isArray(affiliateIds)
-      ? affiliateIds.filter((id: unknown) => typeof id === "string" && id.length > 0)
-      : affiliateId
-      ? [String(affiliateId)]
-      : [];
-
-    if (ids.length === 0) {
-      return NextResponse.json(
-        { error: "affiliateId or affiliateIds is required" },
-        { status: 400 }
-      );
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json({ error: "No affiliate IDs provided" }, { status: 400 });
     }
 
-    // Bulk status shortcut via action
-    let targetStatus = status;
-    if (action === "approve") targetStatus = "approved";
-    if (action === "suspend") targetStatus = "suspended";
-    if (action === "reject") targetStatus = "rejected";
-    if (action === "pending") targetStatus = "pending";
-
-    
-    // ---------- DELETE (Total Wipe) ----------
     if (action === "delete") {
       const rows = await db
         .select({ id: affiliates.id, email: affiliates.email })
@@ -111,6 +42,12 @@ export async function PUT(request: NextRequest) {
           await db.delete(affiliateApplications).where(eq(sql`LOWER(${affiliateApplications.email})`, cleanEmail));
         } catch (e) {}
       }
+
+      // Unlink sub-affiliates recruited by deleted affiliate
+      await db
+        .update(affiliates)
+        .set({ parentAffiliateId: null })
+        .where(inArray(affiliates.parentAffiliateId, ids));
 
       await db.delete(affiliates).where(inArray(affiliates.id, ids));
 
@@ -129,53 +66,30 @@ export async function PUT(request: NextRequest) {
     if (commissionRate !== undefined && commissionRate !== null && commissionRate !== "") {
       const rate = parseFloat(String(commissionRate));
       if (isNaN(rate) || rate < 0 || rate > 50) {
-        return NextResponse.json(
-          { error: "Commission rate must be between 0 and 50" },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: "Commission rate must be between 0 and 50" }, { status: 400 });
       }
       updates.commissionRate = String(rate);
     }
 
     if (targetStatus !== undefined && targetStatus !== null && targetStatus !== "") {
       const allowed = ["approved", "suspended", "pending", "rejected"];
-      if (!allowed.includes(String(targetStatus))) {
-        return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+      if (!allowed.includes(targetStatus)) {
+        return NextResponse.json({ error: "Invalid status value" }, { status: 400 });
       }
-      updates.status = String(targetStatus);
-      if (String(targetStatus) === "approved") {
+      updates.status = targetStatus;
+      if (targetStatus === "approved") {
         updates.approvedAt = new Date();
       }
     }
 
-    if (adminNote !== undefined) updates.adminNote = adminNote;
-
-    if (Object.keys(updates).length <= 1) {
-      return NextResponse.json(
-        { error: "Nothing to update (provide status, action, or commissionRate)" },
-        { status: 400 }
-      );
-    }
-
-    await db
-      .update(affiliates)
-      .set(updates)
-      .where(inArray(affiliates.id, ids));
+    await db.update(affiliates).set(updates).where(inArray(affiliates.id, ids));
 
     return NextResponse.json({
       success: true,
-      message:
-        ids.length > 1
-          ? `Updated ${ids.length} affiliate${ids.length === 1 ? "" : "s"}`
-          : "Affiliate updated successfully",
+      message: "Affiliates updated successfully",
       updated: ids.length,
     });
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
-    console.error("Admin update affiliate error:", error);
-    if (msg === "UNAUTHORIZED") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    return NextResponse.json({ error: msg }, { status: 500 });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message || "Failed to update affiliates" }, { status: 500 });
   }
 }
