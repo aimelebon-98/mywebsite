@@ -141,7 +141,7 @@ export default function AffiliateOnboardingModal({
     step3: isFr ? "Portefeuille USDT" : "USDT Wallet",
     country: isFr ? "Votre pays *" : "Your Country *",
     city: isFr ? "Ville" : "City",
-    cityPh: isFr ? "Lom\u00e9, Lagos, Abidjan..." : "Lom\u00e9, Lagos, Abidjan...",
+    cityPh: isFr ? "New York, Paris, Los Angeles..." : "New York, Los Angeles, Miami...",
     phone: isFr ? "Num\u00e9ro de t\u00e9l\u00e9phone *" : "Phone Number *",
     whatsapp: "WhatsApp",
     socialUrl: isFr ? "Lien Profil Social Principal (facultatif)" : "Primary Social Profile URL (optional)",
@@ -277,7 +277,7 @@ export default function AffiliateOnboardingModal({
                     type="tel"
                     value={form.phone}
                     onChange={(e) => setField("phone", e.target.value)}
-                    placeholder="+228..."
+                    placeholder="+1 (800) 458-0199"
                     className="w-full px-4 py-3 rounded-xl bg-gray-800/90 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm"
                   />
                 </div>
@@ -289,7 +289,7 @@ export default function AffiliateOnboardingModal({
                     type="tel"
                     value={form.whatsapp}
                     onChange={(e) => setField("whatsapp", e.target.value)}
-                    placeholder="+228..."
+                    placeholder="+1 (800) 458-0199"
                     className="w-full px-4 py-3 rounded-xl bg-gray-800/90 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-[#CA3F2E] text-sm"
                   />
                 </div>
