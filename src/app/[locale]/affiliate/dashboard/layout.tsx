@@ -18,6 +18,7 @@ import {
   ChevronDown,
   Users,
   GitFork,
+  TrendingUp,
 } from "lucide-react";
 
 interface AffiliateData {
@@ -120,7 +121,7 @@ export default function AffiliateDashboardLayout({
     },
     {
       label: isFr ? "Plan de R\u00e9mun\u00e9ration" : "Compensation Plan",
-      href: /\/affiliate/dashboard/compensation,
+      href: `/${locale}/affiliate/dashboard/compensation`,
       icon: TrendingUp,
     },
     {
@@ -218,7 +219,7 @@ export default function AffiliateDashboardLayout({
             <p className="text-xs text-gray-400">{isFr ? "Partenaire" : "Partner"}</p>
             <p className="text-sm font-semibold truncate text-white">{affiliate.name}</p>
             <div className="mt-1 flex items-center gap-1.5 text-xs text-[#CA3F2E]">
-              <Sparkles className="w-3 3-3" />
+              <Sparkles className="w-3 h-3" />
               <span className="font-mono font-bold">{affiliate.code}</span>
             </div>
           </div>
