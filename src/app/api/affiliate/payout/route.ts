@@ -6,7 +6,6 @@ import { requireAffiliate } from "@/lib/affiliate-auth";
 
 export const dynamic = "force-dynamic";
 
-// GET: list payouts for current affiliate
 export async function GET() {
   const affiliate = await requireAffiliate();
   if (affiliate instanceof NextResponse) return affiliate;
@@ -28,14 +27,13 @@ export async function GET() {
   }
 }
 
-// POST: Request payout
 export async function POST(request: NextRequest) {
   const affiliate = await requireAffiliate();
   if (affiliate instanceof NextResponse) return affiliate;
 
   try {
     const body = await request.json();
-    const { amount, method = "bank_transfer", note } = body;
+    const { amount, method = "USDT-TRC20", note } = body;
 
     const reqAmount = parseFloat(amount);
     const pending = parseFloat(affiliate.pendingPayout || "0");
@@ -56,30 +54,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!affiliate.bankAccount || !affiliate.bankName) {
+    if (!affiliate.bankAccount) {
       return NextResponse.json(
         {
           error:
-            "Please configure your bank account details in Settings before requesting a payout.",
+            "Please configure your USDT (TRC20) wallet address in Settings before requesting a payout.",
         },
         { status: 400 }
       );
     }
 
-    // Insert payout record
     const [payout] = await db
       .insert(affiliatePayouts)
       .values({
         affiliateId: affiliate.id,
         amount: reqAmount.toFixed(2),
         currency: affiliate.preferredCurrency || "USD",
-        method,
+        method: "USDT-TRC20",
         note: note || null,
         status: "pending",
       })
       .returning();
 
-    // Deduct from pending payout
     const newPending = (pending - reqAmount).toFixed(2);
     await db
       .update(affiliates)

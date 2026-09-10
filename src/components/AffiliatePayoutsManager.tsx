@@ -10,7 +10,8 @@ import {
   Download,
   CheckSquare,
   Square,
-  Sparkles,
+  Copy,
+  CheckCheck,
 } from "lucide-react";
 
 interface PayoutRow {
@@ -45,6 +46,7 @@ export default function AffiliatePayoutsManager() {
   const [refs, setRefs] = useState<Record<string, string>>({});
   const [filter, setFilter] = useState<"pending" | "all">("pending");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [copiedWalletId, setCopiedWalletId] = useState<string | null>(null);
 
   const load = () => {
     setLoading(true);
@@ -77,6 +79,13 @@ export default function AffiliatePayoutsManager() {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
+  };
+
+  const copyAddress = (address: string, id: string) => {
+    if (!address) return;
+    navigator.clipboard.writeText(address);
+    setCopiedWalletId(id);
+    setTimeout(() => setCopiedWalletId(null), 2000);
   };
 
   const processSingle = (payoutId: string, action: "complete" | "reject") => {
@@ -194,7 +203,7 @@ export default function AffiliatePayoutsManager() {
             Affiliate Payouts
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            Process bank and USDT crypto transfers for affiliate commissions.
+            Process USDT (TRC20) crypto transfers for affiliate commissions.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -298,6 +307,9 @@ export default function AffiliatePayoutsManager() {
         <div className="space-y-4">
           {filtered.map((row) => {
             const isSelected = selectedIds.includes(row.payout.id);
+            const wallet = row.affiliate.bankAccount || "";
+            const isCopied = copiedWalletId === row.payout.id;
+
             return (
               <div
                 key={row.payout.id}
@@ -306,7 +318,7 @@ export default function AffiliatePayoutsManager() {
                 }`}
               >
                 <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
-                  <div className="flex items-start gap-3 min-w-0">
+                  <div className="flex items-start gap-3 min-w-0 flex-1">
                     <button
                       type="button"
                       onClick={() => toggleSelectOne(row.payout.id)}
@@ -319,39 +331,63 @@ export default function AffiliatePayoutsManager() {
                       )}
                     </button>
 
-                    <div className="min-w-0 flex-1">
-                      <div className="font-bold text-lg text-gray-900">{row.affiliate.name}</div>
-                      <div className="text-xs text-gray-400">
-                        {row.affiliate.email} · <span className="font-mono text-[#CA3F2E] font-bold">{row.affiliate.code}</span>
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <div>
+                        <div className="font-bold text-lg text-gray-900">{row.affiliate.name}</div>
+                        <div className="text-xs text-gray-400">
+                          {row.affiliate.email} · <span className="font-mono text-[#CA3F2E] font-bold">{row.affiliate.code}</span>
+                        </div>
                       </div>
-                      <div className="mt-2 text-2xl font-bold text-gray-900">
+
+                      <div className="text-2xl font-bold text-gray-900">
                         ${parseFloat(row.payout.amount).toFixed(2)}{" "}
                         <span className="text-sm font-normal text-gray-400">
                           {row.payout.currency || "USD"}
                         </span>
                       </div>
-                      <div className="mt-2 text-sm text-gray-600 space-y-0.5">
-                        <p className="font-mono text-xs text-gray-800 break-all select-all">
-                          USDT Wallet: <strong className="text-emerald-600">{row.affiliate.bankAccount || "Not set"}</strong>
-                        </p>
-                        <p className="text-xs text-gray-400 mt-1">
-                          Requested{" "}
-                          {row.payout.requestedAt
-                            ? new Date(row.payout.requestedAt).toLocaleString()
-                            : "—"}
-                        </p>
+
+                      {/* USDT WALLET BOX WITH 1-CLICK COPY BUTTON */}
+                      <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 max-w-lg space-y-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                          USDT TRC20 Wallet Address
+                        </span>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-mono text-xs text-gray-900 font-bold break-all select-all">
+                            {wallet || "Not set in settings"}
+                          </span>
+                          {wallet && (
+                            <button
+                              type="button"
+                              onClick={() => copyAddress(wallet, row.payout.id)}
+                              className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-1 transition flex-shrink-0"
+                            >
+                              {isCopied ? <CheckCheck className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                              {isCopied ? "Copied!" : "Copy"}
+                            </button>
+                          )}
+                        </div>
                       </div>
-                      <span
-                        className={`inline-block mt-2 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                          row.payout.status === "pending"
-                            ? "bg-amber-100 text-amber-700"
-                            : row.payout.status === "completed"
-                            ? "bg-emerald-100 text-emerald-700"
-                            : "bg-red-100 text-red-700"
-                        }`}
-                      >
-                        {row.payout.status}
-                      </span>
+
+                      <p className="text-xs text-gray-400">
+                        Requested{" "}
+                        {row.payout.requestedAt
+                          ? new Date(row.payout.requestedAt).toLocaleString()
+                          : "—"}
+                      </p>
+
+                      <div>
+                        <span
+                          className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                            row.payout.status === "pending"
+                              ? "bg-amber-100 text-amber-700"
+                              : row.payout.status === "completed"
+                              ? "bg-emerald-100 text-emerald-700"
+                              : "bg-red-100 text-red-700"
+                          }`}
+                        >
+                          {row.payout.status}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
