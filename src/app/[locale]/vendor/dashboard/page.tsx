@@ -54,19 +54,30 @@ export default function VendorDashboardPage() {
   useEffect(() => {
     async function load() {
       try {
-        const [meRes, statsRes] = await Promise.all([
-          fetch("/api/vendor/me"),
-          fetch("/api/vendor/stats"),
-        ]);
-        const meData = await meRes.json();
-        const statsData = await statsRes.json();
-        setVendor(meData.vendor);
-        if (meData.vendor?.status === "incomplete") setShowWizard(true);
-        setStats(statsData);
+        const meRes = await fetch("/api/vendor/me");
+        if (meRes.ok) {
+          const meData = await meRes.json();
+          if (meData?.vendor) {
+            setVendor(meData.vendor);
+            if (meData.vendor.status === "incomplete") {
+              setShowWizard(true);
+            }
+          }
+        }
       } catch (err) {
-        console.error(err);
+        console.error("Failed to fetch vendor info:", err);
       } finally {
         setLoading(false);
+      }
+
+      try {
+        const statsRes = await fetch("/api/vendor/stats");
+        if (statsRes.ok) {
+          const statsData = await statsRes.json();
+          setStats(statsData);
+        }
+      } catch (err) {
+        console.error("Failed to fetch vendor stats:", err);
       }
     }
     load();

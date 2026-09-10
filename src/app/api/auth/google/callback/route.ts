@@ -8,7 +8,7 @@ import {
   vendors,
   vendorSessions,
 } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { hashPassword } from "@/lib/customer-auth";
 import { hashVendorPassword, generateUniqueStoreSlug } from "@/lib/vendor-auth";
 import { hashAffiliatePassword, generateAffiliateCode } from "@/lib/affiliate-auth";
@@ -74,18 +74,18 @@ export async function GET(req: NextRequest) {
     const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
     // ==========================================
-    // AFFILIATE ROLE -> INSTANT APPROVED
+    // AFFILIATE ROLE -> INSTANT APPROVED & DASHBOARD
     // ==========================================
     if (role === "affiliate") {
-      let [aff] = await db.select().from(affiliates).where(eq(affiliates.email, email)).limit(1);
+      let [aff] = await db.select().from(affiliates).where(eq(sql`LOWER(${affiliates.email})`, email)).limit(1);
 
       if (!aff) {
-        let code = generateAffiliateCode(name);
+        let codeStr = generateAffiliateCode(name);
         let attempts = 0;
         while (attempts < 5) {
-          const dup = await db.select({ id: affiliates.id }).from(affiliates).where(eq(affiliates.code, code)).limit(1);
+          const dup = await db.select({ id: affiliates.id }).from(affiliates).where(eq(affiliates.code, codeStr)).limit(1);
           if (!dup.length) break;
-          code = generateAffiliateCode(name);
+          codeStr = generateAffiliateCode(name);
           attempts++;
         }
         const tempPassword = crypto.randomBytes(8).toString("hex");
@@ -95,7 +95,7 @@ export async function GET(req: NextRequest) {
           email,
           name,
           passwordHash,
-          code,
+          code: codeStr,
           commissionRate: "5.00",
           status: "approved",
           mustChangePassword: true,
@@ -117,10 +117,10 @@ export async function GET(req: NextRequest) {
     }
 
     // ==========================================
-    // VENDOR ROLE -> INCOMPLETE -> DASHBOARD WIZARD
+    // VENDOR ROLE -> INCOMPLETE & DASHBOARD WIZARD
     // ==========================================
     if (role === "vendor") {
-      let [vend] = await db.select().from(vendors).where(eq(vendors.email, email)).limit(1);
+      let [vend] = await db.select().from(vendors).where(eq(sql`LOWER(${vendors.email})`, email)).limit(1);
 
       if (!vend) {
         const storeName = `${name.split(" ")[0]}'s Store`;
@@ -144,15 +144,18 @@ export async function GET(req: NextRequest) {
       const sessionToken = crypto.randomBytes(48).toString("hex");
       await db.insert(vendorSessions).values({ token: sessionToken, vendorId: vend.id, ipAddress: ip.slice(0, 50), userAgent: ua.slice(0, 500), expiresAt });
       
-      const res = NextResponse.redirect(new URL(`/${locale}/vendor/dashboard`, req.nextUrl.origin));
-      res.cookies.set("ndz_vendor_session", sessionToken, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 7 * 24 * 60 * 60 });
-      return res;
+      const response = NextResponse.redirect(new URL(`/${locale}/vendor/dashboard`, req.nextUrl.origin));
+      response.headers.append(
+        "Set-Cookie",
+        `ndz_vendor_session=${sessionToken}; Path=/; Max-Age=${7 * 24 * 60 * 60}; HttpOnly; ${process.env.NODE_ENV === "production" ? "Secure;" : ""} SameSite=Lax`
+      );
+      return response;
     }
 
     // ==========================================
     // CUSTOMER ROLE
     // ==========================================
-    let [customer] = await db.select().from(customers).where(eq(customers.email, email)).limit(1);
+    let [customer] = await db.select().from(customers).where(eq(sql`LOWER(${customers.email})`, email)).limit(1);
     if (!customer) {
       const dummyPasswordHash = await hashPassword(crypto.randomBytes(32).toString("hex"));
       [customer] = await db.insert(customers).values({ email, name, passwordHash: dummyPasswordHash, verified: true, locale }).returning();
