@@ -33,6 +33,26 @@ async function isAffiliateSubscriptionActive(affiliateEmail: string): Promise<bo
   }
 }
 
+async function isCustomerRenewal(customerEmail: string | null, currentOrderNumber: string): Promise<boolean> {
+  if (!customerEmail) return false;
+  try {
+    const cleanEmail = customerEmail.toLowerCase().trim();
+    const previousSubs = await db
+      .select({ id: subscriptions.id })
+      .from(subscriptions)
+      .where(
+        and(
+          eq(subscriptions.customerEmail, cleanEmail),
+          sql`${subscriptions.orderNumber} != ${currentOrderNumber}`
+        )
+      )
+      .limit(1);
+    return previousSubs.length > 0;
+  } catch (e) {
+    return false;
+  }
+}
+
 export async function processAffiliateAttribution({
   orderId,
   orderNumber,
@@ -45,7 +65,6 @@ export async function processAffiliateAttribution({
   try {
     let code = affiliateCode;
 
-    // 1. Read from cookie if code not passed explicitly
     if (!code) {
       try {
         const cookieStore = await cookies();
@@ -55,8 +74,6 @@ export async function processAffiliateAttribution({
       }
     }
 
-    // 2. LIFETIME RENEWAL FALLBACK:
-    // If no code in cookie/params, check if buyer's email belongs to an affiliate account with a parentAffiliateId!
     if (!code && customerEmail) {
       try {
         const cleanCustomerEmail = customerEmail.toLowerCase().trim();
@@ -75,7 +92,6 @@ export async function processAffiliateAttribution({
 
           if (parentAff?.code) {
             code = parentAff.code;
-            console.log(`[Affiliate Lifetime Renewal] Resolved parent affiliate code '${code}' for returning user '${cleanCustomerEmail}'`);
           }
         }
       } catch (e) {
@@ -90,7 +106,7 @@ export async function processAffiliateAttribution({
 
     const cleanCode = String(code).trim().toLowerCase();
 
-    // 3. Fetch Level 1 Affiliate
+    // 1. Fetch Level 1 Affiliate
     const [l1Affiliate] = await db
       .select()
       .from(affiliates)
@@ -107,7 +123,7 @@ export async function processAffiliateAttribution({
       return { success: false, reason: `Affiliate is ${l1Affiliate.status}` };
     }
 
-    // 4. Duplicate attribution prevention
+    // 2. Duplicate attribution prevention
     const trackedOrderRef = String(orderNumber || orderId);
     const existing = await db
       .select()
@@ -119,7 +135,7 @@ export async function processAffiliateAttribution({
       return { success: false, reason: "Order already attributed" };
     }
 
-    // 5. Check if order contains SMZ Bot or is a subscription
+    // 3. Check if order contains SMZ Bot or is a subscription
     let isSmzBot = false;
     try {
       const [orderRow] = await db.select({ items: orders.items }).from(orders).where(eq(orders.id, orderId)).limit(1);
@@ -139,11 +155,22 @@ export async function processAffiliateAttribution({
       isSmzBot = true;
     }
 
-    // Rate: 50% for SMZ Bot (L1), 5% for Physical products
+    const cEmail = customerEmail || null;
+    const isRenewalOrder = isSmzBot ? await isCustomerRenewal(cEmail, trackedOrderRef) : false;
+    const l1IsActive = isSmzBot ? await isAffiliateSubscriptionActive(l1Affiliate.email) : true;
+
+    // RULE: Initial purchase ALWAYS pays L1 50%.
+    // Renewal purchase ONLY pays L1 50% IF L1 affiliate has an active SMZ subscription.
+    let allowL1Commission = true;
+    if (isSmzBot && isRenewalOrder && !l1IsActive) {
+      allowL1Commission = false;
+      console.log(`[Affiliate] L1 affiliate ${l1Affiliate.email} is INACTIVE during renewal by ${cEmail}. L1 50% renewal commission FORFEITED.`);
+    }
+
     let l1Rate = isSmzBot ? 50.0 : parseFloat(l1Affiliate.commissionRate || "5.00");
     if (isNaN(l1Rate) || l1Rate <= 0) l1Rate = 5.0;
 
-    const l1CommissionNum = Math.round(subtotalUsd * (l1Rate / 100) * 100) / 100;
+    const l1CommissionNum = allowL1Commission ? Math.round(subtotalUsd * (l1Rate / 100) * 100) / 100 : 0;
     const l1CommissionStr = l1CommissionNum.toFixed(2);
     const subtotalStr = subtotalUsd.toFixed(2);
 
@@ -156,10 +183,10 @@ export async function processAffiliateAttribution({
         orderId: trackedOrderRef,
         affiliateId: l1Affiliate.id,
         subtotal: subtotalStr,
-        commissionRate: String(l1Rate),
+        commissionRate: String(allowL1Commission ? l1Rate : 0),
         commissionAmount: l1CommissionStr,
         currency,
-        status: initialStatus,
+        status: allowL1Commission ? initialStatus : "cancelled",
       })
       .returning();
 
@@ -171,7 +198,7 @@ export async function processAffiliateAttribution({
       })
       .where(eq(affiliates.id, l1Affiliate.id));
 
-    if (initialStatus === "confirmed") {
+    if (allowL1Commission && initialStatus === "confirmed") {
       const curEarnings = parseFloat(l1Affiliate.totalEarnings || "0");
       const curPending = parseFloat(l1Affiliate.pendingPayout || "0");
 
@@ -184,22 +211,21 @@ export async function processAffiliateAttribution({
         .where(eq(affiliates.id, l1Affiliate.id));
     }
 
-    console.log(`[Affiliate] Credited L1 order ${trackedOrderRef} ($${subtotalUsd}) to ${l1Affiliate.email} -> +$${l1CommissionStr} (${l1Rate}%, status: ${initialStatus})`);
-
     const resultSummary: Record<string, any> = {
       success: true,
       isSmzBot,
-      status: initialStatus,
+      isRenewalOrder,
+      l1Active: l1IsActive,
       level1: {
         affiliateId: l1Affiliate.id,
         code: l1Affiliate.code,
-        rate: l1Rate,
+        rate: allowL1Commission ? l1Rate : 0,
         commission: l1CommissionStr,
         orderId: l1AffOrder?.id || trackedOrderRef,
       },
     };
 
-    // MULTI-TIER OVERRIDES (SMZ BOT ONLY)
+    // MULTI-TIER OVERRIDES (SMZ BOT ONLY - Requires Active Sub for L2 and L3)
     if (isSmzBot && l1Affiliate.parentAffiliateId) {
       const [l2Affiliate] = await db
         .select()
