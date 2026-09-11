@@ -172,7 +172,7 @@ export default function AffiliateDashboardLayout({
               locale === "fr" ? "text-white font-bold bg-white/5" : "text-gray-300"
             }`}
           >
-            <span>Fran\u00e7ais</span>
+            <span>{"Fran\u00e7ais"}</span>
             <span className="font-mono text-[10px] text-gray-500">FR</span>
           </button>
         </div>
