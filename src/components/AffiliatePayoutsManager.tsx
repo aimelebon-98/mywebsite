@@ -144,7 +144,7 @@ export default function AffiliatePayoutsManager() {
     });
   };
 
-  // NOWPAYMENTS MASS PAYOUTS EXACT CSV TEMPLATE FORMAT (PROPERLY QUOTED)
+  // NOWPAYMENTS MASS PAYOUTS EXACT CSV TEMPLATE FORMAT (6 DECIMALS + EXACT FIAT CENTS)
   const exportCSV = () => {
     const itemsToExport =
       selectedIds.length > 0
@@ -168,7 +168,7 @@ export default function AffiliatePayoutsManager() {
     const rows = itemsToExport.map((r) => {
       const amtNum = parseFloat(r.payout.amount || "0");
       const amtCrypto = isNaN(amtNum) ? "0.000000" : amtNum.toFixed(6);
-      const fiatAmt = isNaN(amtNum) ? "0" : Math.round(amtNum).toString();
+      const fiatAmt = isNaN(amtNum) ? "0.00" : amtNum.toFixed(2); // Exact fiat cents
       const ticker = "usdttrc20";
       const wallet = (r.affiliate.bankAccount || "").trim();
       const desc = `Affiliate payout for ${r.affiliate.code} (${r.affiliate.email})`;
