@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-export default async function AccountRootPage({
+export default async function AccountPage({
   params,
 }: {
   params: Promise<{ locale: string }>;

@@ -14,7 +14,7 @@ export default function RegisterPage() {
   const locale = useLocale();
   const isFr = locale === "fr";
   const router = useRouter();
-  const { customer, loading: authLoading, refresh } = useCustomer();
+  const { customer, loading: authLoading } = useCustomer();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -25,9 +25,9 @@ export default function RegisterPage() {
 
   useEffect(() => {
     if (!authLoading && customer) {
-      router.replace(`/${locale}/account/dashboard`);
+      window.location.href = `/${locale}/account/dashboard`;
     }
-  }, [authLoading, customer, locale, router]);
+  }, [authLoading, customer, locale]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,15 +46,15 @@ export default function RegisterPage() {
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || (isFr ? "Erreur d\u0027inscription" : "Registration failed"));
+        setLoading(false);
       } else {
         try { fbTrackCompleteRegistration({ content_name: "customer_register", status: true }); } catch { /* ignore */ }
-        await refresh();
-        router.push(`/${locale}/account/dashboard`);
+        window.location.href = `/${locale}/account/dashboard`;
       }
     } catch {
       setError(isFr ? "Erreur reseau" : "Network error");
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   if (customer) {
@@ -136,7 +136,6 @@ export default function RegisterPage() {
               </button>
             </form>
 
-            {/* Social signup BELOW the registration form */}
             <SocialLoginButtons mode="register" />
 
             <p className="mt-6 text-center text-sm text-gray-500 border-t border-gray-100 pt-4">

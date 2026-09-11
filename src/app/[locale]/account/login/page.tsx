@@ -13,7 +13,7 @@ export default function LoginPage() {
   const locale = useLocale();
   const isFr = locale === "fr";
   const router = useRouter();
-  const { customer, loading: authLoading, refresh } = useCustomer();
+  const { customer, loading: authLoading } = useCustomer();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -22,9 +22,9 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!authLoading && customer) {
-      router.replace(`/${locale}/account/dashboard`);
+      window.location.href = `/${locale}/account/dashboard`;
     }
-  }, [authLoading, customer, locale, router]);
+  }, [authLoading, customer, locale]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,14 +44,14 @@ export default function LoginPage() {
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || (isFr ? "Erreur de connexion" : "Login failed"));
+        setLoading(false);
       } else {
-        await refresh();
-        router.push(`/${locale}/account/dashboard`);
+        window.location.href = `/${locale}/account/dashboard`;
       }
     } catch {
       setError(isFr ? "Erreur reseau" : "Network error");
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   if (customer) {
@@ -111,7 +111,6 @@ export default function LoginPage() {
               </button>
             </form>
 
-            {/* Social login BELOW the email/password form */}
             <SocialLoginButtons mode="login" />
 
             <div className="mt-6 text-center space-y-2 border-t border-gray-100 pt-4">
