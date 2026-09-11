@@ -1,8 +1,10 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { orders, wishlist, supportTickets } from "@/db/schema";
 import { eq, sql, and, ne } from "drizzle-orm";
 import { getCurrentCustomer } from "@/lib/customer-auth";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   const customer = await getCurrentCustomer();
