@@ -821,13 +821,17 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
 
               {/* Stock + SKU */}
               <div className={`flex items-center gap-4 text-sm text-gray-500 flex-wrap ${isSubscriptionProduct(product) ? "mt-3" : "mt-5"}`}>
-                <div className="flex items-center gap-2">
-                  <div className={`w-2.5 h-2.5 rounded-full ${product.stock > 10 ? "bg-green-500" : product.stock > 0 ? "bg-amber-500 animate-pulse" : "bg-red-500"}`} />
-                  <span className={product.stock <= 10 && product.stock > 0 ? "text-amber-600 font-semibold" : ""}>
-                    {stockLabel}
-                  </span>
-                </div>
-                {product.sku && <span className="text-gray-300">|</span>}
+                {!isSubscriptionProduct(product) && (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2.5 h-2.5 rounded-full ${product.stock > 10 ? "bg-green-500" : product.stock > 0 ? "bg-amber-500 animate-pulse" : "bg-red-500"}`} />
+                      <span className={product.stock <= 10 && product.stock > 0 ? "text-amber-600 font-semibold" : ""}>
+                        {stockLabel}
+                      </span>
+                    </div>
+                    {product.sku && <span className="text-gray-300">|</span>}
+                  </>
+                )}
                 {product.sku && <span className="text-gray-400">SKU: {product.sku}</span>}
                 <span className="text-gray-300">|</span>
                 <span className="flex items-center gap-1 text-gray-400">
