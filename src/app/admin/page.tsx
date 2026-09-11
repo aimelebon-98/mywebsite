@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import {
-  AlertTriangle, BarChart3, BookOpen, CheckCircle, ChevronDown, ChevronRight, Clock, Copy, DollarSign, Download, Edit, ExternalLink, Eye, EyeOff, Gift, Globe, HelpCircle, Home, Key, LifeBuoy, Lock, LogOut, Mail, Menu, MessageSquare, Package, Plus, RefreshCw, Search, Settings, Shield, ShoppingBag, Sparkles, Star, Store, Tag, Ticket, Trash2, TrendingUp, Users, UsersRound, Wallet, X
+  AlertTriangle, BarChart3, BookOpen, CheckCircle, ChevronDown, ChevronRight, ChevronUp, Clock, Copy, DollarSign, Download, Edit, ExternalLink, Eye, EyeOff, Gift, Globe, HelpCircle, Home, Key, LifeBuoy, Lock, LogOut, Mail, Menu, MessageSquare, Package, PenLine, Plus, RefreshCw, Search, Settings, Shield, ShoppingBag, Sparkles, Star, Store, Tag, Ticket, Trash2, TrendingUp, Upload, Users, UsersRound, Wallet, X
 } from "lucide-react";
 import Link from "next/link";
 import type { BlogPost } from "@/db/schema";
@@ -33,8 +33,6 @@ import VendorPayoutsManager from "@/components/VendorPayoutsManager";
 import AffiliateApplicationsManager from "@/components/AffiliateApplicationsManager";
 import AffiliatesManager from "@/components/AffiliatesManager";
 import AffiliatePayoutsManager from "@/components/AffiliatePayoutsManager";
-import BrokerClaimsManager from "@/components/BrokerClaimsManager";
-
 interface Product {
   id: string;
   name: string;
@@ -98,7 +96,7 @@ interface StoreSettings {
   lockoutMinutes: number;
 }
 
-type Tab = "dashboard" | "broker-claims" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments" | "orders" | "product-faqs" | "analytics" | "newsletter" | "bundles" | "blog-categories" | "customers" | "tickets" | "coupons" | "profit" | "vendor-applications" | "concierge-requests" | "vendors" | "vendor-products" | "vendor-payouts" | "affiliate-applications" | "affiliates" | "affiliate-payouts";
+type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments" | "orders" | "product-faqs" | "analytics" | "newsletter" | "bundles" | "blog-categories" | "customers" | "tickets" | "coupons" | "profit" | "vendor-applications" | "concierge-requests" | "vendors" | "vendor-products" | "vendor-payouts" | "affiliate-applications" | "affiliates" | "affiliate-payouts";
 
 export default function AdminPage() {
   const [authStep, setAuthStep] = useState<"loading" | "verify" | "access-code" | "password" | "authenticated">("loading");
@@ -110,36 +108,41 @@ export default function AdminPage() {
 
   const [activeTab, setActiveTabRaw] = useState<Tab>("dashboard");
 
+  // Wrapper: persist tab to URL hash + localStorage on every change
   const setActiveTab = (tab: Tab) => {
     setActiveTabRaw(tab);
     try {
       localStorage.setItem("sv_admin_tab", tab);
+      // Only persist stable tabs in URL (not the "edit" flow)
       if (tab !== "edit" && tab !== "blog-edit") {
         window.history.replaceState(null, "", "#" + tab);
       }
     } catch { /* ignore */ }
   };
 
+  // Restore active tab from URL hash or localStorage - runs after auth completes
   const [tabRestored, setTabRestored] = useState(false);
   useEffect(() => {
     if (authStep !== "authenticated") return;
-    if (tabRestored) return;
+    if (tabRestored) return; // only run once after auth
     try {
       const hash = typeof window !== "undefined" ? window.location.hash.replace("#", "") : "";
       const stored = typeof window !== "undefined" ? localStorage.getItem("sv_admin_tab") : null;
       const candidate = hash || stored || "";
-      const validTabs: Tab[] = ["dashboard","broker-claims","products","add","edit","categories","reviews","settings","security","blog","blog-add","blog-edit","authors","comments","orders","analytics","product-faqs","newsletter","customers","tickets","bundles","blog-categories","coupons","profit","vendor-applications","concierge-requests","vendors","vendor-products","vendor-payouts","affiliate-applications","affiliates","affiliate-payouts"];
+      const validTabs: Tab[] = ["dashboard","products","add","edit","categories","reviews","settings","security","blog","blog-add","blog-edit","authors","comments","orders","analytics","product-faqs","newsletter","customers","tickets","bundles","blog-categories","coupons","profit","vendor-applications","concierge-requests","vendors","vendor-products","vendor-payouts","affiliate-applications","affiliates","affiliate-payouts"];
+      console.log("[Admin] Restoring tab. hash=" + hash + ", stored=" + stored + ", candidate=" + candidate);
       if (candidate && validTabs.includes(candidate as Tab)) {
         if (candidate === "edit") setActiveTabRaw("products");
         else if (candidate === "blog-edit") setActiveTabRaw("blog");
         else setActiveTabRaw(candidate as Tab);
+        console.log("[Admin] Set active tab to: " + candidate);
       }
       setTabRestored(true);
-    } catch {
+    } catch (e) {
+      console.error("[Admin] Tab restore error:", e);
       setTabRestored(true);
     }
   }, [authStep, tabRestored]);
-
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [storeSettings, setStoreSettings] = useState<StoreSettings>({
@@ -160,6 +163,7 @@ export default function AdminPage() {
   const [productFilter, setProductFilter] = useState<"all" | "active" | "inactive" | "featured" | "lowStock" | "outOfStock" | "highStock">("all");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [productsMenuOpen, setProductsMenuOpen] = useState(false);
+  const [blogMenuOpen, setBlogMenuOpen] = useState(false);
   const [notification, setNotification] = useState("");
   const [notifCounts, setNotifCounts] = useState<{ orders: number; comments: number; reviews: number; newsletter: number; tickets: number; vendorApplications: number; conciergeRequests: number; vendorProducts: number; vendorPayouts: number }>({ orders: 0, comments: 0, reviews: 0, newsletter: 0, tickets: 0, vendorApplications: 0, conciergeRequests: 0, vendorProducts: 0, vendorPayouts: 0 });
   const [notificationType, setNotificationType] = useState<"success" | "error">("success");
@@ -173,7 +177,8 @@ export default function AdminPage() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        try { await fetch("/api/setup", { method: "POST" }); } catch {}
+        try { await fetch("/api/setup", { method: "POST" }); } catch { /* ignore */ }
+
         const configRes = await fetch("/api/admin/auth");
         const config = await configRes.json();
         setRequiresAccessCode(config.requiresAccessCode);
@@ -188,6 +193,7 @@ export default function AdminPage() {
           const data = await sessionRes.json();
           if (data.valid) { setAuthStep("authenticated"); return; }
         }
+
         setAuthStep("verify");
       } catch {
         setAuthStep("verify");
@@ -201,7 +207,7 @@ export default function AdminPage() {
       const res = await fetch("/api/products?active=false");
       const data = await res.json();
       if (Array.isArray(data)) setProducts(data);
-    } catch {}
+    } catch {/* ignore */}
   }, []);
 
   const fetchCategories = useCallback(async () => {
@@ -209,7 +215,7 @@ export default function AdminPage() {
       const res = await fetch("/api/categories?all=true");
       const data = await res.json();
       if (Array.isArray(data)) setCategories(data);
-    } catch {}
+    } catch {/* ignore */}
   }, []);
 
   const fetchSettings = useCallback(async () => {
@@ -217,7 +223,7 @@ export default function AdminPage() {
       const res = await fetch("/api/settings");
       const data = await res.json();
       if (data.storeName) setStoreSettings(data);
-    } catch {}
+    } catch {/* ignore */}
   }, []);
 
   useEffect(() => {
@@ -228,6 +234,7 @@ export default function AdminPage() {
     }
   }, [authStep, fetchProducts, fetchCategories, fetchSettings]);
 
+  // Fetch notification badge counts every 30 seconds
   useEffect(() => {
     if (authStep !== "authenticated") return;
     const fetchCounts = () => {
@@ -294,7 +301,7 @@ export default function AdminPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "logout" }),
       });
-    } catch {}
+    } catch {/* ignore */}
     setAuthStep("verify");
     setPassword("");
     setTurnstileToken("");
@@ -321,7 +328,7 @@ export default function AdminPage() {
       });
       showNotification(currentActive ? "Product hidden from store" : "Product now visible");
       fetchProducts();
-    } catch {}
+    } catch {/* ignore */}
   };
 
   const handleToggleFeatured = async (id: string, currentFeatured: boolean) => {
@@ -333,7 +340,7 @@ export default function AdminPage() {
       });
       showNotification(currentFeatured ? "Removed from featured" : "Added to featured");
       fetchProducts();
-    } catch {}
+    } catch {/* ignore */}
   };
 
   const handleBulkAction = async (action: "activate" | "deactivate" | "delete", ids: string[]) => {
@@ -404,6 +411,12 @@ export default function AdminPage() {
           </div>
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
             <div className={`flex justify-center items-center min-h-[65px] relative transition-opacity duration-300 ${turnstileToken ? "opacity-50 pointer-events-none" : ""}`}>
+              {!turnstileToken && (
+                <div className="absolute inset-0 flex items-center justify-center gap-2 text-gray-400 pointer-events-none">
+                  <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                  <span className="text-xs">Loading...</span>
+                </div>
+              )}
               <div className="relative z-10">
                 <Turnstile
                   onVerify={(token) => {
@@ -420,6 +433,50 @@ export default function AdminPage() {
               </div>
             </div>
             {authError && <p className="text-red-500 text-sm mt-4 text-center">{authError}</p>}
+          </div>
+          <p className="text-center text-xs text-gray-400 mt-4">Protected by Cloudflare Turnstile</p>
+          <div className="text-center mt-4">
+            <Link href="/" className="text-sm text-gray-500 hover:text-gray-900 transition">Back to Store</Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (authStep === "access-code") {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="w-full max-w-sm">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-gray-900 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Shield className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold">Secure Access</h1>
+            <p className="text-gray-500 text-sm mt-1">Enter the access code to continue</p>
+          </div>
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            <div className="flex items-center gap-2 mb-4 p-3 bg-amber-50 rounded-xl">
+              <AlertTriangle className="w-4 h-4 text-amber-600" />
+              <span className="text-xs text-amber-700">This area is protected</span>
+            </div>
+            <input
+              type="password"
+              placeholder="Access Code"
+              value={accessCode}
+              onChange={(e) => setAccessCode(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleVerifyAccessCode()}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
+            />
+            {authError && <p className="text-red-500 text-sm mb-4">{authError}</p>}
+            <button
+              onClick={handleVerifyAccessCode}
+              className="w-full py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition"
+            >
+              Continue
+            </button>
+          </div>
+          <div className="text-center mt-4">
+            <Link href="/" className="text-sm text-gray-500 hover:text-gray-900 transition">&larr; Back to Store</Link>
           </div>
         </div>
       </div>
@@ -454,6 +511,15 @@ export default function AdminPage() {
               Sign In
             </button>
           </div>
+          <p className="text-center text-xs text-gray-400 mt-4">Default password: admin123</p>
+          <div className="text-center mt-4">
+            {requiresAccessCode && (
+              <button onClick={() => setAuthStep("access-code")} className="text-sm text-gray-500 hover:text-gray-900 transition mr-4">
+                &larr; Back
+              </button>
+            )}
+            <Link href="/" className="text-sm text-gray-500 hover:text-gray-900 transition">Back to Store</Link>
+          </div>
         </div>
       </div>
     );
@@ -472,6 +538,14 @@ export default function AdminPage() {
      (productFilter === "highStock" && p.stock >= 10))
   );
 
+  const totalStock = products.reduce((sum, p) => sum + p.stock, 0);
+  const totalValue = products.reduce((sum, p) => sum + parseFloat(p.price) * p.stock, 0);
+  const activeCount = products.filter(p => p.active).length;
+  const featuredCount = products.filter(p => p.featured).length;
+  const lowStockCount = products.filter(p => p.stock > 0 && p.stock <= 10).length;
+  const outOfStockCount = products.filter(p => p.stock === 0).length;
+  const frenchTranslatedCount = products.filter(p => p.nameFr && p.nameFr.trim().length > 0).length;
+
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {notification && (
@@ -483,7 +557,6 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* GROUPED SIDEBAR */}
       <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-100 transform transition-transform lg:relative lg:translate-x-0 flex flex-col h-screen lg:sticky lg:top-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="p-6">
           <div className="flex items-center justify-between">
@@ -505,167 +578,205 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <nav className="admin-scroll px-3 space-y-4 flex-1 overflow-y-auto pb-4 min-h-0 text-xs">
-          {/* GROUP 1: E-COMMERCE */}
-          <div className="space-y-1">
-            <div className="px-3 text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
-              E-Commerce & Sales
-            </div>
-            {[
-              { id: "dashboard" as Tab, icon: BarChart3, label: "Dashboard", badge: 0 },
-              { id: "analytics" as Tab, icon: TrendingUp, label: "Analytics", badge: 0 },
-              { id: "profit" as Tab, icon: DollarSign, label: "Profit & Sales", badge: 0 },
-              { id: "orders" as Tab, icon: ShoppingBag, label: "Orders", badge: notifCounts.orders },
-              { id: "customers" as Tab, icon: Users, label: "Customers", badge: 0 },
-              { id: "tickets" as Tab, icon: LifeBuoy, label: "Support Tickets", badge: notifCounts.tickets },
-              { id: "bundles" as Tab, icon: Gift, label: "Bundles", badge: 0 },
-              { id: "coupons" as Tab, icon: Ticket, label: "Coupons", badge: 0 },
-            ].map((item) => (
-              <button
-                key={item.id}
-                onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl font-medium transition ${
-                  activeTab === item.id ? "bg-gray-900 text-white font-semibold" : "text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                <item.icon className="w-4 h-4 flex-shrink-0" />
-                <span className="flex-1 text-left">{item.label}</span>
-                {item.badge > 0 && (
-                  <span className="min-w-[18px] h-4 px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-white bg-red-600">
-                    {item.badge}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-
-          {/* PRODUCTS CATALOG COLLAPSIBLE */}
-          <div className="space-y-1">
+        <nav className="admin-scroll px-3 space-y-1 flex-1 overflow-y-auto pb-4 min-h-0">
+          {[
+            { id: "dashboard" as Tab, icon: BarChart3, label: "Dashboard", badge: 0 },
+            { id: "analytics" as Tab, icon: TrendingUp, label: "Analytics", badge: 0 },
+            { id: "profit" as Tab, icon: DollarSign, label: "Profit & Sales", badge: 0 },
+          ].map((item) => (
             <button
-              onClick={() => setProductsMenuOpen(!productsMenuOpen)}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl font-medium transition ${
-                activeTab === "products" || activeTab === "add" || activeTab === "edit" || activeTab === "categories" || activeTab === "reviews" || activeTab === "product-faqs"
-                  ? "bg-gray-900 text-white font-semibold"
+              key={item.id}
+              onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition ${
+                activeTab === item.id
+                  ? "bg-gray-900 text-white"
                   : "text-gray-600 hover:bg-gray-50"
               }`}
             >
-              <Package className="w-4 h-4 flex-shrink-0" />
-              <span className="flex-1 text-left">Products Catalog</span>
-              {productsMenuOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+              <item.icon className="w-5 h-5 flex-shrink-0" />
+              <span className="flex-1 text-left">{item.label}</span>
+              {item.badge > 0 && (
+                <span
+                  className={`min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center ${
+                    activeTab === item.id
+                      ? "bg-white text-gray-900"
+                      : "text-white"
+                  }`}
+                  style={activeTab !== item.id ? { backgroundColor: "#CA3F2E" } : undefined}
+                >
+                  {item.badge > 99 ? "99+" : item.badge}
+                </span>
+              )}
             </button>
-            {productsMenuOpen && (
-              <div className="ml-3 space-y-1 border-l-2 border-gray-100 pl-2">
-                <button onClick={() => { setActiveTab("products"); setSidebarOpen(false); }} className={`w-full text-left px-2.5 py-1.5 rounded-lg transition ${activeTab === "products" ? "bg-gray-100 text-gray-900 font-bold" : "text-gray-600 hover:bg-gray-50"}`}>All Products</button>
-                <button onClick={() => { setActiveTab("add"); setSidebarOpen(false); }} className={`w-full text-left px-2.5 py-1.5 rounded-lg transition ${activeTab === "add" ? "bg-gray-100 text-gray-900 font-bold" : "text-gray-600 hover:bg-gray-50"}`}>+ Add Product</button>
-                <button onClick={() => { setActiveTab("categories"); setSidebarOpen(false); }} className={`w-full text-left px-2.5 py-1.5 rounded-lg transition ${activeTab === "categories" ? "bg-gray-100 text-gray-900 font-bold" : "text-gray-600 hover:bg-gray-50"}`}>Categories</button>
-                <button onClick={() => { setActiveTab("reviews"); setSidebarOpen(false); }} className={`w-full text-left px-2.5 py-1.5 rounded-lg transition ${activeTab === "reviews" ? "bg-gray-100 text-gray-900 font-bold" : "text-gray-600 hover:bg-gray-50"}`}>Reviews</button>
-                <button onClick={() => { setActiveTab("product-faqs"); setSidebarOpen(false); }} className={`w-full text-left px-2.5 py-1.5 rounded-lg transition ${activeTab === "product-faqs" ? "bg-gray-100 text-gray-900 font-bold" : "text-gray-600 hover:bg-gray-50"}`}>Product FAQs</button>
-              </div>
-            )}
-          </div>
+          ))}
 
-          {/* GROUP 2: AFFILIATE NETWORK */}
-          <div className="space-y-1">
-            <div className="px-3 text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
-              Affiliate Network & MLMs
-            </div>
-            {[
-              { id: "broker-claims" as Tab, icon: Gift, label: "Broker Claims ($20 Promo)", badge: 0 },
-              { id: "affiliate-applications" as Tab, icon: Sparkles, label: "Applications", badge: 0 },
-              { id: "affiliates" as Tab, icon: Users, label: "Affiliate Members", badge: 0 },
-              { id: "affiliate-payouts" as Tab, icon: Wallet, label: "Affiliate Payouts", badge: 0 },
-            ].map((item) => (
+          {/* Products - collapsible submenu */}
+          <button
+            onClick={() => setProductsMenuOpen(!productsMenuOpen)}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition ${
+              activeTab === "products" || activeTab === "add" || activeTab === "edit" || activeTab === "categories" || activeTab === "reviews" || activeTab === "product-faqs"
+                ? "bg-gray-900 text-white"
+                : "text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            <Package className="w-5 h-5 flex-shrink-0" />
+            <span className="flex-1 text-left">Products</span>
+            {productsMenuOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+          </button>
+          {productsMenuOpen && (
+            <div className="ml-4 space-y-1 border-l-2 border-gray-100 pl-3">
               <button
-                key={item.id}
-                onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl font-medium transition ${
-                  activeTab === item.id ? "bg-gray-900 text-white font-semibold" : "text-gray-600 hover:bg-gray-50"
+                onClick={() => { setActiveTab("products"); setSidebarOpen(false); }}
+                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition ${
+                  activeTab === "products" || activeTab === "edit"
+                    ? "bg-gray-100 text-gray-900 font-semibold"
+                    : "text-gray-600 hover:bg-gray-50"
                 }`}
               >
-                <item.icon className="w-4 h-4 flex-shrink-0" />
-                <span className="flex-1 text-left">{item.label}</span>
+                All Products
               </button>
-            ))}
-          </div>
-
-          {/* GROUP 3: MULTI-VENDOR */}
-          <div className="space-y-1">
-            <div className="px-3 text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
-              Multi-Vendor Marketplace
-            </div>
-            {[
-              { id: "vendor-applications" as Tab, icon: Store, label: "Vendor Applications", badge: notifCounts.vendorApplications },
-              { id: "concierge-requests" as Tab, icon: Sparkles, label: "Concierge Requests", badge: notifCounts.conciergeRequests },
-              { id: "vendors" as Tab, icon: Store, label: "Vendors List", badge: 0 },
-              { id: "vendor-products" as Tab, icon: Package, label: "Vendor Products", badge: notifCounts.vendorProducts },
-              { id: "vendor-payouts" as Tab, icon: DollarSign, label: "Vendor Payouts", badge: notifCounts.vendorPayouts },
-            ].map((item) => (
               <button
-                key={item.id}
-                onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl font-medium transition ${
-                  activeTab === item.id ? "bg-gray-900 text-white font-semibold" : "text-gray-600 hover:bg-gray-50"
+                onClick={() => { setActiveTab("add"); setSidebarOpen(false); }}
+                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition ${
+                  activeTab === "add"
+                    ? "bg-gray-100 text-gray-900 font-semibold"
+                    : "text-gray-600 hover:bg-gray-50"
                 }`}
               >
-                <item.icon className="w-4 h-4 flex-shrink-0" />
-                <span className="flex-1 text-left">{item.label}</span>
-                {item.badge > 0 && (
-                  <span className="min-w-[18px] h-4 px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-white bg-red-600">
-                    {item.badge}
+                <Plus className="w-3.5 h-3.5" /> Add Product
+              </button>
+              <button
+                onClick={() => { setActiveTab("categories"); setSidebarOpen(false); }}
+                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition ${
+                  activeTab === "categories"
+                    ? "bg-gray-100 text-gray-900 font-semibold"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                <Tag className="w-3.5 h-3.5" /> Categories
+              </button>
+              <button
+                onClick={() => { setActiveTab("reviews"); setSidebarOpen(false); }}
+                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition relative ${
+                  activeTab === "reviews"
+                    ? "bg-gray-100 text-gray-900 font-semibold"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                <MessageSquare className="w-3.5 h-3.5" /> Reviews
+                {notifCounts.reviews > 0 && (
+                  <span className="ml-auto min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center text-white" style={{ backgroundColor: "#CA3F2E" }}>
+                    {notifCounts.reviews > 99 ? "99+" : notifCounts.reviews}
                   </span>
                 )}
               </button>
-            ))}
-          </div>
-
-          {/* GROUP 4: BLOG & CONTENT */}
-          <div className="space-y-1">
-            <div className="px-3 text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
-              Content & Blog
+              <button
+                onClick={() => { setActiveTab("product-faqs"); setSidebarOpen(false); }}
+                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition ${
+                  activeTab === "product-faqs"
+                    ? "bg-gray-100 text-gray-900 font-semibold"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                <HelpCircle className="w-3.5 h-3.5" /> Product FAQs
+              </button>
             </div>
-            {[
-              { id: "blog" as Tab, icon: BookOpen, label: "Blog Posts", badge: 0 },
-              { id: "blog-categories" as Tab, icon: Tag, label: "Blog Categories", badge: 0 },
-              { id: "authors" as Tab, icon: UsersRound, label: "Authors", badge: 0 },
-              { id: "comments" as Tab, icon: MessageSquare, label: "Comments", badge: notifCounts.comments },
-              { id: "newsletter" as Tab, icon: Mail, label: "Newsletter", badge: notifCounts.newsletter },
-            ].map((item) => (
-              <button
-                key={item.id}
-                onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl font-medium transition ${
-                  activeTab === item.id ? "bg-gray-900 text-white font-semibold" : "text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                <item.icon className="w-4 h-4 flex-shrink-0" />
-                <span className="flex-1 text-left">{item.label}</span>
-                {item.badge > 0 && (
-                  <span className="min-w-[18px] h-4 px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-white bg-red-600">
-                    {item.badge}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
+          )}
 
-          {/* GROUP 5: SYSTEM */}
-          <div className="space-y-1 pt-1 border-t border-gray-100">
-            {[
-              { id: "settings" as Tab, icon: Settings, label: "Store Settings", badge: 0 },
-              { id: "security" as Tab, icon: Shield, label: "Security", badge: 0 },
-            ].map((item) => (
+          {/* Blog Posts - collapsible submenu */}
+          <button
+            onClick={() => setBlogMenuOpen(!blogMenuOpen)}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition ${
+              activeTab === "blog" || activeTab === "blog-add" || activeTab === "blog-edit" || activeTab === "blog-categories"
+                ? "bg-gray-900 text-white"
+                : "text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            <BookOpen className="w-5 h-5 flex-shrink-0" />
+            <span className="flex-1 text-left">Blog Posts</span>
+            {blogMenuOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+          </button>
+          {blogMenuOpen && (
+            <div className="ml-4 space-y-1 border-l-2 border-gray-100 pl-3">
               <button
-                key={item.id}
-                onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl font-medium transition ${
-                  activeTab === item.id ? "bg-gray-900 text-white font-semibold" : "text-gray-600 hover:bg-gray-50"
+                onClick={() => { setActiveTab("blog"); setSidebarOpen(false); }}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
+                  activeTab === "blog" || activeTab === "blog-edit"
+                    ? "bg-gray-100 text-gray-900 font-semibold"
+                    : "text-gray-600 hover:bg-gray-50"
                 }`}
               >
-                <item.icon className="w-4 h-4 flex-shrink-0" />
-                <span className="flex-1 text-left">{item.label}</span>
+                All Posts
               </button>
-            ))}
-          </div>
+              <button
+                onClick={() => { setActiveTab("blog-add"); setSidebarOpen(false); }}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
+                  activeTab === "blog-add"
+                    ? "bg-gray-100 text-gray-900 font-semibold"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                Add New Post
+              </button>
+              <button
+                onClick={() => { setActiveTab("blog-categories"); setSidebarOpen(false); }}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
+                  activeTab === "blog-categories"
+                    ? "bg-gray-100 text-gray-900 font-semibold"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                Categories
+              </button>
+            </div>
+          )}
+
+          {/* Rest of sidebar items */}
+          {[
+            { id: "orders" as Tab, icon: ShoppingBag, label: "Orders", badge: notifCounts.orders },
+            { id: "customers" as Tab, icon: Users, label: "Customers", badge: 0 },
+            { id: "tickets" as Tab, icon: LifeBuoy, label: "Support Tickets", badge: notifCounts.tickets },
+            { id: "vendor-applications" as Tab, icon: Store, label: "Vendor Applications", badge: notifCounts.vendorApplications },
+            { id: "concierge-requests" as Tab, icon: Sparkles, label: "Concierge Requests", badge: notifCounts.conciergeRequests },
+            { id: "vendors" as Tab, icon: Store, label: "Vendors", badge: 0 },
+            { id: "vendor-products" as Tab, icon: Package, label: "Vendor Products", badge: notifCounts.vendorProducts },
+            { id: "vendor-payouts" as Tab, icon: DollarSign, label: "Vendor Payouts", badge: notifCounts.vendorPayouts },
+            { id: "affiliate-applications" as Tab, icon: Sparkles, label: "Affiliate Applications", badge: 0 },
+            { id: "affiliates" as Tab, icon: Users, label: "Affiliates", badge: 0 },
+            { id: "affiliate-payouts" as Tab, icon: Wallet, label: "Affiliate Payouts", badge: 0 },
+            { id: "authors" as Tab, icon: UsersRound, label: "Authors", badge: 0 },
+            { id: "comments" as Tab, icon: MessageSquare, label: "Comments", badge: notifCounts.comments },
+            { id: "newsletter" as Tab, icon: Mail, label: "Newsletter", badge: notifCounts.newsletter },
+            { id: "bundles" as Tab, icon: Gift, label: "Bundles", badge: 0 },
+            { id: "coupons" as Tab, icon: Ticket, label: "Coupons", badge: 0 },
+            { id: "settings" as Tab, icon: Settings, label: "Store Settings", badge: 0 },
+            { id: "security" as Tab, icon: Shield, label: "Security", badge: 0 },
+          ].map((item) => (
+            <button
+              key={item.id}
+              onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition ${
+                activeTab === item.id
+                  ? "bg-gray-900 text-white"
+                  : "text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              <item.icon className="w-5 h-5 flex-shrink-0" />
+              <span className="flex-1 text-left">{item.label}</span>
+              {item.badge > 0 && (
+                <span
+                  className={`min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center ${
+                    activeTab === item.id
+                      ? "bg-white text-gray-900"
+                      : "text-white"
+                  }`}
+                  style={activeTab !== item.id ? { backgroundColor: "#CA3F2E" } : undefined}
+                >
+                  {item.badge > 99 ? "99+" : item.badge}
+                </span>
+              )}
+            </button>
+          ))}
         </nav>
 
         <div className="flex-none p-3 space-y-1 border-t border-gray-100 bg-white">
@@ -688,7 +799,7 @@ export default function AdminPage() {
               <Menu className="w-5 h-5" />
             </button>
             <h1 className="text-lg font-bold capitalize">
-              {activeTab === "broker-claims" ? "Partner Broker Claims ($20 Promo)" : activeTab === "add" ? "Add Product" : activeTab === "edit" ? "Edit Product" : activeTab === "blog-add" ? "New Blog Post" : activeTab === "blog-edit" ? "Edit Blog Post" : activeTab === "blog" ? "Blog Posts" : activeTab === "blog-categories" ? "Blog Categories" : activeTab === "customers" ? "Customers" : activeTab === "tickets" ? "Support Tickets" : activeTab === "coupons" ? "Coupons" : activeTab === "newsletter" ? "Newsletter Subscribers" : activeTab}
+              {activeTab === "add" ? "Add Product" : activeTab === "edit" ? "Edit Product" : activeTab === "blog-add" ? "New Blog Post" : activeTab === "blog-edit" ? "Edit Blog Post" : activeTab === "blog" ? "Blog Posts" : activeTab === "blog-categories" ? "Blog Categories" : activeTab === "customers" ? "Customers" : activeTab === "tickets" ? "Support Tickets" : activeTab === "coupons" ? "Coupons" : activeTab === "newsletter" ? "Newsletter Subscribers" : activeTab}
             </h1>
           </div>
           <div className="flex items-center gap-2">
@@ -700,13 +811,137 @@ export default function AdminPage() {
         </header>
 
         <div className="p-6">
-          {activeTab === "broker-claims" && (
-            <BrokerClaimsManager />
-          )}
-
           {activeTab === "dashboard" && (
             <div className="space-y-6">
               <DashboardOrderStats onOpenOrders={() => setActiveTab("orders")} />
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                {[
+                  { label: "Total Products", value: products.length, icon: Package, color: "blue",   filter: "all" as const },
+                  { label: "Active",         value: activeCount,     icon: CheckCircle, color: "green",  filter: "active" as const },
+                  { label: "Featured",       value: featuredCount,   icon: Star, color: "amber",  filter: "featured" as const },
+                  { label: "Total Stock",    value: totalStock,      icon: ShoppingBag, color: "purple", filter: "highStock" as const },
+                  { label: "Low Stock",      value: lowStockCount,   icon: AlertTriangle, color: "orange", filter: "lowStock" as const },
+                  { label: "Out of Stock",   value: outOfStockCount, icon: X, color: "red",    filter: "outOfStock" as const },
+                ].map((stat) => (
+                  <button
+                    key={stat.label}
+                    onClick={() => { setProductFilter(stat.filter); setActiveTab("products"); }}
+                    className="text-left bg-white rounded-2xl p-5 border border-gray-100 hover:border-gray-300 hover:shadow-md transition-all cursor-pointer group"
+                  >
+                    <div className={`w-8 h-8 bg-${stat.color}-50 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
+                      <stat.icon className={`w-4 h-4 text-${stat.color}-600`} />
+                    </div>
+                    <p className="text-2xl font-bold">{stat.value}</p>
+                    <p className="text-xs text-gray-500 flex items-center gap-1">
+                      {stat.label}
+                      <span className="opacity-0 group-hover:opacity-100 transition-opacity">&rarr;</span>
+                    </p>
+                  </button>
+                ))}
+              </div>
+
+              {/* FR translation status */}
+              <div className="bg-white rounded-2xl border border-gray-100 p-6">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
+                    <Globe className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold">French Translation Status</h3>
+                    <p className="text-xs text-gray-500">Products with French translations show on /fr pages</p>
+                  </div>
+                </div>
+                <div className="flex items-end gap-4">
+                  <div>
+                    <p className="text-3xl font-bold">{frenchTranslatedCount} / {products.length}</p>
+                    <p className="text-sm text-gray-500">products translated to French</p>
+                  </div>
+                  <div className="flex-1">
+                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-blue-500 transition-all" style={{ width: `${products.length > 0 ? (frenchTranslatedCount / products.length) * 100 : 0}%` }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <DashboardBlogStats
+                onAddPost={() => setActiveTab("blog-add")}
+                onOpenBlog={() => setActiveTab("blog")}
+                onOpenComments={() => setActiveTab("comments")}
+              />
+
+              <div className="grid lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-6">
+                  <h3 className="font-bold mb-4">Inventory Value</h3>
+                  <div className="flex items-end gap-4">
+                    <div>
+                      <p className="text-4xl font-bold text-green-600">${totalValue.toLocaleString()}</p>
+                      <p className="text-sm text-gray-500">Total inventory value</p>
+                    </div>
+                    <div className="flex-1">
+                      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-green-500 to-emerald-500" style={{ width: "100%" }}></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-2xl border border-gray-100 p-6">
+                  <h3 className="font-bold mb-4">Quick Actions</h3>
+                  <div className="space-y-2">
+                    <button onClick={() => setActiveTab("add")} className="w-full flex items-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-xl text-sm font-medium hover:bg-gray-800 transition">
+                      <Plus className="w-4 h-4" /> Add Product
+                    </button>
+                    <button onClick={() => setActiveTab("categories")} className="w-full flex items-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-200 transition">
+                      <Tag className="w-4 h-4" /> Manage Categories
+                    </button>
+                    <button onClick={handleExportProducts} className="w-full flex items-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-200 transition">
+                      <Download className="w-4 h-4" /> Export CSV
+                    </button>
+                    <button onClick={() => setActiveTab("newsletter")} className="w-full flex items-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-200 transition">
+                      <Mail className="w-4 h-4" /> View Subscribers
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-gray-100 p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold">Recent Products</h3>
+                  <button onClick={() => setActiveTab("products")} className="text-sm text-gray-700 hover:underline">View All</button>
+                </div>
+                <div className="space-y-3">
+                  {products.slice(0, 5).map((p) => (
+                    <div key={p.id} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                          {p.imageUrl ? (
+                            <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-300">
+                              <Package className="w-4 h-4" />
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm flex items-center gap-2">
+                            {p.name}
+                            {p.nameFr && <Globe className="w-3 h-3 text-blue-500" />}
+                          </p>
+                          <p className="text-xs text-gray-400 capitalize">{p.category} - {p.stock} in stock</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-semibold text-sm">${parseFloat(p.price).toFixed(2)}</span>
+                        <div className={`text-xs ${p.active ? "text-green-600" : "text-gray-400"}`}>
+                          {p.active ? "Active" : "Hidden"}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 
@@ -788,23 +1023,73 @@ export default function AdminPage() {
           )}
 
           {activeTab === "reviews" && <ReviewsManager />}
+
           {activeTab === "profit" && <ProfitDashboard />}
-          {activeTab === "analytics" && <AnalyticsDashboard />}
-          {activeTab === "customers" && <CustomersManager />}
-          {activeTab === "tickets" && <TicketsManager />}
-          {activeTab === "vendor-applications" && <VendorApplicationsManager />}
-          {activeTab === "concierge-requests" && <ConciergeRequestsManager />}
-          {activeTab === "vendors" && <VendorsManager />}
-          {activeTab === "vendor-products" && <VendorProductsManager />}
-          {activeTab === "vendor-payouts" && <VendorPayoutsManager />}
-          {activeTab === "affiliate-applications" && <AffiliateApplicationsManager />}
-          {activeTab === "affiliates" && <AffiliatesManager />}
-          {activeTab === "affiliate-payouts" && <AffiliatePayoutsManager />}
-          {activeTab === "bundles" && <BundlesManager />}
-          {activeTab === "coupons" && <CouponsManager onNotify={showNotification} />}
-          {activeTab === "blog-categories" && <BlogCategoriesManager />}
-          {activeTab === "product-faqs" && <ProductFaqsManager />}
-          {activeTab === "newsletter" && <NewsletterTab onNotify={showNotification} />}
+
+          {activeTab === "analytics" && (
+            <AnalyticsDashboard />
+          )}
+
+          {activeTab === "customers" && (
+            <CustomersManager />
+          )}
+
+          {activeTab === "tickets" && (
+            <TicketsManager />
+          )}
+
+          {activeTab === "vendor-applications" && (
+            <VendorApplicationsManager />
+          )}
+
+          {activeTab === "concierge-requests" && (
+            <ConciergeRequestsManager />
+          )}
+
+          {activeTab === "vendors" && (
+            <VendorsManager />
+          )}
+
+          {activeTab === "vendor-products" && (
+            <VendorProductsManager />
+          )}
+
+          {activeTab === "vendor-payouts" && (
+            <VendorPayoutsManager />
+          )}
+
+          {activeTab === "affiliate-applications" && (
+            <AffiliateApplicationsManager />
+          )}
+
+          {activeTab === "affiliates" && (
+            <AffiliatesManager />
+          )}
+
+          {activeTab === "affiliate-payouts" && (
+            <AffiliatePayoutsManager />
+          )}
+
+          {activeTab === "bundles" && (
+            <BundlesManager />
+          )}
+
+          {activeTab === "coupons" && (
+            <CouponsManager onNotify={showNotification} />
+          )}
+
+          {activeTab === "blog-categories" && (
+            <BlogCategoriesManager />
+          )}
+
+          {activeTab === "product-faqs" && (
+            <ProductFaqsManager />
+          )}
+
+          {activeTab === "newsletter" && (
+            <NewsletterTab onNotify={showNotification} />
+          )}
+
           {activeTab === "settings" && (
             <SettingsForm
               settings={storeSettings}
@@ -919,9 +1204,17 @@ export default function AdminPage() {
             />
           )}
 
-          {activeTab === "authors" && <AuthorsManager onNotify={showNotification} />}
-          {activeTab === "comments" && <CommentsManager onNotify={showNotification} />}
-          {activeTab === "orders" && <OrdersManager onNotify={showNotification} />}
+          {activeTab === "authors" && (
+            <AuthorsManager onNotify={showNotification} />
+          )}
+
+          {activeTab === "comments" && (
+            <CommentsManager onNotify={showNotification} />
+          )}
+
+          {activeTab === "orders" && (
+            <OrdersManager onNotify={showNotification} />
+          )}
         </div>
       </div>
 
@@ -932,40 +1225,222 @@ export default function AdminPage() {
   );
 }
 
+// ============================================================
 // NEWSLETTER TAB
+// ============================================================
+interface Subscriber {
+  id: number;
+  email: string;
+}
+
 function NewsletterTab({ onNotify }: { onNotify: (msg: string, type?: "success" | "error") => void }) {
-  const [subscribers, setSubscribers] = useState<Array<{ id: number; email: string }>>([]);
+  const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const fetchSubscribers = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch("/api/newsletter/admin");
-      if (res.ok) setSubscribers(await res.json());
-    } catch {}
+      if (res.ok) {
+        const data = await res.json();
+        setSubscribers(Array.isArray(data) ? data : []);
+      } else {
+        onNotify("Failed to load subscribers", "error");
+      }
+    } catch {
+      onNotify("Failed to load subscribers", "error");
+    }
     setLoading(false);
-  }, []);
+  }, [onNotify]);
 
-  useEffect(() => { fetchSubscribers(); }, [fetchSubscribers]);
+  useEffect(() => {
+    fetchSubscribers();
+  }, [fetchSubscribers]);
+
+  const handleDelete = async (id: number, email: string) => {
+    if (!confirm(`Remove "${email}" from newsletter list?`)) return;
+    setDeletingId(id);
+    try {
+      const res = await fetch("/api/newsletter/admin", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      if (res.ok) {
+        onNotify("Subscriber removed");
+        setSubscribers(prev => prev.filter(s => s.id !== id));
+      } else {
+        onNotify("Failed to remove subscriber", "error");
+      }
+    } catch {
+      onNotify("Failed to remove subscriber", "error");
+    }
+    setDeletingId(null);
+  };
+
+  const handleExportCSV = () => {
+    const csv = [
+      ["ID", "Email"].join(","),
+      ...subscribers.map(s => [s.id, s.email].join(","))
+    ].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `newsletter-subscribers-${new Date().toISOString().split("T")[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    onNotify("Subscribers exported as CSV");
+  };
+
+  const filtered = subscribers.filter(s =>
+    s.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold">Newsletter Subscribers ({subscribers.length})</h2>
+    <div className="space-y-6 max-w-4xl">
+      {/* Stats row */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <div className="bg-white rounded-2xl border border-gray-100 p-5">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-9 h-9 bg-red-50 rounded-xl flex items-center justify-center">
+              <Mail className="w-5 h-5" style={{ color: "#CA3F2E" }} />
+            </div>
+            <span className="text-sm text-gray-500">Total Subscribers</span>
+          </div>
+          <p className="text-3xl font-bold">{subscribers.length}</p>
+        </div>
+        <div className="bg-white rounded-2xl border border-gray-100 p-5">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-9 h-9 bg-green-50 rounded-xl flex items-center justify-center">
+              <CheckCircle className="w-5 h-5 text-green-600" />
+            </div>
+            <span className="text-sm text-gray-500">Showing</span>
+          </div>
+          <p className="text-3xl font-bold">{filtered.length}</p>
+        </div>
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 col-span-2 sm:col-span-1">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-9 h-9 bg-gray-100 rounded-xl flex items-center justify-center">
+              <Download className="w-5 h-5 text-gray-600" />
+            </div>
+            <span className="text-sm text-gray-500">Export</span>
+          </div>
+          <button
+            onClick={handleExportCSV}
+            disabled={subscribers.length === 0}
+            className="w-full py-2 bg-gray-900 text-white rounded-xl text-sm font-semibold hover:bg-gray-800 transition disabled:opacity-40"
+          >
+            Download CSV
+          </button>
+        </div>
       </div>
-      <div className="bg-white rounded-2xl border p-4">
-        {loading ? <p>Loading...</p> : (
-          <ul className="space-y-2 text-sm">
-            {subscribers.map(s => <li key={s.id} className="border-b py-1">{s.email}</li>)}
-          </ul>
+
+      {/* Search + refresh bar */}
+      <div className="flex gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
+          />
+        </div>
+        <button
+          onClick={fetchSubscribers}
+          className="p-3 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition"
+          title="Refresh"
+        >
+          <RefreshCw className="w-4 h-4 text-gray-500" />
+        </button>
+      </div>
+
+      {/* Table */}
+      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        {loading ? (
+          <div className="flex items-center justify-center py-16">
+            <RefreshCw className="w-6 h-6 animate-spin text-gray-400" />
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-16">
+            <Mail className="w-12 h-12 text-gray-200 mx-auto mb-3" />
+            <p className="text-gray-500 font-medium">
+              {searchTerm ? "No subscribers match your search" : "No subscribers yet"}
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
+              {searchTerm ? "Try a different search term" : "Subscribers will appear here when someone signs up"}
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 border-b border-gray-100">
+                <tr>
+                  <th className="text-left px-6 py-3 font-semibold text-gray-600">#</th>
+                  <th className="text-left px-6 py-3 font-semibold text-gray-600">Email Address</th>
+                  <th className="text-right px-6 py-3 font-semibold text-gray-600">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((sub, index) => (
+                  <tr key={sub.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition">
+                    <td className="px-6 py-4 text-gray-400 text-xs">{index + 1}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                          style={{ backgroundColor: "#CA3F2E" }}>
+                          {sub.email.charAt(0).toUpperCase()}
+                        </div>
+                        <span className="font-medium">{sub.email}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-end gap-2">
+                        <a
+                          href={`mailto:${sub.email}`}
+                          className="p-2 rounded-lg text-blue-500 hover:bg-blue-50 transition"
+                          title="Send email"
+                        >
+                          <Mail className="w-4 h-4" />
+                        </a>
+                        <button
+                          onClick={() => handleDelete(sub.id, sub.email)}
+                          disabled={deletingId === sub.id}
+                          className="p-2 rounded-lg text-red-400 hover:bg-red-50 transition disabled:opacity-40"
+                          title="Remove subscriber"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
+      </div>
+
+      <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-800">
+        <p className="font-semibold mb-1">About Newsletter Subscribers</p>
+        <ul className="list-disc list-inside space-y-1 text-xs">
+          <li>Emails are collected when visitors subscribe via the homepage or promo bar</li>
+          <li>Click the mail icon next to any email to open your email client</li>
+          <li>Use "Download CSV" to export all emails for use in Mailchimp, Brevo, etc.</li>
+          <li>Removing a subscriber is permanent and cannot be undone</li>
+        </ul>
       </div>
     </div>
   );
 }
 
+// ============================================================
 // PRODUCTS TAB
+// ============================================================
 function ProductsTab({
   products, searchTerm, setSearchTerm, productFilter, setProductFilter, onEdit, onDelete, onToggleActive, onToggleFeatured, onBulkAction, onExport, onAdd, loading
 }: {
@@ -984,75 +1459,635 @@ function ProductsTab({
   loading: boolean;
 }) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const toggleSelectAll = () => setSelectedIds(prev => prev.length === products.length ? [] : products.map(p => p.id));
-  const toggleSelect = (id: string) => setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
+
+  const toggleSelectAll = () => {
+    setSelectedIds(prev => prev.length === products.length ? [] : products.map(p => p.id));
+  };
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center gap-3">
-        <input
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search products..."
-          className="px-4 py-2 border rounded-xl text-sm max-w-xs"
-        />
-        <button onClick={onAdd} className="px-4 py-2 bg-gray-900 text-white rounded-xl text-sm font-semibold">+ Add Product</button>
+      <div className="flex flex-col sm:flex-row gap-3 justify-between">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search products..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
+          />
+        </div>
+          {productFilter !== "all" && (
+            <div className="flex items-center gap-2 mb-4 px-4 py-2.5 bg-blue-50 border border-blue-200 rounded-xl">
+              <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Filtered:</span>
+              <span className="text-sm font-medium text-blue-900">
+                {productFilter === "active" && "Active products only"}
+                {productFilter === "inactive" && "Inactive products only"}
+                {productFilter === "featured" && "Featured products only"}
+                {productFilter === "lowStock" && "Low stock (< 10 units)"}
+                {productFilter === "outOfStock" && "Out of stock"}
+                {productFilter === "highStock" && "In stock (>= 10 units)"}
+              </span>
+              <button
+                onClick={() => setProductFilter("all")}
+                className="ml-auto text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline"
+              >
+                Clear filter x
+              </button>
+            </div>
+          )}
+        <div className="flex gap-2 flex-wrap">
+          {selectedIds.length > 0 && (
+            <>
+              <button onClick={() => onBulkAction("activate", selectedIds)} className="px-4 py-2 bg-green-100 text-green-700 rounded-xl text-sm font-medium hover:bg-green-200 transition">
+                Activate ({selectedIds.length})
+              </button>
+              <button onClick={() => onBulkAction("deactivate", selectedIds)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-200 transition">
+                Deactivate
+              </button>
+              <button onClick={() => onBulkAction("delete", selectedIds)} className="px-4 py-2 bg-red-100 text-red-700 rounded-xl text-sm font-medium hover:bg-red-200 transition">
+                Delete
+              </button>
+            </>
+          )}
+          <button onClick={onExport} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-200 transition flex items-center gap-2">
+            <Download className="w-4 h-4" /> Export
+          </button>
+          <button onClick={onAdd} className="flex items-center gap-2 px-5 py-2 bg-gray-900 text-white rounded-xl text-sm font-semibold hover:bg-gray-800 transition">
+            <Plus className="w-4 h-4" /> Add Product
+          </button>
+        </div>
       </div>
-      <div className="bg-white rounded-2xl border p-4 overflow-x-auto">
+
+      {products.length === 0 ? (
+        <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
+          <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+          <p className="text-gray-500">No products found</p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 border-b border-gray-100">
+                <tr>
+                  <th className="text-left px-4 py-3">
+                    <input type="checkbox" checked={selectedIds.length === products.length && products.length > 0} onChange={toggleSelectAll} className="rounded" />
+                  </th>
+                  <th className="text-left px-4 py-3 font-semibold">Product</th>
+                  <th className="text-left px-4 py-3 font-semibold hidden sm:table-cell">Category</th>
+                  <th className="text-left px-4 py-3 font-semibold hidden lg:table-cell">FR</th>
+                  <th className="text-left px-4 py-3 font-semibold">Price</th>
+                  <th className="text-left px-4 py-3 font-semibold hidden md:table-cell">Stock</th>
+                  <th className="text-left px-4 py-3 font-semibold hidden md:table-cell">Status</th>
+                  <th className="text-right px-4 py-3 font-semibold">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {products.map((p) => (
+                  <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition">
+                    <td className="px-4 py-3">
+                      <input type="checkbox" checked={selectedIds.includes(p.id)} onChange={() => toggleSelect(p.id)} className="rounded" />
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                          {p.imageUrl ? (
+                            <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-300">
+                              <Package className="w-4 h-4" />
+                            </div>
+                          )}
+                        </div>
+                        <span className="font-medium truncate max-w-[150px]">{p.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 capitalize text-gray-500 hidden sm:table-cell">{p.category}</td>
+                    <td className="px-4 py-3 hidden lg:table-cell">
+                      {p.nameFr ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs font-medium">
+                          <Globe className="w-3 h-3" /> FR
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-300">-</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 font-semibold">${parseFloat(p.price).toFixed(2)}</td>
+                    <td className="px-4 py-3 hidden md:table-cell">
+                      <span className={p.stock === 0 ? "text-red-500" : p.stock <= 10 ? "text-amber-500" : ""}>
+                        {p.stock}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 hidden md:table-cell">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${p.active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                        {p.active ? "Active" : "Hidden"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-1">
+                        <button onClick={() => onToggleFeatured(p.id, p.featured)} className={`p-2 rounded-lg transition ${p.featured ? "text-amber-500 bg-amber-50" : "text-gray-400 hover:bg-gray-100"}`} title={p.featured ? "Remove from featured" : "Add to featured"}>
+                          <Star className="w-4 h-4" fill={p.featured ? "currentColor" : "none"} />
+                        </button>
+                        <button onClick={() => onToggleActive(p.id, p.active)} className="p-2 rounded-lg text-gray-400 hover:bg-gray-100 transition" title={p.active ? "Hide product" : "Show product"}>
+                          {p.active ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                        </button>
+                        <a
+                          href={`/en/product/${p.slug || p.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 rounded-lg text-blue-500 hover:bg-blue-50 transition inline-flex items-center justify-center"
+                          title="View live product"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                        <button onClick={() => onEdit(p)} className="p-2 rounded-lg text-gray-400 hover:bg-gray-100 transition" title="Edit product">
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => onDelete(p.id)} className="p-2 rounded-lg text-red-400 hover:bg-red-50 transition" title="Delete product">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// CATEGORIES TAB (NEW)
+// ============================================================
+function CategoriesTab({
+  categories,
+  onRefresh,
+  onNotify,
+}: {
+  categories: Category[];
+  onRefresh: () => void;
+  onNotify: (msg: string, type?: "success" | "error") => void;
+}) {
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Add form state
+  const [newSlug, setNewSlug] = useState("");
+  const [newNameEn, setNewNameEn] = useState("");
+  const [newNameFr, setNewNameFr] = useState("");
+  const [newSortOrder, setNewSortOrder] = useState("100");
+  const [saving, setSaving] = useState(false);
+
+  const handleAdd = async () => {
+    if (!newSlug.trim() || !newNameEn.trim()) {
+      onNotify("Slug and English name are required", "error");
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await fetch("/api/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug: newSlug.trim(),
+          nameEn: newNameEn.trim(),
+          nameFr: newNameFr.trim() || null,
+          sortOrder: parseInt(newSortOrder) || 100,
+        }),
+      });
+      if (res.ok) {
+        onNotify("Category created");
+        setNewSlug("");
+        setNewNameEn("");
+        setNewNameFr("");
+        setNewSortOrder("100");
+        setShowAddForm(false);
+        onRefresh();
+      } else {
+        const data = await res.json();
+        onNotify(data.error || "Failed to create category", "error");
+      }
+    } catch {
+      onNotify("Failed to create category", "error");
+    }
+    setSaving(false);
+  };
+
+  const handleUpdate = async (cat: Category, updates: Partial<Category>) => {
+    try {
+      const res = await fetch(`/api/categories/${cat.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+      if (res.ok) {
+        onNotify("Category updated");
+        onRefresh();
+        setEditingId(null);
+      } else {
+        onNotify("Failed to update category", "error");
+      }
+    } catch {
+      onNotify("Failed to update category", "error");
+    }
+  };
+
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`Delete category "${name}"? Products in this category will still exist but won't have a category label.`)) return;
+    try {
+      const res = await fetch(`/api/categories/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        onNotify("Category deleted");
+        onRefresh();
+      } else {
+        onNotify("Failed to delete category", "error");
+      }
+    } catch {
+      onNotify("Failed to delete category", "error");
+    }
+  };
+
+  return (
+    <div className="space-y-6 max-w-4xl">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold">Categories</h2>
+          <p className="text-sm text-gray-500">Manage product categories in English and French</p>
+        </div>
+        <button
+          onClick={() => setShowAddForm(!showAddForm)}
+          className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-xl text-sm font-semibold hover:bg-gray-800 transition"
+        >
+          {showAddForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+          {showAddForm ? "Cancel" : "Add Category"}
+        </button>
+      </div>
+
+      {showAddForm && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
+          <h3 className="font-bold">New Category</h3>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Slug (URL identifier) *</label>
+              <input
+                type="text"
+                value={newSlug}
+                onChange={(e) => setNewSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"))}
+                placeholder="e.g., loafers"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition font-mono"
+              />
+              <p className="text-xs text-gray-400 mt-1">Lowercase, no spaces. Used in URLs like /shop?category=loafers</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Sort Order</label>
+              <input
+                type="number"
+                value={newSortOrder}
+                onChange={(e) => setNewSortOrder(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
+              />
+              <p className="text-xs text-gray-400 mt-1">Lower number = appears first</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Name (English) *</label>
+              <input
+                type="text"
+                value={newNameEn}
+                onChange={(e) => setNewNameEn(e.target.value)}
+                placeholder="e.g., Loafers"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5 flex items-center gap-1">
+                <Globe className="w-3 h-3 text-blue-500" /> Name (French)
+              </label>
+              <input
+                type="text"
+                value={newNameFr}
+                onChange={(e) => setNewNameFr(e.target.value)}
+                placeholder="e.g., Mocassins"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
+              />
+            </div>
+          </div>
+          <button
+            onClick={handleAdd}
+            disabled={saving}
+            className="px-6 py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition disabled:opacity-50"
+          >
+            {saving ? "Creating..." : "Create Category"}
+          </button>
+        </div>
+      )}
+
+      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
         <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left border-b text-xs text-gray-500">
-              <th className="p-2">Name</th>
-              <th className="p-2">Price</th>
-              <th className="p-2">Category</th>
-              <th className="p-2">Actions</th>
+          <thead className="bg-gray-50 border-b border-gray-100">
+            <tr>
+              <th className="text-left px-4 py-3 font-semibold w-16">Order</th>
+              <th className="text-left px-4 py-3 font-semibold">Slug</th>
+              <th className="text-left px-4 py-3 font-semibold">Name (EN)</th>
+              <th className="text-left px-4 py-3 font-semibold">Name (FR)</th>
+              <th className="text-left px-4 py-3 font-semibold">Status</th>
+              <th className="text-right px-4 py-3 font-semibold">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {products.map(p => (
-              <tr key={p.id} className="border-b">
-                <td className="p-2 font-medium">{p.name}</td>
-                <td className="p-2">${parseFloat(p.price).toFixed(2)}</td>
-                <td className="p-2">{p.category}</td>
-                <td className="p-2">
-                  <button onClick={() => onEdit(p)} className="text-blue-600 mr-2">Edit</button>
-                  <button onClick={() => onDelete(p.id)} className="text-red-600">Delete</button>
-                </td>
+            {categories.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="text-center py-12 text-gray-500">No categories yet</td>
               </tr>
-            ))}
+            ) : (
+              categories.map((cat) => (
+                <CategoryRow
+                  key={cat.id}
+                  category={cat}
+                  isEditing={editingId === cat.id}
+                  onStartEdit={() => setEditingId(cat.id)}
+                  onCancelEdit={() => setEditingId(null)}
+                  onSave={(updates) => handleUpdate(cat, updates)}
+                  onDelete={() => handleDelete(cat.id, cat.nameEn)}
+                  onToggleActive={() => handleUpdate(cat, { active: !cat.active })}
+                />
+              ))
+            )}
           </tbody>
         </table>
+      </div>
+
+      <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-800">
+        <p className="font-semibold mb-1">How categories work:</p>
+        <ul className="list-disc list-inside space-y-1 text-xs">
+          <li>Categories appear on shop pages and homepage in the current language</li>
+          <li>When a product is assigned to a category slug, it uses that category&apos;s translations</li>
+          <li>Deleting a category won&apos;t delete products - they keep their category slug but no label</li>
+          <li>Set a category to inactive to hide it from the store without deleting it</li>
+        </ul>
       </div>
     </div>
   );
 }
 
-// CATEGORIES TAB
-function CategoriesTab({ categories, onRefresh, onNotify }: { categories: Category[]; onRefresh: () => void; onNotify: (m: string, t?: "success"|"error") => void }) {
+function CategoryRow({
+  category, isEditing, onStartEdit, onCancelEdit, onSave, onDelete, onToggleActive,
+}: {
+  category: Category;
+  isEditing: boolean;
+  onStartEdit: () => void;
+  onCancelEdit: () => void;
+  onSave: (updates: Partial<Category>) => void;
+  onDelete: () => void;
+  onToggleActive: () => void;
+}) {
+  const [nameEn, setNameEn] = useState(category.nameEn);
+  const [nameFr, setNameFr] = useState(category.nameFr || "");
+  const [sortOrder, setSortOrder] = useState(category.sortOrder.toString());
+
+  useEffect(() => {
+    setNameEn(category.nameEn);
+    setNameFr(category.nameFr || "");
+    setSortOrder(category.sortOrder.toString());
+  }, [category, isEditing]);
+
+  if (isEditing) {
+    return (
+      <tr className="bg-blue-50/50 border-b border-gray-100">
+        <td className="px-4 py-3">
+          <input type="number" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} className="w-16 px-2 py-1.5 border border-gray-200 rounded text-sm" />
+        </td>
+        <td className="px-4 py-3 text-xs font-mono text-gray-500">{category.slug}</td>
+        <td className="px-4 py-3">
+          <input type="text" value={nameEn} onChange={(e) => setNameEn(e.target.value)} className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm" />
+        </td>
+        <td className="px-4 py-3">
+          <input type="text" value={nameFr} onChange={(e) => setNameFr(e.target.value)} placeholder="(optional)" className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm" />
+        </td>
+        <td className="px-4 py-3">
+          <span className={`px-2 py-0.5 rounded-full text-xs ${category.active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+            {category.active ? "Active" : "Inactive"}
+          </span>
+        </td>
+        <td className="px-4 py-3">
+          <div className="flex items-center justify-end gap-1">
+            <button
+              onClick={() => onSave({ nameEn, nameFr: nameFr || null, sortOrder: parseInt(sortOrder) || 0 })}
+              className="px-3 py-1.5 bg-gray-900 text-white rounded-lg text-xs font-medium"
+            >
+              Save
+            </button>
+            <button onClick={onCancelEdit} className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs">Cancel</button>
+          </div>
+        </td>
+      </tr>
+    );
+  }
+
   return (
-    <div className="p-4 bg-white rounded-2xl border">
-      <h3 className="font-bold mb-2">Categories Manager ({categories.length})</h3>
-      <ul className="space-y-1 text-sm">{categories.map(c => <li key={c.id}>{c.nameEn} ({c.slug})</li>)}</ul>
-    </div>
+    <tr className="border-b border-gray-50 hover:bg-gray-50/50 transition">
+      <td className="px-4 py-3 text-gray-400 text-xs">{category.sortOrder}</td>
+      <td className="px-4 py-3 text-xs font-mono text-gray-500">{category.slug}</td>
+      <td className="px-4 py-3 font-medium">{category.nameEn}</td>
+      <td className="px-4 py-3 text-gray-700">
+        {category.nameFr || <span className="text-gray-300">-</span>}
+      </td>
+      <td className="px-4 py-3">
+        <button onClick={onToggleActive} className={`px-2.5 py-1 rounded-full text-xs font-semibold transition ${category.active ? "bg-green-100 text-green-700 hover:bg-green-200" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>
+          {category.active ? "Active" : "Inactive"}
+        </button>
+      </td>
+      <td className="px-4 py-3">
+        <div className="flex items-center justify-end gap-1">
+          <button onClick={onStartEdit} className="p-2 rounded-lg text-gray-400 hover:bg-gray-100 transition" title="Edit">
+            <Edit className="w-4 h-4" />
+          </button>
+          <button onClick={onDelete} className="p-2 rounded-lg text-red-400 hover:bg-red-50 transition" title="Delete">
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      </td>
+    </tr>
   );
 }
 
-// SETTINGS FORM
-function SettingsForm({ settings, onSave, loading }: { settings: StoreSettings; onSave: (d: Record<string, unknown>) => Promise<void>; loading: boolean }) {
+// ============================================================
+// PRODUCT FORM (with French fields + dynamic categories)
+// ============================================================
+function SettingsForm({
+  settings,
+  onSave,
+  loading,
+}: {
+  settings: StoreSettings;
+  onSave: (data: Record<string, unknown>) => Promise<void>;
+  loading: boolean;
+}) {
+  const [storeName, setStoreName] = useState(settings.storeName);
+  const [whatsappNumber, setWhatsappNumber] = useState(settings.whatsappNumber);
+  const [currency, setCurrency] = useState(settings.currency);
+
+  useEffect(() => {
+    setStoreName(settings.storeName);
+    setWhatsappNumber(settings.whatsappNumber);
+    setCurrency(settings.currency);
+  }, [settings]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave({ storeName, whatsappNumber, currency });
+  };
+
   return (
-    <div className="p-6 bg-white rounded-2xl border max-w-xl space-y-4">
-      <h3 className="font-bold">Store Settings</h3>
-      <p className="text-xs text-gray-500">Store Name: {settings.storeName}</p>
-    </div>
+    <form onSubmit={handleSubmit} className="max-w-2xl space-y-6">
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
+        <h3 className="font-bold text-lg">Store Settings</h3>
+        <div>
+          <label className="block text-sm font-medium mb-1.5">Store Name</label>
+          <input type="text" value={storeName} onChange={(e) => setStoreName(e.target.value)} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1.5">WhatsApp Number</label>
+          <input type="text" value={whatsappNumber} onChange={(e) => setWhatsappNumber(e.target.value)} placeholder="1234567890 (with country code)" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition" />
+          <p className="text-xs text-gray-400 mt-1">Include country code without + (e.g., 1234567890). Used for WhatsApp checkout.</p>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1.5">Currency Symbol</label>
+          <input type="text" value={currency} onChange={(e) => setCurrency(e.target.value)} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition" />
+        </div>
+      </div>
+      <button type="submit" disabled={loading} className="w-full py-4 bg-gray-900 text-white rounded-2xl font-semibold text-lg hover:bg-gray-800 transition disabled:opacity-50">
+        {loading ? "Saving..." : "Save Settings"}
+      </button>
+    </form>
   );
 }
 
+// ============================================================
 // SECURITY FORM
-function SecurityForm({ settings, onSave, loading }: { settings: StoreSettings; onSave: (d: Record<string, unknown>) => Promise<void>; loading: boolean }) {
+// ============================================================
+function SecurityForm({
+  settings,
+  onSave,
+  loading,
+}: {
+  settings: StoreSettings;
+  onSave: (data: Record<string, unknown>) => Promise<void>;
+  loading: boolean;
+}) {
+  const [adminPassword, setAdminPassword] = useState("");
+  const [adminAccessCode, setAdminAccessCode] = useState(settings.adminAccessCode);
+  const [adminPath, setAdminPath] = useState(settings.adminPath);
+  const [maxLoginAttempts, setMaxLoginAttempts] = useState(settings.maxLoginAttempts.toString());
+  const [lockoutMinutes, setLockoutMinutes] = useState(settings.lockoutMinutes.toString());
+  const [showCopied, setShowCopied] = useState(false);
+
+  useEffect(() => {
+    setAdminAccessCode(settings.adminAccessCode);
+    setAdminPath(settings.adminPath);
+    setMaxLoginAttempts(settings.maxLoginAttempts.toString());
+    setLockoutMinutes(settings.lockoutMinutes.toString());
+  }, [settings]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const data: Record<string, unknown> = {
+      adminAccessCode,
+      adminPath,
+      maxLoginAttempts: parseInt(maxLoginAttempts) || 5,
+      lockoutMinutes: parseInt(lockoutMinutes) || 15,
+    };
+    if (adminPassword) data.adminPassword = adminPassword;
+    onSave(data);
+  };
+
+  const generateAccessCode = () => {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let code = "";
+    for (let i = 0; i < 8; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+    setAdminAccessCode(code);
+  };
+
+  const copyAdminUrl = () => {
+    const url = `${window.location.origin}/${adminPath}`;
+    navigator.clipboard.writeText(url);
+    setShowCopied(true);
+    setTimeout(() => setShowCopied(false), 2000);
+  };
+
   return (
-    <div className="p-6 bg-white rounded-2xl border max-w-xl space-y-4">
-      <h3 className="font-bold">Security Settings</h3>
-      <p className="text-xs text-gray-500">Access Code: {settings.adminAccessCode || "None"}</p>
-    </div>
+    <form onSubmit={handleSubmit} className="max-w-2xl space-y-6">
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
+        <div className="flex items-center gap-3 mb-2">
+          <Shield className="w-5 h-5 text-green-600" />
+          <h3 className="font-bold text-lg">Security Settings</h3>
+        </div>
+
+        <div className="p-4 bg-amber-50 rounded-xl">
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+            <div className="text-xs text-amber-700">
+              <p className="font-semibold mb-1">Security Notice</p>
+              <p>Access Code provides an extra layer of security. When set, users must enter the access code before seeing the password screen.</p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1.5">New Admin Password</label>
+          <input type="password" value={adminPassword} onChange={(e) => setAdminPassword(e.target.value)} placeholder="Leave blank to keep current password" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition" />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1.5">Access Code (Optional Extra Security)</label>
+          <div className="flex gap-2">
+            <input type="text" value={adminAccessCode} onChange={(e) => setAdminAccessCode(e.target.value.toUpperCase())} placeholder="e.g., SECURE123" className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition font-mono" />
+            <button type="button" onClick={generateAccessCode} className="px-4 py-3 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-200 transition flex items-center gap-2">
+              <Key className="w-4 h-4" /> Generate
+            </button>
+          </div>
+          <p className="text-xs text-gray-400 mt-1">Leave blank to disable access code requirement.</p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1.5">Admin Panel Path</label>
+          <div className="flex gap-2">
+            <div className="flex-1 flex items-center px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl">
+              <span className="text-gray-400 text-sm">{typeof window !== "undefined" ? window.location.origin : ""}/</span>
+              <input type="text" value={adminPath} onChange={(e) => setAdminPath(e.target.value.replace(/[^a-zA-Z0-9-]/g, ""))} className="flex-1 bg-transparent text-sm focus:outline-none font-medium" />
+            </div>
+            <button type="button" onClick={copyAdminUrl} className="px-4 py-3 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-200 transition flex items-center gap-2">
+              {showCopied ? <CheckCircle className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+            </button>
+          </div>
+          <p className="text-xs text-amber-600 mt-1 font-medium">IMPORTANT: When you set a custom path, /admin will be BLOCKED (404). Use ONLY your custom path to access the panel. Save the path somewhere safe!</p>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
+        <h3 className="font-bold text-lg">Rate Limiting</h3>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Max Login Attempts</label>
+            <input type="number" value={maxLoginAttempts} onChange={(e) => setMaxLoginAttempts(e.target.value)} min="1" max="20" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Lockout Duration (minutes)</label>
+            <input type="number" value={lockoutMinutes} onChange={(e) => setLockoutMinutes(e.target.value)} min="1" max="60" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition" />
+          </div>
+        </div>
+        <p className="text-xs text-gray-400">After {maxLoginAttempts} failed attempts, the IP will be locked out for {lockoutMinutes} minutes.</p>
+      </div>
+
+      <button type="submit" disabled={loading} className="w-full py-4 bg-gray-900 text-white rounded-2xl font-semibold text-lg hover:bg-gray-800 transition disabled:opacity-50">
+        {loading ? "Saving..." : "Save Security Settings"}
+      </button>
+    </form>
   );
 }
