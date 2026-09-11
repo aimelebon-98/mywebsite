@@ -731,3 +731,17 @@ export const cryptoPayments = pgTable("crypto_payments", {
 
 export type Subscription = typeof subscriptions.$inferSelect;
 export type CryptoPayment = typeof cryptoPayments.$inferSelect;
+export const brokerClaims = pgTable("broker_claims", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  customerName: varchar("customer_name", { length: 255 }).notNull(),
+  customerEmail: varchar("customer_email", { length: 255 }).notNull(),
+  customerPhone: varchar("customer_phone", { length: 50 }),
+  brokerName: varchar("broker_name", { length: 100 }).notNull().default("Exness"),
+  brokerAccountId: varchar("broker_account_id", { length: 100 }).notNull(),
+  depositAmount: varchar("deposit_amount", { length: 50 }).default("20.00"),
+  proofImage: text("proof_image"),
+  status: varchar("status", { length: 20 }).notNull().default("pending"),
+  adminNote: text("admin_note"),
+  createdAt: timestamp("created_at").defaultNow(),
+  approvedAt: timestamp("approved_at"),
+});

@@ -71,7 +71,13 @@ export function BrokerClaimModal({ isOpen, onClose, locale = "en" }: Props) {
         body: formData,
       });
 
-      const data = await res.json();
+      let data: any = {};
+      try {
+        const text = await res.text();
+        data = JSON.parse(text);
+      } catch {
+        throw new Error(isFr ? "Erreur serveur. Veuillez r\u00e9essayer." : "Server response error. Please try again.");
+      }
       if (!res.ok) throw new Error(data.error || "Submission failed");
 
       setDone(true);

@@ -66,8 +66,31 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
     return h;
   }, [product?.id, product?.slug]);
 
-  const recentBuyersCount = useMemo(() => 12 + (productSeed % 11), [productSeed]);
-  const currentlyViewingCount = useMemo(() => 24 + (productSeed % 37), [productSeed]);
+  const [recentBuyersCount, setRecentBuyersCount] = useState(() => 12 + (productSeed % 11));
+  const [currentlyViewingCount, setCurrentlyViewingCount] = useState(() => 24 + (productSeed % 37));
+
+  useEffect(() => {
+    // Dynamically fluctuate currently viewing live visitors count
+    const timer = setInterval(() => {
+      setCurrentlyViewingCount((prev) => {
+        const delta = Math.floor(Math.random() * 5) - 2; // -2, -1, 0, +1, +2
+        const next = prev + delta;
+        return next < 15 ? 18 : next > 88 ? 54 : next;
+      });
+    }, 4500);
+
+    // Dynamic buyers count slight fluctuation over time
+    const buyerTimer = setInterval(() => {
+      if (Math.random() > 0.65) {
+        setRecentBuyersCount((prev) => prev + 1);
+      }
+    }, 18000);
+
+    return () => {
+      clearInterval(timer);
+      clearInterval(buyerTimer);
+    };
+  }, [productSeed]);
   const { customer } = useCustomer();
 
   // Meta Pixel: fire ViewContent when product page loads
