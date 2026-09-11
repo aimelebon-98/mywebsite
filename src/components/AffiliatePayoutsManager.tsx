@@ -144,6 +144,7 @@ export default function AffiliatePayoutsManager() {
     });
   };
 
+  // NOWPAYMENTS MASS PAYOUTS EXACT CSV TEMPLATE FORMAT
   const exportCSV = () => {
     const itemsToExport =
       selectedIds.length > 0
@@ -153,30 +154,33 @@ export default function AffiliatePayoutsManager() {
     if (itemsToExport.length === 0) return;
 
     const headers = [
-      "Payout ID",
-      "Affiliate Name",
-      "Email",
-      "Code",
-      "Amount USD",
-      "USDT Wallet Address",
-      "Status",
-      "Requested Date",
-      "Reference",
+      "Ticker check Tickers template for the right one",
+      "Wallet Address",
+      "ExtraId (memo, destination tag, etc.) only for some cryptos like: XRP, XLM, EOS, XMR, HBAR and more",
+      "Amount in crypto (6 decimals only!)",
+      "Fiat amount",
+      "Fiat currency",
+      "Payout description",
     ];
 
-    const rows = itemsToExport.map((r) => [
-      r.payout.id,
-      `"${r.affiliate.name.replace(/"/g, '""')}"`,
-      `"${r.affiliate.email}"`,
-      r.affiliate.code,
-      r.payout.amount,
-      `"${r.affiliate.bankAccount || ""}"`,
-      r.payout.status || "pending",
-      r.payout.requestedAt
-        ? new Date(r.payout.requestedAt).toISOString()
-        : "",
-      `"${(r.payout.reference || "").replace(/"/g, '""')}"`,
-    ]);
+    const rows = itemsToExport.map((r) => {
+      const amtNum = parseFloat(r.payout.amount || "0");
+      const amtCrypto = isNaN(amtNum) ? "0.000000" : amtNum.toFixed(6);
+      const fiatAmt = isNaN(amtNum) ? "0" : Math.round(amtNum).toString();
+      const ticker = "usdttrc20"; // NOWPayments ticker for USDT TRC20
+      const wallet = (r.affiliate.bankAccount || "").trim();
+      const desc = `Affiliate payout for ${r.affiliate.code} (${r.affiliate.email})`;
+
+      return [
+        ticker,
+        `"${wallet}"`,
+        "", // ExtraId blank
+        amtCrypto,
+        fiatAmt,
+        "USD",
+        `"${desc.replace(/"/g, '""')}"`,
+      ];
+    });
 
     const csvContent =
       "data:text/csv;charset=utf-8," +
@@ -187,7 +191,7 @@ export default function AffiliatePayoutsManager() {
     link.setAttribute("href", encodedUri);
     link.setAttribute(
       "download",
-      `affiliate_payouts_${filter}_${Date.now()}.csv`
+      `PayoutsTemplate_${Date.now()}.csv`
     );
     document.body.appendChild(link);
     link.click();
@@ -210,8 +214,9 @@ export default function AffiliatePayoutsManager() {
           <button
             onClick={exportCSV}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 text-sm font-semibold shadow-sm"
+            title="Download NOWPayments Mass Payout CSV Template"
           >
-            <Download className="w-4 h-4 text-emerald-600" /> Export CSV
+            <Download className="w-4 h-4 text-emerald-600" /> Export NOWPayments CSV
           </button>
           <button
             onClick={load}
@@ -346,7 +351,6 @@ export default function AffiliatePayoutsManager() {
                         </span>
                       </div>
 
-                      {/* USDT WALLET BOX WITH 1-CLICK COPY BUTTON */}
                       <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 max-w-lg space-y-1">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
                           USDT TRC20 Wallet Address
