@@ -144,7 +144,7 @@ export default function AffiliatePayoutsManager() {
     });
   };
 
-  // NOWPAYMENTS MASS PAYOUTS EXACT CSV TEMPLATE FORMAT (6 DECIMALS + EXACT FIAT CENTS)
+  // NOWPAYMENTS MASS PAYOUTS EXACT CSV TEMPLATE FORMAT
   const exportCSV = () => {
     const itemsToExport =
       selectedIds.length > 0
@@ -168,7 +168,7 @@ export default function AffiliatePayoutsManager() {
     const rows = itemsToExport.map((r) => {
       const amtNum = parseFloat(r.payout.amount || "0");
       const amtCrypto = isNaN(amtNum) ? "0.000000" : amtNum.toFixed(6);
-      const fiatAmt = isNaN(amtNum) ? "0.00" : amtNum.toFixed(2); // Exact fiat cents
+      const fiatAmt = isNaN(amtNum) ? "0.00" : amtNum.toFixed(2);
       const ticker = "usdttrc20";
       const wallet = (r.affiliate.bankAccount || "").trim();
       const desc = `Affiliate payout for ${r.affiliate.code} (${r.affiliate.email})`;
@@ -184,7 +184,8 @@ export default function AffiliatePayoutsManager() {
       ];
     });
 
-    const csvContent = [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
+    // Add UTF-8 BOM (\uFEFF) so Excel opens character encoding & numbers cleanly
+    const csvContent = "\uFEFF" + [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
