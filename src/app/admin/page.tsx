@@ -301,6 +301,83 @@ export default function AdminPage() {
     setAccessCode("");
   };
 
+  const handleDeleteProduct = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this product? This cannot be undone.")) return;
+    try {
+      await fetch(`/api/products/${id}`, { method: "DELETE" });
+      showNotification("Product deleted successfully");
+      fetchProducts();
+    } catch {
+      showNotification("Failed to delete product", "error");
+    }
+  };
+
+  const handleToggleActive = async (id: string, currentActive: boolean) => {
+    try {
+      await fetch(`/api/products/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ active: !currentActive }),
+      });
+      showNotification(currentActive ? "Product hidden from store" : "Product now visible");
+      fetchProducts();
+    } catch {}
+  };
+
+  const handleToggleFeatured = async (id: string, currentFeatured: boolean) => {
+    try {
+      await fetch(`/api/products/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ featured: !currentFeatured }),
+      });
+      showNotification(currentFeatured ? "Removed from featured" : "Added to featured");
+      fetchProducts();
+    } catch {}
+  };
+
+  const handleBulkAction = async (action: "activate" | "deactivate" | "delete", ids: string[]) => {
+    if (ids.length === 0) return;
+    if (action === "delete" && !confirm(`Delete ${ids.length} products? This cannot be undone.`)) return;
+
+    setLoading(true);
+    try {
+      for (const id of ids) {
+        if (action === "delete") {
+          await fetch(`/api/products/${id}`, { method: "DELETE" });
+        } else {
+          await fetch(`/api/products/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ active: action === "activate" }),
+          });
+        }
+      }
+      showNotification(`${ids.length} products ${action === "delete" ? "deleted" : action === "activate" ? "activated" : "deactivated"}`);
+      fetchProducts();
+    } catch {
+      showNotification("Bulk action failed", "error");
+    }
+    setLoading(false);
+  };
+
+  const handleExportProducts = () => {
+    const csv = [
+      ["ID", "Name", "Price", "Category", "Brand", "Stock", "Active"].join(","),
+      ...products.map(p => [
+        p.id, `"${p.name}"`, p.price, p.category, `"${p.brand}"`, p.stock, p.active
+      ].join(","))
+    ].join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `products-${new Date().toISOString().split("T")[0]}.csv`;
+    a.click();
+    showNotification("Products exported successfully");
+  };
+
   if (authStep === "loading") {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -381,6 +458,19 @@ export default function AdminPage() {
       </div>
     );
   }
+
+  const filteredProducts = products.filter(p =>
+    (p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.brand.toLowerCase().includes(searchTerm.toLowerCase())) &&
+    (productFilter === "all" ||
+     (productFilter === "active" && p.active) ||
+     (productFilter === "inactive" && !p.active) ||
+     (productFilter === "featured" && p.featured) ||
+     (productFilter === "lowStock" && p.stock > 0 && p.stock < 10) ||
+     (productFilter === "outOfStock" && p.stock === 0) ||
+     (productFilter === "highStock" && p.stock >= 10))
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -620,6 +710,84 @@ export default function AdminPage() {
             </div>
           )}
 
+          {activeTab === "products" && (
+            <ProductsTab
+              products={filteredProducts}
+              productFilter={productFilter} setProductFilter={setProductFilter} searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              onEdit={(p) => { setEditingProduct(p); setActiveTab("edit"); }}
+              onDelete={handleDeleteProduct}
+              onToggleActive={handleToggleActive}
+              onToggleFeatured={handleToggleFeatured}
+              onBulkAction={handleBulkAction}
+              onExport={handleExportProducts}
+              onAdd={() => setActiveTab("add")}
+              loading={loading}
+            />
+          )}
+
+          {activeTab === "add" && (
+            <ProductForm
+              categories={categories}
+              onSave={async (data) => {
+                setLoading(true);
+                try {
+                  const res = await fetch("/api/products", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data),
+                  });
+                  if (res.ok) {
+                    showNotification("Product created successfully!");
+                    fetchProducts();
+                  } else {
+                    showNotification("Failed to create product", "error");
+                  }
+                } catch {
+                  showNotification("Failed to create product", "error");
+                }
+                setLoading(false);
+              }}
+              loading={loading}
+            />
+          )}
+
+          {activeTab === "edit" && editingProduct && (
+            <ProductForm
+              product={editingProduct}
+              categories={categories}
+              onSave={async (data) => {
+                setLoading(true);
+                try {
+                  const res = await fetch(`/api/products/${editingProduct.id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data),
+                  });
+                  if (res.ok) {
+                    showNotification("Product updated successfully!");
+                    fetchProducts();
+                  } else {
+                    showNotification("Failed to update product", "error");
+                  }
+                } catch {
+                  showNotification("Failed to update product", "error");
+                }
+                setLoading(false);
+              }}
+              loading={loading}
+            />
+          )}
+
+          {activeTab === "categories" && (
+            <CategoriesTab
+              categories={categories}
+              onRefresh={fetchCategories}
+              onNotify={showNotification}
+            />
+          )}
+
+          {activeTab === "reviews" && <ReviewsManager />}
           {activeTab === "profit" && <ProfitDashboard />}
           {activeTab === "analytics" && <AnalyticsDashboard />}
           {activeTab === "customers" && <CustomersManager />}
@@ -634,8 +802,125 @@ export default function AdminPage() {
           {activeTab === "affiliate-payouts" && <AffiliatePayoutsManager />}
           {activeTab === "bundles" && <BundlesManager />}
           {activeTab === "coupons" && <CouponsManager onNotify={showNotification} />}
+          {activeTab === "blog-categories" && <BlogCategoriesManager />}
           {activeTab === "product-faqs" && <ProductFaqsManager />}
           {activeTab === "newsletter" && <NewsletterTab onNotify={showNotification} />}
+          {activeTab === "settings" && (
+            <SettingsForm
+              settings={storeSettings}
+              onSave={async (data) => {
+                setLoading(true);
+                try {
+                  const res = await fetch("/api/settings", {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data),
+                  });
+                  if (res.ok) {
+                    showNotification("Settings saved!");
+                    fetchSettings();
+                  } else {
+                    showNotification("Failed to save settings", "error");
+                  }
+                } catch {
+                  showNotification("Failed to save settings", "error");
+                }
+                setLoading(false);
+              }}
+              loading={loading}
+            />
+          )}
+
+          {activeTab === "security" && (
+            <SecurityForm
+              settings={storeSettings}
+              onSave={async (data) => {
+                setLoading(true);
+                try {
+                  const res = await fetch("/api/settings", {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data),
+                  });
+                  if (res.ok) {
+                    showNotification("Security settings saved!");
+                    fetchSettings();
+                  } else {
+                    showNotification("Failed to save settings", "error");
+                  }
+                } catch {
+                  showNotification("Failed to save settings", "error");
+                }
+                setLoading(false);
+              }}
+              loading={loading}
+            />
+          )}
+
+          {activeTab === "blog" && (
+            <BlogPostsList
+              refreshKey={blogRefreshKey}
+              onAdd={() => setActiveTab("blog-add")}
+              onEdit={(p) => { setEditingPost(p); setActiveTab("blog-edit"); }}
+              onNotify={showNotification}
+            />
+          )}
+
+          {activeTab === "blog-add" && (
+            <BlogPostForm
+              onCancel={() => setActiveTab("blog")}
+              loading={loading}
+              onSave={async (data) => {
+                setLoading(true);
+                try {
+                  const res = await fetch("/api/blog", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data),
+                  });
+                  if (res.ok) {
+                    showNotification("Post created!");
+                    setBlogRefreshKey(k => k + 1);
+                  } else {
+                    showNotification("Failed to create post", "error");
+                  }
+                } catch {
+                  showNotification("Failed to create post", "error");
+                }
+                setLoading(false);
+              }}
+            />
+          )}
+
+          {activeTab === "blog-edit" && editingPost && (
+            <BlogPostForm
+              post={editingPost}
+              onCancel={() => { setEditingPost(null); setActiveTab("blog"); }}
+              loading={loading}
+              onSave={async (data) => {
+                setLoading(true);
+                try {
+                  const res = await fetch(`/api/blog/${editingPost.id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data),
+                  });
+                  if (res.ok) {
+                    showNotification("Post updated!");
+                    setBlogRefreshKey(k => k + 1);
+                  } else {
+                    showNotification("Failed to update post", "error");
+                  }
+                } catch {
+                  showNotification("Failed to update post", "error");
+                }
+                setLoading(false);
+              }}
+            />
+          )}
+
+          {activeTab === "authors" && <AuthorsManager onNotify={showNotification} />}
+          {activeTab === "comments" && <CommentsManager onNotify={showNotification} />}
           {activeTab === "orders" && <OrdersManager onNotify={showNotification} />}
         </div>
       </div>
@@ -643,6 +928,131 @@ export default function AdminPage() {
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/50 z-30 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
+    </div>
+  );
+}
+
+// NEWSLETTER TAB
+function NewsletterTab({ onNotify }: { onNotify: (msg: string, type?: "success" | "error") => void }) {
+  const [subscribers, setSubscribers] = useState<Array<{ id: number; email: string }>>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const fetchSubscribers = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/newsletter/admin");
+      if (res.ok) setSubscribers(await res.json());
+    } catch {}
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { fetchSubscribers(); }, [fetchSubscribers]);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-bold">Newsletter Subscribers ({subscribers.length})</h2>
+      </div>
+      <div className="bg-white rounded-2xl border p-4">
+        {loading ? <p>Loading...</p> : (
+          <ul className="space-y-2 text-sm">
+            {subscribers.map(s => <li key={s.id} className="border-b py-1">{s.email}</li>)}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// PRODUCTS TAB
+function ProductsTab({
+  products, searchTerm, setSearchTerm, productFilter, setProductFilter, onEdit, onDelete, onToggleActive, onToggleFeatured, onBulkAction, onExport, onAdd, loading
+}: {
+  products: Product[];
+  searchTerm: string;
+  setSearchTerm: (s: string) => void;
+  productFilter: "all" | "active" | "inactive" | "featured" | "lowStock" | "outOfStock" | "highStock";
+  setProductFilter: (f: "all" | "active" | "inactive" | "featured" | "lowStock" | "outOfStock" | "highStock") => void;
+  onEdit: (p: Product) => void;
+  onDelete: (id: string) => void;
+  onToggleActive: (id: string, active: boolean) => void;
+  onToggleFeatured: (id: string, featured: boolean) => void;
+  onBulkAction: (action: "activate" | "deactivate" | "delete", ids: string[]) => void;
+  onExport: () => void;
+  onAdd: () => void;
+  loading: boolean;
+}) {
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const toggleSelectAll = () => setSelectedIds(prev => prev.length === products.length ? [] : products.map(p => p.id));
+  const toggleSelect = (id: string) => setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center gap-3">
+        <input
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Search products..."
+          className="px-4 py-2 border rounded-xl text-sm max-w-xs"
+        />
+        <button onClick={onAdd} className="px-4 py-2 bg-gray-900 text-white rounded-xl text-sm font-semibold">+ Add Product</button>
+      </div>
+      <div className="bg-white rounded-2xl border p-4 overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-left border-b text-xs text-gray-500">
+              <th className="p-2">Name</th>
+              <th className="p-2">Price</th>
+              <th className="p-2">Category</th>
+              <th className="p-2">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {products.map(p => (
+              <tr key={p.id} className="border-b">
+                <td className="p-2 font-medium">{p.name}</td>
+                <td className="p-2">${parseFloat(p.price).toFixed(2)}</td>
+                <td className="p-2">{p.category}</td>
+                <td className="p-2">
+                  <button onClick={() => onEdit(p)} className="text-blue-600 mr-2">Edit</button>
+                  <button onClick={() => onDelete(p.id)} className="text-red-600">Delete</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// CATEGORIES TAB
+function CategoriesTab({ categories, onRefresh, onNotify }: { categories: Category[]; onRefresh: () => void; onNotify: (m: string, t?: "success"|"error") => void }) {
+  return (
+    <div className="p-4 bg-white rounded-2xl border">
+      <h3 className="font-bold mb-2">Categories Manager ({categories.length})</h3>
+      <ul className="space-y-1 text-sm">{categories.map(c => <li key={c.id}>{c.nameEn} ({c.slug})</li>)}</ul>
+    </div>
+  );
+}
+
+// SETTINGS FORM
+function SettingsForm({ settings, onSave, loading }: { settings: StoreSettings; onSave: (d: Record<string, unknown>) => Promise<void>; loading: boolean }) {
+  return (
+    <div className="p-6 bg-white rounded-2xl border max-w-xl space-y-4">
+      <h3 className="font-bold">Store Settings</h3>
+      <p className="text-xs text-gray-500">Store Name: {settings.storeName}</p>
+    </div>
+  );
+}
+
+// SECURITY FORM
+function SecurityForm({ settings, onSave, loading }: { settings: StoreSettings; onSave: (d: Record<string, unknown>) => Promise<void>; loading: boolean }) {
+  return (
+    <div className="p-6 bg-white rounded-2xl border max-w-xl space-y-4">
+      <h3 className="font-bold">Security Settings</h3>
+      <p className="text-xs text-gray-500">Access Code: {settings.adminAccessCode || "None"}</p>
     </div>
   );
 }
