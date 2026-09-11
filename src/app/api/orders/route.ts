@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { processAffiliateAttribution } from "@/lib/affiliate-attribution";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
@@ -78,7 +79,17 @@ const createOrderSchema = z.object({
   affiliateCode: z.string().max(100).optional().nullable(),
 });
 
-async function generateNextOrderNumber(offset = 0): Promise<string> {
+async function generateNextOrderNumber(_offset = 0): Promise<string> {
+  const chars = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+  let rnd = "";
+  const bytes = crypto.randomBytes(6);
+  for (let i = 0; i < 6; i++) {
+    rnd += chars[bytes[i] % chars.length];
+  }
+  return `NDZ-${rnd}`;
+}
+
+async function _legacyOrderNumberHelper(offset = 0): Promise<string> {
   const year = new Date().getFullYear();
   const prefix = `SV-${year}-`;
   try {

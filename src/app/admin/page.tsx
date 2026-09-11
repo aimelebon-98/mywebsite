@@ -33,6 +33,7 @@ import VendorPayoutsManager from "@/components/VendorPayoutsManager";
 import AffiliateApplicationsManager from "@/components/AffiliateApplicationsManager";
 import AffiliatesManager from "@/components/AffiliatesManager";
 import AffiliatePayoutsManager from "@/components/AffiliatePayoutsManager";
+import BrokerClaimsManager from "@/components/BrokerClaimsManager";
 interface Product {
   id: string;
   name: string;
@@ -96,7 +97,7 @@ interface StoreSettings {
   lockoutMinutes: number;
 }
 
-type Tab = "dashboard" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments" | "orders" | "product-faqs" | "analytics" | "newsletter" | "bundles" | "blog-categories" | "customers" | "tickets" | "coupons" | "profit" | "vendor-applications" | "concierge-requests" | "vendors" | "vendor-products" | "vendor-payouts" | "affiliate-applications" | "affiliates" | "affiliate-payouts";
+type Tab = "dashboard" | "broker-claims" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments" | "orders" | "product-faqs" | "analytics" | "newsletter" | "bundles" | "blog-categories" | "customers" | "tickets" | "coupons" | "profit" | "vendor-applications" | "concierge-requests" | "vendors" | "vendor-products" | "vendor-payouts" | "affiliate-applications" | "affiliates" | "affiliate-payouts";
 
 export default function AdminPage() {
   const [authStep, setAuthStep] = useState<"loading" | "verify" | "access-code" | "password" | "authenticated">("loading");
@@ -578,205 +579,167 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <nav className="admin-scroll px-3 space-y-1 flex-1 overflow-y-auto pb-4 min-h-0">
-          {[
-            { id: "dashboard" as Tab, icon: BarChart3, label: "Dashboard", badge: 0 },
-            { id: "analytics" as Tab, icon: TrendingUp, label: "Analytics", badge: 0 },
-            { id: "profit" as Tab, icon: DollarSign, label: "Profit & Sales", badge: 0 },
-          ].map((item) => (
-            <button
-              key={item.id}
-              onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition ${
-                activeTab === item.id
-                  ? "bg-gray-900 text-white"
-                  : "text-gray-600 hover:bg-gray-50"
-              }`}
-            >
-              <item.icon className="w-5 h-5 flex-shrink-0" />
-              <span className="flex-1 text-left">{item.label}</span>
-              {item.badge > 0 && (
-                <span
-                  className={`min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center ${
-                    activeTab === item.id
-                      ? "bg-white text-gray-900"
-                      : "text-white"
-                  }`}
-                  style={activeTab !== item.id ? { backgroundColor: "#CA3F2E" } : undefined}
-                >
-                  {item.badge > 99 ? "99+" : item.badge}
-                </span>
-              )}
-            </button>
-          ))}
-
-          {/* Products - collapsible submenu */}
-          <button
-            onClick={() => setProductsMenuOpen(!productsMenuOpen)}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition ${
-              activeTab === "products" || activeTab === "add" || activeTab === "edit" || activeTab === "categories" || activeTab === "reviews" || activeTab === "product-faqs"
-                ? "bg-gray-900 text-white"
-                : "text-gray-600 hover:bg-gray-50"
-            }`}
-          >
-            <Package className="w-5 h-5 flex-shrink-0" />
-            <span className="flex-1 text-left">Products</span>
-            {productsMenuOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-          </button>
-          {productsMenuOpen && (
-            <div className="ml-4 space-y-1 border-l-2 border-gray-100 pl-3">
+        <nav className="admin-scroll px-3 space-y-4 flex-1 overflow-y-auto pb-4 min-h-0 text-xs">
+          {/* GROUP 1: E-COMMERCE */}
+          <div className="space-y-1">
+            <div className="px-3 text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+              E-Commerce & Sales
+            </div>
+            {[
+              { id: "dashboard" as Tab, icon: BarChart3, label: "Dashboard", badge: 0 },
+              { id: "analytics" as Tab, icon: TrendingUp, label: "Analytics", badge: 0 },
+              { id: "profit" as Tab, icon: DollarSign, label: "Profit & Sales", badge: 0 },
+              { id: "orders" as Tab, icon: ShoppingBag, label: "Orders", badge: notifCounts.orders },
+              { id: "customers" as Tab, icon: Users, label: "Customers", badge: 0 },
+              { id: "tickets" as Tab, icon: LifeBuoy, label: "Support Tickets", badge: notifCounts.tickets },
+              { id: "bundles" as Tab, icon: Gift, label: "Bundles", badge: 0 },
+              { id: "coupons" as Tab, icon: Ticket, label: "Coupons", badge: 0 },
+            ].map((item) => (
               <button
-                onClick={() => { setActiveTab("products"); setSidebarOpen(false); }}
-                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition ${
-                  activeTab === "products" || activeTab === "edit"
-                    ? "bg-gray-100 text-gray-900 font-semibold"
-                    : "text-gray-600 hover:bg-gray-50"
+                key={item.id}
+                onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl font-medium transition ${
+                  activeTab === item.id ? "bg-gray-900 text-white font-semibold" : "text-gray-600 hover:bg-gray-50"
                 }`}
               >
-                All Products
-              </button>
-              <button
-                onClick={() => { setActiveTab("add"); setSidebarOpen(false); }}
-                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition ${
-                  activeTab === "add"
-                    ? "bg-gray-100 text-gray-900 font-semibold"
-                    : "text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                <Plus className="w-3.5 h-3.5" /> Add Product
-              </button>
-              <button
-                onClick={() => { setActiveTab("categories"); setSidebarOpen(false); }}
-                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition ${
-                  activeTab === "categories"
-                    ? "bg-gray-100 text-gray-900 font-semibold"
-                    : "text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                <Tag className="w-3.5 h-3.5" /> Categories
-              </button>
-              <button
-                onClick={() => { setActiveTab("reviews"); setSidebarOpen(false); }}
-                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition relative ${
-                  activeTab === "reviews"
-                    ? "bg-gray-100 text-gray-900 font-semibold"
-                    : "text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                <MessageSquare className="w-3.5 h-3.5" /> Reviews
-                {notifCounts.reviews > 0 && (
-                  <span className="ml-auto min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center text-white" style={{ backgroundColor: "#CA3F2E" }}>
-                    {notifCounts.reviews > 99 ? "99+" : notifCounts.reviews}
+                <item.icon className="w-4 h-4 flex-shrink-0" />
+                <span className="flex-1 text-left">{item.label}</span>
+                {item.badge > 0 && (
+                  <span className="min-w-[18px] h-4 px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-white bg-red-600">
+                    {item.badge}
                   </span>
                 )}
               </button>
-              <button
-                onClick={() => { setActiveTab("product-faqs"); setSidebarOpen(false); }}
-                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition ${
-                  activeTab === "product-faqs"
-                    ? "bg-gray-100 text-gray-900 font-semibold"
-                    : "text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                <HelpCircle className="w-3.5 h-3.5" /> Product FAQs
-              </button>
-            </div>
-          )}
+            ))}
+          </div>
 
-          {/* Blog Posts - collapsible submenu */}
-          <button
-            onClick={() => setBlogMenuOpen(!blogMenuOpen)}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition ${
-              activeTab === "blog" || activeTab === "blog-add" || activeTab === "blog-edit" || activeTab === "blog-categories"
-                ? "bg-gray-900 text-white"
-                : "text-gray-600 hover:bg-gray-50"
-            }`}
-          >
-            <BookOpen className="w-5 h-5 flex-shrink-0" />
-            <span className="flex-1 text-left">Blog Posts</span>
-            {blogMenuOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-          </button>
-          {blogMenuOpen && (
-            <div className="ml-4 space-y-1 border-l-2 border-gray-100 pl-3">
-              <button
-                onClick={() => { setActiveTab("blog"); setSidebarOpen(false); }}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
-                  activeTab === "blog" || activeTab === "blog-edit"
-                    ? "bg-gray-100 text-gray-900 font-semibold"
-                    : "text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                All Posts
-              </button>
-              <button
-                onClick={() => { setActiveTab("blog-add"); setSidebarOpen(false); }}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
-                  activeTab === "blog-add"
-                    ? "bg-gray-100 text-gray-900 font-semibold"
-                    : "text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                Add New Post
-              </button>
-              <button
-                onClick={() => { setActiveTab("blog-categories"); setSidebarOpen(false); }}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
-                  activeTab === "blog-categories"
-                    ? "bg-gray-100 text-gray-900 font-semibold"
-                    : "text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                Categories
-              </button>
-            </div>
-          )}
-
-          {/* Rest of sidebar items */}
-          {[
-            { id: "orders" as Tab, icon: ShoppingBag, label: "Orders", badge: notifCounts.orders },
-            { id: "customers" as Tab, icon: Users, label: "Customers", badge: 0 },
-            { id: "tickets" as Tab, icon: LifeBuoy, label: "Support Tickets", badge: notifCounts.tickets },
-            { id: "vendor-applications" as Tab, icon: Store, label: "Vendor Applications", badge: notifCounts.vendorApplications },
-            { id: "concierge-requests" as Tab, icon: Sparkles, label: "Concierge Requests", badge: notifCounts.conciergeRequests },
-            { id: "vendors" as Tab, icon: Store, label: "Vendors", badge: 0 },
-            { id: "vendor-products" as Tab, icon: Package, label: "Vendor Products", badge: notifCounts.vendorProducts },
-            { id: "vendor-payouts" as Tab, icon: DollarSign, label: "Vendor Payouts", badge: notifCounts.vendorPayouts },
-            { id: "affiliate-applications" as Tab, icon: Sparkles, label: "Affiliate Applications", badge: 0 },
-            { id: "affiliates" as Tab, icon: Users, label: "Affiliates", badge: 0 },
-            { id: "affiliate-payouts" as Tab, icon: Wallet, label: "Affiliate Payouts", badge: 0 },
-            { id: "authors" as Tab, icon: UsersRound, label: "Authors", badge: 0 },
-            { id: "comments" as Tab, icon: MessageSquare, label: "Comments", badge: notifCounts.comments },
-            { id: "newsletter" as Tab, icon: Mail, label: "Newsletter", badge: notifCounts.newsletter },
-            { id: "bundles" as Tab, icon: Gift, label: "Bundles", badge: 0 },
-            { id: "coupons" as Tab, icon: Ticket, label: "Coupons", badge: 0 },
-            { id: "settings" as Tab, icon: Settings, label: "Store Settings", badge: 0 },
-            { id: "security" as Tab, icon: Shield, label: "Security", badge: 0 },
-          ].map((item) => (
+          {/* PRODUCTS CATALOG COLLAPSIBLE */}
+          <div className="space-y-1">
             <button
-              key={item.id}
-              onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition ${
-                activeTab === item.id
-                  ? "bg-gray-900 text-white"
+              onClick={() => setProductsMenuOpen(!productsMenuOpen)}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl font-medium transition ${
+                activeTab === "products" || activeTab === "add" || activeTab === "edit" || activeTab === "categories" || activeTab === "reviews" || activeTab === "product-faqs"
+                  ? "bg-gray-900 text-white font-semibold"
                   : "text-gray-600 hover:bg-gray-50"
               }`}
             >
-              <item.icon className="w-5 h-5 flex-shrink-0" />
-              <span className="flex-1 text-left">{item.label}</span>
-              {item.badge > 0 && (
-                <span
-                  className={`min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center ${
-                    activeTab === item.id
-                      ? "bg-white text-gray-900"
-                      : "text-white"
-                  }`}
-                  style={activeTab !== item.id ? { backgroundColor: "#CA3F2E" } : undefined}
-                >
-                  {item.badge > 99 ? "99+" : item.badge}
-                </span>
-              )}
+              <Package className="w-4 h-4 flex-shrink-0" />
+              <span className="flex-1 text-left">Products Catalog</span>
+              {productsMenuOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
             </button>
-          ))}
+            {productsMenuOpen && (
+              <div className="ml-3 space-y-1 border-l-2 border-gray-100 pl-2">
+                <button onClick={() => { setActiveTab("products"); setSidebarOpen(false); }} className={`w-full text-left px-2.5 py-1.5 rounded-lg transition ${activeTab === "products" ? "bg-gray-100 text-gray-900 font-bold" : "text-gray-600 hover:bg-gray-50"}`}>All Products</button>
+                <button onClick={() => { setActiveTab("add"); setSidebarOpen(false); }} className={`w-full text-left px-2.5 py-1.5 rounded-lg transition ${activeTab === "add" ? "bg-gray-100 text-gray-900 font-bold" : "text-gray-600 hover:bg-gray-50"}`}>+ Add Product</button>
+                <button onClick={() => { setActiveTab("categories"); setSidebarOpen(false); }} className={`w-full text-left px-2.5 py-1.5 rounded-lg transition ${activeTab === "categories" ? "bg-gray-100 text-gray-900 font-bold" : "text-gray-600 hover:bg-gray-50"}`}>Categories</button>
+                <button onClick={() => { setActiveTab("reviews"); setSidebarOpen(false); }} className={`w-full text-left px-2.5 py-1.5 rounded-lg transition ${activeTab === "reviews" ? "bg-gray-100 text-gray-900 font-bold" : "text-gray-600 hover:bg-gray-50"}`}>Reviews</button>
+                <button onClick={() => { setActiveTab("product-faqs"); setSidebarOpen(false); }} className={`w-full text-left px-2.5 py-1.5 rounded-lg transition ${activeTab === "product-faqs" ? "bg-gray-100 text-gray-900 font-bold" : "text-gray-600 hover:bg-gray-50"}`}>Product FAQs</button>
+              </div>
+            )}
+          </div>
+
+          {/* GROUP 2: AFFILIATE NETWORK */}
+          <div className="space-y-1">
+            <div className="px-3 text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+              Affiliate Network & MLMs
+            </div>
+            {[
+              { id: "broker-claims" as Tab, icon: Gift, label: "Broker Claims ($20 Promo)", badge: 0 },
+              { id: "affiliate-applications" as Tab, icon: Sparkles, label: "Applications", badge: 0 },
+              { id: "affiliates" as Tab, icon: Users, label: "Affiliate Members", badge: 0 },
+              { id: "affiliate-payouts" as Tab, icon: Wallet, label: "Affiliate Payouts", badge: 0 },
+            ].map((item) => (
+              <button
+                key={item.id}
+                onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl font-medium transition ${
+                  activeTab === item.id ? "bg-gray-900 text-white font-semibold" : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                <item.icon className="w-4 h-4 flex-shrink-0" />
+                <span className="flex-1 text-left">{item.label}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* GROUP 3: MULTI-VENDOR */}
+          <div className="space-y-1">
+            <div className="px-3 text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+              Multi-Vendor Marketplace
+            </div>
+            {[
+              { id: "vendor-applications" as Tab, icon: Store, label: "Vendor Applications", badge: notifCounts.vendorApplications },
+              { id: "concierge-requests" as Tab, icon: Sparkles, label: "Concierge Requests", badge: notifCounts.conciergeRequests },
+              { id: "vendors" as Tab, icon: Store, label: "Vendors List", badge: 0 },
+              { id: "vendor-products" as Tab, icon: Package, label: "Vendor Products", badge: notifCounts.vendorProducts },
+              { id: "vendor-payouts" as Tab, icon: DollarSign, label: "Vendor Payouts", badge: notifCounts.vendorPayouts },
+            ].map((item) => (
+              <button
+                key={item.id}
+                onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl font-medium transition ${
+                  activeTab === item.id ? "bg-gray-900 text-white font-semibold" : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                <item.icon className="w-4 h-4 flex-shrink-0" />
+                <span className="flex-1 text-left">{item.label}</span>
+                {item.badge > 0 && (
+                  <span className="min-w-[18px] h-4 px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-white bg-red-600">
+                    {item.badge}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* GROUP 4: BLOG & CONTENT */}
+          <div className="space-y-1">
+            <div className="px-3 text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+              Content & Blog
+            </div>
+            {[
+              { id: "blog" as Tab, icon: BookOpen, label: "Blog Posts", badge: 0 },
+              { id: "blog-categories" as Tab, icon: Tag, label: "Blog Categories", badge: 0 },
+              { id: "authors" as Tab, icon: UsersRound, label: "Authors", badge: 0 },
+              { id: "comments" as Tab, icon: MessageSquare, label: "Comments", badge: notifCounts.comments },
+              { id: "newsletter" as Tab, icon: Mail, label: "Newsletter", badge: notifCounts.newsletter },
+            ].map((item) => (
+              <button
+                key={item.id}
+                onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl font-medium transition ${
+                  activeTab === item.id ? "bg-gray-900 text-white font-semibold" : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                <item.icon className="w-4 h-4 flex-shrink-0" />
+                <span className="flex-1 text-left">{item.label}</span>
+                {item.badge > 0 && (
+                  <span className="min-w-[18px] h-4 px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-white bg-red-600">
+                    {item.badge}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* GROUP 5: SYSTEM */}
+          <div className="space-y-1 pt-1 border-t border-gray-100">
+            {[
+              { id: "settings" as Tab, icon: Settings, label: "Store Settings", badge: 0 },
+              { id: "security" as Tab, icon: Shield, label: "Security", badge: 0 },
+            ].map((item) => (
+              <button
+                key={item.id}
+                onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl font-medium transition ${
+                  activeTab === item.id ? "bg-gray-900 text-white font-semibold" : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                <item.icon className="w-4 h-4 flex-shrink-0" />
+                <span className="flex-1 text-left">{item.label}</span>
+              </button>
+            ))}
+          </div>
         </nav>
 
         <div className="flex-none p-3 space-y-1 border-t border-gray-100 bg-white">
@@ -799,7 +762,7 @@ export default function AdminPage() {
               <Menu className="w-5 h-5" />
             </button>
             <h1 className="text-lg font-bold capitalize">
-              {activeTab === "add" ? "Add Product" : activeTab === "edit" ? "Edit Product" : activeTab === "blog-add" ? "New Blog Post" : activeTab === "blog-edit" ? "Edit Blog Post" : activeTab === "blog" ? "Blog Posts" : activeTab === "blog-categories" ? "Blog Categories" : activeTab === "customers" ? "Customers" : activeTab === "tickets" ? "Support Tickets" : activeTab === "coupons" ? "Coupons" : activeTab === "newsletter" ? "Newsletter Subscribers" : activeTab}
+              {activeTab === "broker-claims" ? "Partner Broker Claims ($20 Promo)" : activeTab === "add" ? "Add Product" : activeTab === "edit" ? "Edit Product" : activeTab === "blog-add" ? "New Blog Post" : activeTab === "blog-edit" ? "Edit Blog Post" : activeTab === "blog" ? "Blog Posts" : activeTab === "blog-categories" ? "Blog Categories" : activeTab === "customers" ? "Customers" : activeTab === "tickets" ? "Support Tickets" : activeTab === "coupons" ? "Coupons" : activeTab === "newsletter" ? "Newsletter Subscribers" : activeTab}
             </h1>
           </div>
           <div className="flex items-center gap-2">
@@ -1064,6 +1027,10 @@ export default function AdminPage() {
 
           {activeTab === "affiliates" && (
             <AffiliatesManager />
+          )}
+
+          {activeTab === "broker-claims" && (
+            <BrokerClaimsManager />
           )}
 
           {activeTab === "affiliate-payouts" && (
