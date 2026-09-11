@@ -144,7 +144,7 @@ export default function AffiliatePayoutsManager() {
     });
   };
 
-  // NOWPAYMENTS MASS PAYOUTS EXACT CSV TEMPLATE FORMAT
+  // NOWPAYMENTS MASS PAYOUTS EXACT CSV TEMPLATE FORMAT (PROPERLY QUOTED)
   const exportCSV = () => {
     const itemsToExport =
       selectedIds.length > 0
@@ -153,49 +153,48 @@ export default function AffiliatePayoutsManager() {
 
     if (itemsToExport.length === 0) return;
 
+    const escapeCell = (val: string) => `"${val.replace(/"/g, '""')}"`;
+
     const headers = [
-      "Ticker check Tickers template for the right one",
-      "Wallet Address",
-      "ExtraId (memo, destination tag, etc.) only for some cryptos like: XRP, XLM, EOS, XMR, HBAR and more",
-      "Amount in crypto (6 decimals only!)",
-      "Fiat amount",
-      "Fiat currency",
-      "Payout description",
+      escapeCell("Ticker check Tickers template for the right one"),
+      escapeCell("Wallet Address"),
+      escapeCell("ExtraId (memo, destination tag, etc.) only for some cryptos like: XRP, XLM, EOS, XMR, HBAR and more"),
+      escapeCell("Amount in crypto (6 decimals only!)"),
+      escapeCell("Fiat amount"),
+      escapeCell("Fiat currency"),
+      escapeCell("Payout description"),
     ];
 
     const rows = itemsToExport.map((r) => {
       const amtNum = parseFloat(r.payout.amount || "0");
       const amtCrypto = isNaN(amtNum) ? "0.000000" : amtNum.toFixed(6);
       const fiatAmt = isNaN(amtNum) ? "0" : Math.round(amtNum).toString();
-      const ticker = "usdttrc20"; // NOWPayments ticker for USDT TRC20
+      const ticker = "usdttrc20";
       const wallet = (r.affiliate.bankAccount || "").trim();
       const desc = `Affiliate payout for ${r.affiliate.code} (${r.affiliate.email})`;
 
       return [
-        ticker,
-        `"${wallet}"`,
-        "", // ExtraId blank
-        amtCrypto,
-        fiatAmt,
-        "USD",
-        `"${desc.replace(/"/g, '""')}"`,
+        escapeCell(ticker),
+        escapeCell(wallet),
+        escapeCell(""),
+        escapeCell(amtCrypto),
+        escapeCell(fiatAmt),
+        escapeCell("USD"),
+        escapeCell(desc),
       ];
     });
 
-    const csvContent =
-      "data:text/csv;charset=utf-8," +
-      [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
+    const csvContent = [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
 
-    const encodedUri = encodeURI(csvContent);
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute(
-      "download",
-      `PayoutsTemplate_${Date.now()}.csv`
-    );
+    link.setAttribute("href", url);
+    link.setAttribute("download", `PayoutsTemplate_${Date.now()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   return (
