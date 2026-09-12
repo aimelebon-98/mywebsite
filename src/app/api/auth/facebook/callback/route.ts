@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { vendors, vendorSessions, affiliates, affiliateSessions } from "@/db/schema";
+import { vendors, vendorSessions, affiliates, affiliateSessions, customers, customerSessions } from "@/db/schema";
 import { eq, or, sql } from "drizzle-orm";
 import { hashVendorPassword, generateUniqueStoreSlug } from "@/lib/vendor-auth";
 import { generateAffiliateCode } from "@/lib/affiliate-auth";
+import { hashPassword } from "@/lib/customer-auth";
 import crypto from "crypto";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +14,7 @@ export async function GET(req: NextRequest) {
   const code = searchParams.get("code");
   const stateParam = searchParams.get("state") || "";
 
-  let role = "vendor";
+  let role = "customer";
   let locale = "en";
 
   if (stateParam) {
@@ -36,7 +37,7 @@ export async function GET(req: NextRequest) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || "https://www.newdealzone.com";
 
   if (!code) {
-    return NextResponse.redirect(new URL(`/${locale}/${role}/login?error=no_code`, req.url));
+    return NextResponse.redirect(new URL(`/${locale}/${role === "customer" ? "account" : role}/login?error=no_code`, req.url));
   }
 
   try {
@@ -49,7 +50,7 @@ export async function GET(req: NextRequest) {
 
     if (!tokenData.access_token) {
       console.error("Facebook token exchange failed:", tokenData);
-      return NextResponse.redirect(new URL(`/${locale}/${role}/login?error=token_failed`, req.url));
+      return NextResponse.redirect(new URL(`/${locale}/${role === "customer" ? "account" : role}/login?error=token_failed`, req.url));
     }
 
     const userRes = await fetch(
@@ -58,7 +59,7 @@ export async function GET(req: NextRequest) {
     const user = await userRes.json();
 
     if (!user.email) {
-      return NextResponse.redirect(new URL(`/${locale}/${role}/login?error=no_email`, req.url));
+      return NextResponse.redirect(new URL(`/${locale}/${role === "customer" ? "account" : role}/login?error=no_email`, req.url));
     }
 
     const emailLower = String(user.email).toLowerCase().trim();
@@ -66,6 +67,55 @@ export async function GET(req: NextRequest) {
 
     const refCookie = req.cookies.get("ndz_affiliate")?.value || "";
     const cleanRef = String(refCookie).trim().toLowerCase();
+
+    // ----------------------------------------------------
+    // CUSTOMER SOCIAL SIGNUP/LOGIN
+    // ----------------------------------------------------
+    if (role === "customer") {
+      const existingCust = await db.select().from(customers).where(eq(customers.email, emailLower)).limit(1);
+      let customerId: string;
+
+      if (existingCust.length > 0) {
+        customerId = existingCust[0].id;
+      } else {
+        customerId = crypto.randomUUID();
+        const fallbackName = user.name || emailLower.split("@")[0];
+        const tempHash = await hashPassword(crypto.randomBytes(16).toString("hex"));
+
+        const [newCust] = await db.insert(customers).values({
+          id: customerId,
+          email: emailLower,
+          passwordHash: tempHash,
+          name: fallbackName,
+          verified: true,
+          locale: locale === "fr" ? "fr" : "en",
+          createdAt: now,
+          updatedAt: now,
+        }).returning();
+        if (newCust) customerId = newCust.id;
+      }
+
+      const token = crypto.randomBytes(32).toString("hex");
+      const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      await db.insert(customerSessions).values({
+        token,
+        customerId,
+        ipAddress: (req.headers.get("x-forwarded-for") || "unknown").slice(0, 50),
+        userAgent: (req.headers.get("user-agent") || "unknown").slice(0, 500),
+        expiresAt,
+        createdAt: now,
+      });
+
+      const response = NextResponse.redirect(new URL(`/${locale}/account/dashboard`, req.url));
+      response.cookies.set("ndz_customer_session", token, {
+        path: "/",
+        httpOnly: true,
+        sameSite: "lax",
+        maxAge: 2592000,
+        secure: process.env.NODE_ENV === "production",
+      });
+      return response;
+    }
 
     // ----------------------------------------------------
     // AFFILIATE SOCIAL SIGNUP/LOGIN
@@ -209,9 +259,9 @@ export async function GET(req: NextRequest) {
       return response;
     }
 
-    return NextResponse.redirect(new URL(`/${locale}/account`, req.url));
+    return NextResponse.redirect(new URL(`/${locale}/account/dashboard`, req.url));
   } catch (err) {
     console.error("Facebook OAuth callback error:", err);
-    return NextResponse.redirect(new URL(`/${locale}/${role}/login?error=oauth_error`, req.url));
+    return NextResponse.redirect(new URL(`/${locale}/${role === "customer" ? "account" : role}/login?error=oauth_error`, req.url));
   }
 }
