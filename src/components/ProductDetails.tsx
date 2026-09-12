@@ -1,5 +1,5 @@
-﻿import BotSidebar from '@/components/BotSidebar';
 "use client";
+import BotSidebar from "@/components/BotSidebar";
 
 import { ProductSubscriptionButton } from "./subscription/ProductSubscriptionButton";
 import { isSubscriptionProduct } from "@/lib/subscription-pricing";
