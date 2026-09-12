@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import type { ProductFaq } from "@/db/schema";
@@ -7,7 +7,42 @@ import { useLocale } from "next-intl";
 
 const INITIAL_VISIBLE = 4;
 
-export default function ProductFaqDisplay() {
+interface Props {
+  isSubscription?: boolean;
+}
+
+const FOOTWEAR_FAQS = [
+  {
+    id: "fw-1",
+    question: "Are all products 100% authentic?",
+    questionFr: "Tous les produits sont-ils 100% authentiques ?",
+    answer: "Yes, 100% guaranteed. Every item undergoes a rigorous multi-point inspection before dispatch to ensure absolute authenticity and premium quality.",
+    answerFr: "Oui, garanti \u00e0 100%. Chaque article fait l'objet d'une inspection rigoureuse avant l'envoi pour garantir une authenticit\u00e9 absolue et une qualit\u00e9 premium.",
+  },
+  {
+    id: "fw-2",
+    question: "How does sizing work?",
+    questionFr: "Comment choisir ma pointure ?",
+    answer: "All sizes are listed in standard EU sizing. If a model runs small or large, a sizing recommendation is explicitly stated in the product specifications.",
+    answerFr: "Toutes les pointures sont au format standard EU. Si un mod\u00e8le taille petit ou grand, cela est explicitement pr\u00e9cis\u00e9 dans les sp\u00e9cifications.",
+  },
+  {
+    id: "fw-3",
+    question: "What are the delivery times?",
+    questionFr: "Quels sont les d\u00e9lais de livraison ?",
+    answer: "Same-day express delivery is available in Abuja and Lom\u00e9. Regional shipments across West Africa typically arrive within 2-4 business days.",
+    answerFr: "La livraison express le jour m\u00eame est disponible \u00e0 Abuja et Lom\u00e9. Les exp\u00e9ditions r\u00e9gionales prennent 2 \u00e0 4 jours ouvrables.",
+  },
+  {
+    id: "fw-4",
+    question: "What is your return and exchange policy?",
+    questionFr: "Quelle est votre politique de retour et d'echange ?",
+    answer: "We offer a 7-day hassle-free exchange window for unworn items in their original packaging and condition.",
+    answerFr: "Nous proposons un d\u00e9lai d'echange de 7 jours sans tracas pour les articles non port\u00e9s dans leur emballage d'origine.",
+  },
+];
+
+export default function ProductFaqDisplay({ isSubscription = false }: Props) {
   const locale = useLocale();
   const isFr = locale === "fr";
   const [faqs, setFaqs] = useState<ProductFaq[]>([]);
@@ -15,16 +50,31 @@ export default function ProductFaqDisplay() {
   const [visible, setVisible] = useState(INITIAL_VISIBLE);
 
   useEffect(() => {
-    fetch("/api/product-faqs")
-      .then(r => r.json())
-      .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          setFaqs(data);
-          setOpenId(data[0].id);
-        }
-      })
-      .catch(() => {});
-  }, []);
+    if (isSubscription) {
+      fetch("/api/product-faqs")
+        .then(r => r.json())
+        .then(data => {
+          if (Array.isArray(data) && data.length > 0) {
+            setFaqs(data);
+            setOpenId(data[0].id);
+          }
+        })
+        .catch(() => {});
+    } else {
+      const formatted: ProductFaq[] = FOOTWEAR_FAQS.map((f, idx) => ({
+        id: f.id,
+        question: f.question,
+        answer: f.answer,
+        questionFr: f.questionFr,
+        answerFr: f.answerFr,
+        sortOrder: idx + 1,
+        active: true,
+        createdAt: new Date(),
+      }));
+      setFaqs(formatted);
+      setOpenId(formatted[0].id);
+    }
+  }, [isSubscription]);
 
   if (faqs.length === 0) return null;
 
@@ -61,7 +111,7 @@ export default function ProductFaqDisplay() {
             FAQ
           </h2>
           <p className="text-gray-500 mt-1 text-sm">
-            {isFr ? `${faqs.length} questions frequentes` : `${faqs.length} common questions`}
+            {isFr ? `${faqs.length} questions fr\u00e9quentes` : `${faqs.length} common questions`}
           </p>
         </div>
       </div>

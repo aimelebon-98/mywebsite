@@ -1403,7 +1403,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
 
           {/* FAQ Sidebar */}
           <aside className="min-w-0">
-            <ProductFaqDisplay />
+            <ProductFaqDisplay isSubscription={isSubscriptionProduct(product)} />
           </aside>
         </div>
       </div>
