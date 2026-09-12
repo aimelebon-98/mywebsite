@@ -1,8 +1,9 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Loader2, Eye, EyeOff, Store, LogIn, UserPlus } from "lucide-react";
+import SocialLoginButtons from "@/components/SocialLoginButtons";
 
 const BRAND = "#CA3F2E";
 const BRAND_DARK = "#8B2A1E";
@@ -150,115 +151,125 @@ export default function VendorLoginPage() {
 
             {/* LOGIN FORM */}
             {mode === "login" && (
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t.email}</label>
-                  <input
-                    type="email"
-                    required
-                    className={inputCls}
-                    value={login.email}
-                    onChange={(e) => setLogin((p) => ({ ...p, email: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t.password}</label>
-                  <div className="relative">
+              <>
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t.email}</label>
                     <input
-                      type={showPw ? "text" : "password"}
+                      type="email"
                       required
-                      className={inputCls + " pr-10"}
-                      value={login.password}
-                      onChange={(e) => setLogin((p) => ({ ...p, password: e.target.value }))}
+                      className={inputCls}
+                      value={login.email}
+                      onChange={(e) => setLogin((p) => ({ ...p, email: e.target.value }))}
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowPw(!showPw)}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                      {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
                   </div>
-                </div>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-white font-medium text-sm transition hover:opacity-90 disabled:opacity-50"
-                  style={{ backgroundColor: BRAND }}
-                >
-                  {loading && <Loader2 size={14} className="animate-spin" />}
-                  {t.loginBtn}
-                </button>
-                <p className="text-center text-xs text-gray-500">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t.password}</label>
+                    <div className="relative">
+                      <input
+                        type={showPw ? "text" : "password"}
+                        required
+                        className={inputCls + " pr-10"}
+                        value={login.password}
+                        onChange={(e) => setLogin((p) => ({ ...p, password: e.target.value }))}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPw(!showPw)}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-white font-medium text-sm transition hover:opacity-90 disabled:opacity-50"
+                    style={{ backgroundColor: BRAND }}
+                  >
+                    {loading && <Loader2 size={14} className="animate-spin" />}
+                    {t.loginBtn}
+                  </button>
+                </form>
+
+                <SocialLoginButtons mode="login" role="vendor" />
+
+                <p className="mt-4 text-center text-xs text-gray-500">
                   {t.noAccount}{" "}
                   <button type="button" onClick={() => setMode("signup")} className="font-medium" style={{ color: BRAND }}>
                     {t.signUpLink}
                   </button>
                 </p>
-              </form>
+              </>
             )}
 
             {/* SIGNUP FORM */}
             {mode === "signup" && (
-              <form onSubmit={handleSignup} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t.name}</label>
-                  <input
-                    type="text"
-                    required
-                    className={inputCls}
-                    value={signup.name}
-                    onChange={(e) => setSignup((p) => ({ ...p, name: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t.email}</label>
-                  <input
-                    type="email"
-                    required
-                    className={inputCls}
-                    value={signup.email}
-                    onChange={(e) => setSignup((p) => ({ ...p, email: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t.password}</label>
-                  <input
-                    type="password"
-                    required
-                    minLength={8}
-                    className={inputCls}
-                    value={signup.password}
-                    onChange={(e) => setSignup((p) => ({ ...p, password: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t.confirmPassword}</label>
-                  <input
-                    type="password"
-                    required
-                    minLength={8}
-                    className={inputCls}
-                    value={signup.confirm}
-                    onChange={(e) => setSignup((p) => ({ ...p, confirm: e.target.value }))}
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-white font-medium text-sm transition hover:opacity-90 disabled:opacity-50"
-                  style={{ backgroundColor: BRAND }}
-                >
-                  {loading && <Loader2 size={14} className="animate-spin" />}
-                  {t.signupBtn}
-                </button>
-                <p className="text-center text-xs text-gray-500">
+              <>
+                <form onSubmit={handleSignup} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t.name}</label>
+                    <input
+                      type="text"
+                      required
+                      className={inputCls}
+                      value={signup.name}
+                      onChange={(e) => setSignup((p) => ({ ...p, name: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t.email}</label>
+                    <input
+                      type="email"
+                      required
+                      className={inputCls}
+                      value={signup.email}
+                      onChange={(e) => setSignup((p) => ({ ...p, email: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t.password}</label>
+                    <input
+                      type="password"
+                      required
+                      minLength={8}
+                      className={inputCls}
+                      value={signup.password}
+                      onChange={(e) => setSignup((p) => ({ ...p, password: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t.confirmPassword}</label>
+                    <input
+                      type="password"
+                      required
+                      minLength={8}
+                      className={inputCls}
+                      value={signup.confirm}
+                      onChange={(e) => setSignup((p) => ({ ...p, confirm: e.target.value }))}
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-white font-medium text-sm transition hover:opacity-90 disabled:opacity-50"
+                    style={{ backgroundColor: BRAND }}
+                  >
+                    {loading && <Loader2 size={14} className="animate-spin" />}
+                    {t.signupBtn}
+                  </button>
+                </form>
+
+                <SocialLoginButtons mode="register" role="vendor" />
+
+                <p className="mt-4 text-center text-xs text-gray-500">
                   {t.hasAccount}{" "}
                   <button type="button" onClick={() => setMode("login")} className="font-medium" style={{ color: BRAND }}>
                     {t.logInLink}
                   </button>
                 </p>
-              </form>
+              </>
             )}
           </div>
         </div>
