@@ -1,10 +1,9 @@
-import { useMemo } from 'react';
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { CheckCircle2, ExternalLink, Award, Store } from "lucide-react";
+import { CheckCircle2, Award, Store } from "lucide-react";
 
 const BRAND_RED = "#CA3F2E";
 
@@ -59,7 +58,7 @@ export default function SellerInfoCard({ productId }: Props) {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 p-5 md:p-6">
+    <div className="bg-white rounded-2xl border border-gray-200 p-5 md:p-6 mb-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-base md:text-lg font-bold text-gray-900">{t.heading}</h3>
         <Link
