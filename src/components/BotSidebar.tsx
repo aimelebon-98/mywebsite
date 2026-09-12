@@ -1,122 +1,104 @@
-'use client';
+﻿"use client";
 
-import React from 'react';
-import {
-  Zap,
-  ShieldCheck,
-  CheckCircle2,
-  TrendingUp,
-  MessageSquare,
-  Clock,
-  Sparkles
-} from 'lucide-react';
+import React from "react";
 
 interface BotSidebarProps {
-  locale?: string;
+  locale: string;
 }
 
-export default function BotSidebar({ locale = 'en' }: BotSidebarProps) {
-  const isFr = locale === 'fr';
+export default function BotSidebar({ locale }: BotSidebarProps) {
+  const isFr = locale === "fr";
 
   return (
-    <div className="mt-4 space-y-4 text-xs text-gray-700">
-      {/* Live Performance Widget */}
-      <div className="bg-slate-900 text-white rounded-xl p-4 shadow-sm border border-slate-800 space-y-3">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-          <span className="flex items-center gap-1.5 font-semibold text-emerald-400 text-xs">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            {isFr ? 'Performances en direct' : 'Live Performance'}
+    <div className="mt-4 space-y-4 text-left">
+      {/* 1. Bot Technical Specs Box */}
+      <div className="rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-slate-900 via-slate-950 to-emerald-950/40 p-5 text-white shadow-lg space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="flex items-center gap-2">
+            <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse" />
+            <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400">
+              {isFr ? "Sp\u00e9cifications SMZ Bot" : "SMZ Bot Pro Specs"}
+            </h4>
+          </div>
+          <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-300 border border-emerald-500/20">
+            v4.2 Pro
           </span>
-          <span className="text-[10px] text-gray-400">{isFr ? 'IA Active' : 'AI Active'}</span>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 pt-1">
-          <div className="bg-slate-800/80 rounded-lg p-2.5">
-            <p className="text-[10px] text-gray-400">{isFr ? 'Taux de reussite' : 'Win Rate (24h)'}</p>
-            <p className="text-base font-bold text-emerald-400 flex items-center gap-1">
-              <TrendingUp className="w-4 h-4" /> 88.4%
+        <div className="grid grid-cols-2 gap-2.5 text-xs">
+          <div className="rounded-xl bg-slate-900/80 p-2.5 border border-slate-800">
+            <p className="text-[10px] text-slate-400 uppercase font-medium">{isFr ? "Taux de R\u00e9ussite" : "Win Rate"}</p>
+            <p className="text-sm font-extrabold text-emerald-400">87.4%</p>
+          </div>
+          <div className="rounded-xl bg-slate-900/80 p-2.5 border border-slate-800">
+            <p className="text-[10px] text-slate-400 uppercase font-medium">{isFr ? "Signaux / Jour" : "Daily Signals"}</p>
+            <p className="text-sm font-extrabold text-white">45 - 70</p>
+          </div>
+          <div className="rounded-xl bg-slate-900/80 p-2.5 border border-slate-800">
+            <p className="text-[10px] text-slate-400 uppercase font-medium">{isFr ? "Vitesse Push" : "Signal Latency"}</p>
+            <p className="text-sm font-extrabold text-amber-400">&lt; 50ms</p>
+          </div>
+          <div className="rounded-xl bg-slate-900/80 p-2.5 border border-slate-800">
+            <p className="text-[10px] text-slate-400 uppercase font-medium">{isFr ? "Livraison" : "Delivery"}</p>
+            <p className="text-sm font-extrabold text-blue-400">Telegram</p>
+          </div>
+        </div>
+
+        <div className="space-y-2 pt-2 border-t border-slate-800/80 text-[11px] text-slate-300">
+          <div className="flex items-center justify-between">
+            <span className="text-slate-400">{isFr ? "Courtages compatibles:" : "Supported Brokers:"}</span>
+            <span className="font-semibold text-white">Deriv, Quotex, Pocket</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-slate-400">{isFr ? "Filtres IA:" : "AI Filters:"}</span>
+            <span className="font-semibold text-emerald-400">47 Indicators</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Quick Setup Steps */}
+      <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm space-y-3">
+        <h4 className="text-xs font-semibold tracking-wider text-gray-400 uppercase">
+          {isFr ? "Comment \u00c7a Marche ?" : "Quick Activation Steps"}
+        </h4>
+        <div className="space-y-2 text-xs text-gray-700">
+          <div className="flex items-start gap-2.5">
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-[11px] font-bold text-emerald-700">1</span>
+            <p className="leading-tight">
+              <strong className="text-gray-900">{isFr ? "Abonnez-vous" : "Subscribe"}</strong> - {isFr ? "Paiement s\u00e9curis\u00e9" : "Automated billing"}
             </p>
           </div>
-          <div className="bg-slate-800/80 rounded-lg p-2.5">
-            <p className="text-[10px] text-gray-400">{isFr ? 'Signaux / Jour' : 'Daily Signals'}</p>
-            <p className="text-base font-bold text-white flex items-center gap-1">
-              <Zap className="w-4 h-4 text-amber-400" /> 15 - 30
+          <div className="flex items-start gap-2.5">
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-[11px] font-bold text-emerald-700">2</span>
+            <p className="leading-tight">
+              <strong className="text-gray-900">{isFr ? "Acc\u00e8s Telegram" : "Telegram Link"}</strong> - {isFr ? "Cl\u00e9 d'acc\u00e8s auto instantan\u00e9e" : "Instant VIP Telegram bot link"}
+            </p>
+          </div>
+          <div className="flex items-start gap-2.5">
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-[11px] font-bold text-emerald-700">3</span>
+            <p className="leading-tight">
+              <strong className="text-gray-900">{isFr ? "Signaux 24/7" : "24/7 Signals"}</strong> - {isFr ? "Recevez les signaux en direct" : "Receive instant binary alerts"}
             </p>
           </div>
         </div>
       </div>
 
-      {/* Feature Highlights */}
-      <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm space-y-2.5">
-        <h4 className="font-bold text-gray-900 text-sm flex items-center gap-1.5">
-          <Sparkles className="w-4 h-4 text-emerald-600" />
-          {isFr ? 'Pourquoi choisir SMZ Bot ?' : 'Why Choose SMZ Bot?'}
-        </h4>
-
-        <ul className="space-y-2 text-gray-600">
-          <li className="flex items-start gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-            <span>{isFr ? 'Alertes instantanees Telegram 24/7' : 'Instant 24/7 Telegram Alerts'}</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-            <span>{isFr ? '47 indicateurs IA integres' : 'Powered by 47 Technical AI Indicators'}</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-            <span>{isFr ? 'Compatible avec tous les courtiers' : 'Compatible with all major brokers'}</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-            <span>{isFr ? 'Aucune experience requise' : 'Zero trading experience needed'}</span>
-          </li>
-        </ul>
-      </div>
-
-      {/* 3-Step Setup */}
-      <div className="bg-emerald-50/60 rounded-xl p-4 border border-emerald-100 space-y-2">
-        <h4 className="font-semibold text-emerald-950 text-xs flex items-center gap-1.5">
-          <Clock className="w-3.5 h-3.5 text-emerald-700" />
-          {isFr ? 'Activation Instantanee' : 'Instant 3-Step Setup'}
-        </h4>
-        <ol className="text-[11px] text-emerald-900 space-y-1.5 pl-1">
-          <li className="flex items-center gap-2">
-            <span className="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[10px]">1</span>
-            {isFr ? 'Abonnez-vous ci-dessus' : 'Click Subscribe above'}
-          </li>
-          <li className="flex items-center gap-2">
-            <span className="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[10px]">2</span>
-            {isFr ? 'Recevez le lien VIP Telegram' : 'Receive VIP Telegram invite link'}
-          </li>
-          <li className="flex items-center gap-2">
-            <span className="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[10px]">3</span>
-            {isFr ? 'Recevez les signaux en direct' : 'Start receiving live AI signals'}
-          </li>
-        </ol>
-      </div>
-
-      {/* Security Badge */}
-      <div className="bg-gray-50 rounded-xl p-3 border border-gray-200 flex items-center gap-3 text-gray-600">
-        <ShieldCheck className="w-7 h-7 text-emerald-600 shrink-0" />
-        <div className="text-[11px] leading-tight">
-          <p className="font-semibold text-gray-900">{isFr ? '100% Securise & Verifie' : '100% Verified & Broker-Safe'}</p>
-          <p className="text-gray-500 mt-0.5">{isFr ? 'Aucune cle API risquee requise' : 'No risky API keys needed'}</p>
+      {/* 3. VIP Telegram Channel Live Counter */}
+      <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-3.5 flex items-center gap-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
+          <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+          </svg>
+        </div>
+        <div>
+          <p className="text-xs font-bold text-gray-900">
+            {isFr ? "1 420+ Traders Actifs" : "1,420+ Active VIP Traders"}
+          </p>
+          <p className="text-[11px] text-gray-500">
+            {isFr ? "Canal Telegram VIP 24/7" : "Live Telegram VIP signal channel"}
+          </p>
         </div>
       </div>
-
-      {/* Pre-purchase Telegram Support */}
-      <a
-        href="https://t.me/newdealzone" 
-        target="_blank"
-        rel="noopener noreferrer"
-        className="w-full flex items-center justify-center gap-2 p-2.5 rounded-xl border border-blue-200 bg-blue-50/80 hover:bg-blue-100 text-blue-700 font-semibold transition text-xs"
-      >
-        <MessageSquare className="w-4 h-4" />
-        {isFr ? 'Question avant d\'acheter ? Contactez-nous' : 'Have questions? Chat on Telegram'}
-      </a>
     </div>
   );
 }

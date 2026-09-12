@@ -1,4 +1,4 @@
-import BotSidebar from '@/components/BotSidebar';
+﻿import BotSidebar from '@/components/BotSidebar';
 "use client";
 
 import { ProductSubscriptionButton } from "./subscription/ProductSubscriptionButton";
@@ -31,7 +31,6 @@ import Link from "next/link";
 import ProductGallery from "@/components/ProductGallery";
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
-import SellerInfoCard from "@/components/SellerInfoCard";
 
 interface ProductDetailsProps {
   product: Product;
@@ -370,6 +369,8 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
     t("feature4"), t("feature5"), t("feature6"),
   ];
 
+  const isSmzBot = Boolean(product?.slug?.toLowerCase().includes("smz") || product?.category === "subscription");
+
   return (
     <div className="pb-24 lg:pb-0 overflow-x-hidden">
       {/* HERO PRODUCT SECTION */}
@@ -529,7 +530,9 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                 <div className="flex -space-x-2 flex-shrink-0">
                   {["JW", "SC", "MT"].map((initials, i) => {
                     const colors = ["from-blue-400 to-blue-600", "from-pink-400 to-rose-600", "from-emerald-400 to-green-600"];
-                    return (
+                    const isSmzBot = Boolean(product?.slug?.toLowerCase().includes("smz") || product?.category === "subscription");
+
+  return (
                       <div key={i} className={`w-8 h-8 rounded-full bg-gradient-to-br ${colors[i]} border-2 border-white flex items-center justify-center text-white text-[9px] font-bold shadow-sm`}>
                         {initials}
                       </div>
@@ -542,8 +545,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               </div>
 
               {/* 
-              {product?.id && <SellerInfoCard productId={product.id} />
-          {(product?.slug?.includes('bot') || product?.category?.slug === 'subscription' || product?.category === 'subscription') && <BotSidebar locale={locale} />}}
+          {((product?.slug as string)?.includes('bot') || (product?.category as any)?.slug === 'subscription' || product?.category === 'subscription') && <BotSidebar locale={locale} />}
 
               Complete the Look */}
               {!isSubscriptionProduct(product) && relatedProducts.length > 0 && (
@@ -922,8 +924,7 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               )}
 
               {/* Dynamic Seller Information card */}
-              {product?.id && <SellerInfoCard productId={product.id} />
-          {(product?.slug?.includes('bot') || product?.category?.slug === 'subscription' || product?.category === 'subscription') && <BotSidebar locale={locale} />}}
+          {((product?.slug as string)?.includes('bot') || (product?.category as any)?.slug === 'subscription' || product?.category === 'subscription') && <BotSidebar locale={locale} />}
               <div ref={stickyPlaceholderRef} className="hidden lg:block" style={{ height: isSubscriptionProduct(product) ? 0 : (stickyIsFixed ? stickyCardHeight : "auto") }}>
               {/* Sticky Add-to-Cart mini card - fixed positioning bounded to end of Description tabs */}
               <div ref={stickyCardRef} className={`bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-md transition-opacity duration-200 ${stickyIsFixed ? "lg:fixed lg:top-32" : ""}`} style={{ opacity: stickyVisible ? 1 : 0, pointerEvents: stickyVisible ? "auto" : "none", width: stickyIsFixed ? stickyCardWidth : "auto", left: stickyIsFixed && stickyCardLeft > 0 ? stickyCardLeft : undefined, zIndex: stickyIsFixed ? 30 : "auto" }}>
@@ -1321,7 +1322,9 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
                 {[5,4,3,2,1].map(star => {
                   const count = reviews.filter(r => r.rating === star).length;
                   const pct = reviews.length > 0 ? (count / reviews.length) * 100 : 0;
-                  return (
+                  const isSmzBot = Boolean(product?.slug?.toLowerCase().includes("smz") || product?.category === "subscription");
+
+  return (
                     <div key={star} className="flex items-center gap-3">
                       <div className="flex items-center gap-1 w-14 justify-end flex-shrink-0">
                         <span className="text-sm font-semibold text-gray-700">{star}</span>
