@@ -919,62 +919,8 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               </div>
               )}
 
-              {/* Seller Information card */}
-              <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-                <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
-                  <h3 className="font-bold text-base">{isFr ? "Informations vendeur" : "Seller Information"}</h3>
-                  <Link href={`/${locale}/shop`} className="text-xs font-bold px-3 py-1 rounded-lg border border-gray-300 hover:border-gray-900 hover:bg-gray-50 transition" style={{ color: "#CA3F2E" }}>
-                    {isFr ? "Voir la boutique" : "View Store"}
-                  </Link>
-                </div>
-                <div className="p-5">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center flex-shrink-0 overflow-hidden shadow-sm">
-                      <img src="/favicon.svg" alt="New Deal Zone" width="32" height="32" loading="lazy" decoding="async" className="w-8 h-8 object-contain" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="text-sm font-bold text-gray-900">NewDealZone</div>
-                      <div className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
-                        <span className="inline-block w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-                        {isFr ? "Vendeur premium verifie" : "Verified premium seller"}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Number of Sales */}
-                  <div className="bg-gray-50 rounded-xl p-3 mb-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium text-gray-600">{isFr ? "Nombre de ventes" : "Number of Sales"}</span>
-                      <span className="text-sm font-black text-gray-900">
-                        {(() => {
-                          // Simulate realistic sales count based on product age + rating
-                          const base = 50;
-                          const boost = Math.floor((product.reviewCount || 0) * 8);
-                          const total = base + boost + ((productSeed * 7) % 25);
-                          return total.toLocaleString();
-                        })()}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="bg-gray-50 rounded-xl p-3">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-xs font-medium text-gray-600">{isFr ? "Taux d'execution" : "Fulfillment Rate"}</span>
-                      <span className="text-xs font-bold text-green-600">98%</span>
-                    </div>
-                    <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                      <div className="h-full bg-green-500 rounded-full" style={{ width: "98%" }} />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 mt-4 text-xs text-gray-500">
-                    <Award className="w-3.5 h-3.5" style={{ color: "#CA3F2E" }} />
-                    <span>{isSubscriptionProduct(product) ? (isFr ? "Licence digitale \u2022 Activation crypto" : "Digital license \u2022 Crypto activation") : (isFr ? "2+ annees de vente de chaussures premium" : "2+ years selling premium footwear")}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Placeholder to reserve space in the aside so layout does not jump */}
+              {/* Dynamic Seller Information card */}
+              {product?.id && <SellerInfoCard productId={product.id} />}
               <div ref={stickyPlaceholderRef} className="hidden lg:block" style={{ height: isSubscriptionProduct(product) ? 0 : (stickyIsFixed ? stickyCardHeight : "auto") }}>
               {/* Sticky Add-to-Cart mini card - fixed positioning bounded to end of Description tabs */}
               <div ref={stickyCardRef} className={`bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-md transition-opacity duration-200 ${stickyIsFixed ? "lg:fixed lg:top-32" : ""}`} style={{ opacity: stickyVisible ? 1 : 0, pointerEvents: stickyVisible ? "auto" : "none", width: stickyIsFixed ? stickyCardWidth : "auto", left: stickyIsFixed && stickyCardLeft > 0 ? stickyCardLeft : undefined, zIndex: stickyIsFixed ? 30 : "auto" }}>
