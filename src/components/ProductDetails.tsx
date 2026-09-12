@@ -1,3 +1,4 @@
+import BotSidebar from '@/components/BotSidebar';
 "use client";
 
 import { ProductSubscriptionButton } from "./subscription/ProductSubscriptionButton";
@@ -541,7 +542,8 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               </div>
 
               {/* 
-              {product?.id && <SellerInfoCard productId={product.id} />}
+              {product?.id && <SellerInfoCard productId={product.id} />
+          {(product?.slug?.includes('bot') || product?.category?.slug === 'subscription' || product?.category === 'subscription') && <BotSidebar locale={locale} />}}
 
               Complete the Look */}
               {!isSubscriptionProduct(product) && relatedProducts.length > 0 && (
@@ -920,7 +922,8 @@ export default function ProductDetails({ product, initialReviews = [], relatedPr
               )}
 
               {/* Dynamic Seller Information card */}
-              {product?.id && <SellerInfoCard productId={product.id} />}
+              {product?.id && <SellerInfoCard productId={product.id} />
+          {(product?.slug?.includes('bot') || product?.category?.slug === 'subscription' || product?.category === 'subscription') && <BotSidebar locale={locale} />}}
               <div ref={stickyPlaceholderRef} className="hidden lg:block" style={{ height: isSubscriptionProduct(product) ? 0 : (stickyIsFixed ? stickyCardHeight : "auto") }}>
               {/* Sticky Add-to-Cart mini card - fixed positioning bounded to end of Description tabs */}
               <div ref={stickyCardRef} className={`bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-md transition-opacity duration-200 ${stickyIsFixed ? "lg:fixed lg:top-32" : ""}`} style={{ opacity: stickyVisible ? 1 : 0, pointerEvents: stickyVisible ? "auto" : "none", width: stickyIsFixed ? stickyCardWidth : "auto", left: stickyIsFixed && stickyCardLeft > 0 ? stickyCardLeft : undefined, zIndex: stickyIsFixed ? 30 : "auto" }}>
