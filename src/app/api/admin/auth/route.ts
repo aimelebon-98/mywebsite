@@ -211,8 +211,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   } catch (error) {
-    console.error("[Admin Auth POST] Error:", error);
-    return NextResponse.json({ error: "Authentication failed" }, { status: 500 });
+    console.error("[Admin Auth POST] Error:", error instanceof Error ? error.stack : error); const msg = error instanceof Error ? error.message : "Authentication failed"; return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
 
