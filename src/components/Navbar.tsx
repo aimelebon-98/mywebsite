@@ -224,7 +224,27 @@ export default function Navbar({ noStickyMobile = false, mobileTall = false }: N
       style={navStyle}
     >
       <div className={`text-center py-2 text-xs font-medium tracking-wide ${bannerBg}`} style={bannerStyle}>
-        <span>{isFr ? `LIVRAISON GRATUITE pour les commandes de plus de ${fmtPrice(1000)}` : `FREE SHIPPING on orders over ${fmtPrice(1000)}`}</span> - <Link prefetch={false} href="/shop" className="underline underline-offset-2">{t("shopNow")}</Link>
+        <div className="flex items-center justify-center gap-1.5 sm:gap-3 text-center min-w-0 max-w-full">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#CA3F2E]/20 text-[#ff6b52] text-[9px] sm:text-xs font-bold uppercase tracking-wider border border-[#CA3F2E]/30 shrink-0">
+            <Sparkles className="w-3 h-3 text-[#CA3F2E] animate-pulse" />
+            Affiliate
+          </span>
+          <span className="text-[11px] sm:text-xs font-semibold text-zinc-100 truncate">
+            {isFr ? promoSettings.promoTextFr : promoSettings.promoTextEn}
+          </span>
+          <Link
+            prefetch={false}
+            href={
+              promoSettings.promoLink.startsWith("http")
+                ? promoSettings.promoLink
+                : `/${locale}${promoSettings.promoLink.startsWith("/") ? "" : "/"}${promoSettings.promoLink}`
+            }
+            className="inline-flex items-center gap-1 bg-[#CA3F2E] hover:bg-[#8B2A1E] text-white text-[10px] sm:text-xs font-extrabold px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full transition-all shadow-xs shrink-0 group hover:scale-105"
+          >
+            <span>{isFr ? promoSettings.promoBtnFr : promoSettings.promoBtnEn}</span>
+            <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5" />
+          </Link>
+        </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
