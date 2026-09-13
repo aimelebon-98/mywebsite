@@ -148,24 +148,11 @@ export async function middleware(request: NextRequest) {
     if (hasCustomPath && !isRewrite) {
       return new NextResponse("Not Found", { status: 404 });
     }
-    if (isLocalePrefixed) {
-      const url = request.nextUrl.clone();
-      const remainingSegments = effectiveSegments.slice(1);
-      url.pathname = "/admin" + (remainingSegments.length > 0 ? "/" + remainingSegments.join("/") : "");
-      return NextResponse.redirect(url);
-    }
     return NextResponse.next();
   }
 
-  // Rewrite custom admin path (e.g. /jevw or /en/jevw) to /admin
+  // Rewrite custom admin path (e.g. /jevw or /en/jevw) directly to /admin with ZERO redirects
   if (hasCustomPath && effectiveFirstSegment === customAdminPath) {
-    if (isLocalePrefixed) {
-      const url = request.nextUrl.clone();
-      const remainingSegments = effectiveSegments.slice(1);
-      url.pathname = "/" + customAdminPath + (remainingSegments.length > 0 ? "/" + remainingSegments.join("/") : "");
-      return NextResponse.redirect(url);
-    }
-
     const remainingSegments = effectiveSegments.slice(1);
     const url = request.nextUrl.clone();
     url.pathname = "/admin" + (remainingSegments.length > 0 ? "/" + remainingSegments.join("/") : "");
