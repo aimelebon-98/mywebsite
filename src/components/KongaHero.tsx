@@ -1,243 +1,119 @@
-"use client";
-
-import React, { useState, useEffect } from "react";
-import Image from "next/image";
+import React from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Star, Package, Plane, DollarSign, TrendingUp, Home, Percent, Sparkles, Footprints } from "lucide-react";
 
-interface KongaHeroProps {
-  locale: string;
-}
+export default function KongaHero() {
+  const t = useTranslations("Index");
 
-export default function KongaHero({ locale }: KongaHeroProps) {
-  const isFr = locale === "fr";
-  const [currentSlide, setCurrentSlide] = useState(0);
-
-  const slides = [
-    {
-      id: 1,
-      tag: isFr ? "OFFRE SP\u00c9CIALE 2025" : "SPECIAL OFFER 2025",
-      title: isFr ? "Confort Ultime & Style Performance" : "Better Comfort, Better Tech",
-      subtitle: isFr ? "Jusqu'a 40% de r\u00e9duction sur la nouvelle collection" : "Up to 40% off top authentic footwear & tech drops",
-      buttonText: isFr ? "Acheter Maintenant" : "Shop Now",
-      buttonLink: "/shop",
-      bgGradient: "from-amber-700 via-rose-900 to-slate-950",
-      image: "https://images.unsplash.com/photo-1552346154-21d32810aba3?w=1000&auto=format&fit=crop&q=80",
-    },
-    {
-      id: 2,
-      tag: "SMZ BOT PRO v4.2",
-      title: isFr ? "Bot de Trading IA S\u00e9curis\u00e9" : "Automated AI Trading Signals",
-      subtitle: isFr ? "87.4% de taux de r\u00e9ussite - Signaux Telegram 24/7" : "87.4% win rate delivered instantly to Telegram 24/7",
-      buttonText: isFr ? "S'abonner Maintenant" : "Subscribe Now",
-      buttonLink: "/product/smz-ai-trading-bot-pro",
-      bgGradient: "from-emerald-900 via-slate-900 to-slate-950",
-      image: "https://images.unsplash.com/photo-1642543492481-44e81e3914a7?w=1000&auto=format&fit=crop&q=80",
-    },
-    {
-      id: 3,
-      tag: isFr ? "EXCLUSIVIT\u00c9 FOOTWEAR" : "AUTHENTIC FOOTWEAR",
-      title: isFr ? "Livraison Express & Produit V\u00e9rifi\u00e9" : "Verified Authentic Sneaker Drops",
-      subtitle: isFr ? "Exp\u00e9di\u00e9 sous 24h depuis nos entrep\u00f4ts" : "Fast delivery direct from Lom\u00e9 and Abuja hubs",
-      buttonText: isFr ? "D\u00e9couvrir" : "Explore Collection",
-      buttonLink: "/shop",
-      bgGradient: "from-blue-900 via-slate-900 to-indigo-950",
-      image: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=1000&auto=format&fit=crop&q=80",
-    },
+  const quickLinks = [
+    { name: "Verified Best", color: "bg-blue-100", textColor: "text-blue-600", icon: Star },
+    { name: "Bulk Drops", color: "bg-purple-100", textColor: "text-purple-600", icon: Package },
+    { name: "Fast Delivery", color: "bg-orange-100", textColor: "text-orange-600", icon: Plane },
+    { name: "Buy More", color: "bg-pink-100", textColor: "text-pink-600", icon: DollarSign },
+    { name: "Flash Sales", color: "bg-yellow-100", textColor: "text-yellow-600", icon: TrendingUp },
+    { name: "Essentials", color: "bg-zinc-200", textColor: "text-zinc-600", icon: Home },
+    { name: "Hot Deals", color: "bg-red-100", textColor: "text-red-600", icon: Percent },
+    { name: "Arrivals", color: "bg-emerald-100", textColor: "text-emerald-600", icon: Sparkles }
   ];
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, [slides.length]);
-
   return (
-    <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8 min-w-0">
-      {/* Upper Grid: Slider + Right 2x2 Side Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 max-w-full">
-        {/* Left/Center Main Slider (lg:col-span-8) */}
-        <div className="lg:col-span-8 relative min-w-0 w-full overflow-hidden rounded-2xl bg-slate-900 shadow-md min-h-[340px] sm:min-h-[380px] lg:min-h-[410px] flex flex-col justify-between p-6 sm:p-8 text-white">
-          {/* Background image & gradient overlay */}
-          <div className="absolute inset-0 z-0">
-            <Image
-              src={slides[currentSlide].image}
-              alt={slides[currentSlide].title}
-              fill
-              className="object-cover object-center opacity-40 transition-opacity duration-700 ease-in-out"
-              priority
-            />
-            <div className={`absolute inset-0 bg-gradient-to-r ${slides[currentSlide].bgGradient} opacity-85`} />
-          </div>
+    <section className="w-full max-w-full overflow-x-hidden bg-zinc-50 pt-4 pb-8">
+      <div className="container mx-auto px-4 lg:px-8 max-w-[1400px]">
+        {/* Top Grid Area */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 max-w-full">
 
-          {/* Slide Content */}
-          <div className="relative z-10 space-y-4 max-w-xl">
-            <span className="inline-block rounded-full bg-white/20 backdrop-blur-md px-3.5 py-1 text-xs font-bold tracking-wider text-amber-300 uppercase border border-white/20">
-              {slides[currentSlide].tag}
-            </span>
-            <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight leading-tight text-white">
-              {slides[currentSlide].title}
-            </h1>
-            <p className="text-sm sm:text-base text-gray-200 font-medium leading-relaxed">
-              {slides[currentSlide].subtitle}
-            </p>
+          {/* Main Banner - Left (Spans 8 cols) */}
+          <div className="lg:col-span-8 relative bg-zinc-900 rounded-xl overflow-hidden min-h-[350px] lg:min-h-[440px] flex items-center w-full min-w-0 shadow-sm">
+            <div className="absolute inset-0 bg-gradient-to-r from-[#CA3F2E] to-[#8B2A1E]"></div>
+            {/* Decorative background elements */}
+            <div className="absolute top-0 right-0 w-1/2 h-full bg-black/10 skew-x-12 transform translate-x-20"></div>
 
-            <div className="pt-2">
-              <Link
-                href={`/${locale}${slides[currentSlide].buttonLink}`}
-                className="inline-flex items-center gap-2 rounded-xl bg-rose-600 px-6 py-3 text-xs sm:text-sm font-bold text-white shadow-lg hover:bg-rose-700 transition-all hover:scale-105"
-              >
-                {slides[currentSlide].buttonText}
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </Link>
-            </div>
-          </div>
-
-          {/* Carousel Navigation Dots */}
-          <div className="relative z-10 flex items-center gap-2 pt-4">
-            {slides.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => setCurrentSlide(idx)}
-                className={`h-2.5 rounded-full transition-all ${
-                  currentSlide === idx ? "w-8 bg-rose-500" : "w-2.5 bg-white/50 hover:bg-white/80"
-                }`}
-                aria-label={`Slide ${idx + 1}`}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Right Side 2x2 Grid Banners (lg:col-span-4) */}
-        <div className="lg:col-span-4 min-w-0 w-full grid grid-cols-2 lg:grid-cols-1 gap-3">
-          {/* Card 1: SMZ Bot promo */}
-          <div className="rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 to-emerald-950 p-4 text-white flex flex-col justify-between shadow-sm min-h-[190px]">
-            <div>
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                  {isFr ? "PROMO BROKER" : "PROMO BONUS"}
-                </span>
-                <span className="text-[10px] text-gray-400 font-semibold">$20 Deposit</span>
-              </div>
-              <h3 className="mt-2 text-sm font-bold text-white leading-snug">
-                {isFr ? "1 Mois SMZ Bot Gratuit" : "Get 1 Month SMZ Bot Free"}
-              </h3>
-              <p className="mt-1 text-[11px] text-gray-300">
-                {isFr ? "D\u00e9posez $20 chez notre broker partenaire" : "Deposit $20 on partner broker"}
-              </p>
-            </div>
-            <Link
-              href={`/${locale}/broker-promo`}
-              className="mt-3 inline-flex items-center justify-center rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-600 transition-colors w-full"
-            >
-              {isFr ? "Profiter de l'Offre" : "Claim $20 Promo"}
-            </Link>
-          </div>
-
-          {/* Card 2: Free Express Shipping */}
-          <div className="rounded-2xl border border-amber-200/50 bg-gradient-to-br from-amber-500 via-amber-600 to-rose-600 p-4 text-white flex flex-col justify-between shadow-sm min-h-[190px]">
-            <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-white bg-white/20 px-2 py-0.5 rounded border border-white/30">
-                {isFr ? "GARANTIE NDZ" : "AUTHENTICITY"}
+            <div className="relative z-10 p-8 md:p-12 text-white w-full md:w-3/4 min-w-0">
+              <span className="inline-block px-3 py-1 bg-white text-[#CA3F2E] text-xs font-extrabold uppercase tracking-widest rounded mb-6 shadow-sm">
+                Brand Day
               </span>
-              <h3 className="mt-2 text-sm font-bold text-white leading-snug">
-                {isFr ? "Produits 100% Authentiques" : "100% Genuine Guaranteed"}
-              </h3>
-              <p className="mt-1 text-[11px] text-amber-100">
-                {isFr ? "Inspect\u00e9s avant exp\u00e9dition" : "Verified & tested before dispatch"}
-              </p>
+              <h2 className="text-4xl md:text-6xl font-bold mb-4 font-playfair leading-[1.1]">
+                Built for Easy<br />Performance
+              </h2>
+              <div className="bg-zinc-900 text-white font-bold text-xl md:text-2xl px-5 py-2 inline-block mb-8 transform -skew-x-12 shadow-lg">
+                <span className="block transform skew-x-12">UP TO 40% OFF</span>
+              </div>
+              <div>
+                <Link href="/shop" className="inline-block bg-white text-zinc-900 hover:bg-zinc-100 px-8 py-3.5 rounded-full font-bold transition-colors shadow-md">
+                  Shop Now
+                </Link>
+              </div>
             </div>
-            <Link
-              href={`/${locale}/shop`}
-              className="mt-3 inline-flex items-center justify-center rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-amber-900 hover:bg-amber-50 transition-colors w-full shadow"
-            >
-              {isFr ? "Voir la Boutique" : "Shop Collection"}
+          </div>
+
+          {/* Right Grid - 4 small banners (Spans 4 cols) */}
+          <div className="lg:col-span-4 grid grid-cols-2 gap-4 w-full min-w-0 max-w-full">
+            {/* Block 1 */}
+            <Link href="/shop/sneakers" className="relative bg-zinc-900 rounded-xl overflow-hidden flex flex-col items-center justify-center group aspect-square min-w-0 shadow-sm">
+              <div className="absolute inset-0 bg-zinc-800 group-hover:scale-110 transition-transform duration-700"></div>
+              <div className="relative z-10 text-center px-4 flex flex-col items-center">
+                <span className="inline-flex w-12 h-12 bg-white rounded-full mb-3 shadow-md items-center justify-center text-zinc-900">
+                  <Footprints className="w-6 h-6" />
+                </span>
+                <h3 className="text-white font-bold text-base md:text-lg mb-1">Sneakers</h3>
+                <span className="text-[#CA3F2E] text-xs font-bold uppercase tracking-wider">Shop Now &gt;</span>
+              </div>
+            </Link>
+
+            {/* Block 2 */}
+            <Link href="/shop?sort=discount" className="relative bg-[#00472f] rounded-xl overflow-hidden flex flex-col items-center justify-center group aspect-square min-w-0 shadow-sm">
+              <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-emerald-300 to-transparent"></div>
+              <div className="relative z-10 text-center px-2">
+                <p className="text-emerald-300 text-[10px] md:text-xs font-bold uppercase mb-1 tracking-wider">Xclusive Deals</p>
+                <h3 className="text-white font-black text-xl md:text-2xl mb-1 leading-none">EXTRA</h3>
+                <h3 className="text-yellow-400 font-black text-2xl md:text-3xl mb-3">10% OFF</h3>
+                <span className="bg-yellow-400 text-zinc-900 text-[11px] md:text-xs font-bold py-1.5 px-3 md:px-4 rounded shadow-sm">Apply Code</span>
+              </div>
+            </Link>
+
+            {/* Block 3 */}
+            <Link href="/shop/running" className="relative bg-[#ffe5d9] rounded-xl overflow-hidden flex flex-col items-center justify-center group aspect-square min-w-0 shadow-sm">
+              <div className="relative z-10 text-center">
+                <div className="w-14 h-14 md:w-16 md:h-16 mx-auto bg-pink-500 rounded-full flex items-center justify-center mb-3 shadow-md transform group-hover:rotate-12 transition-transform duration-300">
+                   <span className="text-white font-black text-[9px] md:text-[10px] text-center leading-[1.1] tracking-wider">GENUINE<br/>PRODUCTS</span>
+                </div>
+                <h3 className="text-zinc-900 font-bold text-sm md:text-base">Quality Assured</h3>
+              </div>
+            </Link>
+
+            {/* Block 4 */}
+            <Link href="/shop/formal" className="relative bg-zinc-950 rounded-xl overflow-hidden flex flex-col items-center justify-center group aspect-square min-w-0 shadow-sm">
+              <div className="absolute inset-0 opacity-60 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-zinc-700 to-zinc-950 group-hover:scale-110 transition-transform duration-700"></div>
+              <div className="relative z-10 text-center px-4">
+                <h3 className="text-white font-bold text-base md:text-lg mb-3">Premium<br/>Formal</h3>
+                <span className="bg-[#CA3F2E] text-white text-xs font-bold py-1.5 px-4 rounded-full shadow-sm">Explore</span>
+              </div>
             </Link>
           </div>
+
         </div>
-      </div>
 
-      {/* Bottom Category Badges (Konga Quick Shortcut Bar) */}
-      <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 min-w-0">
-        <Link
-          href={`/${locale}/shop?sort=best-selling`}
-          className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white p-3 shadow-sm hover:shadow-md hover:border-rose-200 transition-all"
-        >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-rose-600 font-extrabold text-lg">
-            &#9733;
+        {/* Bottom Quick Links Row - Mobile Overflow Safe */}
+        <div className="mt-6 md:mt-8 -mx-4 px-4 sm:mx-0 sm:px-0 max-w-full">
+          <div className="flex overflow-x-auto gap-3 md:gap-5 pb-4 snap-x [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] max-w-full">
+            {quickLinks.map((item, i) => {
+              const Icon = item.icon;
+              return (
+                <Link key={i} href="/shop" className="flex flex-col items-center gap-2 md:gap-3 min-w-[85px] md:min-w-[110px] snap-start group">
+                  <div className={`w-16 h-16 md:w-20 md:h-20 ${item.color} rounded-2xl flex items-center justify-center shadow-sm group-hover:-translate-y-1 transition-transform duration-300`}>
+                    <div className="transform group-hover:scale-110 transition-transform duration-300">
+                      <Icon className={`w-7 h-7 md:w-9 md:h-9 ${item.textColor}`} />
+                    </div>
+                  </div>
+                  <span className="text-[11px] md:text-sm font-bold text-center text-zinc-700 leading-tight">
+                    {item.name}
+                  </span>
+                </Link>
+              );
+            })}
           </div>
-          <div className="min-w-0 truncate">
-            <p className="text-xs font-bold text-gray-900 truncate">{isFr ? "Meilleures Ventes" : "Best Sellers"}</p>
-            <p className="text-[10px] text-gray-500 truncate">{isFr ? "Prix v\u00e9rifi\u00e9s" : "Verified prices"}</p>
-          </div>
-        </Link>
-
-        <Link
-          href={`/${locale}/product/smz-ai-trading-bot-pro`}
-          className="flex items-center gap-3 rounded-xl border border-emerald-100 bg-white p-3 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all"
-        >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 font-extrabold text-lg">
-            &#9889;
-          </div>
-          <div className="min-w-0 truncate">
-            <p className="text-xs font-bold text-gray-900 truncate">SMZ Bot Pro</p>
-            <p className="text-[10px] text-gray-500 truncate">{isFr ? "Signaux IA 24/7" : "24/7 AI Signals"}</p>
-          </div>
-        </Link>
-
-        <Link
-          href={`/${locale}/broker-promo`}
-          className="flex items-center gap-3 rounded-xl border border-blue-100 bg-white p-3 shadow-sm hover:shadow-md hover:border-blue-300 transition-all"
-        >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 font-extrabold text-lg">
-            &#127873;
-          </div>
-          <div className="min-w-0 truncate">
-            <p className="text-xs font-bold text-gray-900 truncate">{isFr ? "Promo $20 Broker" : "Promo $20 Broker"}</p>
-            <p className="text-[10px] text-gray-500 truncate">{isFr ? "1 Mois Offert" : "1 Month Free"}</p>
-          </div>
-        </Link>
-
-        <Link
-          href={`/${locale}/shop?category=sneakers`}
-          className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white p-3 shadow-sm hover:shadow-md hover:border-purple-200 transition-all"
-        >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-purple-50 text-purple-600 font-extrabold text-lg">
-            &#128095;
-          </div>
-          <div className="min-w-0 truncate">
-            <p className="text-xs font-bold text-gray-900 truncate">Sneakers</p>
-            <p className="text-[10px] text-gray-500 truncate">{isFr ? "Nouveaut\u00e9s 2025" : "New drops 2025"}</p>
-          </div>
-        </Link>
-
-        <Link
-          href={`/${locale}/shop?category=running`}
-          className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white p-3 shadow-sm hover:shadow-md hover:border-amber-200 transition-all"
-        >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600 font-extrabold text-lg">
-            &#127939;
-          </div>
-          <div className="min-w-0 truncate">
-            <p className="text-xs font-bold text-gray-900 truncate">Running</p>
-            <p className="text-[10px] text-gray-500 truncate">{isFr ? "Haute Performance" : "High Performance"}</p>
-          </div>
-        </Link>
-
-        <Link
-          href={`/${locale}/contact`}
-          className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white p-3 shadow-sm hover:shadow-md hover:border-slate-300 transition-all"
-        >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-700 font-extrabold text-lg">
-            &#128172;
-          </div>
-          <div className="min-w-0 truncate">
-            <p className="text-xs font-bold text-gray-900 truncate">{isFr ? "Support Client" : "24/7 Support"}</p>
-            <p className="text-[10px] text-gray-500 truncate">{isFr ? "Telegram & Email" : "Chat on Telegram"}</p>
-          </div>
-        </Link>
+        </div>
       </div>
     </section>
   );
