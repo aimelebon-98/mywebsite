@@ -77,7 +77,6 @@ interface Props {
 }
 
 type Lang = "en" | "fr";
-type Section = "basics" | "media" | "variants" | "content" | "seo";
 
 export default function VendorProductForm({ initial, submitLabel, onSubmit, isEdit }: Props) {
   const [data, setData] = useState<ProductFormData>(initial);
@@ -85,7 +84,7 @@ export default function VendorProductForm({ initial, submitLabel, onSubmit, isEd
   const [saving, setSaving] = useState(false);
   const [notif, setNotif] = useState<{ type: "success" | "error"; msg: string } | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [section, setSection] = useState<Section>("basics");
+
   const [newSize, setNewSize] = useState("");
   const [newColorName, setNewColorName] = useState("");
   const [newTag, setNewTag] = useState("");
@@ -96,7 +95,7 @@ export default function VendorProductForm({ initial, submitLabel, onSubmit, isEd
 
   function showNotif(type: "success" | "error", msg: string) {
     setNotif({ type, msg });
-    setTimeout(() => setNotif(null), 4000);
+    setTimeout(() => setNotif(null), 4500);
   }
 
   async function handleUpload(file: File) {
@@ -116,7 +115,7 @@ export default function VendorProductForm({ initial, submitLabel, onSubmit, isEd
         imageUrl: data.imageUrl || url,
         ogImage: data.ogImage || url,
       });
-      showNotif("success", "Image uploaded");
+      showNotif("success", "Image uploaded successfully");
     } catch (err) {
       showNotif("error", err instanceof Error ? err.message : "Upload failed");
     } finally {
@@ -177,378 +176,562 @@ export default function VendorProductForm({ initial, submitLabel, onSubmit, isEd
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!data.name.trim()) { showNotif("error", "Name required (English)"); setLang("en"); setSection("basics"); return; }
-    if (!data.price || parseFloat(data.price) <= 0) { showNotif("error", "Valid price required"); setSection("basics"); return; }
-    if (data.images.length === 0) { showNotif("error", "At least one image required"); setSection("media"); return; }
+    if (!data.name.trim()) {
+      showNotif("error", "Name required (English)");
+      return;
+    }
+    if (!data.price || parseFloat(data.price) <= 0) {
+      showNotif("error", "Valid price required");
+      return;
+    }
+    if (data.images.length === 0) {
+      showNotif("error", "At least one product image is required");
+      return;
+    }
+
+    // Auto-generate SKU if left empty by vendor
+    let finalSku = data.sku.trim();
+    if (!finalSku) {
+      const brandCode = (data.brand || data.category || "NDZ").replace(/[^a-zA-Z0-9]/g, "").slice(0, 3).toUpperCase() || "NDZ";
+      const nameCode = (data.name || "ITEM").replace(/[^a-zA-Z0-9]/g, "").slice(0, 3).toUpperCase() || "ITM";
+      const randNum = Math.floor(1000 + Math.random() * 9000);
+      finalSku = `NDZ-${brandCode}-${nameCode}-${randNum}`;
+    }
+
+    const submissionData = {
+      ...data,
+      sku: finalSku,
+    };
+
     setSaving(true);
     try {
-      await onSubmit(data);
-      showNotif("success", isEdit ? "Product updated - resubmitted for review" : "Product submitted for approval");
+      await onSubmit(submissionData);
+      showNotif("success", isEdit ? "Product updated - resubmitted for review" : "Product submitted for admin approval");
     } catch (err) {
-      showNotif("error", err instanceof Error ? err.message : "Failed");
+      showNotif("error", err instanceof Error ? err.message : "Submission failed");
     } finally {
       setSaving(false);
     }
   }
 
-  const sections: Array<{ id: Section; label: string }> = [
-    { id: "basics", label: "Basics" },
-    { id: "media", label: "Media" },
-    { id: "variants", label: "Sizes & colors" },
-    { id: "content", label: "Content" },
-    { id: "seo", label: "SEO" },
-  ];
-
-  // Show language toggle only on sections that have translations
-  const sectionHasTranslations = section === "basics" || section === "content" || section === "seo";
-
   return (
-    <form onSubmit={handleSubmit} className="max-w-4xl">
+    <form onSubmit={handleSubmit} className="max-w-4xl space-y-6 pb-12">
       {notif && (
-        <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg text-sm font-medium shadow-lg flex items-center gap-2 ${notif.type === "success" ? "bg-green-600 text-white" : "bg-red-600 text-white"}`}>
+        <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl text-sm font-medium shadow-xl flex items-center gap-2 ${notif.type === "success" ? "bg-green-600 text-white" : "bg-red-600 text-white"}`}>
           {notif.type === "success" ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
           {notif.msg}
         </div>
       )}
 
-      {/* Section tabs */}
-      <div className="flex flex-wrap gap-2 mb-4 border-b border-gray-200">
-        {sections.map(s => {
-          const active = section === s.id;
-          return (
-            <button
-              type="button"
-              key={s.id}
-              onClick={() => setSection(s.id)}
-              className={`px-4 py-3 text-sm font-semibold border-b-2 -mb-px transition ${active ? "" : "text-gray-500 border-transparent hover:text-gray-700"}`}
-              style={active ? { borderBottomColor: BRAND_RED, color: BRAND_RED } : undefined}
-            >
-              {s.label}
-            </button>
-          );
-        })}
+      {/* LANGUAGE MODE TOGGLE */}
+      <div className="bg-white rounded-2xl p-4 border border-gray-100 flex flex-wrap items-center justify-between gap-3 shadow-xs">
+        <div>
+          <h2 className="font-bold text-gray-900 text-base">Product Details</h2>
+          <p className="text-xs text-gray-500">Fill in all details below on this single page.</p>
+        </div>
+
+        <div className="inline-flex p-1 bg-gray-100 rounded-xl">
+          <button
+            type="button"
+            onClick={() => setLang("en")}
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold transition ${lang === "en" ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700"}`}
+          >
+            <span className="text-[10px] font-black opacity-70">EN</span>
+            English
+          </button>
+          <button
+            type="button"
+            onClick={() => setLang("fr")}
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold transition ${lang === "fr" ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700"}`}
+          >
+            <span className="text-[10px] font-black opacity-70">FR</span>
+            Fran&ccedil;ais
+          </button>
+        </div>
       </div>
 
-      {/* Language toggle - only on translatable sections */}
-      {sectionHasTranslations && (
-        <div className="mb-4">
-          <div className="inline-flex p-1 bg-gray-100 rounded-lg">
+      {/* SECTION 1: BASIC INFORMATION */}
+      <div className="bg-white rounded-2xl p-6 border border-gray-100 space-y-4 shadow-xs">
+        <h3 className="font-bold text-gray-900 text-base border-b border-gray-100 pb-3">
+          1. Basic information {isFr && <span className="text-xs text-gray-500 font-normal">(French Mode)</span>}
+        </h3>
+
+        {!isFr ? (
+          <>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Name (English) *</label>
+              <input
+                type="text"
+                required
+                value={data.name}
+                onChange={e => setData({ ...data, name: e.target.value })}
+                placeholder="e.g. Nike Air Max 90 Sneaker - Black/White"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+              />
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Price ({displayCurrency(data.currency)}) *</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  required
+                  value={data.price}
+                  onChange={e => setData({ ...data, price: e.target.value })}
+                  placeholder="0.00"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Compare-at price ({displayCurrency(data.currency)})</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={data.comparePrice}
+                  onChange={e => setData({ ...data, comparePrice: e.target.value })}
+                  placeholder="Original price (shows discount)"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Stock *</label>
+                <input
+                  type="number"
+                  min="0"
+                  required
+                  value={data.stock}
+                  onChange={e => setData({ ...data, stock: parseInt(e.target.value) || 0 })}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                />
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Category *</label>
+                <select
+                  value={data.category}
+                  onChange={e => setData({ ...data, category: e.target.value })}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-gray-900"
+                >
+                  {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Brand</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Nike, Jordan, Puma"
+                  value={data.brand}
+                  onChange={e => setData({ ...data, brand: e.target.value })}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">SKU (Optional)</label>
+                <input
+                  type="text"
+                  placeholder="Auto-generated on submit if left empty"
+                  value={data.sku}
+                  onChange={e => setData({ ...data, sku: e.target.value })}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-gray-900"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Material</label>
+              <input
+                type="text"
+                placeholder="e.g. Full Grain Leather, Mesh + EVA Sole, Suede..."
+                value={data.material}
+                onChange={e => setData({ ...data, material: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+              />
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Ships from country</label>
+                <select
+                  value={data.originCountry}
+                  onChange={e => setData({ ...data, originCountry: e.target.value })}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-gray-900"
+                >
+                  {COUNTRIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Ships from city</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Abuja, Lomé, Lagos"
+                  value={data.originCity}
+                  onChange={e => setData({ ...data, originCity: e.target.value })}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                />
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Nom (Fran&ccedil;ais)</label>
+              <input
+                type="text"
+                value={data.nameFr}
+                onChange={e => setData({ ...data, nameFr: e.target.value })}
+                placeholder="Traduction fran&ccedil;aise du nom du produit"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+              />
+              <p className="text-xs text-gray-500 mt-1">Si vide, la version anglaise sera utilis&eacute;e.</p>
+            </div>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-800">
+              Les prix, cat&eacute;gorie, marque, stock et pays sont g&eacute;r&eacute;s dans la version anglaise.
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* SECTION 2: MEDIA / IMAGES */}
+      <div className="bg-white rounded-2xl p-6 border border-gray-100 space-y-4 shadow-xs">
+        <h3 className="font-bold text-gray-900 text-base border-b border-gray-100 pb-3">
+          2. Product images *
+        </h3>
+        <p className="text-xs text-gray-500">First image is the main photo. Click any image to make it primary.</p>
+
+        {data.images.length > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {data.images.map((img, idx) => (
+              <div key={img + idx} className="relative group">
+                <img
+                  src={img}
+                  alt={"Product image " + (idx + 1)}
+                  className={`w-full aspect-square object-cover rounded-xl cursor-pointer border-2 ${idx === 0 ? "border-[#CA3F2E]" : "border-gray-200"}`}
+                  onClick={() => setPrimary(idx)}
+                />
+                {idx === 0 && (
+                  <span className="absolute top-2 left-2 text-white text-[10px] font-black px-2 py-0.5 rounded shadow-sm" style={{ backgroundColor: BRAND_RED }}>
+                    MAIN
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => removeImage(idx)}
+                  className="absolute top-2 right-2 w-7 h-7 bg-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                >
+                  <X className="w-4 h-4 text-red-600" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={() => imageRef.current?.click()}
+          disabled={uploadingImage}
+          className="w-full flex items-center justify-center gap-2 px-4 py-6 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-gray-400 transition disabled:opacity-50"
+        >
+          {uploadingImage ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5 text-gray-500" />}
+          <span className="text-sm font-semibold">{uploadingImage ? "Uploading..." : "Upload product image (JPG, PNG, WebP)"}</span>
+        </button>
+        <input
+          ref={imageRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={e => {
+            const f = e.target.files?.[0];
+            if (f) handleUpload(f);
+            if (imageRef.current) imageRef.current.value = "";
+          }}
+        />
+      </div>
+
+      {/* SECTION 3: SIZES & COLORS */}
+      <div className="bg-white rounded-2xl p-6 border border-gray-100 space-y-6 shadow-xs">
+        <h3 className="font-bold text-gray-900 text-base border-b border-gray-100 pb-3">
+          3. Sizes &amp; Color variants
+        </h3>
+
+        {/* Sizes */}
+        <div className="space-y-3">
+          <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">Sizes</label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="e.g. 40, 41, 42, 43 or EU 42"
+              value={newSize}
+              onChange={e => setNewSize(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addSize(); } }}
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+            />
             <button
               type="button"
-              onClick={() => setLang("en")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition ${lang === "en" ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700"}`}
+              onClick={addSize}
+              className="px-4 py-2 text-white font-bold text-xs rounded-lg transition"
+              style={{ backgroundColor: BRAND_RED }}
             >
-              <span className="text-xs font-black opacity-70">EN</span>
-              English
-            </button>
-            <button
-              type="button"
-              onClick={() => setLang("fr")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition ${lang === "fr" ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700"}`}
-            >
-              <span className="text-xs font-black opacity-70">FR</span>
-              Fran&ccedil;ais
+              Add Size
             </button>
           </div>
-          {isFr && (
-            <p className="text-xs text-gray-500 mt-2">
-              You are editing the French version. English is required, French is optional but recommended.
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* BASICS SECTION */}
-      {section === "basics" && (
-        <div className="bg-white rounded-2xl p-6 border border-gray-100 space-y-4">
-          <h3 className="font-bold text-gray-900">Basic information {isFr && <span className="text-xs text-gray-500 font-normal">(French)</span>}</h3>
-
-          {!isFr ? (
-            <>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Name (English) *</label>
-                <input type="text" required value={data.name} onChange={e => setData({ ...data, name: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
-              </div>
-
-              <div className="grid md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Price ({displayCurrency(data.currency)}) *</label>
-                  <input type="number" step="0.01" min="0" required value={data.price} onChange={e => setData({ ...data, price: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Compare-at price ({displayCurrency(data.currency)})</label>
-                  <input type="number" step="0.01" min="0" value={data.comparePrice} onChange={e => setData({ ...data, comparePrice: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
-                  <p className="text-xs text-gray-500 mt-1">Original price (shows discount)</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Stock *</label>
-                  <input type="number" min="0" required value={data.stock} onChange={e => setData({ ...data, stock: parseInt(e.target.value) || 0 })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Category *</label>
-                  <select value={data.category} onChange={e => setData({ ...data, category: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-white">
-                    {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Brand</label>
-                  <input type="text" value={data.brand} onChange={e => setData({ ...data, brand: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">SKU</label>
-                  <input type="text" value={data.sku} onChange={e => setData({ ...data, sku: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-mono" />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Material</label>
-                <input type="text" placeholder="e.g. Leather, Mesh + Rubber, Suede..." value={data.material} onChange={e => setData({ ...data, material: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Ships from country</label>
-                  <select value={data.originCountry} onChange={e => setData({ ...data, originCountry: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-white">
-                    {COUNTRIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Ships from city</label>
-                  <input type="text" value={data.originCity} onChange={e => setData({ ...data, originCity: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
-                </div>
-              </div>
-            </>
-          ) : (
-            <>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Nom (Fran&ccedil;ais)</label>
-                <input type="text" value={data.nameFr} onChange={e => setData({ ...data, nameFr: e.target.value })} placeholder="Traduction fran&ccedil;aise du nom du produit" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
-                <p className="text-xs text-gray-500 mt-1">Si vide, la version anglaise sera utilis&eacute;e.</p>
-              </div>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-xs text-blue-800">
-                Les prix, cat&eacute;gorie, marque, stock et pays sont partag&eacute;s entre les deux langues et se g&egrave;rent dans la version anglaise.
-              </div>
-            </>
-          )}
-        </div>
-      )}
-
-      {/* MEDIA SECTION (no lang toggle - images shared) */}
-      {section === "media" && (
-        <div className="bg-white rounded-2xl p-6 border border-gray-100 space-y-4">
-          <h3 className="font-bold text-gray-900">Product images</h3>
-          <p className="text-sm text-gray-500">First image is the main image. Click any image to make it primary.</p>
-
-          {data.images.length > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {data.images.map((img, idx) => (
-                <div key={img + idx} className="relative group">
-                  <img
-                    src={img}
-                    alt={"Product image " + (idx + 1)}
-                    className={`w-full aspect-square object-cover rounded-xl cursor-pointer border-2 ${idx === 0 ? "" : "border-gray-200"}`}
-                    style={idx === 0 ? { borderColor: BRAND_RED } : undefined}
-                    onClick={() => setPrimary(idx)}
-                  />
-                  {idx === 0 && (
-                    <span className="absolute top-2 left-2 text-white text-[10px] font-bold px-2 py-0.5 rounded" style={{ backgroundColor: BRAND_RED }}>MAIN</span>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => removeImage(idx)}
-                    className="absolute top-2 right-2 w-7 h-7 bg-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
-                  >
-                    <X className="w-4 h-4 text-red-600" />
-                  </button>
-                </div>
+          {data.sizes.length > 0 && (
+            <div className="flex flex-wrap gap-2 pt-1">
+              {data.sizes.map(s => (
+                <span key={s} className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 rounded-full text-xs font-bold text-gray-800">
+                  {s}
+                  <button type="button" onClick={() => removeSize(s)} className="hover:text-red-600"><X className="w-3.5 h-3.5" /></button>
+                </span>
               ))}
             </div>
           )}
-
-          <button
-            type="button"
-            onClick={() => imageRef.current?.click()}
-            disabled={uploadingImage}
-            className="w-full flex items-center justify-center gap-2 px-4 py-6 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-gray-400 disabled:opacity-50"
-          >
-            {uploadingImage ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
-            {uploadingImage ? "Uploading..." : "Upload image (JPG, PNG, WebP - max 5 MB)"}
-          </button>
-          <input
-            ref={imageRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={e => {
-              const f = e.target.files?.[0];
-              if (f) handleUpload(f);
-              if (imageRef.current) imageRef.current.value = "";
-            }}
-          />
         </div>
-      )}
 
-      {/* VARIANTS SECTION (no lang toggle - sizes/colors shared) */}
-      {section === "variants" && (
-        <div className="space-y-6">
-          <div className="bg-white rounded-2xl p-6 border border-gray-100 space-y-4">
-            <h3 className="font-bold text-gray-900">Sizes</h3>
-            <div className="flex gap-2">
-              <input type="text" placeholder="e.g. 42 or US 9" value={newSize} onChange={e => setNewSize(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addSize(); } }} className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
-              <button type="button" onClick={addSize} className="px-4 py-2.5 text-white font-semibold rounded-lg" style={{ backgroundColor: BRAND_RED }}>Add</button>
+        {/* Colors */}
+        <div className="space-y-3 border-t border-gray-100 pt-4">
+          <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">Colors</label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="e.g. Black/White, Desert Sand"
+              value={newColorName}
+              onChange={e => setNewColorName(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addColor(); } }}
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+            />
+            <button
+              type="button"
+              onClick={addColor}
+              className="px-4 py-2 text-white font-bold text-xs rounded-lg transition"
+              style={{ backgroundColor: BRAND_RED }}
+            >
+              Add Color
+            </button>
+          </div>
+          {data.colors.length > 0 && (
+            <div className="flex flex-wrap gap-2 pt-1">
+              {data.colors.map((c, idx) => (
+                <span key={c.name + idx} className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 rounded-full text-xs font-bold text-gray-800">
+                  {c.name}
+                  <button type="button" onClick={() => removeColor(idx)} className="hover:text-red-600"><X className="w-3.5 h-3.5" /></button>
+                </span>
+              ))}
             </div>
-            {data.sizes.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {data.sizes.map(s => (
-                  <span key={s} className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 rounded-full text-sm font-medium text-gray-700">
-                    {s}
-                    <button type="button" onClick={() => removeSize(s)} className="hover:text-red-600"><X className="w-3.5 h-3.5" /></button>
+          )}
+        </div>
+      </div>
+
+      {/* SECTION 4: CONTENT & DESCRIPTIONS */}
+      <div className="bg-white rounded-2xl p-6 border border-gray-100 space-y-4 shadow-xs">
+        <h3 className="font-bold text-gray-900 text-base border-b border-gray-100 pb-3">
+          4. Content &amp; Descriptions {isFr && <span className="text-xs text-gray-500 font-normal">(French Mode)</span>}
+        </h3>
+
+        {!isFr ? (
+          <>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Short description</label>
+              <textarea
+                rows={2}
+                placeholder="1-2 sentence summary shown on product cards"
+                value={data.shortDescription}
+                onChange={e => setData({ ...data, shortDescription: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-gray-900"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Full description (HTML allowed)</label>
+              <textarea
+                rows={8}
+                placeholder="Detailed product specifications, features, cushioning, style tips..."
+                value={data.longDescription}
+                onChange={e => setData({ ...data, longDescription: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-gray-900"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Tags</label>
+              <div className="flex gap-2 mb-2">
+                <input
+                  type="text"
+                  placeholder="Add tag (e.g. sneakers, running, black)"
+                  value={newTag}
+                  onChange={e => setNewTag(e.target.value)}
+                  onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addTag(false); } }}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                />
+                <button
+                  type="button"
+                  onClick={() => addTag(false)}
+                  className="px-3 py-2 text-white text-sm font-semibold rounded-lg"
+                  style={{ backgroundColor: BRAND_RED }}
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {data.tags.map(t => (
+                  <span key={t} className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 rounded-lg text-xs font-semibold text-gray-700">
+                    {t}<button type="button" onClick={() => removeTag(t, false)}><X className="w-3.5 h-3.5" /></button>
                   </span>
                 ))}
               </div>
-            )}
-          </div>
-
-          <div className="bg-white rounded-2xl p-6 border border-gray-100 space-y-4">
-            <h3 className="font-bold text-gray-900">Colors</h3>
-            <div className="flex gap-2">
-              <input type="text" placeholder="e.g. Black/White" value={newColorName} onChange={e => setNewColorName(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addColor(); } }} className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
-              <button type="button" onClick={addColor} className="px-4 py-2.5 text-white font-semibold rounded-lg" style={{ backgroundColor: BRAND_RED }}>Add</button>
             </div>
-            {data.colors.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {data.colors.map((c, idx) => (
-                  <span key={c.name + idx} className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 rounded-full text-sm font-medium text-gray-700">
-                    {c.name}
-                    <button type="button" onClick={() => removeColor(idx)} className="hover:text-red-600"><X className="w-3.5 h-3.5" /></button>
+          </>
+        ) : (
+          <>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Description courte (Fran&ccedil;ais)</label>
+              <textarea
+                rows={2}
+                placeholder="1-2 phrases affich&eacute;es sur les cartes produit"
+                value={data.shortDescriptionFr}
+                onChange={e => setData({ ...data, shortDescriptionFr: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-gray-900"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Description compl&egrave;te (Fran&ccedil;ais)</label>
+              <textarea
+                rows={8}
+                placeholder="Description d&eacute;taill&eacute;e du produit..."
+                value={data.longDescriptionFr}
+                onChange={e => setData({ ...data, longDescriptionFr: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-gray-900"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Tags (Fran&ccedil;ais)</label>
+              <div className="flex gap-2 mb-2">
+                <input
+                  type="text"
+                  placeholder="Ajouter un tag fran&ccedil;ais"
+                  value={newTagFr}
+                  onChange={e => setNewTagFr(e.target.value)}
+                  onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addTag(true); } }}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                />
+                <button
+                  type="button"
+                  onClick={() => addTag(true)}
+                  className="px-3 py-2 text-white text-sm font-semibold rounded-lg"
+                  style={{ backgroundColor: BRAND_RED }}
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {data.tagsFr.map(t => (
+                  <span key={t} className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 rounded-lg text-xs font-semibold text-gray-700">
+                    {t}<button type="button" onClick={() => removeTag(t, true)}><X className="w-3.5 h-3.5" /></button>
                   </span>
                 ))}
               </div>
-            )}
-          </div>
-        </div>
-      )}
+            </div>
+          </>
+        )}
+      </div>
 
-      {/* CONTENT SECTION - with lang toggle */}
-      {section === "content" && (
-        <div className="bg-white rounded-2xl p-6 border border-gray-100 space-y-4">
-          <h3 className="font-bold text-gray-900">Content &amp; descriptions {isFr && <span className="text-xs text-gray-500 font-normal">(French)</span>}</h3>
+      {/* SECTION 5: SEO METADATA */}
+      <div className="bg-white rounded-2xl p-6 border border-gray-100 space-y-4 shadow-xs">
+        <h3 className="font-bold text-gray-900 text-base border-b border-gray-100 pb-3">
+          5. SEO Metadata {isFr && <span className="text-xs text-gray-500 font-normal">(French Mode)</span>}
+        </h3>
+        <p className="text-xs text-gray-500">Optional. Helps search engines list your product higher.</p>
 
-          {!isFr ? (
-            <>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Short description</label>
-                <textarea rows={2} placeholder="1-2 sentences shown on product cards" value={data.shortDescription} onChange={e => setData({ ...data, shortDescription: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm resize-none" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Full description (HTML allowed)</label>
-                <textarea rows={10} placeholder="Detailed product description..." value={data.longDescription} onChange={e => setData({ ...data, longDescription: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-mono" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Tags</label>
-                <div className="flex gap-2 mb-2">
-                  <input type="text" placeholder="Add tag" value={newTag} onChange={e => setNewTag(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addTag(false); } }} className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" />
-                  <button type="button" onClick={() => addTag(false)} className="px-3 py-2 text-white text-sm font-semibold rounded-lg" style={{ backgroundColor: BRAND_RED }}><Plus className="w-4 h-4" /></button>
-                </div>
-                <div className="flex flex-wrap gap-1">
-                  {data.tags.map(t => (
-                    <span key={t} className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 rounded text-xs text-gray-700">
-                      {t}<button type="button" onClick={() => removeTag(t, false)}><X className="w-3 h-3" /></button>
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </>
-          ) : (
-            <>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Description courte</label>
-                <textarea rows={2} placeholder="1-2 phrases affich&eacute;es sur les cartes produit" value={data.shortDescriptionFr} onChange={e => setData({ ...data, shortDescriptionFr: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm resize-none" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Description compl&egrave;te (HTML autoris&eacute;)</label>
-                <textarea rows={10} placeholder="Description d&eacute;taill&eacute;e du produit..." value={data.longDescriptionFr} onChange={e => setData({ ...data, longDescriptionFr: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-mono" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Tags (Fran&ccedil;ais)</label>
-                <div className="flex gap-2 mb-2">
-                  <input type="text" placeholder="Ajouter tag" value={newTagFr} onChange={e => setNewTagFr(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addTag(true); } }} className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" />
-                  <button type="button" onClick={() => addTag(true)} className="px-3 py-2 text-white text-sm font-semibold rounded-lg" style={{ backgroundColor: BRAND_RED }}><Plus className="w-4 h-4" /></button>
-                </div>
-                <div className="flex flex-wrap gap-1">
-                  {data.tagsFr.map(t => (
-                    <span key={t} className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 rounded text-xs text-gray-700">
-                      {t}<button type="button" onClick={() => removeTag(t, true)}><X className="w-3 h-3" /></button>
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-      )}
+        {!isFr ? (
+          <>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">SEO title (50-60 chars)</label>
+              <input
+                type="text"
+                maxLength={70}
+                value={data.seoTitle}
+                onChange={e => setData({ ...data, seoTitle: e.target.value })}
+                placeholder="Product Name - Category | Store Name"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+              />
+              <p className="text-xs text-gray-400 mt-1">{data.seoTitle.length}/60</p>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Meta description (140-160 chars)</label>
+              <textarea
+                rows={2}
+                maxLength={170}
+                value={data.metaDescription}
+                onChange={e => setData({ ...data, metaDescription: e.target.value })}
+                placeholder="Buy [Product Name]. Fast shipping and verified quality."
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-gray-900"
+              />
+              <p className="text-xs text-gray-400 mt-1">{data.metaDescription.length}/160</p>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Focus keyphrase</label>
+              <input
+                type="text"
+                value={data.focusKeyphrase}
+                onChange={e => setData({ ...data, focusKeyphrase: e.target.value })}
+                placeholder="e.g. nike air max 90 black"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Titre SEO (Fran&ccedil;ais)</label>
+              <input
+                type="text"
+                maxLength={70}
+                value={data.seoTitleFr}
+                onChange={e => setData({ ...data, seoTitleFr: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+              />
+              <p className="text-xs text-gray-400 mt-1">{data.seoTitleFr.length}/60</p>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">M&eacute;ta description (Fran&ccedil;ais)</label>
+              <textarea
+                rows={2}
+                maxLength={170}
+                value={data.metaDescriptionFr}
+                onChange={e => setData({ ...data, metaDescriptionFr: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-gray-900"
+              />
+              <p className="text-xs text-gray-400 mt-1">{data.metaDescriptionFr.length}/160</p>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Expression cl&eacute; focus (Fran&ccedil;ais)</label>
+              <input
+                type="text"
+                value={data.focusKeyphraseFr}
+                onChange={e => setData({ ...data, focusKeyphraseFr: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+              />
+            </div>
+          </>
+        )}
+      </div>
 
-      {/* SEO SECTION - with lang toggle */}
-      {section === "seo" && (
-        <div className="bg-white rounded-2xl p-6 border border-gray-100 space-y-4">
-          <h3 className="font-bold text-gray-900">SEO metadata {isFr && <span className="text-xs text-gray-500 font-normal">(French)</span>}</h3>
-          <p className="text-sm text-gray-500">Optional. Helps your product rank in Google search.</p>
-
-          {!isFr ? (
-            <>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">SEO title - 50-60 chars</label>
-                <input type="text" maxLength={70} value={data.seoTitle} onChange={e => setData({ ...data, seoTitle: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
-                <p className="text-xs text-gray-500 mt-1">{data.seoTitle.length}/60</p>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Meta description - 140-160 chars</label>
-                <textarea rows={2} maxLength={170} value={data.metaDescription} onChange={e => setData({ ...data, metaDescription: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm resize-none" />
-                <p className="text-xs text-gray-500 mt-1">{data.metaDescription.length}/160</p>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Focus keyphrase</label>
-                <input type="text" value={data.focusKeyphrase} onChange={e => setData({ ...data, focusKeyphrase: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
-              </div>
-            </>
-          ) : (
-            <>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Titre SEO - 50-60 caract&egrave;res</label>
-                <input type="text" maxLength={70} value={data.seoTitleFr} onChange={e => setData({ ...data, seoTitleFr: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
-                <p className="text-xs text-gray-500 mt-1">{data.seoTitleFr.length}/60</p>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">M&eacute;ta description - 140-160 caract&egrave;res</label>
-                <textarea rows={2} maxLength={170} value={data.metaDescriptionFr} onChange={e => setData({ ...data, metaDescriptionFr: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm resize-none" />
-                <p className="text-xs text-gray-500 mt-1">{data.metaDescriptionFr.length}/160</p>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Expression cl&eacute; focus</label>
-                <input type="text" value={data.focusKeyphraseFr} onChange={e => setData({ ...data, focusKeyphraseFr: e.target.value })} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm" />
-              </div>
-            </>
-          )}
-        </div>
-      )}
-
-      <div className="flex items-center justify-between mt-6 pt-4">
+      {/* SUBMIT BUTTON */}
+      <div className="bg-white rounded-2xl p-6 border border-gray-100 flex flex-wrap items-center justify-between gap-4 shadow-sm">
         <div className="text-xs text-gray-500">
-          {isEdit ? "Editing resubmits for admin approval" : "New products require admin approval before going live"}
+          {isEdit ? "Edits require admin approval before updating live." : "New products require admin approval before going live."}
         </div>
         <button
           type="submit"
           disabled={saving}
-          className="flex items-center gap-2 px-6 py-3 text-white font-bold rounded-xl transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 px-8 py-3.5 text-white font-extrabold rounded-xl transition-all shadow-md disabled:opacity-50"
           style={{ backgroundColor: BRAND_RED }}
           onMouseOver={e => { if (!saving) e.currentTarget.style.backgroundColor = BRAND_RED_DARK; }}
           onMouseOut={e => { if (!saving) e.currentTarget.style.backgroundColor = BRAND_RED; }}
         >
-          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-          {submitLabel}
+          {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+          <span>{saving ? "Submitting..." : submitLabel}</span>
         </button>
       </div>
     </form>
