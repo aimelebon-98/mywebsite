@@ -101,15 +101,13 @@ export default function ProductCard({ product, badge, visitorCountry }: ProductC
 
   return (
     <>
-      <Link href={`/${locale}/product/${locale === "fr" && product.slugFr ? product.slugFr : (product.slug || product.id)}`} className="group block">
-        <div className="relative overflow-hidden rounded-2xl bg-gray-100 aspect-square mb-3">
+      <Link href={`/${locale}/product/${locale === "fr" && product.slugFr ? product.slugFr : (product.slug || product.id)}`} className="group flex flex-col h-full min-w-0">
+        <div className="relative overflow-hidden rounded-2xl bg-gray-100 aspect-square mb-2.5 shrink-0 w-full">
           <ProductImage
             src={product.imageUrl}
             alt={displayName}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
           />
-
-
 
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
@@ -159,7 +157,7 @@ export default function ProductCard({ product, badge, visitorCountry }: ProductC
             <Heart className={`w-4 h-4 ${wished ? "fill-current" : ""}`} />
           </button>
 
-          {/* Countdown - shows by default, hides on hover */}
+          {/* Countdown */}
           {product.saleEndsAt && new Date(product.saleEndsAt).getTime() > Date.now() && (
             <div className="absolute bottom-3 left-3 right-3 opacity-100 group-hover:opacity-0 group-hover:-translate-y-2 transition-all duration-300 z-10 pointer-events-none">
               <div className="flex items-center justify-center gap-1.5 px-3 py-2 bg-white/95 backdrop-blur text-gray-900 rounded-xl text-xs font-bold shadow-lg">
@@ -168,7 +166,7 @@ export default function ProductCard({ product, badge, visitorCountry }: ProductC
             </div>
           )}
 
-          {/* Quick View - shows on hover */}
+          {/* Quick View */}
           <button
             onClick={handleQuickView}
             className="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 z-10"
@@ -180,86 +178,102 @@ export default function ProductCard({ product, badge, visitorCountry }: ProductC
           </button>
         </div>
 
-        <div className="space-y-1">
-          <p className="hidden sm:block text-[10px] text-gray-400 font-medium tracking-wide">{product.brand || product.category}</p>
-          <h3 className="font-semibold text-sm text-gray-900 group-hover:text-brand-600 transition truncate leading-tight" title={displayName}>{displayName}</h3>
+        {/* Content Box - Grows to fill height */}
+        <div className="flex-1 flex flex-col justify-between min-w-0">
+          <div className="space-y-1 min-w-0">
+            <p className="hidden sm:block text-[10px] text-gray-400 font-medium tracking-wide truncate min-h-[15px]">
+              {product.brand || product.category || ""}
+            </p>
+            
+            <h3 className="font-semibold text-sm text-gray-900 group-hover:text-brand-600 transition truncate leading-tight min-h-[20px]" title={displayName}>
+              {displayName}
+            </h3>
 
-          {colors.length > 0 && (
-            <div className="flex items-center gap-1 pt-0.5">
-              {colors.slice(0, 4).map((c, idx) => {
-                const key = c.toLowerCase().trim();
-                const bg = colorMap[key] || "#d1d5db";
-                return (
-                  <span
-                    key={idx}
-                    title={c}
-                    className="w-3 h-3 rounded-full border border-gray-200 shadow-sm"
-                    style={{ backgroundColor: bg }}
-                  />
-                );
-              })}
-              {colors.length > 4 && (
-                <span className="text-[9px] text-gray-400 font-medium ml-0.5">+{colors.length - 4}</span>
+            {/* Color swatches container - fixed height so non-colored cards align equally */}
+            <div className="h-4 flex items-center gap-1 py-0.5">
+              {colors.length > 0 && (
+                <>
+                  {colors.slice(0, 4).map((c, idx) => {
+                    const key = c.toLowerCase().trim();
+                    const bg = colorMap[key] || "#d1d5db";
+                    return (
+                      <span
+                        key={idx}
+                        title={c}
+                        className="w-3 h-3 rounded-full border border-gray-200 shadow-xs shrink-0"
+                        style={{ backgroundColor: bg }}
+                      />
+                    );
+                  })}
+                  {colors.length > 4 && (
+                    <span className="text-[9px] text-gray-400 font-medium ml-0.5">+{colors.length - 4}</span>
+                  )}
+                </>
               )}
             </div>
-          )}
 
-          <div className="flex items-center gap-1">
-            <div className="flex items-center">
-              {[1,2,3,4,5].map(i => (
-                <Star
-                  key={i}
-                  className={`w-3 h-3 ${i <= displayStars ? "text-amber-400 fill-amber-400" : "text-gray-200"}`}
-                />
-              ))}
+            <div className="flex items-center gap-1 min-h-[16px]">
+              <div className="flex items-center">
+                {[1,2,3,4,5].map(i => (
+                  <Star
+                    key={i}
+                    className={`w-3 h-3 ${i <= displayStars ? "text-amber-400 fill-amber-400" : "text-gray-200"}`}
+                  />
+                ))}
+              </div>
+              <span className="text-[10px] text-gray-400 hidden sm:inline">({reviewCount})</span>
+              <span className="text-[10px] text-gray-400 sm:hidden">{reviewCount}</span>
             </div>
-            <span className="text-[10px] text-gray-400 hidden sm:inline">({reviewCount})</span><span className="text-[10px] text-gray-400 sm:hidden">{reviewCount}</span>
           </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2 min-w-0">
-            <span className="text-sm sm:text-base font-bold whitespace-nowrap truncate">{formatPrice(price)}</span>
-            {comparePrice && (
-              <span className="text-[10px] sm:text-xs text-gray-400 line-through whitespace-nowrap truncate leading-tight">{formatPrice(comparePrice)}</span>
-            )}
-          </div>
-        </div>
+          {/* Bottom Row: Price & Action Buttons */}
+          <div className="pt-2 mt-auto min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2 min-w-0 mb-2">
+              <span className="text-sm sm:text-base font-bold whitespace-nowrap truncate">{formatPrice(price)}</span>
+              {comparePrice && (
+                <span className="text-[10px] sm:text-xs text-gray-400 line-through whitespace-nowrap truncate leading-tight">{formatPrice(comparePrice)}</span>
+              )}
+            </div>
 
-        <div className="flex gap-1.5 mt-2.5 w-full">
-          {isSubscriptionProduct(product) ? (
-            <Link
-              href={`/${locale}/product/${locale === "fr" && product.slugFr ? product.slugFr : (product.slug || product.id)}`}
-              className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold active:scale-95 transition shadow-sm uppercase tracking-wider"
-            >
-              <Zap className="w-3.5 h-3.5 flex-shrink-0" />
-              <span>{locale === "fr" ? "S'ABONNER" : "SUBSCRIBE"}</span>
-            </Link>
-          ) : (
-            <>
-              <button
-                onClick={handleBuyNow}
-                className="flex-1 basis-0 min-w-0 flex items-center justify-center gap-1 py-2 bg-brand-600 text-white rounded-xl text-[10px] sm:text-xs font-bold hover:bg-brand-700 active:scale-95 transition whitespace-nowrap"
-              >
-                <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" /> <span className="truncate">{t("buyNow")}</span>
-              </button>
-              <button
-                onClick={handleAddToCart}
-                className={`w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl transition flex-shrink-0 ${
-                  addedToCart
-                    ? "bg-green-500 text-white scale-95"
-                    : "bg-gray-900 text-white hover:bg-gray-800 active:scale-95"
-                }`}
-                aria-label={t("addToCart")}
-              >
-                {addedToCart ? (
-                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                ) : (
-                  <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                )}
-              </button>
-            </>
-          )}
+            <div className="flex gap-1.5 w-full">
+              {isSubscriptionProduct(product) ? (
+                <Link
+                  href={`/${locale}/product/${locale === "fr" && product.slugFr ? product.slugFr : (product.slug || product.id)}`}
+                  className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold active:scale-95 transition shadow-sm uppercase tracking-wider"
+                >
+                  <Zap className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>{locale === "fr" ? "S'ABONNER" : "SUBSCRIBE"}</span>
+                </Link>
+              ) : (
+                <>
+                  <button
+                    onClick={handleBuyNow}
+                    className="flex-1 basis-0 min-w-0 flex items-center justify-center gap-1 py-2 bg-brand-600 text-white rounded-xl text-[10px] sm:text-xs font-bold hover:bg-brand-700 active:scale-95 transition whitespace-nowrap"
+                  >
+                    <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
+                    <span className="truncate">{t("buyNow")}</span>
+                  </button>
+                  <button
+                    onClick={handleAddToCart}
+                    className={`w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl transition flex-shrink-0 ${
+                      addedToCart
+                        ? "bg-green-500 text-white scale-95"
+                        : "bg-gray-900 text-white hover:bg-gray-800 active:scale-95"
+                    }`}
+                    aria-label={t("addToCart")}
+                  >
+                    {addedToCart ? (
+                      <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    )}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
         </div>
       </Link>
 

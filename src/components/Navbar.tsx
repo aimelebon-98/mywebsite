@@ -234,11 +234,7 @@ export default function Navbar({ noStickyMobile = false, mobileTall = false }: N
           </span>
           <Link
             prefetch={false}
-            href={
-              promoSettings.promoLink.startsWith("http")
-                ? promoSettings.promoLink
-                : `/${locale}${promoSettings.promoLink.startsWith("/") ? "" : "/"}${promoSettings.promoLink}`
-            }
+            href={promoSettings.promoLink.startsWith("http") ? promoSettings.promoLink : (promoSettings.promoLink.startsWith("/") ? promoSettings.promoLink : `/${promoSettings.promoLink}`)}
             className="inline-flex items-center gap-1 bg-[#CA3F2E] hover:bg-[#8B2A1E] text-white text-[10px] sm:text-xs font-extrabold px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full transition-all shadow-xs shrink-0 group hover:scale-105"
           >
             <span>{isFr ? promoSettings.promoBtnFr : promoSettings.promoBtnEn}</span>
