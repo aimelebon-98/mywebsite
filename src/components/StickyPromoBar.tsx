@@ -146,19 +146,11 @@ export default function StickyPromoBar() {
           style={{ background: `linear-gradient(135deg, ${BRAND_RED} 0%, #8B2A1E 100%)` }}
         >
           {/* Badge */}
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/20 backdrop-blur rounded-full text-[10px] font-bold uppercase tracking-widest text-white mb-4">
-            {t.badge}
-          </div>
-
-          {/* Avatar */}
-          <div className="flex justify-center mb-2">
-            <img
-              src={AVATAR_URL}
-              alt=""
-              className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-xl"
-              style={{ objectPosition: "top center" }}
-            />
-          </div>
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-white/20 backdrop-blur-md border-2 border-white/50 shadow-xl text-white my-3">
+  <svg className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V6a2 2 0 10-2 2h2zm0 13-4-4m4 4 4-4M4 11h16a1 1 0 011 1v7a1 1 0 01-1 1H4a1 1 0 01-1-1v-7a1 1 0 011-1z" />
+  </svg>
+</div>
         </div>
 
         {/* Content section */}
