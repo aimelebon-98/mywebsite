@@ -95,6 +95,7 @@ export const settings = pgTable("settings", {
   sessionSecret: text("session_secret").notNull().default(""),
   maxLoginAttempts: integer("max_login_attempts").notNull().default(5),
   lockoutMinutes: integer("lockout_minutes").notNull().default(15),
+  heroStyle: text("hero_style").notNull().default("classic"),
 });
 
 export const adminSessions = pgTable("admin_sessions", {
