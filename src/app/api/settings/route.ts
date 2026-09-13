@@ -6,16 +6,6 @@ import { requireAdmin } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
-const SENSITIVE_FIELDS = ["adminPassword", "adminPath"];
-
-function stripSensitive(row: Record<string, unknown>): Record<string, unknown> {
-  const cleaned = { ...row };
-  for (const field of SENSITIVE_FIELDS) {
-    delete cleaned[field];
-  }
-  return cleaned;
-}
-
 export async function GET(req: Request) {
   try {
     const internalSecret = process.env.INTERNAL_API_SECRET || "ndz-internal-2024";
@@ -36,18 +26,42 @@ export async function GET(req: Request) {
       }
     })();
 
-    const [st] = await db.select().from(settings).where(eq(settings.id, 1)).limit(1);
-    if (!st) return NextResponse.json({});
+    let st: any = null;
+    try {
+      const rows = await db.select().from(settings).where(eq(settings.id, 1)).limit(1);
+      st = rows[0] || null;
+    } catch (dbErr) {
+      console.error("[Settings GET] DB Select Error (falling back):", dbErr);
+    }
+
+    if (!st) {
+      return NextResponse.json({
+        storeName: "NewDealZone",
+        currency: "$",
+        adminPath: process.env.ADMIN_PATH || "jevw",
+        heroStyle: "classic",
+      });
+    }
 
     if (isAdmin) {
       const { adminPassword, ...rest } = st as Record<string, unknown>;
-      return NextResponse.json(rest);
+      return NextResponse.json({
+        adminPath: "jevw",
+        heroStyle: "classic",
+        ...rest,
+      });
     }
 
-    return NextResponse.json(stripSensitive(st as Record<string, unknown>));
+    const { adminPassword, adminPath, ...publicSettings } = st as Record<string, unknown>;
+    return NextResponse.json(publicSettings);
   } catch (error) {
     console.error("[Settings GET] Error:", error);
-    return NextResponse.json({ error: "Failed to fetch settings" }, { status: 500 });
+    return NextResponse.json({
+      storeName: "NewDealZone",
+      currency: "$",
+      adminPath: "jevw",
+      heroStyle: "classic",
+    });
   }
 }
 
