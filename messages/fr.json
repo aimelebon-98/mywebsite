@@ -24,7 +24,7 @@
                 "faq":  "FAQ",
                 "about":  "À propos",
                 "contact":  "Contact",
-                "freeShipping":  "LIVRAISON GRATUITE pour les commandes de plus de 1000$ -",
+                "freeShipping": "Devenez affili\u00e9 et obtenez plus de 50% -",
                 "shopNow":  "Acheter maintenant"
             },
     "about":  {
@@ -300,7 +300,7 @@
                  "shopNow":  "Acheter maintenant",
                  "exploreSnkrs":  "Explorer les Sneakers",
                  "happyCustomers":  "2 400+ clients satisfaits",
-                 "freeShipping":  "Livraison gratuite",
+                 "freeShipping": "Devenez affili\u00e9 et obtenez plus de 50% -",
                  "freeShippingDesc":  "Pour les commandes de plus de 1000$",
                  "topRated":  "Très bien noté",
                  "topRatedDesc":  "4,8/5 étoiles",
@@ -415,7 +415,7 @@
                            "inStock":  "En stock",
                            "onlyLeft":  "Plus que {count} !",
                            "outOfStock":  "Rupture de stock",
-                           "freeShipping":  "Livraison gratuite",
+                           "freeShipping": "Devenez affili\u00e9 et obtenez plus de 50% -",
                            "freeShippingDesc":  "Commandes 1000$+",
                            "securePay":  "Paiement sécurisé",
                            "securePayDesc":  "100% sûr",
