@@ -35,7 +35,10 @@ const PUBLIC_API_ROUTES = [
   "/api/catalog",
   "/api/indexnow",
   "/api/vendor",
-  "/api/store", "/api/subscriptions", "/api/affiliate", "/api/auth",
+  "/api/store",
+  "/api/subscriptions",
+  "/api/affiliate",
+  "/api/auth",
 ];
 
 const ADMIN_API_PREFIX = "/api/admin";
@@ -59,7 +62,6 @@ function isApiRequestAllowed(request: NextRequest): boolean {
 
   // Admin routes handle their own auth via requireAdmin()
   if (pathname.startsWith(ADMIN_API_PREFIX)) {
-    // Unauthenticated admin auth/login endpoints must be accessible
     if (pathname === "/api/admin/login" || pathname === "/api/admin/auth") return true;
     const adminSession = request.cookies.get("admin_session")?.value;
     if (!adminSession) return false;
@@ -67,7 +69,8 @@ function isApiRequestAllowed(request: NextRequest): boolean {
   }
 
   if (isPublicApiRoute(pathname)) return true;
-  const internalSecret = process.env.INTERNAL_API_SECRET || "ndz-internal-2024"; if (headers.get("x-internal") === internalSecret) return true;
+  const internalSecret = process.env.INTERNAL_API_SECRET || "ndz-internal-2024";
+  if (headers.get("x-internal") === internalSecret) return true;
 
   const cfIp = headers.get("cf-connecting-ip") || "";
   const forwardedFor = headers.get("x-forwarded-for") || "";
@@ -147,14 +150,22 @@ export async function middleware(request: NextRequest) {
     }
     if (isLocalePrefixed) {
       const url = request.nextUrl.clone();
-      url.pathname = "/" + effectiveSegments.join("/");
-      return NextResponse.rewrite(url);
+      const remainingSegments = effectiveSegments.slice(1);
+      url.pathname = "/admin" + (remainingSegments.length > 0 ? "/" + remainingSegments.join("/") : "");
+      return NextResponse.redirect(url);
     }
     return NextResponse.next();
   }
 
   // Rewrite custom admin path (e.g. /jevw or /en/jevw) to /admin
   if (hasCustomPath && effectiveFirstSegment === customAdminPath) {
+    if (isLocalePrefixed) {
+      const url = request.nextUrl.clone();
+      const remainingSegments = effectiveSegments.slice(1);
+      url.pathname = "/" + customAdminPath + (remainingSegments.length > 0 ? "/" + remainingSegments.join("/") : "");
+      return NextResponse.redirect(url);
+    }
+
     const remainingSegments = effectiveSegments.slice(1);
     const url = request.nextUrl.clone();
     url.pathname = "/admin" + (remainingSegments.length > 0 ? "/" + remainingSegments.join("/") : "");
