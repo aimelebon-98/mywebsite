@@ -6,9 +6,6 @@ import { routing } from "./i18n/routing";
 const intlMiddleware = createMiddleware(routing);
 const LOCALES = ["en", "fr"];
 
-// ============================================================
-// API ACCESS CONTROL
-// ============================================================
 const PUBLIC_API_ROUTES = [
   "/api/ping",
   "/api/track",
@@ -42,14 +39,11 @@ const PUBLIC_API_ROUTES = [
 ];
 
 const ADMIN_API_PREFIX = "/api/admin";
-
-const WHITELIST_IPS = [
-  "102.64.152.45",
-];
+const WHITELIST_IPS = ["102.64.152.45"];
 
 function isPublicApiRoute(pathname: string): boolean {
-  return PUBLIC_API_ROUTES.some(route =>
-    pathname === route || pathname.startsWith(route + "/")
+  return PUBLIC_API_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith(route + "/")
   );
 }
 
@@ -57,10 +51,8 @@ function isApiRequestAllowed(request: NextRequest): boolean {
   const { pathname } = request.nextUrl;
   const headers = request.headers;
 
-  // Always allow /api/settings for internal middleware resolution
   if (pathname === "/api/settings") return true;
 
-  // Admin routes handle their own auth via requireAdmin()
   if (pathname.startsWith(ADMIN_API_PREFIX)) {
     if (pathname === "/api/admin/login" || pathname === "/api/admin/auth") return true;
     const adminSession = request.cookies.get("admin_session")?.value;
@@ -69,6 +61,7 @@ function isApiRequestAllowed(request: NextRequest): boolean {
   }
 
   if (isPublicApiRoute(pathname)) return true;
+
   const internalSecret = process.env.INTERNAL_API_SECRET || "ndz-internal-2024";
   if (headers.get("x-internal") === internalSecret) return true;
 
@@ -77,7 +70,10 @@ function isApiRequestAllowed(request: NextRequest): boolean {
   const realIp = headers.get("x-real-ip") || "";
   const clientIp = (cfIp || forwardedFor.split(",").pop()?.trim() || realIp).trim();
 
-  const envIps = (process.env.API_WHITELIST_IPS || "").split(",").map(s => s.trim()).filter(Boolean);
+  const envIps = (process.env.API_WHITELIST_IPS || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
   const allWhitelistedIps = [...WHITELIST_IPS, ...envIps];
   if (clientIp && allWhitelistedIps.includes(clientIp)) return true;
 
@@ -100,7 +96,12 @@ function isApiRequestAllowed(request: NextRequest): boolean {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // 1. API ROUTES
+  // 1. Skip internal rewrite pass to /admin
+  if (request.headers.get("x-admin-rewrite") === "true") {
+    return NextResponse.next();
+  }
+
+  // 2. API ROUTES
   if (pathname.startsWith("/api")) {
     if (!isApiRequestAllowed(request)) {
       return new NextResponse("Not Found", { status: 404 });
@@ -108,7 +109,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2. Skip Next.js static files
+  // 3. Skip static assets
   if (
     pathname.startsWith("/_next") ||
     pathname === "/favicon.ico" ||
@@ -117,13 +118,21 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 3. Admin path routing
+  // 4. Resolve custom admin path
   let customAdminPath = "admin";
   try {
     const settingsUrl = new URL("/api/settings", request.url);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 1200);
+
     const res = await fetch(settingsUrl.toString(), {
-      headers: { "x-internal": process.env.INTERNAL_API_SECRET || "ndz-internal-2024" },
+      headers: {
+        "x-internal": process.env.INTERNAL_API_SECRET || "ndz-internal-2024",
+      },
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
+
     if (res.ok) {
       const settings = await res.json();
       if (settings.adminPath) {
@@ -137,36 +146,39 @@ export async function middleware(request: NextRequest) {
   const hasCustomPath = Boolean(customAdminPath && customAdminPath !== "admin");
 
   const segments = pathname.split("/").filter(Boolean);
-  const firstSegment = segments[0]?.toLowerCase() || "";
+  const firstSegment = (segments[0] || "").toLowerCase();
   const isLocalePrefixed = LOCALES.includes(firstSegment);
   const effectiveSegments = isLocalePrefixed ? segments.slice(1) : segments;
-  const effectiveFirstSegment = effectiveSegments[0]?.toLowerCase() || "";
+  const effectiveFirstSegment = (effectiveSegments[0] || "").toLowerCase();
 
-  // Block default /admin route if custom admin path is active
+  // Block public /admin (and /en/admin) when custom admin path is active
   if (effectiveFirstSegment === "admin") {
-    const isRewrite = request.headers.get("x-admin-rewrite") === "true";
-    if (hasCustomPath && !isRewrite) {
+    if (hasCustomPath) {
       return new NextResponse("Not Found", { status: 404 });
     }
     return NextResponse.next();
   }
 
-  // Rewrite custom admin path (e.g. /jevw or /en/jevw) directly to /admin with ZERO redirects
+  // Match /jevw, /en/jevw, /fr/jevw and rewrite internally to /admin with request headers
   if (hasCustomPath && effectiveFirstSegment === customAdminPath) {
     const remainingSegments = effectiveSegments.slice(1);
     const url = request.nextUrl.clone();
-    url.pathname = "/admin" + (remainingSegments.length > 0 ? "/" + remainingSegments.join("/") : "");
-    const response = NextResponse.rewrite(url);
-    response.headers.set("x-admin-rewrite", "true");
-    return response;
+    url.pathname =
+      "/admin" +
+      (remainingSegments.length > 0 ? "/" + remainingSegments.join("/") : "");
+
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set("x-admin-rewrite", "true");
+
+    return NextResponse.rewrite(url, {
+      request: { headers: requestHeaders },
+    });
   }
 
-  // 4. Everything else - i18n routing
+  // 5. i18n routing for everything else
   return intlMiddleware(request);
 }
 
 export const config = {
-  matcher: [
-    "/((?!_next/static|_next/image|favicon.ico).*)",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };
