@@ -101,6 +101,8 @@ export const settings = pgTable("settings", {
   promoBtnEn: text("promo_btn_en").notNull().default("Join Now"),
   promoBtnFr: text("promo_btn_fr").notNull().default("Rejoindre"),
   promoLink: text("promo_link").notNull().default("/affiliate"),
+  promoLinkEn: text("promo_link_en").notNull().default("/affiliate"),
+  promoLinkFr: text("promo_link_fr").notNull().default("/affiliate"),
 });
 
 export const adminSessions = pgTable("admin_sessions", {

@@ -16,6 +16,8 @@ const DEFAULT_SETTINGS = {
   promoBtnEn: "Join Now",
   promoBtnFr: "Rejoindre",
   promoLink: "/affiliate",
+  promoLinkEn: "/affiliate",
+  promoLinkFr: "/affiliate",
 };
 
 async function ensureColumnsExist() {
@@ -27,6 +29,8 @@ async function ensureColumnsExist() {
       ALTER TABLE settings ADD COLUMN IF NOT EXISTS promo_btn_en text NOT NULL DEFAULT 'Join Now';
       ALTER TABLE settings ADD COLUMN IF NOT EXISTS promo_btn_fr text NOT NULL DEFAULT 'Rejoindre';
       ALTER TABLE settings ADD COLUMN IF NOT EXISTS promo_link text NOT NULL DEFAULT '/affiliate';
+      ALTER TABLE settings ADD COLUMN IF NOT EXISTS promo_link_en text NOT NULL DEFAULT '/affiliate';
+      ALTER TABLE settings ADD COLUMN IF NOT EXISTS promo_link_fr text NOT NULL DEFAULT '/affiliate';
     `);
   } catch (err) {
     console.warn("[Settings API] Column auto-heal warning:", err);

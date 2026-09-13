@@ -38,12 +38,13 @@ export default function Navbar({ noStickyMobile = false, mobileTall = false }: N
   const searchInputRef = useRef<HTMLDivElement | null>(null);
   const navRef = useRef<HTMLElement | null>(null);
 
-  const [promoSettings, setPromoSettings] = useState({
+    const [promoSettings, setPromoSettings] = useState({
     promoTextEn: "Become an affiliate and get 50% plus",
     promoTextFr: "Devenez affili\u00e9 et obtenez plus de 50%",
     promoBtnEn: "Join Now",
     promoBtnFr: "Rejoindre",
-    promoLink: "/affiliate",
+    promoLinkEn: "/affiliate",
+    promoLinkFr: "/affiliate",
   });
 
   useEffect(() => {
@@ -56,12 +57,14 @@ export default function Navbar({ noStickyMobile = false, mobileTall = false }: N
             promoTextFr: data.promoTextFr || "Devenez affili\u00e9 et obtenez plus de 50%",
             promoBtnEn: data.promoBtnEn || "Join Now",
             promoBtnFr: data.promoBtnFr || "Rejoindre",
-            promoLink: data.promoLink || "/affiliate",
+            promoLinkEn: data.promoLinkEn || data.promoLink || "/affiliate",
+            promoLinkFr: data.promoLinkFr || data.promoLink || "/affiliate",
           });
         }
       })
       .catch(() => {});
   }, []);
+
 
   // Detect scroll for shrink effect (with hysteresis to prevent bounce)
   // NOTE: Do NOT call handleScroll() on mount - causes visual jump when navigating pages
@@ -234,7 +237,7 @@ export default function Navbar({ noStickyMobile = false, mobileTall = false }: N
           </span>
           <Link
             prefetch={false}
-            href={promoSettings.promoLink.startsWith("http") ? promoSettings.promoLink : (promoSettings.promoLink.startsWith("/") ? promoSettings.promoLink : `/${promoSettings.promoLink}`)}
+            href={isFr ? (promoSettings.promoLinkFr || "/affiliate") : (promoSettings.promoLinkEn || "/affiliate")}
             className="inline-flex items-center gap-1 bg-[#CA3F2E] hover:bg-[#8B2A1E] text-white text-[10px] sm:text-xs font-extrabold px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full transition-all shadow-xs shrink-0 group hover:scale-105"
           >
             <span>{isFr ? promoSettings.promoBtnFr : promoSettings.promoBtnEn}</span>

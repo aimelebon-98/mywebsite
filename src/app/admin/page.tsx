@@ -101,6 +101,8 @@ interface StoreSettings {
   promoBtnEn?: string;
   promoBtnFr?: string;
   promoLink?: string;
+  promoLinkEn?: string;
+  promoLinkFr?: string;
 }
 
 type Tab = "dashboard" | "broker-claims" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments" | "orders" | "product-faqs" | "analytics" | "newsletter" | "bundles" | "blog-categories" | "customers" | "tickets" | "coupons" | "profit" | "vendor-applications" | "concierge-requests" | "vendors" | "vendor-products" | "vendor-payouts" | "affiliate-applications" | "affiliates" | "affiliate-payouts";
@@ -1910,7 +1912,8 @@ function SettingsForm({
   const [promoTextFr, setPromoTextFr] = useState(settings.promoTextFr || "Devenez affili\u00e9 et obtenez plus de 50%");
   const [promoBtnEn, setPromoBtnEn] = useState(settings.promoBtnEn || "Join Now");
   const [promoBtnFr, setPromoBtnFr] = useState(settings.promoBtnFr || "Rejoindre");
-  const [promoLink, setPromoLink] = useState(settings.promoLink || "/affiliate");
+  const [promoLinkEn, setPromoLinkEn] = useState(settings.promoLinkEn || settings.promoLink || "/affiliate");
+  const [promoLinkFr, setPromoLinkFr] = useState(settings.promoLinkFr || settings.promoLink || "/affiliate");
 
   useEffect(() => {
     setStoreName(settings.storeName);
@@ -1921,7 +1924,8 @@ function SettingsForm({
     setPromoTextFr(settings.promoTextFr || "Devenez affili\u00e9 et obtenez plus de 50%");
     setPromoBtnEn(settings.promoBtnEn || "Join Now");
     setPromoBtnFr(settings.promoBtnFr || "Rejoindre");
-    setPromoLink(settings.promoLink || "/affiliate");
+    setPromoLinkEn(settings.promoLinkEn || settings.promoLink || "/affiliate");
+    setPromoLinkFr(settings.promoLinkFr || settings.promoLink || "/affiliate");
   }, [settings]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -1935,7 +1939,9 @@ function SettingsForm({
       promoTextFr,
       promoBtnEn,
       promoBtnFr,
-      promoLink,
+      promoLink: promoLinkEn,
+      promoLinkEn,
+      promoLinkFr,
     });
   };
 
@@ -1980,11 +1986,17 @@ function SettingsForm({
               <input type="text" value={promoBtnFr} onChange={(e) => setPromoBtnFr(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
             </div>
           </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Button Link</label>
-            <input type="text" value={promoLink} onChange={(e) => setPromoLink(e.target.value)} placeholder="/affiliate or https://..." className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
-            <p className="text-[11px] text-gray-400 mt-1">Target URL for the promo button (e.g., /affiliate or https://www.newdealzone.com/en/affiliate).</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Button Link (English)</label>
+              <input type="text" value={promoLinkEn} onChange={(e) => setPromoLinkEn(e.target.value)} placeholder="/affiliate or https://..." className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Button Link (French)</label>
+              <input type="text" value={promoLinkFr} onChange={(e) => setPromoLinkFr(e.target.value)} placeholder="/affiliate or https://..." className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
+            </div>
           </div>
+          <p className="text-[11px] text-gray-400">Target URLs for English and French promo buttons (e.g. /affiliate or https://www.newdealzone.com/en/affiliate).</p>
         </div>
 
         {/* HERO STYLE SWITCHER */}
