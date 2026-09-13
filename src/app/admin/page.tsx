@@ -95,6 +95,7 @@ interface StoreSettings {
   adminPath: string;
   maxLoginAttempts: number;
   lockoutMinutes: number;
+  heroStyle?: string;
 }
 
 type Tab = "dashboard" | "broker-claims" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments" | "orders" | "product-faqs" | "analytics" | "newsletter" | "bundles" | "blog-categories" | "customers" | "tickets" | "coupons" | "profit" | "vendor-applications" | "concierge-requests" | "vendors" | "vendor-products" | "vendor-payouts" | "affiliate-applications" | "affiliates" | "affiliate-payouts";
@@ -1899,16 +1900,18 @@ function SettingsForm({
   const [storeName, setStoreName] = useState(settings.storeName);
   const [whatsappNumber, setWhatsappNumber] = useState(settings.whatsappNumber);
   const [currency, setCurrency] = useState(settings.currency);
+  const [heroStyle, setHeroStyle] = useState(settings.heroStyle || "classic");
 
   useEffect(() => {
     setStoreName(settings.storeName);
     setWhatsappNumber(settings.whatsappNumber);
     setCurrency(settings.currency);
+    setHeroStyle(settings.heroStyle || "classic");
   }, [settings]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ storeName, whatsappNumber, currency });
+    onSave({ storeName, whatsappNumber, currency, heroStyle });
   };
 
   return (
@@ -1927,6 +1930,35 @@ function SettingsForm({
         <div>
           <label className="block text-sm font-medium mb-1.5">Currency Symbol</label>
           <input type="text" value={currency} onChange={(e) => setCurrency(e.target.value)} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1.5">Homepage Hero Style</label>
+          <div className="grid grid-cols-2 gap-4 pt-1">
+            <button
+              type="button"
+              onClick={() => setHeroStyle("classic")}
+              className={`p-4 rounded-xl border-2 text-left transition ${
+                heroStyle === "classic"
+                  ? "border-gray-900 bg-gray-50 text-gray-900 font-semibold"
+                  : "border-gray-200 text-gray-500 hover:border-gray-300"
+              }`}
+            >
+              <div className="font-bold text-sm mb-1">Classic Style</div>
+              <div className="text-xs text-gray-500">Animated mesh network with typography hero</div>
+            </button>
+            <button
+              type="button"
+              onClick={() => setHeroStyle("konga")}
+              className={`p-4 rounded-xl border-2 text-left transition ${
+                heroStyle === "konga"
+                  ? "border-gray-900 bg-gray-50 text-gray-900 font-semibold"
+                  : "border-gray-200 text-gray-500 hover:border-gray-300"
+              }`}
+            >
+              <div className="font-bold text-sm mb-1">Konga Style</div>
+              <div className="text-xs text-gray-500">Multi-banner promotional grid & quick category badges</div>
+            </button>
+          </div>
         </div>
       </div>
       <button type="submit" disabled={loading} className="w-full py-4 bg-gray-900 text-white rounded-2xl font-semibold text-lg hover:bg-gray-800 transition disabled:opacity-50">

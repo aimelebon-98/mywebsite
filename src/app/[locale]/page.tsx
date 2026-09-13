@@ -6,6 +6,7 @@ import HomeProducts from "@/components/HomeProducts";
 import HomeBlogSection from "@/components/HomeBlogSection";
 import RecentlyViewed from "@/components/RecentlyViewed";
 import MobileHomeHero from "@/components/MobileHomeHero";
+import KongaHero from "@/components/KongaHero";
 import MobileHomeSections from "@/components/MobileHomeSections";
 import AnimatedNetwork from "@/components/AnimatedNetworkLazy";
 import TypingText from "@/components/TypingText";
@@ -63,12 +64,14 @@ export default async function HomePage() {
   let mobileProducts: Product[] = [];
   let mobileCategories: { slug: string; nameEn: string; nameFr: string | null; imageUrl: string | undefined }[] = [];
   let whatsapp = "";
+  let activeHeroStyle = "classic";
   try {
     const [prods, cats, settingsRow] = await Promise.all([
       db.select().from(productsTable).where(eq(productsTable.active, true)),
       db.select().from(categoriesTable).where(eq(categoriesTable.active, true)).orderBy(asc(categoriesTable.sortOrder)),
       db.select().from(settingsTable).limit(1),
     ]);
+    activeHeroStyle = settingsRow[0]?.heroStyle || "classic";
     // BLOAT_STRIP_APPLIED - remove heavy fields not needed for product cards
       mobileProducts = prods.map(p => {
         const slim = {
@@ -113,7 +116,11 @@ export default async function HomePage() {
       <Navbar />
     <main className="min-h-screen">
 
-      {/* MOBILE HERO */}
+      {activeHeroStyle === "konga" ? (
+        <KongaHero />
+      ) : (
+        <>
+          {/* MOBILE HERO */}
       <MobileHomeHero products={mobileProducts} categories={mobileCategories} whatsapp={whatsapp} />
 
       {/* HERO (desktop) */}
@@ -221,6 +228,8 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+        </>
+      )}
 
       {/* FEATURES BAR */}
       <section className="hidden lg:block bg-gray-900 text-white">
