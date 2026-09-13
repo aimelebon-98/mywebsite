@@ -96,6 +96,11 @@ interface StoreSettings {
   maxLoginAttempts: number;
   lockoutMinutes: number;
   heroStyle?: string;
+  promoTextEn?: string;
+  promoTextFr?: string;
+  promoBtnEn?: string;
+  promoBtnFr?: string;
+  promoLink?: string;
 }
 
 type Tab = "dashboard" | "broker-claims" | "products" | "add" | "edit" | "categories" | "reviews" | "settings" | "security" | "blog" | "blog-add" | "blog-edit" | "authors" | "comments" | "orders" | "product-faqs" | "analytics" | "newsletter" | "bundles" | "blog-categories" | "customers" | "tickets" | "coupons" | "profit" | "vendor-applications" | "concierge-requests" | "vendors" | "vendor-products" | "vendor-payouts" | "affiliate-applications" | "affiliates" | "affiliate-payouts";
@@ -1901,17 +1906,37 @@ function SettingsForm({
   const [whatsappNumber, setWhatsappNumber] = useState(settings.whatsappNumber);
   const [currency, setCurrency] = useState(settings.currency);
   const [heroStyle, setHeroStyle] = useState(settings.heroStyle || "classic");
+  const [promoTextEn, setPromoTextEn] = useState(settings.promoTextEn || "Become an affiliate and get 50% plus");
+  const [promoTextFr, setPromoTextFr] = useState(settings.promoTextFr || "Devenez affili\u00e9 et obtenez plus de 50%");
+  const [promoBtnEn, setPromoBtnEn] = useState(settings.promoBtnEn || "Join Now");
+  const [promoBtnFr, setPromoBtnFr] = useState(settings.promoBtnFr || "Rejoindre");
+  const [promoLink, setPromoLink] = useState(settings.promoLink || "/affiliate");
 
   useEffect(() => {
     setStoreName(settings.storeName);
     setWhatsappNumber(settings.whatsappNumber);
     setCurrency(settings.currency);
     setHeroStyle(settings.heroStyle || "classic");
+    setPromoTextEn(settings.promoTextEn || "Become an affiliate and get 50% plus");
+    setPromoTextFr(settings.promoTextFr || "Devenez affili\u00e9 et obtenez plus de 50%");
+    setPromoBtnEn(settings.promoBtnEn || "Join Now");
+    setPromoBtnFr(settings.promoBtnFr || "Rejoindre");
+    setPromoLink(settings.promoLink || "/affiliate");
   }, [settings]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ storeName, whatsappNumber, currency, heroStyle });
+    onSave({
+      storeName,
+      whatsappNumber,
+      currency,
+      heroStyle,
+      promoTextEn,
+      promoTextFr,
+      promoBtnEn,
+      promoBtnFr,
+      promoLink,
+    });
   };
 
   return (
@@ -1931,7 +1956,39 @@ function SettingsForm({
           <label className="block text-sm font-medium mb-1.5">Currency Symbol</label>
           <input type="text" value={currency} onChange={(e) => setCurrency(e.target.value)} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition" />
         </div>
-        <div>
+        
+        {/* TOP PROMO BAR SETTINGS */}
+        <div className="pt-4 border-t border-gray-100 space-y-4">
+          <h4 className="font-bold text-base text-gray-900">Top Promo Announcement Bar</h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Promo Text (English)</label>
+              <input type="text" value={promoTextEn} onChange={(e) => setPromoTextEn(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Promo Text (French)</label>
+              <input type="text" value={promoTextFr} onChange={(e) => setPromoTextFr(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Button Text (English)</label>
+              <input type="text" value={promoBtnEn} onChange={(e) => setPromoBtnEn(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Button Text (French)</label>
+              <input type="text" value={promoBtnFr} onChange={(e) => setPromoBtnFr(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Button Link</label>
+            <input type="text" value={promoLink} onChange={(e) => setPromoLink(e.target.value)} placeholder="/affiliate or https://..." className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
+            <p className="text-[11px] text-gray-400 mt-1">Target URL for the promo button (e.g., /affiliate or https://www.newdealzone.com/en/affiliate).</p>
+          </div>
+        </div>
+
+        {/* HERO STYLE SWITCHER */}
+        <div className="pt-4 border-t border-gray-100">
           <label className="block text-sm font-medium mb-1.5">Homepage Hero Style</label>
           <div className="grid grid-cols-2 gap-4 pt-1">
             <button

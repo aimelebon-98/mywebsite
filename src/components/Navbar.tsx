@@ -4,7 +4,7 @@ import { useCurrency } from "@/lib/currency-context";
 
 import { useTranslations, useLocale } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/routing";
-import { ShoppingBag, Menu, X, Heart, Globe, LogIn, LogOut, LayoutDashboard, UserPlus } from "lucide-react";
+import { ShoppingBag, Sparkles, ArrowRight, Menu, X, Heart, Globe, LogIn, LogOut, LayoutDashboard, UserPlus } from "lucide-react";
 import { useCustomer } from "@/lib/customer-context";
 import { useCart } from "@/lib/cart-context";
 import { useWishlist } from "@/lib/wishlist-context";
@@ -37,6 +37,31 @@ export default function Navbar({ noStickyMobile = false, mobileTall = false }: N
   const megaCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchInputRef = useRef<HTMLDivElement | null>(null);
   const navRef = useRef<HTMLElement | null>(null);
+
+  const [promoSettings, setPromoSettings] = useState({
+    promoTextEn: "Become an affiliate and get 50% plus",
+    promoTextFr: "Devenez affili\u00e9 et obtenez plus de 50%",
+    promoBtnEn: "Join Now",
+    promoBtnFr: "Rejoindre",
+    promoLink: "/affiliate",
+  });
+
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data) {
+          setPromoSettings({
+            promoTextEn: data.promoTextEn || "Become an affiliate and get 50% plus",
+            promoTextFr: data.promoTextFr || "Devenez affili\u00e9 et obtenez plus de 50%",
+            promoBtnEn: data.promoBtnEn || "Join Now",
+            promoBtnFr: data.promoBtnFr || "Rejoindre",
+            promoLink: data.promoLink || "/affiliate",
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Detect scroll for shrink effect (with hysteresis to prevent bounce)
   // NOTE: Do NOT call handleScroll() on mount - causes visual jump when navigating pages

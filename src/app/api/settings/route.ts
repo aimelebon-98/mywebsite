@@ -6,6 +6,33 @@ import { requireAdmin } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
+const DEFAULT_SETTINGS = {
+  storeName: "NewDealZone",
+  currency: "$",
+  adminPath: "jevw",
+  heroStyle: "classic",
+  promoTextEn: "Become an affiliate and get 50% plus",
+  promoTextFr: "Devenez affili\u00e9 et obtenez plus de 50%",
+  promoBtnEn: "Join Now",
+  promoBtnFr: "Rejoindre",
+  promoLink: "/affiliate",
+};
+
+async function ensureColumnsExist() {
+  try {
+    await db.execute(sql`
+      ALTER TABLE settings ADD COLUMN IF NOT EXISTS hero_style text NOT NULL DEFAULT 'classic';
+      ALTER TABLE settings ADD COLUMN IF NOT EXISTS promo_text_en text NOT NULL DEFAULT 'Become an affiliate and get 50% plus';
+      ALTER TABLE settings ADD COLUMN IF NOT EXISTS promo_text_fr text NOT NULL DEFAULT 'Devenez affilié et obtenez plus de 50%';
+      ALTER TABLE settings ADD COLUMN IF NOT EXISTS promo_btn_en text NOT NULL DEFAULT 'Join Now';
+      ALTER TABLE settings ADD COLUMN IF NOT EXISTS promo_btn_fr text NOT NULL DEFAULT 'Rejoindre';
+      ALTER TABLE settings ADD COLUMN IF NOT EXISTS promo_link text NOT NULL DEFAULT '/affiliate';
+    `);
+  } catch (err) {
+    console.warn("[Settings API] Column auto-heal warning:", err);
+  }
+}
+
 export async function GET(req: Request) {
   try {
     const internalSecret = process.env.INTERNAL_API_SECRET || "ndz-internal-2024";
@@ -31,37 +58,34 @@ export async function GET(req: Request) {
       const rows = await db.select().from(settings).where(eq(settings.id, 1)).limit(1);
       st = rows[0] || null;
     } catch (dbErr) {
-      console.error("[Settings GET] DB Select Error (falling back):", dbErr);
+      await ensureColumnsExist();
+      try {
+        const rows = await db.select().from(settings).where(eq(settings.id, 1)).limit(1);
+        st = rows[0] || null;
+      } catch {
+        st = null;
+      }
     }
 
     if (!st) {
-      return NextResponse.json({
-        storeName: "NewDealZone",
-        currency: "$",
-        adminPath: process.env.ADMIN_PATH || "jevw",
-        heroStyle: "classic",
-      });
+      return NextResponse.json(DEFAULT_SETTINGS);
     }
 
+    const merged = { ...DEFAULT_SETTINGS, ...st };
+
     if (isAdmin) {
-      const { adminPassword, ...rest } = st as Record<string, unknown>;
+      const { adminPassword, ...rest } = merged as Record<string, unknown>;
       return NextResponse.json({
         adminPath: "jevw",
-        heroStyle: "classic",
         ...rest,
       });
     }
 
-    const { adminPassword, adminPath, ...publicSettings } = st as Record<string, unknown>;
+    const { adminPassword, adminPath, ...publicSettings } = merged as Record<string, unknown>;
     return NextResponse.json(publicSettings);
   } catch (error) {
     console.error("[Settings GET] Error:", error);
-    return NextResponse.json({
-      storeName: "NewDealZone",
-      currency: "$",
-      adminPath: "jevw",
-      heroStyle: "classic",
-    });
+    return NextResponse.json(DEFAULT_SETTINGS);
   }
 }
 
@@ -72,30 +96,14 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     delete body.id;
+    await ensureColumnsExist();
+
     const [existing] = await db.select().from(settings).where(eq(settings.id, 1)).limit(1);
 
     if (existing) {
-      try {
-        await db.update(settings).set(body).where(eq(settings.id, 1));
-      } catch (updateErr: any) {
-        if (updateErr?.message?.includes("hero_style") || updateErr?.code === "42703") {
-          await db.execute(sql`ALTER TABLE settings ADD COLUMN IF NOT EXISTS hero_style text NOT NULL DEFAULT 'classic';`);
-          await db.update(settings).set(body).where(eq(settings.id, 1));
-        } else {
-          throw updateErr;
-        }
-      }
+      await db.update(settings).set(body).where(eq(settings.id, 1));
     } else {
-      try {
-        await db.insert(settings).values({ id: 1, ...body });
-      } catch (insertErr: any) {
-        if (insertErr?.message?.includes("hero_style") || insertErr?.code === "42703") {
-          await db.execute(sql`ALTER TABLE settings ADD COLUMN IF NOT EXISTS hero_style text NOT NULL DEFAULT 'classic';`);
-          await db.insert(settings).values({ id: 1, ...body });
-        } else {
-          throw insertErr;
-        }
-      }
+      await db.insert(settings).values({ id: 1, ...body });
     }
 
     return NextResponse.json({ success: true });

@@ -96,6 +96,11 @@ export const settings = pgTable("settings", {
   maxLoginAttempts: integer("max_login_attempts").notNull().default(5),
   lockoutMinutes: integer("lockout_minutes").notNull().default(15),
   heroStyle: text("hero_style").notNull().default("classic"),
+  promoTextEn: text("promo_text_en").notNull().default("Become an affiliate and get 50% plus"),
+  promoTextFr: text("promo_text_fr").notNull().default("Devenez affili\u00e9 et obtenez plus de 50%"),
+  promoBtnEn: text("promo_btn_en").notNull().default("Join Now"),
+  promoBtnFr: text("promo_btn_fr").notNull().default("Rejoindre"),
+  promoLink: text("promo_link").notNull().default("/affiliate"),
 });
 
 export const adminSessions = pgTable("admin_sessions", {
