@@ -115,6 +115,21 @@ export default function AffiliatePayoutsPage() {
         <h1 className="text-2xl font-bold">
           {isFr ? "Paiements & Retraits" : "Payouts & Balances"}
         </h1>
+                <div className="mt-3 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300 flex items-start gap-2.5">
+          <Clock className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <p className="font-bold">
+              {isFr
+                ? "Retrait Automatique le Vendredi \u00e0 00:00 UTC"
+                : "Automatic Friday Withdrawal at 12:00 AM UTC"}
+            </p>
+            <p className="text-[11px] text-amber-200/80 leading-relaxed">
+              {isFr
+                ? "Tous les soldes d'affiliation (\u2265 20$ USD) sont automatiquement trait\u00e9s chaque vendredi minuit. Les parrainages directs ne n\u00e9cessitent pas de souscription active. Les bonus d'\u00e9quipe L2/L3 n\u00e9cessitent un abonnement SMZ Bot Pro actif."
+                : "All commission balances (\u2265 $20.00 USD) are automatically processed every Friday at 12:00 AM. Direct referrals do not require being commission active; Level 2 & 3 team bonuses require an active SMZ Bot Pro subscription."}
+            </p>
+          </div>
+        </div>
         <p className="text-xs text-gray-400 mt-1">
           {isFr
             ? "Demandez des retraits en USDT (TRC20) et consultez votre historique."

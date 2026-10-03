@@ -1,6 +1,12 @@
 {
   "framework": "nextjs",
   "cleanUrls": true,
+  "crons": [
+    {
+      "path": "/api/cron/auto-payouts",
+      "schedule": "0 0 * * 5"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
