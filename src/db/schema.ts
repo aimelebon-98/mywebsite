@@ -102,7 +102,11 @@ export const settings = pgTable("settings", {
   promoBtnFr: text("promo_btn_fr").notNull().default("Rejoindre"),
   promoLink: text("promo_link").notNull().default("/affiliate"),
   promoLinkEn: text("promo_link_en").notNull().default("/affiliate"),
-  promoLinkFr: text("promo_link_fr").notNull().default("/affiliate"),
+    promoLinkFr: text("promo_link_fr").notNull().default("/affiliate"),
+  affiliateSmzInitialRate: text("affiliate_smz_initial_rate").notNull().default("50.00"),
+  affiliateSmzRecurringRate: text("affiliate_smz_recurring_rate").notNull().default("50.00"),
+  affiliateL2Rate: text("affiliate_l2_rate").notNull().default("10.00"),
+  affiliateL3Rate: text("affiliate_l3_rate").notNull().default("5.00"),
 });
 
 export const adminSessions = pgTable("admin_sessions", {
@@ -596,7 +600,8 @@ export const affiliates = pgTable("affiliates", {
   name: varchar("name", { length: 255 }).notNull(),
   code: varchar("code", { length: 50 }).notNull().unique(),
   commissionRate: varchar("commission_rate", { length: 10 }).default("5.00"),
-  status: varchar("status", { length: 20 }).default("pending"),
+    status: varchar("status", { length: 20 }).default("pending"),
+  manualOverrideActive: boolean("manual_override_active").default(false),
   totalClicks: integer("total_clicks").default(0),
   totalOrders: integer("total_orders").default(0),
   totalEarnings: varchar("total_earnings", { length: 20 }).default("0.00"),
@@ -646,7 +651,8 @@ export const affiliateApplications = pgTable("affiliate_applications", {
   websiteUrl: varchar("website_url", { length: 500 }),
   socialMediaUrl: varchar("social_media_url", { length: 500 }),
   marketingPlan: text("marketing_plan"),
-  status: varchar("status", { length: 20 }).default("pending"),
+    status: varchar("status", { length: 20 }).default("pending"),
+  manualOverrideActive: boolean("manual_override_active").default(false),
   adminNote: text("admin_note"),
   reviewedAt: timestamp("reviewed_at"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -660,7 +666,8 @@ export const affiliateOrders = pgTable("affiliate_orders", {
   commissionRate: varchar("commission_rate", { length: 10 }).notNull(),
   commissionAmount: varchar("commission_amount", { length: 20 }).notNull(),
   currency: varchar("currency", { length: 10 }).default("USD"),
-  status: varchar("status", { length: 20 }).default("pending"),
+    status: varchar("status", { length: 20 }).default("pending"),
+  manualOverrideActive: boolean("manual_override_active").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -672,7 +679,8 @@ export const affiliatePayouts = pgTable("affiliate_payouts", {
   method: varchar("method", { length: 50 }).default("bank_transfer"),
   reference: varchar("reference", { length: 255 }),
   note: text("note"),
-  status: varchar("status", { length: 20 }).default("pending"),
+    status: varchar("status", { length: 20 }).default("pending"),
+  manualOverrideActive: boolean("manual_override_active").default(false),
   requestedAt: timestamp("requested_at").defaultNow(),
   paidAt: timestamp("paid_at"),
   processedBy: varchar("processed_by", { length: 255 }),

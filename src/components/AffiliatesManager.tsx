@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState, useTransition } from "react";
 import {
   Loader2,
@@ -18,6 +17,10 @@ import {
   MousePointerClick,
   Layers,
   TrendingUp,
+  Settings,
+  ShieldCheck,
+  ShieldAlert,
+  RotateCw,
 } from "lucide-react";
 import AffiliateNetworkPanel from "@/components/AffiliateNetworkPanel";
 
@@ -28,6 +31,7 @@ interface Affiliate {
   code: string;
   commissionRate: string | null;
   status: string | null;
+  manualOverrideActive?: boolean | null;
   totalClicks: number | null;
   totalOrders: number | null;
   totalEarnings: string | null;
@@ -75,7 +79,6 @@ function StatCard({
     violet: "bg-violet-50 text-violet-600",
     rose: "bg-red-50 text-[#CA3F2E]",
   };
-
   return (
     <div className="group relative overflow-hidden rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm hover:shadow-md hover:border-gray-300 transition-all">
       <div className="flex items-start justify-between gap-3">
@@ -113,11 +116,63 @@ export default function AffiliatesManager() {
   const [msg, setMsg] = useState<string | null>(null);
   const [editRates, setEditRates] = useState<Record<string, string>>({});
   const [editStatus, setEditStatus] = useState<Record<string, string>>({});
-
+  const [editOverrides, setEditOverrides] = useState<Record<string, boolean>>({});
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkRate, setBulkRate] = useState("5");
   const [bulkMsg, setBulkMsg] = useState<string | null>(null);
   const [networkId, setNetworkId] = useState<string | null>(null);
+
+  // Global Rates Settings
+  const [globalRates, setGlobalRates] = useState({
+    smzInitial: "50.00",
+    smzRecurring: "50.00",
+    l2Rate: "10.00",
+    l3Rate: "5.00",
+  });
+  const [savingGlobal, setSavingGlobal] = useState(false);
+  const [globalMsg, setGlobalMsg] = useState<string | null>(null);
+
+  const loadGlobalSettings = () => {
+    fetch("/api/settings", { credentials: "include" })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d) {
+          setGlobalRates({
+            smzInitial: d.affiliateSmzInitialRate || "50.00",
+            smzRecurring: d.affiliateSmzRecurringRate || "50.00",
+            l2Rate: d.affiliateL2Rate || "10.00",
+            l3Rate: d.affiliateL3Rate || "5.00",
+          });
+        }
+      })
+      .catch(() => {});
+  };
+
+  const handleSaveGlobalRates = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingGlobal(true);
+    setGlobalMsg(null);
+    fetch("/api/settings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        affiliateSmzInitialRate: globalRates.smzInitial,
+        affiliateSmzRecurringRate: globalRates.smzRecurring,
+        affiliateL2Rate: globalRates.l2Rate,
+        affiliateL3Rate: globalRates.l3Rate,
+      }),
+    })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success) {
+          setGlobalMsg("Global affiliate rates updated successfully!");
+        } else {
+          setGlobalMsg(d.error || "Failed to save global rates");
+        }
+      })
+      .catch(() => setGlobalMsg("Failed to save global rates"))
+      .finally(() => setSavingGlobal(false));
+  };
 
   const load = (q?: string) => {
     setLoading(true);
@@ -132,12 +187,15 @@ export default function AffiliatesManager() {
           setSelectedIds([]);
           const rates: Record<string, string> = {};
           const statuses: Record<string, string> = {};
+          const overrides: Record<string, boolean> = {};
           d.affiliates.forEach((a: Affiliate) => {
             rates[a.id] = a.commissionRate || "5.00";
             statuses[a.id] = a.status || "approved";
+            overrides[a.id] = Boolean(a.manualOverrideActive);
           });
           setEditRates(rates);
           setEditStatus(statuses);
+          setEditOverrides(overrides);
         }
         if (d?.stats) setStats(d.stats);
       })
@@ -153,6 +211,7 @@ export default function AffiliatesManager() {
 
   useEffect(() => {
     load();
+    loadGlobalSettings();
   }, []);
 
   const save = (id: string) => {
@@ -167,6 +226,7 @@ export default function AffiliatesManager() {
             ids: [id],
             commissionRate: editRates[id],
             targetStatus: editStatus[id],
+            manualOverrideActive: editOverrides[id],
           }),
         });
         const data = await res.json();
@@ -179,6 +239,25 @@ export default function AffiliatesManager() {
       } catch {
         setMsg("Failed to update affiliate");
       }
+    });
+  };
+
+  const toggleUserActive = (id: string) => {
+    const nextVal = !editOverrides[id];
+    setEditOverrides((p) => ({ ...p, [id]: nextVal }));
+    startTransition(async () => {
+      try {
+        await fetch("/api/admin/affiliates", {
+          credentials: "include",
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ids: [id],
+            manualOverrideActive: nextVal,
+          }),
+        });
+        load(search || undefined);
+      } catch {}
     });
   };
 
@@ -231,7 +310,6 @@ export default function AffiliatesManager() {
           selectedIds.length === 1 ? "" : "s"
         }?`;
     if (!confirm(confirmMsg)) return;
-
     setBulkMsg(null);
     startTransition(async () => {
       try {
@@ -275,7 +353,7 @@ export default function AffiliatesManager() {
           </div>
           <h2 className="text-2xl font-black text-gray-900 tracking-tight">Affiliates</h2>
           <p className="text-sm text-gray-500 mt-1 max-w-xl">
-            Monitor multi-tier performance, manage commission rates, and review payout exposure.
+            Monitor multi-tier performance, configure global rates, toggle user active states, and manage payouts.
           </p>
         </div>
         <button
@@ -285,6 +363,92 @@ export default function AffiliatesManager() {
           <RefreshCw className="w-4 h-4" /> Refresh
         </button>
       </div>
+
+      {/* GLOBAL AFFILIATE RATES CONFIGURATION */}
+      <form onSubmit={handleSaveGlobalRates} className="p-5 rounded-3xl border border-gray-200 bg-white shadow-sm space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Settings className="w-4 h-4 text-[#CA3F2E]" />
+            <h3 className="text-sm font-bold text-gray-900">Global Affiliate Rate Controls</h3>
+          </div>
+          <button
+            type="submit"
+            disabled={savingGlobal}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-black text-white hover:bg-gray-800 text-xs font-bold transition shadow-sm disabled:opacity-50"
+          >
+            {savingGlobal ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+            <span>Save Global Rates</span>
+          </button>
+        </div>
+
+        {globalMsg && (
+          <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-semibold">
+            {globalMsg}
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 pt-1">
+          <div>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">
+              SMZ Initial Sale Rate (%)
+            </label>
+            <input
+              type="number"
+              step="0.5"
+              min="0"
+              max="100"
+              value={globalRates.smzInitial}
+              onChange={(e) => setGlobalRates({ ...globalRates, smzInitial: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-bold bg-gray-50/50 focus:outline-none focus:border-[#CA3F2E]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">
+              SMZ Recurring Renewal Rate (%)
+            </label>
+            <input
+              type="number"
+              step="0.5"
+              min="0"
+              max="100"
+              value={globalRates.smzRecurring}
+              onChange={(e) => setGlobalRates({ ...globalRates, smzRecurring: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-bold bg-gray-50/50 focus:outline-none focus:border-[#CA3F2E]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">
+              Level 2 Override Rate (%)
+            </label>
+            <input
+              type="number"
+              step="0.5"
+              min="0"
+              max="100"
+              value={globalRates.l2Rate}
+              onChange={(e) => setGlobalRates({ ...globalRates, l2Rate: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-bold bg-gray-50/50 focus:outline-none focus:border-[#CA3F2E]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">
+              Level 3 Override Rate (%)
+            </label>
+            <input
+              type="number"
+              step="0.5"
+              min="0"
+              max="100"
+              value={globalRates.l3Rate}
+              onChange={(e) => setGlobalRates({ ...globalRates, l3Rate: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-bold bg-gray-50/50 focus:outline-none focus:border-[#CA3F2E]"
+            />
+          </div>
+        </div>
+      </form>
 
       {/* PRIMARY KPI STRIP */}
       <div className="rounded-3xl border border-gray-200 bg-gradient-to-br from-white via-white to-gray-50 p-4 sm:p-5 shadow-sm">
@@ -298,7 +462,6 @@ export default function AffiliatesManager() {
             Live
           </div>
         </div>
-
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
           <StatCard
             label="Affiliates"
@@ -336,21 +499,21 @@ export default function AffiliatesManager() {
         <StatCard
           label="L1 Direct Commissions"
           value={`$${l1Amt}`}
-          hint={`${l1Count} direct sales · 5% / 50%`}
+          hint={`${l1Count} direct sales · ${globalRates.smzInitial}%`}
           icon={DollarSign}
           tone="emerald"
         />
         <StatCard
           label="L2 Team Overrides"
           value={`$${l2Amt}`}
-          hint={`${l2Count} overrides · 10%`}
+          hint={`${l2Count} overrides · ${globalRates.l2Rate}%`}
           icon={Layers}
           tone="sky"
         />
         <StatCard
           label="L3 Deep Overrides"
           value={`$${l3Amt}`}
-          hint={`${l3Count} overrides · 5%`}
+          hint={`${l3Count} overrides · ${globalRates.l3Rate}%`}
           icon={GitBranch}
           tone="violet"
         />
@@ -368,7 +531,6 @@ export default function AffiliatesManager() {
           {msg}
         </div>
       )}
-
       {bulkMsg && (
         <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold">
           {bulkMsg}
@@ -414,7 +576,6 @@ export default function AffiliatesManager() {
               {list.length} visible
             </span>
           </div>
-
           {selectedIds.length > 0 && (
             <div className="flex items-center gap-2 animate-in fade-in duration-200 flex-wrap justify-end">
               <span className="text-xs font-bold text-gray-700 mr-1">
@@ -511,9 +672,8 @@ export default function AffiliatesManager() {
                 </th>
                 <th className="px-4 py-3">Affiliate</th>
                 <th className="px-4 py-3">Code</th>
-                <th className="px-4 py-3">Rate %</th>
-                <th className="px-4 py-3">Clicks</th>
-                <th className="px-4 py-3">Orders</th>
+                <th className="px-4 py-3">Commission Active?</th>
+                <th className="px-4 py-3">Direct Rate %</th>
                 <th className="px-4 py-3">Earnings</th>
                 <th className="px-4 py-3">Pending</th>
                 <th className="px-4 py-3">Status</th>
@@ -552,6 +712,31 @@ export default function AffiliatesManager() {
                       {a.code}
                     </span>
                   </td>
+                  {/* Manual Active Override Toggle */}
+                  <td className="px-4 py-3">
+                    <button
+                      type="button"
+                      onClick={() => toggleUserActive(a.id)}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-extrabold border transition ${
+                        editOverrides[a.id]
+                          ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
+                          : "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100"
+                      }`}
+                      title="Click to toggle commission active state for team bonuses"
+                    >
+                      {editOverrides[a.id] ? (
+                        <>
+                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Active ✅</span>
+                        </>
+                      ) : (
+                        <>
+                          <ShieldAlert className="w-3.5 h-3.5 text-amber-600" />
+                          <span>Inactive 🔒</span>
+                        </>
+                      )}
+                    </button>
+                  </td>
                   <td className="px-4 py-3">
                     <input
                       type="number"
@@ -562,11 +747,9 @@ export default function AffiliatesManager() {
                       onChange={(e) =>
                         setEditRates((p) => ({ ...p, [a.id]: e.target.value }))
                       }
-                      className="w-20 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#CA3F2E]"
+                      className="w-16 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#CA3F2E]"
                     />
                   </td>
-                  <td className="px-4 py-3 font-medium">{a.totalClicks ?? 0}</td>
-                  <td className="px-4 py-3 font-medium">{a.totalOrders ?? 0}</td>
                   <td className="px-4 py-3 font-medium text-gray-900">
                     ${parseFloat(a.totalEarnings || "0").toFixed(2)}
                   </td>
@@ -612,7 +795,6 @@ export default function AffiliatesManager() {
                         )}
                         Save
                       </button>
-
                       <button
                         disabled={isPending}
                         onClick={() => deleteSingle(a.id, a.name)}

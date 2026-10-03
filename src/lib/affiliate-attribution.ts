@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { db } from "@/db";
-import { affiliates, affiliateOrders, subscriptions, orders } from "@/db/schema";
+import { affiliates, affiliateOrders, subscriptions, orders, settings } from "@/db/schema";
 import { eq, sql, and } from "drizzle-orm";
 
 interface AffiliateOrderParams {
@@ -17,6 +17,19 @@ async function isAffiliateSubscriptionActive(affiliateEmail: string): Promise<bo
   if (!affiliateEmail) return false;
   try {
     const cleanEmail = affiliateEmail.toLowerCase().trim();
+
+    // 1. Check if admin manually activated affiliate
+    const [aff] = await db
+      .select({ manualOverrideActive: affiliates.manualOverrideActive })
+      .from(affiliates)
+      .where(eq(sql`LOWER(${affiliates.email})`, cleanEmail))
+      .limit(1);
+
+    if (aff?.manualOverrideActive) {
+      return true;
+    }
+
+    // 2. Check active software subscription
     const rows = await db
       .select({ status: subscriptions.status, expiresAt: subscriptions.expiresAt })
       .from(subscriptions)
@@ -106,6 +119,13 @@ export async function processAffiliateAttribution({
 
     const cleanCode = String(code).trim().toLowerCase();
 
+    // Fetch custom rates from Settings
+    const [stRow] = await db.select().from(settings).where(eq(settings.id, 1)).limit(1);
+    const initialRateConfig = parseFloat(stRow?.affiliateSmzInitialRate || "50.00");
+    const recurringRateConfig = parseFloat(stRow?.affiliateSmzRecurringRate || "50.00");
+    const l2RateConfig = parseFloat(stRow?.affiliateL2Rate || "10.00");
+    const l3RateConfig = parseFloat(stRow?.affiliateL3Rate || "5.00");
+
     // 1. Fetch Level 1 Affiliate
     const [l1Affiliate] = await db
       .select()
@@ -159,19 +179,16 @@ export async function processAffiliateAttribution({
     const isRenewalOrder = isSmzBot ? await isCustomerRenewal(cEmail, trackedOrderRef) : false;
     const l1IsActive = isSmzBot ? await isAffiliateSubscriptionActive(l1Affiliate.email) : true;
 
-    // Direct Referral Rule:
-    // Initial purchase ALWAYS pays L1 direct commission.
-    // Renewal purchase pays L1 50% IF L1 is active. If L1 is NOT active, order is created as "locked" (visible, but NOT added to pending payout).
     let allowL1Payout = true;
     let l1OrderStatus = isSmzBot ? "confirmed" : "pending";
 
     if (isSmzBot && isRenewalOrder && !l1IsActive) {
       allowL1Payout = false;
       l1OrderStatus = "locked";
-      console.log(`[Affiliate] L1 affiliate ${l1Affiliate.email} is INACTIVE during renewal. Commission recorded as LOCKED (non-withdrawable).`);
+      console.log(`[Affiliate] L1 affiliate ${l1Affiliate.email} is INACTIVE during renewal. Commission recorded as LOCKED.`);
     }
 
-    let l1Rate = isSmzBot ? 50.0 : parseFloat(l1Affiliate.commissionRate || "5.00");
+    let l1Rate = isSmzBot ? (isRenewalOrder ? recurringRateConfig : initialRateConfig) : parseFloat(l1Affiliate.commissionRate || "5.00");
     if (isNaN(l1Rate) || l1Rate <= 0) l1Rate = 5.0;
 
     const l1CommissionNum = Math.round(subtotalUsd * (l1Rate / 100) * 100) / 100;
@@ -200,12 +217,10 @@ export async function processAffiliateAttribution({
       })
       .where(eq(affiliates.id, l1Affiliate.id));
 
-    // Update Earnings
     const curEarnings = parseFloat(l1Affiliate.totalEarnings || "0");
     const curPending = parseFloat(l1Affiliate.pendingPayout || "0");
 
     if (allowL1Payout && l1OrderStatus === "confirmed") {
-      // Add to BOTH lifetime earnings AND withdrawable pending payout
       await db
         .update(affiliates)
         .set({
@@ -214,7 +229,6 @@ export async function processAffiliateAttribution({
         })
         .where(eq(affiliates.id, l1Affiliate.id));
     } else if (l1OrderStatus === "locked") {
-      // Add to total earnings so it is visible, but DO NOT add to pendingPayout
       await db
         .update(affiliates)
         .set({
@@ -238,7 +252,7 @@ export async function processAffiliateAttribution({
       },
     };
 
-    // MULTI-TIER OVERRIDES (SMZ BOT ONLY - Requires Active Sub for L2 and L3)
+    // MULTI-TIER OVERRIDES (SMZ BOT ONLY)
     if (isSmzBot && l1Affiliate.parentAffiliateId) {
       const [l2Affiliate] = await db
         .select()
@@ -248,15 +262,14 @@ export async function processAffiliateAttribution({
 
       if (l2Affiliate && l2Affiliate.status !== "suspended" && l2Affiliate.status !== "rejected") {
         const l2IsActive = await isAffiliateSubscriptionActive(l2Affiliate.email);
-        const l2Rate = 10.0;
-        const l2CommNum = Math.round(subtotalUsd * (l2Rate / 100) * 100) / 100;
+        const l2CommNum = Math.round(subtotalUsd * (l2RateConfig / 100) * 100) / 100;
         const l2Status = l2IsActive ? "confirmed" : "locked";
 
         await db.insert(affiliateOrders).values({
           orderId: `${trackedOrderRef}_L2`,
           affiliateId: l2Affiliate.id,
           subtotal: subtotalStr,
-          commissionRate: String(l2Rate),
+          commissionRate: String(l2RateConfig),
           commissionAmount: l2CommNum.toFixed(2),
           currency,
           status: l2Status,
@@ -284,7 +297,7 @@ export async function processAffiliateAttribution({
             .where(eq(affiliates.id, l2Affiliate.id));
         }
 
-        resultSummary.level2 = { affiliateId: l2Affiliate.id, rate: l2Rate, commission: l2CommNum.toFixed(2), status: l2Status };
+        resultSummary.level2 = { affiliateId: l2Affiliate.id, rate: l2RateConfig, commission: l2CommNum.toFixed(2), status: l2Status };
 
         if (l2Affiliate.parentAffiliateId) {
           const [l3Affiliate] = await db
@@ -295,15 +308,14 @@ export async function processAffiliateAttribution({
 
           if (l3Affiliate && l3Affiliate.status !== "suspended" && l3Affiliate.status !== "rejected") {
             const l3IsActive = await isAffiliateSubscriptionActive(l3Affiliate.email);
-            const l3Rate = 5.0;
-            const l3CommNum = Math.round(subtotalUsd * (l3Rate / 100) * 100) / 100;
+            const l3CommNum = Math.round(subtotalUsd * (l3RateConfig / 100) * 100) / 100;
             const l3Status = l3IsActive ? "confirmed" : "locked";
 
             await db.insert(affiliateOrders).values({
               orderId: `${trackedOrderRef}_L3`,
               affiliateId: l3Affiliate.id,
               subtotal: subtotalStr,
-              commissionRate: String(l3Rate),
+              commissionRate: String(l3RateConfig),
               commissionAmount: l3CommNum.toFixed(2),
               currency,
               status: l3Status,
@@ -331,7 +343,7 @@ export async function processAffiliateAttribution({
                 .where(eq(affiliates.id, l3Affiliate.id));
             }
 
-            resultSummary.level3 = { affiliateId: l3Affiliate.id, rate: l3Rate, commission: l3CommNum.toFixed(2), status: l3Status };
+            resultSummary.level3 = { affiliateId: l3Affiliate.id, rate: l3RateConfig, commission: l3CommNum.toFixed(2), status: l3Status };
           }
         }
       }

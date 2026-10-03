@@ -12,31 +12,33 @@ export async function GET() {
 
   const { passwordHash: _, ...safeAffiliate } = affiliate;
 
-  let isOverrideEligible = false;
+  let isOverrideEligible = Boolean(affiliate.manualOverrideActive);
   let subscriptionExpiresAt: string | null = null;
 
-  try {
-    const subRows = await db
-      .select({ status: subscriptions.status, expiresAt: subscriptions.expiresAt })
-      .from(subscriptions)
-      .where(
-        and(
-          eq(subscriptions.customerEmail, affiliate.email.toLowerCase().trim()),
-          eq(subscriptions.status, "active")
+  if (!isOverrideEligible) {
+    try {
+      const subRows = await db
+        .select({ status: subscriptions.status, expiresAt: subscriptions.expiresAt })
+        .from(subscriptions)
+        .where(
+          and(
+            eq(subscriptions.customerEmail, affiliate.email.toLowerCase().trim()),
+            eq(subscriptions.status, "active")
+          )
         )
-      )
-      .orderBy(desc(subscriptions.expiresAt))
-      .limit(1);
+        .orderBy(desc(subscriptions.expiresAt))
+        .limit(1);
 
-    if (subRows.length > 0) {
-      const sub = subRows[0];
-      if (sub.expiresAt && new Date(sub.expiresAt) > new Date()) {
-        isOverrideEligible = true;
-        subscriptionExpiresAt = new Date(sub.expiresAt).toISOString();
+      if (subRows.length > 0) {
+        const sub = subRows[0];
+        if (sub.expiresAt && new Date(sub.expiresAt) > new Date()) {
+          isOverrideEligible = true;
+          subscriptionExpiresAt = new Date(sub.expiresAt).toISOString();
+        }
       }
+    } catch (e) {
+      console.error("me API subscription check error:", e);
     }
-  } catch (e) {
-    console.error("me API subscription check error:", e);
   }
 
   // Calculate breakdown

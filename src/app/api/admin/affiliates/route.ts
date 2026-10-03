@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { affiliates, affiliateApplications } from "@/db/schema";
 import { eq, inArray, sql } from "drizzle-orm";
@@ -12,7 +12,6 @@ export async function GET() {
 
   try {
     const list = await db.select().from(affiliates).orderBy(affiliates.createdAt);
-
     let totalEarningsAll = 0;
     let totalPendingPayoutAll = 0;
     let totalPaidOutAll = 0;
@@ -44,20 +43,17 @@ async function handleUpdateOrDelete(req: NextRequest) {
 
   try {
     const body = await req.json();
-
-    // Support both single ID (affiliateId) and bulk array (ids or affiliateIds)
     const rawIds = body.ids || body.affiliateIds || (body.affiliateId ? [body.affiliateId] : []);
     const ids: string[] = Array.isArray(rawIds) ? rawIds : [rawIds];
-
     const action = body.action;
     const targetStatus = body.targetStatus || body.status;
     const commissionRate = body.commissionRate;
+    const manualOverrideActive = body.manualOverrideActive;
 
     if (ids.length === 0 || !ids[0]) {
       return NextResponse.json({ error: "No affiliate IDs provided" }, { status: 400 });
     }
 
-    // ---------- DELETE ACTION ----------
     if (action === "delete") {
       const rows = await db
         .select({ id: affiliates.id, email: affiliates.email })
@@ -71,7 +67,6 @@ async function handleUpdateOrDelete(req: NextRequest) {
         } catch (e) {}
       }
 
-      // Unlink sub-affiliates recruited by deleted affiliate
       await db
         .update(affiliates)
         .set({ parentAffiliateId: null })
@@ -87,7 +82,6 @@ async function handleUpdateOrDelete(req: NextRequest) {
       });
     }
 
-    // ---------- UPDATE STATUS / COMMISSION RATE ----------
     const updates: Record<string, unknown> = {
       updatedAt: new Date(),
     };
@@ -98,6 +92,10 @@ async function handleUpdateOrDelete(req: NextRequest) {
         return NextResponse.json({ error: "Commission rate must be between 0 and 50" }, { status: 400 });
       }
       updates.commissionRate = String(rate);
+    }
+
+    if (manualOverrideActive !== undefined && manualOverrideActive !== null) {
+      updates.manualOverrideActive = Boolean(manualOverrideActive);
     }
 
     if (targetStatus !== undefined && targetStatus !== null && targetStatus !== "") {
@@ -111,7 +109,6 @@ async function handleUpdateOrDelete(req: NextRequest) {
       }
     }
 
-    // Apply bulk status actions if action is approve, suspend, or reject
     if (action === "approve") {
       updates.status = "approved";
       updates.approvedAt = new Date();

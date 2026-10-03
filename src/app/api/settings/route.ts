@@ -18,6 +18,10 @@ const DEFAULT_SETTINGS = {
   promoLink: "/affiliate",
   promoLinkEn: "/affiliate",
   promoLinkFr: "/affiliate",
+  affiliateSmzInitialRate: "50.00",
+  affiliateSmzRecurringRate: "50.00",
+  affiliateL2Rate: "10.00",
+  affiliateL3Rate: "5.00",
 };
 
 async function ensureColumnsExist() {
@@ -25,12 +29,17 @@ async function ensureColumnsExist() {
     await db.execute(sql`
       ALTER TABLE settings ADD COLUMN IF NOT EXISTS hero_style text NOT NULL DEFAULT 'classic';
       ALTER TABLE settings ADD COLUMN IF NOT EXISTS promo_text_en text NOT NULL DEFAULT 'Become an affiliate and get 50% plus';
-      ALTER TABLE settings ADD COLUMN IF NOT EXISTS promo_text_fr text NOT NULL DEFAULT 'Devenez affilié et obtenez plus de 50%';
+      ALTER TABLE settings ADD COLUMN IF NOT EXISTS promo_text_fr text NOT NULL DEFAULT 'Devenez affili\u00e9 et obtenez plus de 50%';
       ALTER TABLE settings ADD COLUMN IF NOT EXISTS promo_btn_en text NOT NULL DEFAULT 'Join Now';
       ALTER TABLE settings ADD COLUMN IF NOT EXISTS promo_btn_fr text NOT NULL DEFAULT 'Rejoindre';
       ALTER TABLE settings ADD COLUMN IF NOT EXISTS promo_link text NOT NULL DEFAULT '/affiliate';
       ALTER TABLE settings ADD COLUMN IF NOT EXISTS promo_link_en text NOT NULL DEFAULT '/affiliate';
       ALTER TABLE settings ADD COLUMN IF NOT EXISTS promo_link_fr text NOT NULL DEFAULT '/affiliate';
+      ALTER TABLE settings ADD COLUMN IF NOT EXISTS affiliate_smz_initial_rate text NOT NULL DEFAULT '50.00';
+      ALTER TABLE settings ADD COLUMN IF NOT EXISTS affiliate_smz_recurring_rate text NOT NULL DEFAULT '50.00';
+      ALTER TABLE settings ADD COLUMN IF NOT EXISTS affiliate_l2_rate text NOT NULL DEFAULT '10.00';
+      ALTER TABLE settings ADD COLUMN IF NOT EXISTS affiliate_l3_rate text NOT NULL DEFAULT '5.00';
+      ALTER TABLE affiliates ADD COLUMN IF NOT EXISTS manual_override_active boolean DEFAULT false;
     `);
   } catch (err) {
     console.warn("[Settings API] Column auto-heal warning:", err);
@@ -42,7 +51,6 @@ export async function GET(req: Request) {
     const internalSecret = process.env.INTERNAL_API_SECRET || "ndz-internal-2024";
     const headerVal = req.headers.get("x-internal");
     const isInternalMiddleware = headerVal === internalSecret || headerVal === "middleware";
-
     const isAdmin = isInternalMiddleware || await (async () => {
       try {
         const { cookies } = await import("next/headers");
@@ -103,7 +111,6 @@ export async function POST(req: Request) {
     await ensureColumnsExist();
 
     const [existing] = await db.select().from(settings).where(eq(settings.id, 1)).limit(1);
-
     if (existing) {
       await db.update(settings).set(body).where(eq(settings.id, 1));
     } else {
