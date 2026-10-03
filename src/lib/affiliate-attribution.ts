@@ -47,6 +47,7 @@ async function isCustomerRenewal(customerEmail: string | null, currentOrderNumbe
         )
       )
       .limit(1);
+
     return previousSubs.length > 0;
   } catch (e) {
     return false;
@@ -64,7 +65,6 @@ export async function processAffiliateAttribution({
 }: AffiliateOrderParams) {
   try {
     let code = affiliateCode;
-
     if (!code) {
       try {
         const cookieStore = await cookies();
@@ -159,34 +159,36 @@ export async function processAffiliateAttribution({
     const isRenewalOrder = isSmzBot ? await isCustomerRenewal(cEmail, trackedOrderRef) : false;
     const l1IsActive = isSmzBot ? await isAffiliateSubscriptionActive(l1Affiliate.email) : true;
 
-    // RULE: Initial purchase ALWAYS pays L1 50%.
-    // Renewal purchase ONLY pays L1 50% IF L1 affiliate has an active SMZ subscription.
-    let allowL1Commission = true;
+    // Direct Referral Rule:
+    // Initial purchase ALWAYS pays L1 direct commission.
+    // Renewal purchase pays L1 50% IF L1 is active. If L1 is NOT active, order is created as "locked" (visible, but NOT added to pending payout).
+    let allowL1Payout = true;
+    let l1OrderStatus = isSmzBot ? "confirmed" : "pending";
+
     if (isSmzBot && isRenewalOrder && !l1IsActive) {
-      allowL1Commission = false;
-      console.log(`[Affiliate] L1 affiliate ${l1Affiliate.email} is INACTIVE during renewal by ${cEmail}. L1 50% renewal commission FORFEITED.`);
+      allowL1Payout = false;
+      l1OrderStatus = "locked";
+      console.log(`[Affiliate] L1 affiliate ${l1Affiliate.email} is INACTIVE during renewal. Commission recorded as LOCKED (non-withdrawable).`);
     }
 
     let l1Rate = isSmzBot ? 50.0 : parseFloat(l1Affiliate.commissionRate || "5.00");
     if (isNaN(l1Rate) || l1Rate <= 0) l1Rate = 5.0;
 
-    const l1CommissionNum = allowL1Commission ? Math.round(subtotalUsd * (l1Rate / 100) * 100) / 100 : 0;
+    const l1CommissionNum = Math.round(subtotalUsd * (l1Rate / 100) * 100) / 100;
     const l1CommissionStr = l1CommissionNum.toFixed(2);
     const subtotalStr = subtotalUsd.toFixed(2);
-
-    const initialStatus = isSmzBot ? "confirmed" : "pending";
 
     // Insert Level 1 affiliate order
     const [l1AffOrder] = await db
       .insert(affiliateOrders)
       .values({
-        orderId: trackedOrderRef,
+        orderId: isRenewalOrder ? `${trackedOrderRef}_REC` : trackedOrderRef,
         affiliateId: l1Affiliate.id,
         subtotal: subtotalStr,
-        commissionRate: String(allowL1Commission ? l1Rate : 0),
+        commissionRate: String(l1Rate),
         commissionAmount: l1CommissionStr,
         currency,
-        status: allowL1Commission ? initialStatus : "cancelled",
+        status: l1OrderStatus,
       })
       .returning();
 
@@ -198,15 +200,25 @@ export async function processAffiliateAttribution({
       })
       .where(eq(affiliates.id, l1Affiliate.id));
 
-    if (allowL1Commission && initialStatus === "confirmed") {
-      const curEarnings = parseFloat(l1Affiliate.totalEarnings || "0");
-      const curPending = parseFloat(l1Affiliate.pendingPayout || "0");
+    // Update Earnings
+    const curEarnings = parseFloat(l1Affiliate.totalEarnings || "0");
+    const curPending = parseFloat(l1Affiliate.pendingPayout || "0");
 
+    if (allowL1Payout && l1OrderStatus === "confirmed") {
+      // Add to BOTH lifetime earnings AND withdrawable pending payout
       await db
         .update(affiliates)
         .set({
           totalEarnings: (curEarnings + l1CommissionNum).toFixed(2),
           pendingPayout: (curPending + l1CommissionNum).toFixed(2),
+        })
+        .where(eq(affiliates.id, l1Affiliate.id));
+    } else if (l1OrderStatus === "locked") {
+      // Add to total earnings so it is visible, but DO NOT add to pendingPayout
+      await db
+        .update(affiliates)
+        .set({
+          totalEarnings: (curEarnings + l1CommissionNum).toFixed(2),
         })
         .where(eq(affiliates.id, l1Affiliate.id));
     }
@@ -219,8 +231,9 @@ export async function processAffiliateAttribution({
       level1: {
         affiliateId: l1Affiliate.id,
         code: l1Affiliate.code,
-        rate: allowL1Commission ? l1Rate : 0,
+        rate: l1Rate,
         commission: l1CommissionStr,
+        status: l1OrderStatus,
         orderId: l1AffOrder?.id || trackedOrderRef,
       },
     };
@@ -235,23 +248,24 @@ export async function processAffiliateAttribution({
 
       if (l2Affiliate && l2Affiliate.status !== "suspended" && l2Affiliate.status !== "rejected") {
         const l2IsActive = await isAffiliateSubscriptionActive(l2Affiliate.email);
+        const l2Rate = 10.0;
+        const l2CommNum = Math.round(subtotalUsd * (l2Rate / 100) * 100) / 100;
+        const l2Status = l2IsActive ? "confirmed" : "locked";
+
+        await db.insert(affiliateOrders).values({
+          orderId: `${trackedOrderRef}_L2`,
+          affiliateId: l2Affiliate.id,
+          subtotal: subtotalStr,
+          commissionRate: String(l2Rate),
+          commissionAmount: l2CommNum.toFixed(2),
+          currency,
+          status: l2Status,
+        });
+
+        const l2CurE = parseFloat(l2Affiliate.totalEarnings || "0");
+        const l2CurP = parseFloat(l2Affiliate.pendingPayout || "0");
+
         if (l2IsActive) {
-          const l2Rate = 10.0;
-          const l2CommNum = Math.round(subtotalUsd * (l2Rate / 100) * 100) / 100;
-
-          await db.insert(affiliateOrders).values({
-            orderId: `${trackedOrderRef}_L2`,
-            affiliateId: l2Affiliate.id,
-            subtotal: subtotalStr,
-            commissionRate: String(l2Rate),
-            commissionAmount: l2CommNum.toFixed(2),
-            currency,
-            status: "confirmed",
-          });
-
-          const l2CurE = parseFloat(l2Affiliate.totalEarnings || "0");
-          const l2CurP = parseFloat(l2Affiliate.pendingPayout || "0");
-
           await db
             .update(affiliates)
             .set({
@@ -260,47 +274,64 @@ export async function processAffiliateAttribution({
               updatedAt: new Date(),
             })
             .where(eq(affiliates.id, l2Affiliate.id));
+        } else {
+          await db
+            .update(affiliates)
+            .set({
+              totalEarnings: (l2CurE + l2CommNum).toFixed(2),
+              updatedAt: new Date(),
+            })
+            .where(eq(affiliates.id, l2Affiliate.id));
+        }
 
-          resultSummary.level2 = { affiliateId: l2Affiliate.id, rate: l2Rate, commission: l2CommNum.toFixed(2) };
+        resultSummary.level2 = { affiliateId: l2Affiliate.id, rate: l2Rate, commission: l2CommNum.toFixed(2), status: l2Status };
 
-          if (l2Affiliate.parentAffiliateId) {
-            const [l3Affiliate] = await db
-              .select()
-              .from(affiliates)
-              .where(eq(affiliates.id, l2Affiliate.parentAffiliateId))
-              .limit(1);
+        if (l2Affiliate.parentAffiliateId) {
+          const [l3Affiliate] = await db
+            .select()
+            .from(affiliates)
+            .where(eq(affiliates.id, l2Affiliate.parentAffiliateId))
+            .limit(1);
 
-            if (l3Affiliate && l3Affiliate.status !== "suspended" && l3Affiliate.status !== "rejected") {
-              const l3IsActive = await isAffiliateSubscriptionActive(l3Affiliate.email);
-              if (l3IsActive) {
-                const l3Rate = 5.0;
-                const l3CommNum = Math.round(subtotalUsd * (l3Rate / 100) * 100) / 100;
+          if (l3Affiliate && l3Affiliate.status !== "suspended" && l3Affiliate.status !== "rejected") {
+            const l3IsActive = await isAffiliateSubscriptionActive(l3Affiliate.email);
+            const l3Rate = 5.0;
+            const l3CommNum = Math.round(subtotalUsd * (l3Rate / 100) * 100) / 100;
+            const l3Status = l3IsActive ? "confirmed" : "locked";
 
-                await db.insert(affiliateOrders).values({
-                  orderId: `${trackedOrderRef}_L3`,
-                  affiliateId: l3Affiliate.id,
-                  subtotal: subtotalStr,
-                  commissionRate: String(l3Rate),
-                  commissionAmount: l3CommNum.toFixed(2),
-                  currency,
-                  status: "confirmed",
-                });
+            await db.insert(affiliateOrders).values({
+              orderId: `${trackedOrderRef}_L3`,
+              affiliateId: l3Affiliate.id,
+              subtotal: subtotalStr,
+              commissionRate: String(l3Rate),
+              commissionAmount: l3CommNum.toFixed(2),
+              currency,
+              status: l3Status,
+            });
 
-                const l3CurE = parseFloat(l3Affiliate.totalEarnings || "0");
-                const l3CurP = parseFloat(l3Affiliate.pendingPayout || "0");
+            const l3CurE = parseFloat(l3Affiliate.totalEarnings || "0");
+            const l3CurP = parseFloat(l3Affiliate.pendingPayout || "0");
 
-                await db
-                  .update(affiliates)
-                  .set({
-                    totalEarnings: (l3CurE + l3CommNum).toFixed(2),
-                    pendingPayout: (l3CurP + l3CommNum).toFixed(2),
-                    updatedAt: new Date(),
-                  })
-                  .where(eq(affiliates.id, l3Affiliate.id));
-
-                resultSummary.level3 = { affiliateId: l3Affiliate.id, rate: l3Rate, commission: l3CommNum.toFixed(2) };
-              }
+            if (l3IsActive) {
+              await db
+                .update(affiliates)
+                .set({
+                  totalEarnings: (l3CurE + l3CommNum).toFixed(2),
+                  pendingPayout: (l3CurP + l3CommNum).toFixed(2),
+                  updatedAt: new Date(),
+                })
+                .where(eq(affiliates.id, l3Affiliate.id));
+            } else {
+              await db
+                .update(affiliates)
+                .set({
+                  totalEarnings: (l3CurE + l3CommNum).toFixed(2),
+                  updatedAt: new Date(),
+                })
+                .where(eq(affiliates.id, l3Affiliate.id));
             }
+
+            resultSummary.level3 = { affiliateId: l3Affiliate.id, rate: l3Rate, commission: l3CommNum.toFixed(2), status: l3Status };
           }
         }
       }
@@ -322,7 +353,6 @@ export async function confirmAffiliateCommissionOnDelivery(orderRef: string) {
 
     for (const affOrder of pendingAffOrders) {
       const commAmount = parseFloat(affOrder.commissionAmount || "0");
-
       await db
         .update(affiliateOrders)
         .set({ status: "confirmed" })
@@ -337,7 +367,6 @@ export async function confirmAffiliateCommissionOnDelivery(orderRef: string) {
       if (aff) {
         const curE = parseFloat(aff.totalEarnings || "0");
         const curP = parseFloat(aff.pendingPayout || "0");
-
         await db
           .update(affiliates)
           .set({

@@ -39,8 +39,10 @@ export async function GET() {
     console.error("me API subscription check error:", e);
   }
 
-  // Calculate L1, L2, L3 and Team Bonus breakdowns
+  // Calculate breakdown
   let l1Earnings = 0;
+  let recurringEarnings = 0;
+  let recurringLocked = 0;
   let l2Earnings = 0;
   let l3Earnings = 0;
 
@@ -61,10 +63,18 @@ export async function GET() {
 
     affOrders.forEach((o) => {
       const amt = parseFloat(o.commissionAmount || "0");
+      const isLocked = o.status === "locked";
+
       if (o.orderId.includes("_L2")) {
-        l2Earnings += amt;
+        if (!isLocked) l2Earnings += amt;
       } else if (o.orderId.includes("_L3")) {
-        l3Earnings += amt;
+        if (!isLocked) l3Earnings += amt;
+      } else if (o.orderId.includes("_REC")) {
+        if (isLocked) {
+          recurringLocked += amt;
+        } else {
+          recurringEarnings += amt;
+        }
       } else {
         l1Earnings += amt;
       }
@@ -82,6 +92,8 @@ export async function GET() {
       isOverrideEligible,
       subscriptionExpiresAt,
       l1Earnings: l1Earnings.toFixed(2),
+      recurringEarnings: recurringEarnings.toFixed(2),
+      recurringLocked: recurringLocked.toFixed(2),
       l2Earnings: l2Earnings.toFixed(2),
       l3Earnings: l3Earnings.toFixed(2),
       teamBonus: teamBonus.toFixed(2),

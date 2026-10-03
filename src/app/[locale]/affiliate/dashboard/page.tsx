@@ -21,6 +21,7 @@ import {
   Calendar,
   BarChart3,
   TrendingUp,
+  RotateCw,
   Users,
 } from "lucide-react";
 
@@ -47,6 +48,8 @@ interface AffiliateData {
   l1Earnings?: string;
   l2Earnings?: string;
   l3Earnings?: string;
+  recurringEarnings?: string;
+  recurringLocked?: string;
   teamBonus?: string;
   subscriptionExpiresAt?: string | null;
 }
@@ -407,35 +410,74 @@ function AffiliateDashboardInner() {
           </p>
         </div>
       </div>
-
-            {/* LEVEL EARNINGS & TEAM BONUS BREAKDOWN */}
+      {/* LEVEL & RECURRING EARNINGS BREAKDOWN */}
       <div className="space-y-3">
         <h2 className="text-sm font-bold uppercase tracking-wider text-gray-400 flex items-center gap-2">
           <Users className="w-4 h-4 text-[#CA3F2E]" />
-          {isFr ? "Ventilation des Gains par Niveau" : "Earnings Breakdown by Tier"}
+          {isFr ? "Ventilation des Gains & Commissions R\u00e9currentes" : "Earnings & Recurring Revenue Breakdown"}
         </h2>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5">
+          {/* Level 1 Direct Initial */}
           <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10">
             <div className="flex items-center justify-between text-gray-400 mb-1.5">
               <span className="text-[11px] uppercase tracking-wider font-semibold">
-                {isFr ? "L1 Direct (50% / 5%)" : "Level 1 Direct"}
+                {isFr ? "L1 Direct Initial" : "L1 Direct Initial"}
               </span>
               <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[9px] font-bold">
-                {isFr ? "Actif" : "Active"}
+                {isFr ? "Sans Restriction" : "Active Direct"}
               </span>
             </div>
             <p className="text-xl font-bold text-emerald-400">
               ${parseFloat(affiliate.l1Earnings || "0").toFixed(2)}
             </p>
             <p className="text-[10px] text-gray-400 mt-1">
-              {isFr ? "Commissions directes sans restriction" : "Direct referrals (no sub required)"}
+              {isFr ? "Commissions directes sans abonnement requis" : "Initial sale (no subscription required)"}
             </p>
           </div>
 
+          {/* Recurring Earnings (50% SMZ Renewals) */}
+          <div className={`p-4 rounded-2xl border ${isEligible ? "bg-white/[0.03] border-white/10" : "bg-amber-950/20 border-amber-500/30"}`}>
+            <div className="flex items-center justify-between text-gray-400 mb-1.5">
+              <span className="text-[11px] uppercase tracking-wider font-semibold flex items-center gap-1">
+                <RotateCw className="w-3 h-3 text-emerald-400" />
+                {isFr ? "R\u00e9current (50%)" : "Recurring (50%)"}
+              </span>
+              {isEligible ? (
+                <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[9px] font-bold">
+                  {isFr ? "Actif" : "Active"}
+                </span>
+              ) : (
+                <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[9px] font-bold">
+                  🔒 {isFr ? "Verrouill\u00e9" : "Locked"}
+                </span>
+              )}
+            </div>
+            {isEligible ? (
+              <p className="text-xl font-bold text-white">
+                ${parseFloat(affiliate.recurringEarnings || "0").toFixed(2)}
+              </p>
+            ) : (
+              <div>
+                <p className="text-xl font-bold text-amber-300">
+                  ${parseFloat(affiliate.recurringLocked || "0").toFixed(2)}
+                </p>
+                <p className="text-[9px] text-amber-400 font-semibold mt-0.5">
+                  🔒 {isFr ? "Non retirable (Inactif)" : "Non-withdrawable (Inactive)"}
+                </p>
+              </div>
+            )}
+            <p className="text-[10px] text-gray-400 mt-1">
+              {isEligible
+                ? (isFr ? "Commissions de renouvellement retirable" : "Recurring renewal software commissions")
+                : (isFr ? "Abonnement requis pour retirer les r\u00e9currences" : "Active sub required to withdraw renewals")}
+            </p>
+          </div>
+
+          {/* Level 2 Override */}
           <div className={`p-4 rounded-2xl border ${isEligible ? "bg-white/[0.03] border-white/10" : "bg-amber-950/20 border-amber-500/30"}`}>
             <div className="flex items-center justify-between text-gray-400 mb-1.5">
               <span className="text-[11px] uppercase tracking-wider font-semibold">
-                {isFr ? "L2 Override (10%)" : "Level 2 Override"}
+                {isFr ? "L2 Override (10%)" : "L2 Override (10%)"}
               </span>
               {isEligible ? (
                 <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[9px] font-bold">
@@ -453,7 +495,7 @@ function AffiliateDashboardInner() {
               </p>
             ) : (
               <p className="text-sm font-bold text-amber-400">
-                {isFr ? "Verrouill\u00e9" : "Locked"}
+                🔒 {isFr ? "Verrouill\u00e9" : "Locked"}
               </p>
             )}
             <p className="text-[10px] text-gray-400 mt-1">
@@ -463,10 +505,11 @@ function AffiliateDashboardInner() {
             </p>
           </div>
 
+          {/* Level 3 Override */}
           <div className={`p-4 rounded-2xl border ${isEligible ? "bg-white/[0.03] border-white/10" : "bg-amber-950/20 border-amber-500/30"}`}>
             <div className="flex items-center justify-between text-gray-400 mb-1.5">
               <span className="text-[11px] uppercase tracking-wider font-semibold">
-                {isFr ? "L3 Override (5%)" : "Level 3 Override"}
+                {isFr ? "L3 Override (5%)" : "L3 Override (5%)"}
               </span>
               {isEligible ? (
                 <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[9px] font-bold">
@@ -484,7 +527,7 @@ function AffiliateDashboardInner() {
               </p>
             ) : (
               <p className="text-sm font-bold text-amber-400">
-                {isFr ? "Verrouill\u00e9" : "Locked"}
+                🔒 {isFr ? "Verrouill\u00e9" : "Locked"}
               </p>
             )}
             <p className="text-[10px] text-gray-400 mt-1">
@@ -494,10 +537,11 @@ function AffiliateDashboardInner() {
             </p>
           </div>
 
+          {/* Team Bonus Total (L2 + L3) */}
           <div className={`p-4 rounded-2xl border ${isEligible ? "bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-500/30" : "bg-amber-950/20 border-amber-500/30"}`}>
             <div className="flex items-center justify-between text-gray-400 mb-1.5">
               <span className="text-[11px] uppercase tracking-wider font-bold text-amber-300">
-                {isFr ? "Bonus d'\u00c9quipe (L2 + L3)" : "Team Bonus (L2 + L3)"}
+                {isFr ? "Bonus \u00c9quipe (L2 + L3)" : "Team Bonus (L2 + L3)"}
               </span>
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
             </div>
@@ -519,6 +563,7 @@ function AffiliateDashboardInner() {
         </div>
       </div>
 
+      
       {/* NEW: Earnings Trend Widget (Stats + 7D Bar Chart) */}
       <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/10 flex flex-col md:flex-row gap-8">
         <div className="w-full md:w-1/3 space-y-5">
