@@ -226,8 +226,8 @@ export default function Navbar({ noStickyMobile = false, mobileTall = false }: N
       className={`${noStickyMobile ? "relative lg:sticky" : "sticky"} top-0 left-0 right-0 z-50 border-b transition-colors ${navBg}`}
       style={navStyle}
     >
-      <div className={`text-center py-2 text-xs font-medium tracking-wide ${bannerBg}`} style={bannerStyle}>
-        <div className="flex items-center justify-center gap-1.5 sm:gap-3 text-center min-w-0 max-w-full">
+      <div className={`text-center py-2 px-3 sm:px-6 lg:px-8 text-xs font-medium tracking-wide ${bannerBg}`} style={bannerStyle}>
+        <div className="max-w-7xl mx-auto flex items-center justify-center gap-1.5 sm:gap-3 text-center min-w-0 max-w-full">
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#CA3F2E]/20 text-[#ff6b52] text-[9px] sm:text-xs font-bold uppercase tracking-wider border border-[#CA3F2E]/30 shrink-0">
             <Sparkles className="w-3 h-3 text-[#CA3F2E] animate-pulse" />
             Affiliate
