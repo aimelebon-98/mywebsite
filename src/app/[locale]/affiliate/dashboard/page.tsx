@@ -21,6 +21,7 @@ import {
   Calendar,
   BarChart3,
   TrendingUp,
+  Users,
 } from "lucide-react";
 
 const AffiliateOnboardingModal = dynamic(
@@ -43,6 +44,10 @@ interface AffiliateData {
   bankAccount?: string | null;
   bankName?: string | null;
   isOverrideEligible?: boolean;
+  l1Earnings?: string;
+  l2Earnings?: string;
+  l3Earnings?: string;
+  teamBonus?: string;
   subscriptionExpiresAt?: string | null;
 }
 
@@ -400,6 +405,117 @@ function AffiliateDashboardInner() {
           <p className="text-[11px] text-gray-400 mt-1">
             {isFr ? "30 jours de suivi cookie" : "30-day tracking window"}
           </p>
+        </div>
+      </div>
+
+            {/* LEVEL EARNINGS & TEAM BONUS BREAKDOWN */}
+      <div className="space-y-3">
+        <h2 className="text-sm font-bold uppercase tracking-wider text-gray-400 flex items-center gap-2">
+          <Users className="w-4 h-4 text-[#CA3F2E]" />
+          {isFr ? "Ventilation des Gains par Niveau" : "Earnings Breakdown by Tier"}
+        </h2>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10">
+            <div className="flex items-center justify-between text-gray-400 mb-1.5">
+              <span className="text-[11px] uppercase tracking-wider font-semibold">
+                {isFr ? "L1 Direct (50% / 5%)" : "Level 1 Direct"}
+              </span>
+              <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[9px] font-bold">
+                {isFr ? "Actif" : "Active"}
+              </span>
+            </div>
+            <p className="text-xl font-bold text-emerald-400">
+              ${parseFloat(affiliate.l1Earnings || "0").toFixed(2)}
+            </p>
+            <p className="text-[10px] text-gray-400 mt-1">
+              {isFr ? "Commissions directes sans restriction" : "Direct referrals (no sub required)"}
+            </p>
+          </div>
+
+          <div className={`p-4 rounded-2xl border ${isEligible ? "bg-white/[0.03] border-white/10" : "bg-amber-950/20 border-amber-500/30"}`}>
+            <div className="flex items-center justify-between text-gray-400 mb-1.5">
+              <span className="text-[11px] uppercase tracking-wider font-semibold">
+                {isFr ? "L2 Override (10%)" : "Level 2 Override"}
+              </span>
+              {isEligible ? (
+                <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[9px] font-bold">
+                  {isFr ? "D\u00e9bloqu\u00e9" : "Unlocked"}
+                </span>
+              ) : (
+                <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[9px] font-bold">
+                  🔒 {isFr ? "Verrouill\u00e9" : "Locked"}
+                </span>
+              )}
+            </div>
+            {isEligible ? (
+              <p className="text-xl font-bold text-white">
+                ${parseFloat(affiliate.l2Earnings || "0").toFixed(2)}
+              </p>
+            ) : (
+              <p className="text-sm font-bold text-amber-400">
+                {isFr ? "Verrouill\u00e9" : "Locked"}
+              </p>
+            )}
+            <p className="text-[10px] text-gray-400 mt-1">
+              {isEligible
+                ? (isFr ? "10% d'override d'\u00e9quipe L2" : "10% team software override")
+                : (isFr ? "N\u00e9cessite SMZ Bot Pro actif" : "Requires active SMZ Bot Pro")}
+            </p>
+          </div>
+
+          <div className={`p-4 rounded-2xl border ${isEligible ? "bg-white/[0.03] border-white/10" : "bg-amber-950/20 border-amber-500/30"}`}>
+            <div className="flex items-center justify-between text-gray-400 mb-1.5">
+              <span className="text-[11px] uppercase tracking-wider font-semibold">
+                {isFr ? "L3 Override (5%)" : "Level 3 Override"}
+              </span>
+              {isEligible ? (
+                <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[9px] font-bold">
+                  {isFr ? "D\u00e9bloqu\u00e9" : "Unlocked"}
+                </span>
+              ) : (
+                <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[9px] font-bold">
+                  🔒 {isFr ? "Verrouill\u00e9" : "Locked"}
+                </span>
+              )}
+            </div>
+            {isEligible ? (
+              <p className="text-xl font-bold text-white">
+                ${parseFloat(affiliate.l3Earnings || "0").toFixed(2)}
+              </p>
+            ) : (
+              <p className="text-sm font-bold text-amber-400">
+                {isFr ? "Verrouill\u00e9" : "Locked"}
+              </p>
+            )}
+            <p className="text-[10px] text-gray-400 mt-1">
+              {isEligible
+                ? (isFr ? "5% d'override d'\u00e9quipe L3" : "5% team software override")
+                : (isFr ? "N\u00e9cessite SMZ Bot Pro actif" : "Requires active SMZ Bot Pro")}
+            </p>
+          </div>
+
+          <div className={`p-4 rounded-2xl border ${isEligible ? "bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-500/30" : "bg-amber-950/20 border-amber-500/30"}`}>
+            <div className="flex items-center justify-between text-gray-400 mb-1.5">
+              <span className="text-[11px] uppercase tracking-wider font-bold text-amber-300">
+                {isFr ? "Bonus d'\u00c9quipe (L2 + L3)" : "Team Bonus (L2 + L3)"}
+              </span>
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            </div>
+            {isEligible ? (
+              <p className="text-xl font-bold text-amber-300">
+                ${parseFloat(affiliate.teamBonus || "0").toFixed(2)}
+              </p>
+            ) : (
+              <p className="text-sm font-bold text-amber-400">
+                🔒 {isFr ? "Verrouill\u00e9" : "Locked"}
+              </p>
+            )}
+            <p className="text-[10px] text-gray-400 mt-1">
+              {isEligible
+                ? (isFr ? "Cumul total des overrides d'\u00e9quipe" : "Total combined team overrides")
+                : (isFr ? "Abonnement requis pour g\u00e9n\u00e9rer les overrides" : "Subscription active required")}
+            </p>
+          </div>
         </div>
       </div>
 

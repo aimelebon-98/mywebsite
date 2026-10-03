@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { subscriptions } from "@/db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { subscriptions, affiliateOrders } from "@/db/schema";
+import { eq, and, desc, sql } from "drizzle-orm";
 import { requireAffiliate } from "@/lib/affiliate-auth";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +14,7 @@ export async function GET() {
 
   let isOverrideEligible = false;
   let subscriptionExpiresAt: string | null = null;
+
   try {
     const subRows = await db
       .select({ status: subscriptions.status, expiresAt: subscriptions.expiresAt })
@@ -38,12 +39,52 @@ export async function GET() {
     console.error("me API subscription check error:", e);
   }
 
+  // Calculate L1, L2, L3 and Team Bonus breakdowns
+  let l1Earnings = 0;
+  let l2Earnings = 0;
+  let l3Earnings = 0;
+
+  try {
+    const affOrders = await db
+      .select({
+        orderId: affiliateOrders.orderId,
+        commissionAmount: affiliateOrders.commissionAmount,
+        status: affiliateOrders.status,
+      })
+      .from(affiliateOrders)
+      .where(
+        and(
+          eq(affiliateOrders.affiliateId, affiliate.id),
+          sql`${affiliateOrders.status} NOT IN ('cancelled', 'rejected')`
+        )
+      );
+
+    affOrders.forEach((o) => {
+      const amt = parseFloat(o.commissionAmount || "0");
+      if (o.orderId.includes("_L2")) {
+        l2Earnings += amt;
+      } else if (o.orderId.includes("_L3")) {
+        l3Earnings += amt;
+      } else {
+        l1Earnings += amt;
+      }
+    });
+  } catch (e) {
+    console.error("me API breakdown calculation error:", e);
+  }
+
+  const teamBonus = l2Earnings + l3Earnings;
+
   return NextResponse.json({
     success: true,
     affiliate: {
       ...safeAffiliate,
       isOverrideEligible,
       subscriptionExpiresAt,
+      l1Earnings: l1Earnings.toFixed(2),
+      l2Earnings: l2Earnings.toFixed(2),
+      l3Earnings: l3Earnings.toFixed(2),
+      teamBonus: teamBonus.toFixed(2),
     },
   });
 }
