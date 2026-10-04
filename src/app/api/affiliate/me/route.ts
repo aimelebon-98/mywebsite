@@ -12,9 +12,23 @@ export async function GET() {
 
   const { passwordHash: _, ...safeAffiliate } = affiliate;
 
-  let isOverrideEligible = Boolean(affiliate.manualOverrideActive);
+  let isOverrideEligible = false;
   let subscriptionExpiresAt: string | null = null;
 
+  // 1. Admin manual override active (30 days from activation date)
+  if (affiliate.manualOverrideActive) {
+    const activatedAt = affiliate.manualOverrideActivatedAt
+      ? new Date(affiliate.manualOverrideActivatedAt)
+      : (affiliate.updatedAt ? new Date(affiliate.updatedAt) : new Date(affiliate.createdAt || Date.now()));
+    const expiresAt = new Date(activatedAt.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+    if (expiresAt > new Date()) {
+      isOverrideEligible = true;
+      subscriptionExpiresAt = expiresAt.toISOString();
+    }
+  }
+
+  // 2. Active SMZ Bot Pro Subscription fallback
   if (!isOverrideEligible) {
     try {
       const subRows = await db
@@ -22,7 +36,7 @@ export async function GET() {
         .from(subscriptions)
         .where(
           and(
-            eq(subscriptions.customerEmail, affiliate.email.toLowerCase().trim()),
+            eq(subscriptions.customerEmail, (affiliate.email || "").toLowerCase().trim()),
             eq(subscriptions.status, "active")
           )
         )

@@ -95,7 +95,11 @@ async function handleUpdateOrDelete(req: NextRequest) {
     }
 
     if (manualOverrideActive !== undefined && manualOverrideActive !== null) {
-      updates.manualOverrideActive = Boolean(manualOverrideActive);
+      const activeBool = Boolean(manualOverrideActive);
+      updates.manualOverrideActive = activeBool;
+      if (activeBool) {
+        updates.manualOverrideActivatedAt = new Date();
+      }
     }
 
     if (targetStatus !== undefined && targetStatus !== null && targetStatus !== "") {
