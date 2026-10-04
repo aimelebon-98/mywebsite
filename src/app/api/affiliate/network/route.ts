@@ -31,7 +31,7 @@ export async function GET() {
         .from(subscriptions)
         .where(
           and(
-            eq(subscriptions.customerEmail, aff.email.toLowerCase().trim()),
+            eq(subscriptions.customerEmail, (aff.email || "").toLowerCase().trim()),
             eq(subscriptions.status, "active")
           )
         )
@@ -49,43 +49,77 @@ export async function GET() {
       console.error("Subscription check error:", e);
     }
 
-    // =========================================================
-    // TEAM HIERARCHY (CORRECT):
-    // L1 = Direct Recruits (parentAffiliateId = me)
-    // L2 = Recruits of my L1
-    // L3 = Recruits of my L2
-    // =========================================================
-
     // L1: Direct recruits
-    const l1Team = await db.select({
-      id: affiliates.id, name: affiliates.name, email: affiliates.email, code: affiliates.code,
-      status: affiliates.status, totalClicks: affiliates.totalClicks, totalOrders: affiliates.totalOrders,
-      totalEarnings: affiliates.totalEarnings, createdAt: affiliates.createdAt,
-      parentAffiliateId: affiliates.parentAffiliateId,
-    }).from(affiliates).where(eq(affiliates.parentAffiliateId, aff.id)).orderBy(desc(affiliates.createdAt));
+    let l1Team: Array<{
+      id: string;
+      name: string;
+      email: string;
+      code: string;
+      status: string | null;
+      totalClicks: number | null;
+      totalOrders: number | null;
+      totalEarnings: string | null;
+      createdAt: Date | null;
+      parentAffiliateId: string | null;
+    }> = [];
+
+    try {
+      l1Team = await db.select({
+        id: affiliates.id,
+        name: affiliates.name,
+        email: affiliates.email,
+        code: affiliates.code,
+        status: affiliates.status,
+        totalClicks: affiliates.totalClicks,
+        totalOrders: affiliates.totalOrders,
+        totalEarnings: affiliates.totalEarnings,
+        createdAt: affiliates.createdAt,
+        parentAffiliateId: affiliates.parentAffiliateId,
+      }).from(affiliates).where(eq(affiliates.parentAffiliateId, aff.id)).orderBy(desc(affiliates.createdAt));
+    } catch (e: any) {
+      console.error("L1 query error:", e);
+      // Fallback if parentAffiliateId column is missing in DB
+      l1Team = [];
+    }
 
     const l1Ids = l1Team.map((t) => t.id);
 
     // L2: Recruits of L1
     let l2Team: typeof l1Team = [];
     if (l1Ids.length > 0) {
-      l2Team = await db.select({
-        id: affiliates.id, name: affiliates.name, email: affiliates.email, code: affiliates.code,
-        status: affiliates.status, totalClicks: affiliates.totalClicks, totalOrders: affiliates.totalOrders,
-        totalEarnings: affiliates.totalEarnings, createdAt: affiliates.createdAt,
-        parentAffiliateId: affiliates.parentAffiliateId,
-      }).from(affiliates).where(inArray(affiliates.parentAffiliateId, l1Ids));
+      try {
+        l2Team = await db.select({
+          id: affiliates.id,
+          name: affiliates.name,
+          email: affiliates.email,
+          code: affiliates.code,
+          status: affiliates.status,
+          totalClicks: affiliates.totalClicks,
+          totalOrders: affiliates.totalOrders,
+          totalEarnings: affiliates.totalEarnings,
+          createdAt: affiliates.createdAt,
+          parentAffiliateId: affiliates.parentAffiliateId,
+        }).from(affiliates).where(inArray(affiliates.parentAffiliateId, l1Ids));
+      } catch (e) {
+        console.error("L2 query error:", e);
+        l2Team = [];
+      }
     }
     const l2Ids = l2Team.map((t) => t.id);
 
     // L3: Recruits of L2
     let l3Count = 0;
     if (l2Ids.length > 0) {
-      const l3Rows = await db.select({ id: affiliates.id }).from(affiliates).where(inArray(affiliates.parentAffiliateId, l2Ids));
-      l3Count = l3Rows.length;
+      try {
+        const l3Rows = await db.select({ id: affiliates.id }).from(affiliates).where(inArray(affiliates.parentAffiliateId, l2Ids));
+        l3Count = l3Rows.length;
+      } catch (e) {
+        console.error("L3 query error:", e);
+        l3Count = 0;
+      }
     }
 
-    // Attach each L1 member's own downline count (their L2 = our L2 under them)
+    // Attach each L1 member's own downline count
     const teamWithKids = l1Team.map((t) => {
       const kids = l2Team.filter((c) => c.parentAffiliateId === t.id);
       return {
@@ -102,8 +136,33 @@ export async function GET() {
       };
     });
 
-    // Commissions (from affiliate_orders - L1 sale / L2 override / L3 override by orderId suffix)
-    const myOrders = await db.select().from(affiliateOrders).where(eq(affiliateOrders.affiliateId, aff.id)).orderBy(desc(affiliateOrders.createdAt));
+    // Commissions (from affiliate_orders)
+    let myOrders: Array<{
+      id: string;
+      orderId: string;
+      subtotal: string;
+      commissionRate: string;
+      commissionAmount: string;
+      currency: string | null;
+      status: string | null;
+      createdAt: Date | null;
+    }> = [];
+
+    try {
+      myOrders = await db.select({
+        id: affiliateOrders.id,
+        orderId: affiliateOrders.orderId,
+        subtotal: affiliateOrders.subtotal,
+        commissionRate: affiliateOrders.commissionRate,
+        commissionAmount: affiliateOrders.commissionAmount,
+        currency: affiliateOrders.currency,
+        status: affiliateOrders.status,
+        createdAt: affiliateOrders.createdAt,
+      }).from(affiliateOrders).where(eq(affiliateOrders.affiliateId, aff.id)).orderBy(desc(affiliateOrders.createdAt));
+    } catch (e) {
+      console.error("Orders query error:", e);
+      myOrders = [];
+    }
 
     let directComm = 0; let overrideL2 = 0; let overrideL3 = 0;
     let directCount = 0; let l2Count = 0; let l3OrderCount = 0;
@@ -117,8 +176,16 @@ export async function GET() {
     }
 
     // Traffic
-    const allClickRows = await db.select({ createdAt: affiliateClicks.createdAt, country: affiliateClicks.country })
-      .from(affiliateClicks).where(eq(affiliateClicks.affiliateId, aff.id));
+    let allClickRows: Array<{ createdAt: Date | null; country: string | null }> = [];
+    try {
+      allClickRows = await db.select({
+        createdAt: affiliateClicks.createdAt,
+        country: affiliateClicks.country,
+      }).from(affiliateClicks).where(eq(affiliateClicks.affiliateId, aff.id));
+    } catch (e) {
+      console.error("Clicks query error:", e);
+      allClickRows = [];
+    }
 
     const since7 = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const since30 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
@@ -138,16 +205,22 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       affiliate: {
-        id: aff.id, name: aff.name, email: aff.email, code: aff.code, status: aff.status,
-        commissionRate: aff.commissionRate, totalClicks: aff.totalClicks, totalOrders: aff.totalOrders,
-        totalEarnings: aff.totalEarnings, pendingPayout: aff.pendingPayout, totalPaidOut: aff.totalPaidOut,
+        id: aff.id,
+        name: aff.name,
+        email: aff.email,
+        code: aff.code,
+        status: aff.status,
+        commissionRate: aff.commissionRate,
+        totalClicks: aff.totalClicks,
+        totalOrders: aff.totalOrders,
+        totalEarnings: aff.totalEarnings,
+        pendingPayout: aff.pendingPayout,
+        totalPaidOut: aff.totalPaidOut,
         isOverrideEligible,
         subscriptionExpiresAt,
       },
-      // L1 list for the table
       team: teamWithKids,
       teamSize: teamWithKids.length,
-      // Hierarchy counts
       hierarchy: {
         l1Count: teamWithKids.length,
         l2Count: l2Team.length,
@@ -168,13 +241,22 @@ export async function GET() {
         total: (directComm + overrideL2 + overrideL3).toFixed(2),
       },
       recentOrders: myOrders.slice(0, 20).map((o) => ({
-        id: o.id, orderId: o.orderId, tier: tierFromOrderId(o.orderId), subtotal: o.subtotal,
-        commissionRate: o.commissionRate, commissionAmount: o.commissionAmount, currency: o.currency,
-        status: o.status, createdAt: o.createdAt,
+        id: o.id,
+        orderId: o.orderId,
+        tier: tierFromOrderId(o.orderId),
+        subtotal: o.subtotal,
+        commissionRate: o.commissionRate,
+        commissionAmount: o.commissionAmount,
+        currency: o.currency,
+        status: o.status,
+        createdAt: o.createdAt,
       })),
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Network API error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({
+      error: error?.message || "Internal server error",
+      detail: String(error)
+    }, { status: 500 });
   }
 }
