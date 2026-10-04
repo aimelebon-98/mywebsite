@@ -20,27 +20,28 @@ interface NodeMember {
   children: NodeMember[];
 }
 
+async function checkAffiliateActive(email: string | null | undefined, manualOverride: boolean | null | undefined): Promise<boolean> {
+  if (manualOverride) return true;
+  if (!email) return false;
+  try {
+    const rows = await db
+      .select({ expiresAt: subscriptions.expiresAt })
+      .from(subscriptions)
+      .where(and(eq(subscriptions.customerEmail, email.toLowerCase().trim()), eq(subscriptions.status, "active")))
+      .limit(1);
+    if (rows.length === 0) return false;
+    return Boolean(rows[0].expiresAt && new Date(rows[0].expiresAt) > new Date());
+  } catch {
+    return false;
+  }
+}
+
 export async function GET() {
   try {
     const aff = await getCurrentAffiliate();
     if (!aff) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    async function getSubscriptionStatus(email: string) {
-      if (!email) return false;
-      try {
-        const rows = await db
-          .select({ expiresAt: subscriptions.expiresAt })
-          .from(subscriptions)
-          .where(and(eq(subscriptions.customerEmail, email.toLowerCase().trim()), eq(subscriptions.status, "active")))
-          .limit(1);
-        if (rows.length === 0) return false;
-        return Boolean(rows[0].expiresAt && new Date(rows[0].expiresAt) > new Date());
-      } catch {
-        return false;
-      }
-    }
-
-    const selfActive = await getSubscriptionStatus(aff.email);
+    const selfActive = await checkAffiliateActive(aff.email, aff.manualOverrideActive);
 
     const rootNode: NodeMember = {
       id: aff.id,
@@ -56,7 +57,6 @@ export async function GET() {
       children: [],
     };
 
-    // LEVEL 1
     const l1Rows = await db
       .select({
         id: affiliates.id,
@@ -64,6 +64,7 @@ export async function GET() {
         email: affiliates.email,
         code: affiliates.code,
         status: affiliates.status,
+        manualOverrideActive: affiliates.manualOverrideActive,
         totalEarnings: affiliates.totalEarnings,
         totalOrders: affiliates.totalOrders,
         createdAt: affiliates.createdAt,
@@ -75,13 +76,13 @@ export async function GET() {
 
     const l1Ids = l1Rows.map((r) => r.id);
 
-    // LEVEL 2
     let l2Rows: Array<{
       id: string;
       name: string;
       email: string;
       code: string;
       status: string | null;
+      manualOverrideActive: boolean | null;
       totalEarnings: string | null;
       totalOrders: number | null;
       createdAt: Date | null;
@@ -96,6 +97,7 @@ export async function GET() {
           email: affiliates.email,
           code: affiliates.code,
           status: affiliates.status,
+          manualOverrideActive: affiliates.manualOverrideActive,
           totalEarnings: affiliates.totalEarnings,
           totalOrders: affiliates.totalOrders,
           createdAt: affiliates.createdAt,
@@ -108,13 +110,13 @@ export async function GET() {
 
     const l2Ids = l2Rows.map((r) => r.id);
 
-    // LEVEL 3
     let l3Rows: Array<{
       id: string;
       name: string;
       email: string;
       code: string;
       status: string | null;
+      manualOverrideActive: boolean | null;
       totalEarnings: string | null;
       totalOrders: number | null;
       createdAt: Date | null;
@@ -129,6 +131,7 @@ export async function GET() {
           email: affiliates.email,
           code: affiliates.code,
           status: affiliates.status,
+          manualOverrideActive: affiliates.manualOverrideActive,
           totalEarnings: affiliates.totalEarnings,
           totalOrders: affiliates.totalOrders,
           createdAt: affiliates.createdAt,
@@ -139,19 +142,18 @@ export async function GET() {
         .orderBy(desc(affiliates.createdAt));
     }
 
-    // Build hierarchy tree
     for (const l1 of l1Rows) {
-      const l1Active = await getSubscriptionStatus(l1.email);
+      const l1Active = await checkAffiliateActive(l1.email, l1.manualOverrideActive);
       const l1Children: NodeMember[] = [];
 
       const myL2s = l2Rows.filter((r) => r.parentAffiliateId === l1.id);
       for (const l2 of myL2s) {
-        const l2Active = await getSubscriptionStatus(l2.email);
+        const l2Active = await checkAffiliateActive(l2.email, l2.manualOverrideActive);
         const myL3s = l3Rows.filter((r) => r.parentAffiliateId === l2.id);
 
         const l3Children: NodeMember[] = [];
         for (const l3 of myL3s) {
-          const l3Active = await getSubscriptionStatus(l3.email);
+          const l3Active = await checkAffiliateActive(l3.email, l3.manualOverrideActive);
           l3Children.push({
             id: l3.id,
             name: l3.name,

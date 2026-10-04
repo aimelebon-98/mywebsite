@@ -17,45 +17,55 @@ function tierFromOrderId(orderId: string): 1 | 2 | 3 {
   return 1;
 }
 
+async function checkAffiliateActive(email: string | null | undefined, manualOverride: boolean | null | undefined): Promise<{ isEligible: boolean; expiresAt: string | null }> {
+  if (manualOverride) {
+    return { isEligible: true, expiresAt: null };
+  }
+  if (!email) return { isEligible: false, expiresAt: null };
+  try {
+    const subRows = await db
+      .select({ status: subscriptions.status, expiresAt: subscriptions.expiresAt })
+      .from(subscriptions)
+      .where(
+        and(
+          eq(subscriptions.customerEmail, email.toLowerCase().trim()),
+          eq(subscriptions.status, "active")
+        )
+      )
+      .orderBy(desc(subscriptions.expiresAt))
+      .limit(1);
+
+    if (subRows.length > 0) {
+      const sub = subRows[0];
+      if (sub.expiresAt && new Date(sub.expiresAt) > new Date()) {
+        return {
+          isEligible: true,
+          expiresAt: new Date(sub.expiresAt).toISOString()
+        };
+      }
+    }
+  } catch (e) {
+    console.error("Subscription check error:", e);
+  }
+  return { isEligible: false, expiresAt: null };
+}
+
 export async function GET() {
   try {
     const aff = await getCurrentAffiliate();
     if (!aff) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    // Check active subscription status & expiration date
-    let isOverrideEligible = false;
-    let subscriptionExpiresAt: string | null = null;
-    try {
-      const subRows = await db
-        .select({ status: subscriptions.status, expiresAt: subscriptions.expiresAt })
-        .from(subscriptions)
-        .where(
-          and(
-            eq(subscriptions.customerEmail, (aff.email || "").toLowerCase().trim()),
-            eq(subscriptions.status, "active")
-          )
-        )
-        .orderBy(desc(subscriptions.expiresAt))
-        .limit(1);
+    const selfActive = await checkAffiliateActive(aff.email, aff.manualOverrideActive);
+    const isOverrideEligible = selfActive.isEligible;
+    const subscriptionExpiresAt = selfActive.expiresAt;
 
-      if (subRows.length > 0) {
-        const sub = subRows[0];
-        if (sub.expiresAt && new Date(sub.expiresAt) > new Date()) {
-          isOverrideEligible = true;
-          subscriptionExpiresAt = new Date(sub.expiresAt).toISOString();
-        }
-      }
-    } catch (e) {
-      console.error("Subscription check error:", e);
-    }
-
-    // L1: Direct recruits
     let l1Team: Array<{
       id: string;
       name: string;
       email: string;
       code: string;
       status: string | null;
+      manualOverrideActive: boolean | null;
       totalClicks: number | null;
       totalOrders: number | null;
       totalEarnings: string | null;
@@ -70,21 +80,20 @@ export async function GET() {
         email: affiliates.email,
         code: affiliates.code,
         status: affiliates.status,
+        manualOverrideActive: affiliates.manualOverrideActive,
         totalClicks: affiliates.totalClicks,
         totalOrders: affiliates.totalOrders,
         totalEarnings: affiliates.totalEarnings,
         createdAt: affiliates.createdAt,
         parentAffiliateId: affiliates.parentAffiliateId,
       }).from(affiliates).where(eq(affiliates.parentAffiliateId, aff.id)).orderBy(desc(affiliates.createdAt));
-    } catch (e: any) {
+    } catch (e) {
       console.error("L1 query error:", e);
-      // Fallback if parentAffiliateId column is missing in DB
       l1Team = [];
     }
 
     const l1Ids = l1Team.map((t) => t.id);
 
-    // L2: Recruits of L1
     let l2Team: typeof l1Team = [];
     if (l1Ids.length > 0) {
       try {
@@ -94,6 +103,7 @@ export async function GET() {
           email: affiliates.email,
           code: affiliates.code,
           status: affiliates.status,
+          manualOverrideActive: affiliates.manualOverrideActive,
           totalClicks: affiliates.totalClicks,
           totalOrders: affiliates.totalOrders,
           totalEarnings: affiliates.totalEarnings,
@@ -107,7 +117,6 @@ export async function GET() {
     }
     const l2Ids = l2Team.map((t) => t.id);
 
-    // L3: Recruits of L2
     let l3Count = 0;
     if (l2Ids.length > 0) {
       try {
@@ -119,24 +128,26 @@ export async function GET() {
       }
     }
 
-    // Attach each L1 member's own downline count
-    const teamWithKids = l1Team.map((t) => {
-      const kids = l2Team.filter((c) => c.parentAffiliateId === t.id);
-      return {
-        id: t.id,
-        name: t.name,
-        email: t.email,
-        code: t.code,
-        status: t.status,
-        totalClicks: t.totalClicks,
-        totalOrders: t.totalOrders,
-        totalEarnings: t.totalEarnings,
-        createdAt: t.createdAt,
-        downlineCount: kids.length,
-      };
-    });
+    const teamWithKids = await Promise.all(
+      l1Team.map(async (t) => {
+        const kids = l2Team.filter((c) => c.parentAffiliateId === t.id);
+        const memberActive = await checkAffiliateActive(t.email, t.manualOverrideActive);
+        return {
+          id: t.id,
+          name: t.name,
+          email: t.email,
+          code: t.code,
+          status: t.status,
+          isOverrideEligible: memberActive.isEligible,
+          totalClicks: t.totalClicks,
+          totalOrders: t.totalOrders,
+          totalEarnings: t.totalEarnings,
+          createdAt: t.createdAt,
+          downlineCount: kids.length,
+        };
+      })
+    );
 
-    // Commissions (from affiliate_orders)
     let myOrders: Array<{
       id: string;
       orderId: string;
@@ -175,7 +186,6 @@ export async function GET() {
       else { overrideL3 += amt; l3OrderCount++; }
     }
 
-    // Traffic
     let allClickRows: Array<{ createdAt: Date | null; country: string | null }> = [];
     try {
       allClickRows = await db.select({

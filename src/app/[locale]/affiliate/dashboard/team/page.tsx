@@ -11,7 +11,6 @@ import {
   Loader2,
   Sparkles,
   Globe,
-  ShoppingBag,
   Copy,
   CheckCheck,
   UserPlus,
@@ -27,6 +26,7 @@ interface TeamMember {
   email: string;
   code: string;
   status: string | null;
+  isOverrideEligible?: boolean;
   totalClicks: number | null;
   totalOrders: number | null;
   totalEarnings: string | null;
@@ -223,7 +223,7 @@ export default function AffiliateTeamPage() {
         )}
       </div>
 
-      {/* KPI cards - CORRECT HIERARCHY */}
+      {/* KPI cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/10">
           <p className="text-xs uppercase tracking-wider text-gray-400 font-semibold flex items-center gap-1.5">
@@ -438,12 +438,13 @@ export default function AffiliateTeamPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs min-w-[640px]">
+            <table className="w-full text-left text-xs min-w-[700px]">
               <thead className="border-b border-white/10 text-gray-400 uppercase tracking-wider">
                 <tr>
                   <th className="py-3 px-2">{isFr ? "Membre L1" : "L1 Member"}</th>
                   <th className="py-3 px-2">Code</th>
                   <th className="py-3 px-2">{isFr ? "Statut" : "Status"}</th>
+                  <th className="py-3 px-2">{isFr ? "Bot SMZ" : "Bot Status"}</th>
                   <th className="py-3 px-2">{isFr ? "Clics" : "Clicks"}</th>
                   <th className="py-3 px-2">{isFr ? "Ventes" : "Orders"}</th>
                   <th className="py-3 px-2">{isFr ? "Leurs gains" : "Their earnings"}</th>
@@ -473,6 +474,19 @@ export default function AffiliateTeamPage() {
                       >
                         {m.status || "—"}
                       </span>
+                    </td>
+                    <td className="py-3 px-2">
+                      {m.isOverrideEligible ? (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 inline-flex items-center gap-1">
+                          <ShieldCheck className="w-3 h-3" />
+                          {isFr ? "Actif" : "Active"}
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 border border-amber-500/30 text-amber-400 inline-flex items-center gap-1">
+                          <ShieldAlert className="w-3 h-3" />
+                          {isFr ? "Inactif" : "Inactive"}
+                        </span>
+                      )}
                     </td>
                     <td className="py-3 px-2 font-medium">{m.totalClicks ?? 0}</td>
                     <td className="py-3 px-2 font-medium">{m.totalOrders ?? 0}</td>
