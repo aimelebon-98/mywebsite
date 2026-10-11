@@ -11,17 +11,23 @@ export async function GET() {
   if (affiliate instanceof NextResponse) return affiliate;
 
   try {
-    const list = await db
-      .select()
-      .from(affiliatePayouts)
-      .where(eq(affiliatePayouts.affiliateId, affiliate.id))
-      .orderBy(desc(affiliatePayouts.requestedAt));
+    let list: Array<any> = [];
+    try {
+      list = await db
+        .select()
+        .from(affiliatePayouts)
+        .where(eq(affiliatePayouts.affiliateId, affiliate.id))
+        .orderBy(desc(affiliatePayouts.requestedAt));
+    } catch (dbErr) {
+      console.error("affiliatePayouts fetch DB error:", dbErr);
+      list = [];
+    }
 
     return NextResponse.json({ success: true, payouts: list });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Affiliate fetch payouts error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: error?.message || "Failed to fetch payouts" },
       { status: 500 }
     );
   }
@@ -76,7 +82,7 @@ export async function POST(request: NextRequest) {
       })
       .returning();
 
-    const newPending = (pending - reqAmount).toFixed(2);
+    const newPending = Math.max(0, pending - reqAmount).toFixed(2);
     await db
       .update(affiliates)
       .set({
@@ -91,10 +97,10 @@ export async function POST(request: NextRequest) {
       payout,
       remainingPending: newPending,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Affiliate payout request error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: error?.message || "Failed to submit payout request" },
       { status: 500 }
     );
   }
