@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { subscriptions, affiliateOrders } from "@/db/schema";
+import { affiliates, subscriptions, affiliateOrders } from "@/db/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { requireAffiliate } from "@/lib/affiliate-auth";
 
@@ -15,11 +15,30 @@ export async function GET() {
   let isOverrideEligible = false;
   let subscriptionExpiresAt: string | null = null;
 
-  // 1. Admin manual override active (30 days from activation date)
+  // 1. Admin manual override active (30 days from fixed activation date)
   if (affiliate.manualOverrideActive) {
-    const activatedAt = affiliate.manualOverrideActivatedAt
+    let activatedAt = affiliate.manualOverrideActivatedAt
       ? new Date(affiliate.manualOverrideActivatedAt)
-      : (affiliate.updatedAt ? new Date(affiliate.updatedAt) : new Date(affiliate.createdAt || Date.now()));
+      : null;
+
+    if (!activatedAt) {
+      // Lock activation date permanently in DB to approvedAt or createdAt
+      activatedAt = affiliate.approvedAt
+        ? new Date(affiliate.approvedAt)
+        : affiliate.createdAt
+        ? new Date(affiliate.createdAt)
+        : new Date();
+
+      try {
+        await db
+          .update(affiliates)
+          .set({ manualOverrideActivatedAt: activatedAt })
+          .where(eq(affiliates.id, affiliate.id));
+      } catch (e) {
+        console.error("Error locking manualOverrideActivatedAt:", e);
+      }
+    }
+
     const expiresAt = new Date(activatedAt.getTime() + 30 * 24 * 60 * 60 * 1000);
 
     if (expiresAt > new Date()) {
