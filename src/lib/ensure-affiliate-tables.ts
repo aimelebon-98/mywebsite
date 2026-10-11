@@ -10,12 +10,12 @@ export async function ensureAffiliateTablesExist() {
     // 1. Ensure affiliates table columns
     await db.execute(sql`
       ALTER TABLE affiliates
-      ADD COLUMN IF NOT EXISTS manual_override_activated_at TIMESTAMP;
+      ADD COLUMN IF NOT EXISTS manual_override_active BOOLEAN DEFAULT false;
     `);
 
     await db.execute(sql`
       ALTER TABLE affiliates
-      ADD COLUMN IF NOT EXISTS manual_override_active BOOLEAN DEFAULT false;
+      ADD COLUMN IF NOT EXISTS manual_override_activated_at TIMESTAMP;
     `);
 
     await db.execute(sql`
@@ -35,10 +35,22 @@ export async function ensureAffiliateTablesExist() {
         note TEXT,
         status VARCHAR(20) DEFAULT 'pending',
         manual_override_active BOOLEAN DEFAULT false,
+        manual_override_activated_at TIMESTAMP,
         requested_at TIMESTAMP DEFAULT NOW(),
         paid_at TIMESTAMP,
         processed_by VARCHAR(255)
       );
+    `);
+
+    // 3. Ensure columns exist on affiliate_payouts if table already existed
+    await db.execute(sql`
+      ALTER TABLE affiliate_payouts
+      ADD COLUMN IF NOT EXISTS manual_override_active BOOLEAN DEFAULT false;
+    `);
+
+    await db.execute(sql`
+      ALTER TABLE affiliate_payouts
+      ADD COLUMN IF NOT EXISTS manual_override_activated_at TIMESTAMP;
     `);
 
     tablesEnsured = true;
