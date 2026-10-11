@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { affiliates, affiliatePayouts } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { requireAffiliate } from "@/lib/affiliate-auth";
+import { ensureAffiliateTablesExist } from "@/lib/ensure-affiliate-tables";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +12,8 @@ export async function GET() {
   if (affiliate instanceof NextResponse) return affiliate;
 
   try {
+    await ensureAffiliateTablesExist();
+
     let list: Array<any> = [];
     try {
       list = await db
@@ -27,7 +30,7 @@ export async function GET() {
   } catch (error: any) {
     console.error("Affiliate fetch payouts error:", error);
     return NextResponse.json(
-      { error: error?.message || "Failed to fetch payouts" },
+      { error: error?.message || String(error) || "Failed to fetch payouts" },
       { status: 500 }
     );
   }
@@ -38,6 +41,8 @@ export async function POST(request: NextRequest) {
   if (affiliate instanceof NextResponse) return affiliate;
 
   try {
+    await ensureAffiliateTablesExist();
+
     const body = await request.json();
     const { amount, method = "USDT-TRC20", note } = body;
 
@@ -100,7 +105,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error("Affiliate payout request error:", error);
     return NextResponse.json(
-      { error: error?.message || "Failed to submit payout request" },
+      { error: error?.message || String(error) || "Failed to submit payout request" },
       { status: 500 }
     );
   }
