@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { affiliates, affiliateApplications } from "@/db/schema";
+import { affiliates, affiliateApplications, affiliatePayouts } from "@/db/schema";
 import { eq, inArray, sql } from "drizzle-orm";
 import { requireAdmin } from "@/lib/admin-auth";
+import { ensureAffiliateTablesExist } from "@/lib/ensure-affiliate-tables";
 
 export const dynamic = "force-dynamic";
 
@@ -11,16 +12,39 @@ export async function GET() {
   if (adminCheck) return adminCheck;
 
   try {
+    await ensureAffiliateTablesExist();
+
     const list = await db.select().from(affiliates).orderBy(affiliates.createdAt);
+    const payoutsList = await db.select().from(affiliatePayouts);
+
     let totalEarningsAll = 0;
-    let totalPendingPayoutAll = 0;
-    let totalPaidOutAll = 0;
+    let unrequestedBalanceAll = 0;
 
     list.forEach((a) => {
       totalEarningsAll += parseFloat(a.totalEarnings || "0");
-      totalPendingPayoutAll += parseFloat(a.pendingPayout || "0");
-      totalPaidOutAll += parseFloat(a.totalPaidOut || "0");
+      unrequestedBalanceAll += parseFloat(a.pendingPayout || "0");
     });
+
+    // 1. Pending Payouts = Sum of all payout requests where status = 'pending'
+    let pendingPayoutRequestsAll = 0;
+    // 2. Total Paid Out = Sum of all payout requests where status = 'completed' or 'paid'
+    let totalPaidOutAll = 0;
+
+    payoutsList.forEach((p) => {
+      const amt = parseFloat(p.amount || "0");
+      if (p.status === "pending") {
+        pendingPayoutRequestsAll += amt;
+      } else if (p.status === "completed" || p.status === "paid") {
+        totalPaidOutAll += amt;
+      }
+    });
+
+    // If no payout records exist yet, fallback to affiliates.totalPaidOut
+    if (totalPaidOutAll === 0) {
+      list.forEach((a) => {
+        totalPaidOutAll += parseFloat(a.totalPaidOut || "0");
+      });
+    }
 
     return NextResponse.json({
       success: true,
@@ -28,7 +52,8 @@ export async function GET() {
       stats: {
         totalAffiliates: list.length,
         totalEarningsAll: totalEarningsAll.toFixed(2),
-        totalPendingPayoutAll: totalPendingPayoutAll.toFixed(2),
+        totalPendingPayoutAll: pendingPayoutRequestsAll.toFixed(2),
+        unrequestedBalanceAll: unrequestedBalanceAll.toFixed(2),
         totalPaidOutAll: totalPaidOutAll.toFixed(2),
       },
     });
