@@ -17,6 +17,11 @@ export async function POST(request: NextRequest) {
     await ensureAffiliateTablesExist();
 
     const body = await request.json();
+
+    // 1. Anti-Bot Honeypot Defense
+    if (body.website_hp || body.fax_number || body.company_address_hp) {
+      return NextResponse.json({ success: true, message: "Application submitted successfully" });
+    }
     const {
       applicantName,
       email,
