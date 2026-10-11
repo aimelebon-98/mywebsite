@@ -20,7 +20,8 @@ import {
   Settings,
   ShieldCheck,
   ShieldAlert,
-  RotateCw,
+  Coins,
+  Clock,
 } from "lucide-react";
 import AffiliateNetworkPanel from "@/components/AffiliateNetworkPanel";
 
@@ -107,6 +108,7 @@ export default function AffiliatesManager() {
     totalAffiliates: 0,
     totalEarningsAll: "0.00",
     totalPendingPayoutAll: "0.00",
+    unrequestedBalanceAll: "0.00",
     totalPaidOutAll: "0.00",
   });
   const [overview, setOverview] = useState<any>(null);
@@ -333,13 +335,13 @@ export default function AffiliatesManager() {
     });
   };
 
-  const l1Amt = money(overview?.commissions?.level1?.amount);
+  const l1Amt = money(overview?.commissions?.level1?.amount || stats?.totalEarningsAll);
   const l2Amt = money(overview?.commissions?.level2?.amount);
   const l3Amt = money(overview?.commissions?.level3?.amount);
-  const l1Count = overview?.commissions?.level1?.count || 0;
+  const l1Count = overview?.commissions?.level1?.count || list.reduce((s, a) => s + (a.totalOrders || 0), 0);
   const l2Count = overview?.commissions?.level2?.count || 0;
   const l3Count = overview?.commissions?.level3?.count || 0;
-  const clicks30 = overview?.clicksLast30Days || 0;
+  const clicks30 = overview?.clicksLast30Days || list.reduce((s, a) => s + (a.totalClicks || 0), 0);
   const withParent = overview?.withParent || 0;
 
   return (
@@ -462,7 +464,7 @@ export default function AffiliatesManager() {
             Live
           </div>
         </div>
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
           <StatCard
             label="Affiliates"
             value={String(stats.totalAffiliates)}
@@ -473,16 +475,23 @@ export default function AffiliatesManager() {
           <StatCard
             label="Lifetime Earnings"
             value={`$${money(stats.totalEarningsAll)}`}
-            hint="All commissions earned"
+            hint="All commissions generated"
             icon={TrendingUp}
             tone="default"
           />
           <StatCard
-            label="Pending Payouts"
+            label="Pending Withdrawals"
             value={`$${money(stats.totalPendingPayoutAll)}`}
-            hint="Available for withdraw"
-            icon={Wallet}
+            hint="Awaiting payout approval"
+            icon={Clock}
             tone="amber"
+          />
+          <StatCard
+            label="Unrequested Balances"
+            value={`$${money(stats.unrequestedBalanceAll)}`}
+            hint="Unclaimed in affiliate wallets"
+            icon={Coins}
+            tone="sky"
           />
           <StatCard
             label="Total Paid Out"
@@ -712,7 +721,6 @@ export default function AffiliatesManager() {
                       {a.code}
                     </span>
                   </td>
-                  {/* Manual Active Override Toggle */}
                   <td className="px-4 py-3">
                     <button
                       type="button"
