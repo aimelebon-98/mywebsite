@@ -35,6 +35,7 @@ const PUBLIC_API_ROUTES = [
   "/api/store",
   "/api/subscriptions",
   "/api/affiliate",
+  "/api/cron",
   "/api/auth",
 ];
 
